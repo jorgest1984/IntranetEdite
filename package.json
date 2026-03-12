@@ -1,0 +1,6 @@
+{
+  "name": "intranet",
+  "version": "1.0.0",
+  "description": "Intranet deployment container",
+  "dependencies": {}
+}
