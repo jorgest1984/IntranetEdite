@@ -2,11 +2,11 @@
 // includes/config.php
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
-// Configuración de base de datos
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('DB_NAME', 'intranet_formacion');
+// Configuración de base de datos (con soporte para variables de entorno de Vercel)
+define('DB_HOST', getenv('DB_HOST') !== false ? getenv('DB_HOST') : 'localhost');
+define('DB_USER', getenv('DB_USER') !== false ? getenv('DB_USER') : 'root');
+define('DB_PASS', getenv('DB_PASS') !== false ? getenv('DB_PASS') : '');
+define('DB_NAME', getenv('DB_NAME') !== false ? getenv('DB_NAME') : 'intranet_formacion');
 
 // Conexión PDO
 try {
