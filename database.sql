@@ -49,7 +49,6 @@ CREATE TABLE IF NOT EXISTS `audit_log` (
   `user_agent` varchar(255) DEFAULT NULL,
   `fecha` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  KEY `fk_audit_usuario` (`usuario_id`),
   CONSTRAINT `fk_audit_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
