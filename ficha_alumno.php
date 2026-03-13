@@ -754,26 +754,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                         <div class="prof-form-row">
                             <label class="prof-form-label">Teléfono:</label>
-                            <input type="text" name="telefono" class="prof-form-input" style="flex: 1; border: none; border-bottom: 1px solid #d1d5db; color: #dc2626; font-weight: 600;" value="<?= htmlspecialchars($alumno['telefono']) ?>">
+                            <input type="text" name="telefono" class="prof-form-input" style="flex: 1; border: none; border-bottom: 1px solid #d1d5db; color: #dc2626; font-weight: 600;" value="<?= htmlspecialchars($alumno['telefono'] ?? '') ?>">
                         </div>
                         <div class="prof-form-row">
                             <label class="prof-form-label">Teléfono empresa:</label>
-                            <input type="text" name="telefono_empresa" class="prof-form-input" style="flex: 1; border: none; border-bottom: 1px solid #d1d5db; color: #dc2626; font-weight: 600;" value="<?= htmlspecialchars($alumno['telefono_empresa']) ?>">
+                            <input type="text" name="telefono_empresa" class="prof-form-input" style="flex: 1; border: none; border-bottom: 1px solid #d1d5db; color: #dc2626; font-weight: 600;" value="<?= htmlspecialchars($alumno['telefono_empresa'] ?? '') ?>">
                         </div>
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                         <div class="prof-form-row">
                             <label class="prof-form-label">E-mail:</label>
-                            <input type="email" name="email" class="prof-form-input" style="flex: 1; border: none; border-bottom: 1px solid #d1d5db; color: #dc2626; font-weight: 600;" value="<?= htmlspecialchars($alumno['email']) ?>">
+                            <input type="email" name="email" class="prof-form-input" style="flex: 1; border: none; border-bottom: 1px solid #d1d5db; color: #dc2626; font-weight: 600;" value="<?= htmlspecialchars($alumno['email'] ?? '') ?>">
                         </div>
                         <div class="prof-form-row">
                             <label class="prof-form-label">E-mail personal:</label>
-                            <input type="email" name="email_personal" class="prof-form-input" style="flex: 1; border: none; border-bottom: 1px solid #d1d5db; color: #dc2626; font-weight: 600;" value="<?= htmlspecialchars($alumno['email_personal']) ?>">
+                            <input type="email" name="email_personal" class="prof-form-input" style="flex: 1; border: none; border-bottom: 1px solid #d1d5db; color: #dc2626; font-weight: 600;" value="<?= htmlspecialchars($alumno['email_personal'] ?? '') ?>">
                         </div>
                         <div class="prof-form-row">
                             <label class="prof-form-label">Teams:</label>
-                            <input type="text" name="teams" class="prof-form-input" style="flex: 1; border: none; border-bottom: 1px solid #d1d5db; color: #dc2626; font-weight: 600;" value="<?= htmlspecialchars($alumno['teams']) ?>">
+                            <input type="text" name="teams" class="prof-form-input" style="flex: 1; border: none; border-bottom: 1px solid #d1d5db; color: #dc2626; font-weight: 600;" value="<?= htmlspecialchars($alumno['teams'] ?? '') ?>">
                         </div>
                     </div>
 
@@ -788,11 +788,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                         </div>
                         <div class="prof-form-row">
                             <label class="prof-form-label">Nacionalidad:</label>
-                            <input type="text" name="nacionalidad" class="prof-form-input" style="flex: 1; border: none; border-bottom: 1px solid #d1d5db; color: #dc2626; font-weight: 600;" value="<?= htmlspecialchars($alumno['nacionalidad']) ?>">
+                            <input type="text" name="nacionalidad" class="prof-form-input" style="flex: 1; border: none; border-bottom: 1px solid #d1d5db; color: #dc2626; font-weight: 600;" value="<?= htmlspecialchars($alumno['nacionalidad'] ?? '') ?>">
                         </div>
                         <div class="prof-form-row">
                             <label class="prof-form-label">Activo hasta:</label>
-                            <input type="text" name="activo_hasta" class="prof-form-input" style="flex: 1; border: none; border-bottom: 1px solid #d1d5db; color: #dc2626; font-weight: 600;" value="<?= htmlspecialchars($alumno['activo_hasta']) ?>">
+                            <input type="text" name="activo_hasta" class="prof-form-input" style="flex: 1; border: none; border-bottom: 1px solid #d1d5db; color: #dc2626; font-weight: 600;" value="<?= htmlspecialchars($alumno['activo_hasta'] ?? '') ?>">
                         </div>
                     </div>
 
@@ -806,7 +806,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 
                     <div class="info-section">
                         <label class="prof-form-label">Observaciones:</label>
-                        <textarea name="observaciones" class="prof-form-input" style="width: 100%; height: 80px; margin-top: 0.5rem; border: 1px solid #d1d5db;"><?= htmlspecialchars($alumno['observaciones']) ?></textarea>
+                        <textarea name="observaciones" class="prof-form-input" style="width: 100%; height: 80px; margin-top: 0.5rem; border: 1px solid #d1d5db;"><?= htmlspecialchars($alumno['observaciones'] ?? '') ?></textarea>
                     </div>
 
                     <div style="text-align: center; margin-top: 2rem;">
