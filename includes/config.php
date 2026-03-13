@@ -107,7 +107,7 @@ if ($is_local) {
 
     // Configuración para Producción (Vercel) usando el Puente
     // IMPORTANTE: Sube api_bridge.php a tu servidor y pon aquí la URL completa.
-    $bridge_url = 'https://grupoefp.es/api_bridge.php'; 
+    $bridge_url = 'https://gestion.grupoefp.es/api_bridge.php'; 
     $bridge_token = getenv('BRIDGE_TOKEN') ?: 'dbbea329538b1694971d7ee66cc3e4673'; // Configúralo en Vercel
 
     $pdo = new DBBridge($bridge_url, $bridge_token);
