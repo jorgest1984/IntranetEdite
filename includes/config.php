@@ -3,18 +3,34 @@
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
 // Configuración de base de datos (con soporte para variables de entorno de Vercel)
-define('DB_HOST', getenv('DB_HOST') !== false ? getenv('DB_HOST') : 'localhost');
-define('DB_USER', getenv('DB_USER') !== false ? getenv('DB_USER') : 'root');
-define('DB_PASS', getenv('DB_PASS') !== false ? getenv('DB_PASS') : '');
-define('DB_NAME', getenv('DB_NAME') !== false ? getenv('DB_NAME') : 'intranet_formacion');
+define('DB_HOST', getenv('DB_HOST') ?: 'grupoefp.es');
+define('DB_USER', getenv('DB_USER') ?: 'gestion.efp2026');
+define('DB_PASS', getenv('DB_PASS') ?: 'Oy0v?ggswFBr6d0~');
+define('DB_NAME', getenv('DB_NAME') ?: 'intranet_formacion');
+
+// Limpiar DB_HOST de posibles puertos duplicados y forzar TCP/IP
+$db_host = DB_HOST;
+if (strpos($db_host, ':') !== false) {
+    list($db_host, $db_port) = explode(':', $db_host);
+} else {
+    $db_port = '3306';
+}
+
+// Si es localhost, forzamos 127.0.0.1 para evitar el error de socket [2002]
+if ($db_host === 'localhost') {
+    $db_host = '127.0.0.1';
+}
 
 // Conexión PDO
 try {
-    $pdo = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4", DB_USER, DB_PASS);
+    $dsn = "mysql:host=$db_host;port=$db_port;dbname=" . DB_NAME . ";charset=utf8mb4";
+    $pdo = new PDO($dsn, DB_USER, DB_PASS);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    die("Error de conexión a la base de datos: " . $e->getMessage());
+    // V3: Añadimos versión para confirmar despliegue
+    $errorMsg = "DEBUG_V3 - Error de conexión (Host: $db_host, Port: $db_port): " . $e->getMessage();
+    die($errorMsg);
 }
 
 // Configuración de la aplicación
