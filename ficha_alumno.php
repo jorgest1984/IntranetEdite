@@ -618,7 +618,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg> 
                     Volver
                 </a>
-                <h1 style="margin:0; font-size: 1.5rem;"><?= htmlspecialchars($alumno['nombre'] . ' ' . $alumno['primer_apellido'] . ' ' . $alumno['segundo_apellido']) ?></h1>
+                <h1 style="margin:0; font-size: 1.5rem;"><?= htmlspecialchars(($alumno['nombre'] ?? '') . ' ' . ($alumno['primer_apellido'] ?? '') . ' ' . ($alumno['segundo_apellido'] ?? '')) ?></h1>
             </div>
             <div style="display: flex; gap: 0.5rem; align-items: center;">
                 <form method="POST" style="margin:0;">
@@ -692,26 +692,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.25rem; margin-bottom: 0.75rem;">
                         <div class="prof-form-row">
                             <label class="prof-form-label">Nombre:</label>
-                            <input type="text" name="nombre" class="prof-form-input" style="flex: 1; border: none; border-bottom: 1px solid #d1d5db; color: #dc2626; font-weight: 600;" value="<?= htmlspecialchars($alumno['nombre']) ?>">
+                            <input type="text" name="nombre" class="prof-form-input" style="flex: 1; border: none; border-bottom: 1px solid #d1d5db; color: #dc2626; font-weight: 600;" value="<?= htmlspecialchars($alumno['nombre'] ?? '') ?>">
                         </div>
                         <div class="prof-form-row">
                             <label class="prof-form-label">Primer apellido:</label>
-                            <input type="text" name="primer_apellido" class="prof-form-input" style="flex: 1; border: none; border-bottom: 1px solid #d1d5db; color: #dc2626; font-weight: 600;" value="<?= htmlspecialchars($alumno['primer_apellido']) ?>">
+                            <input type="text" name="primer_apellido" class="prof-form-input" style="flex: 1; border: none; border-bottom: 1px solid #d1d5db; color: #dc2626; font-weight: 600;" value="<?= htmlspecialchars($alumno['primer_apellido'] ?? '') ?>">
                         </div>
                         <div class="prof-form-row">
                             <label class="prof-form-label">Segundo apellido:</label>
-                            <input type="text" name="segundo_apellido" class="prof-form-input" style="flex: 1; border: none; border-bottom: 1px solid #d1d5db; color: #dc2626; font-weight: 600;" value="<?= htmlspecialchars($alumno['segundo_apellido']) ?>">
+                            <input type="text" name="segundo_apellido" class="prof-form-input" style="flex: 1; border: none; border-bottom: 1px solid #d1d5db; color: #dc2626; font-weight: 600;" value="<?= htmlspecialchars($alumno['segundo_apellido'] ?? '') ?>">
                         </div>
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                         <div class="prof-form-row">
                             <label class="prof-form-label">Seguridad Social:</label>
-                            <input type="text" name="seguridad_social" class="prof-form-input" style="flex: 1; border: none; border-bottom: 1px solid #d1d5db; color: #dc2626; font-weight: 600;" value="<?= htmlspecialchars($alumno['seguridad_social']) ?>">
+                            <input type="text" name="seguridad_social" class="prof-form-input" style="flex: 1; border: none; border-bottom: 1px solid #d1d5db; color: #dc2626; font-weight: 600;" value="<?= htmlspecialchars($alumno['seguridad_social'] ?? '') ?>">
                         </div>
                         <div class="prof-form-row">
                             <label class="prof-form-label">Cuenta Bancaria:</label>
-                            <input type="text" name="cuenta_bancaria" class="prof-form-input" style="flex: 1; border: none; border-bottom: 1px solid #d1d5db; color: #dc2626; font-weight: 600;" value="<?= htmlspecialchars($alumno['cuenta_bancaria']) ?>">
+                            <input type="text" name="cuenta_bancaria" class="prof-form-input" style="flex: 1; border: none; border-bottom: 1px solid #d1d5db; color: #dc2626; font-weight: 600;" value="<?= htmlspecialchars($alumno['cuenta_bancaria'] ?? '') ?>">
                         </div>
                     </div>
 
