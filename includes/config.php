@@ -11,7 +11,7 @@ if ($is_local) {
     define('DB_PASS', '');
     define('DB_NAME', 'intranet_formacion');
 } else {
-    define('DB_HOST', getenv('DB_HOST') ?: 'grupoefp.es');
+    define('DB_HOST', getenv('DB_HOST') ?: '81.43.76.167');
     define('DB_USER', getenv('DB_USER') ?: 'gestion.efp2026');
     define('DB_PASS', getenv('DB_PASS') ?: 'Oy0v?ggswFBr6d0~');
     define('DB_NAME', getenv('DB_NAME') ?: 'intranet_formacion');
