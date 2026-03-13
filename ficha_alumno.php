@@ -210,7 +210,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         $params = [];
         foreach($fields as $f) {
             $set[] = "$f = ?";
-            $params[] = $_POST[$f] ?? null;
+            $val = $_POST[$f] ?? null;
+            $params[] = ($val === '') ? null : $val;
         }
         $params[] = $id;
         
@@ -255,7 +256,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && isset($cv
         $fields = $act['fields'];
         $sql = "INSERT INTO " . $act['table'] . " (profesor_id, " . implode(', ', $fields) . ") VALUES (?, " . implode(', ', array_fill(0, count($fields), '?')) . ")";
         $params = [$id];
-        foreach($fields as $f) $params[] = $_POST[$f] ?? null;
+        foreach($fields as $f) {
+            $val = $_POST[$f] ?? null;
+            $params[] = ($val === '') ? null : $val;
+        }
         $st = $pdo->prepare($sql);
         $st->execute($params);
         
