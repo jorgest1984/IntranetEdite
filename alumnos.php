@@ -306,14 +306,14 @@ $alumnosList = $stmt->fetchAll();
                             <?php else: ?>
                                 <?php foreach ($alumnosList as $alumno): ?>
                                 <tr>
-                                    <td style="font-weight: 500;"><?= htmlspecialchars($alumno['dni']) ?></td>
+                                    <td style="font-weight: 500;"><?= htmlspecialchars($alumno['dni'] ?? '') ?></td>
                                     <td>
-                                        <div style="font-weight: 600; color: var(--text-color);"><?= htmlspecialchars($alumno['primer_apellido'] . ' ' . $alumno['segundo_apellido']) ?>,</div>
-                                        <div style="font-size: 0.85rem; color: var(--text-muted);"><?= htmlspecialchars($alumno['nombre']) ?></div>
+                                        <div style="font-weight: 600; color: var(--text-color);"><?= htmlspecialchars(($alumno['primer_apellido'] ?? '') . ' ' . ($alumno['segundo_apellido'] ?? '')) ?>,</div>
+                                        <div style="font-size: 0.85rem; color: var(--text-muted);"><?= htmlspecialchars($alumno['nombre'] ?? '') ?></div>
                                     </td>
                                     <td>
-                                        <div style="font-size: 0.85rem;"><?= htmlspecialchars($alumno['email']) ?></div>
-                                        <div style="font-size: 0.8rem; color: var(--text-muted);"><?= htmlspecialchars($alumno['telefono']) ?></div>
+                                        <div style="font-size: 0.85rem;"><?= htmlspecialchars($alumno['email'] ?? '') ?></div>
+                                        <div style="font-size: 0.8rem; color: var(--text-muted);"><?= htmlspecialchars($alumno['telefono'] ?? '') ?></div>
                                     </td>
                                     <td>
                                         <?php if ($alumno['moodle_user_id']): ?>
