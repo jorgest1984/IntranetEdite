@@ -209,7 +209,7 @@ $alumnosList = $stmt->fetchAll();
     <main class="main-content">
         <header class="page-header">
             <div class="page-title">
-                <h1>Gestión de Alumnos</h1>
+                <h1>Gestión de Alumnos <small style="font-size: 0.6rem; color: #ccc;">[v1.0.1-fixed]</small></h1>
                 <p>Base de datos centralizada y Sincronización Moodle</p>
             </div>
         </header>
@@ -306,14 +306,14 @@ $alumnosList = $stmt->fetchAll();
                             <?php else: ?>
                                 <?php foreach ($alumnosList as $alumno): ?>
                                 <tr>
-                                    <td style="font-weight: 500;"><?= htmlspecialchars($alumno['dni'] ?? '') ?></td>
+                                    <td style="font-weight: 500;"><?= htmlspecialchars((string)($alumno['dni'] ?? '')) ?></td>
                                     <td>
-                                        <div style="font-weight: 600; color: var(--text-color);"><?= htmlspecialchars(($alumno['primer_apellido'] ?? '') . ' ' . ($alumno['segundo_apellido'] ?? '')) ?>,</div>
-                                        <div style="font-size: 0.85rem; color: var(--text-muted);"><?= htmlspecialchars($alumno['nombre'] ?? '') ?></div>
+                                        <div style="font-weight: 600; color: var(--text-color);"><?= htmlspecialchars((string)(($alumno['primer_apellido'] ?? '') . ' ' . ($alumno['segundo_apellido'] ?? ''))) ?>,</div>
+                                        <div style="font-size: 0.85rem; color: var(--text-muted);"><?= htmlspecialchars((string)($alumno['nombre'] ?? '')) ?></div>
                                     </td>
                                     <td>
-                                        <div style="font-size: 0.85rem;"><?= htmlspecialchars($alumno['email'] ?? '') ?></div>
-                                        <div style="font-size: 0.8rem; color: var(--text-muted);"><?= htmlspecialchars($alumno['telefono'] ?? '') ?></div>
+                                        <div style="font-size: 0.85rem;"><?= htmlspecialchars((string)($alumno['email'] ?? '')) ?></div>
+                                        <div style="font-size: 0.8rem; color: var(--text-muted);"><?= htmlspecialchars((string)($alumno['telefono'] ?? '')) ?></div>
                                     </td>
                                     <td>
                                         <?php if ($alumno['moodle_user_id']): ?>
