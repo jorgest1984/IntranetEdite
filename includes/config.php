@@ -6,41 +6,102 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 $is_local = in_array($_SERVER['HTTP_HOST'] ?? '', ['localhost', '127.0.0.1', 'localhost:8000', 'localhost:3000']);
 
 if ($is_local) {
+    // Configuración Local (XAMPP/WAMP)
     define('DB_HOST', 'localhost');
     define('DB_USER', 'root');
     define('DB_PASS', '');
     define('DB_NAME', 'intranet_formacion');
-} else {
-    define('DB_HOST', getenv('DB_HOST') ?: '81.43.76.167');
-    define('DB_USER', getenv('DB_USER') ?: 'gestion.efp2026');
-    define('DB_PASS', getenv('DB_PASS') ?: 'Oy0v?ggswFBr6d0~');
-    define('DB_NAME', getenv('DB_NAME') ?: 'intranet_formacion');
-}
-
-// Limpiar DB_HOST de posibles puertos duplicados y forzar TCP/IP
-$db_host = DB_HOST;
-$db_port = '3306';
-if (strpos($db_host, ':') !== false) {
-    list($db_host, $db_port) = explode(':', $db_host);
-}
-
-// Si es localhost en entorno no-local (Vercel), forzamos 127.0.0.1
-if ($db_host === 'localhost' && !$is_local) {
-    $db_host = '127.0.0.1';
-}
-
-// Conexión PDO
-try {
-    $dsn = "mysql:host=$db_host;port=$db_port;dbname=" . DB_NAME . ";charset=utf8mb4";
-    $pdo = new PDO($dsn, DB_USER, DB_PASS);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    if ($is_local) {
-        die("Error de conexión LOCAL: " . $e->getMessage() . ". Asegúrate de que XAMPP esté encendido y que la base de datos 'intranet_formacion' esté creada.");
-    } else {
-        die("Error de conexión de PRODUCCIÓN: " . $e->getMessage());
+    
+    try {
+        $pdo = new PDO("mysql:host=".DB_HOST.";dbname=".DB_NAME.";charset=utf8mb4", DB_USER, DB_PASS);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        die("Error de conexión LOCAL: " . $e->getMessage());
     }
+} else {
+    /**
+     * Clase DBBridge - Simula PDO a través de un puente HTTP
+     * Esto evita abrir el puerto 3306.
+     */
+    class DBBridge {
+        private $bridge_url;
+        private $token;
+        public $lastInsertId = null;
+
+        public function __construct($url, $token) {
+            $this->bridge_url = $url;
+            $this->token = $token;
+        }
+
+        public function prepare($sql) { return new BridgeStatement($this->bridge_url, $this->token, $sql, $this); }
+        
+        public function query($sql) {
+            $stmt = $this->prepare($sql);
+            $stmt->execute();
+            return $stmt;
+        }
+
+        public function lastInsertId() { return $this->lastInsertId; }
+        
+        // Métodos vacíos para compatibilidad simple
+        public function setAttribute($a, $b) {}
+        public function beginTransaction() {}
+        public function commit() {}
+        public function rollBack() {}
+    }
+
+    class BridgeStatement {
+        private $url;
+        private $token;
+        private $sql;
+        private $data = [];
+        private $parent;
+
+        public function __construct($url, $token, $sql, $parent) {
+            $this->url = $url;
+            $this->token = $token;
+            $this->sql = $sql;
+            $this->parent = $parent;
+        }
+
+        public function execute($params = []) {
+            $post = [
+                'token' => $this->token,
+                'sql' => $this->sql,
+                'params' => json_encode($params),
+                'action' => (preg_match('/^\s*(SELECT|SHOW|DESCRIBE|EXPLAIN)/i', $this->sql)) ? 'query' : 'execute'
+            ];
+
+            $ch = curl_init($this->url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
+            $response = curl_exec($ch);
+            curl_close($ch);
+
+            $result = json_decode($response, true);
+            if (isset($result['error'])) {
+                die("Error de Bridge: " . $result['error']);
+            }
+            
+            $this->data = $result['data'] ?? [];
+            if (isset($result['last_insert_id'])) {
+                $this->parent->lastInsertId = $result['last_insert_id'];
+            }
+            return true;
+        }
+
+        public function fetchAll() { return $this->data; }
+        public function fetch() { return array_shift($this->data); }
+        public function rowCount() { return count($this->data); }
+    }
+
+    // Configuración para Producción (Vercel) usando el Puente
+    // IMPORTANTE: Sube api_bridge.php a tu servidor y pon aquí la URL completa.
+    $bridge_url = 'https://grupoefp.es/api_bridge.php'; 
+    $bridge_token = getenv('BRIDGE_TOKEN') ?: 'dbbea329538b1694971d7ee66cc3e4673'; // Configúralo en Vercel
+
+    $pdo = new DBBridge($bridge_url, $bridge_token);
 }
 
 // Configuración de la aplicación
