@@ -237,4 +237,22 @@ CREATE TABLE IF NOT EXISTS `empleado_perfiles` (
   PRIMARY KEY (`alumno_id`, `perfil`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- 5. Módulo de Empresas / Centros de Impartición
+CREATE TABLE IF NOT EXISTS `empresas` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(255) NOT NULL,
+  `cif` varchar(20) DEFAULT NULL,
+  `email` varchar(150) DEFAULT NULL,
+  `telefono` varchar(20) DEFAULT NULL,
+  `localidad` varchar(100) DEFAULT NULL,
+  `provincia` varchar(100) DEFAULT NULL,
+  `contacto_nombre` varchar(150) DEFAULT NULL,
+  `contacto_telefono` varchar(20) DEFAULT NULL,
+  `es_vigilante` tinyint(1) DEFAULT 0,
+  `creado_en` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_emp_nombre` (`nombre`),
+  KEY `idx_emp_provincia` (`provincia`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 SET FOREIGN_KEY_CHECKS = 1;
