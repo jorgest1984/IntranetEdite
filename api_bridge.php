@@ -17,6 +17,19 @@ define('LOCAL_DB_PASS', 'Oy0v?ggswFBr6d0~');
 
 // --- LÓGICA DEL PUENTE ---
 
+// --- MANEJO DE ERRORES GLOBAL ---
+set_error_handler(function($errno, $errstr, $errfile, $errline) {
+    echo json_encode(['error' => "PHP Error [$errno]: $errstr in $errfile on line $errline"]);
+    exit;
+});
+
+register_shutdown_function(function() {
+    $error = error_get_last();
+    if ($error !== NULL && ($error['type'] === E_ERROR || $error['type'] === E_PARSE)) {
+        echo json_encode(['error' => "PHP Fatal Error: " . $error['message'] . " in " . $error['file'] . " on line " . $error['line']]);
+    }
+});
+
 header('Content-Type: application/json');
 
 // 1. Validar Método
@@ -27,12 +40,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // 2. Validar Token
-$headers = getallheaders();
-$provided_token = $headers['X-Bridge-Token'] ?? $_POST['token'] ?? '';
+$headers = function_exists('getallheaders') ? getallheaders() : [];
+$provided_token = $headers['X-Bridge-Token'] ?? $headers['x-bridge-token'] ?? $_POST['token'] ?? '';
 
 if ($provided_token !== BRIDGE_SECRET_KEY) {
     http_response_code(403);
-    echo json_encode(['error' => 'Forbidden: Invalid Token', 'debug' => 'Ensure tokens match']);
+    echo json_encode(['error' => 'Forbidden: Invalid Token']);
     exit;
 }
 
