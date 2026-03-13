@@ -1,5 +1,6 @@
 <?php
 // debug_login_bridge.php
+chdir(__DIR__ . '/..');
 require_once 'includes/config.php';
 
 $username = 'admin';
