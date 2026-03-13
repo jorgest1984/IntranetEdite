@@ -14,7 +14,19 @@ try {
     $user = $stmt->fetch();
 
     if (!$user) {
-        echo "❌ ERROR: Usuario '$username' no encontrado en la base de datos.\n";
+        echo "❌ ERROR: Usuario '$username' no encontrado o tabla 'usuarios' no existe.\n";
+        
+        echo "\nListando tablas disponibles en la base de datos:\n";
+        $stmt_tables = $pdo->query("SHOW TABLES");
+        $tables = $stmt_tables->fetchAll();
+        
+        if (empty($tables)) {
+            echo "⚠️ La base de datos está VACÍA.\n";
+        } else {
+            foreach ($tables as $table) {
+                echo "- " . current($table) . "\n";
+            }
+        }
     } else {
         echo "✅ Usuario encontrado.\n";
         echo "Username en DB: " . $user['username'] . "\n";
