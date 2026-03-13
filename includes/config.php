@@ -2,22 +2,30 @@
 // includes/config.php
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
-// Configuración de base de datos (con soporte para variables de entorno de Vercel)
-define('DB_HOST', getenv('DB_HOST') ?: 'grupoefp.es');
-define('DB_USER', getenv('DB_USER') ?: 'gestion.efp2026');
-define('DB_PASS', getenv('DB_PASS') ?: 'Oy0v?ggswFBr6d0~');
-define('DB_NAME', getenv('DB_NAME') ?: 'intranet_formacion');
+// Detección de entorno (Local vs Producción)
+$is_local = in_array($_SERVER['HTTP_HOST'] ?? '', ['localhost', '127.0.0.1', 'localhost:8000', 'localhost:3000']);
+
+if ($is_local) {
+    define('DB_HOST', 'localhost');
+    define('DB_USER', 'root');
+    define('DB_PASS', '');
+    define('DB_NAME', 'intranet_formacion');
+} else {
+    define('DB_HOST', getenv('DB_HOST') ?: 'grupoefp.es');
+    define('DB_USER', getenv('DB_USER') ?: 'gestion.efp2026');
+    define('DB_PASS', getenv('DB_PASS') ?: 'Oy0v?ggswFBr6d0~');
+    define('DB_NAME', getenv('DB_NAME') ?: 'intranet_formacion');
+}
 
 // Limpiar DB_HOST de posibles puertos duplicados y forzar TCP/IP
 $db_host = DB_HOST;
+$db_port = '3306';
 if (strpos($db_host, ':') !== false) {
     list($db_host, $db_port) = explode(':', $db_host);
-} else {
-    $db_port = '3306';
 }
 
-// Si es localhost, forzamos 127.0.0.1 para evitar el error de socket [2002]
-if ($db_host === 'localhost') {
+// Si es localhost en entorno no-local (Vercel), forzamos 127.0.0.1
+if ($db_host === 'localhost' && !$is_local) {
     $db_host = '127.0.0.1';
 }
 
@@ -28,9 +36,11 @@ try {
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    // V3: Añadimos versión para confirmar despliegue
-    $errorMsg = "DEBUG_V3 - Error de conexión (Host: $db_host, Port: $db_port): " . $e->getMessage();
-    die($errorMsg);
+    if ($is_local) {
+        die("Error de conexión LOCAL: " . $e->getMessage() . ". Asegúrate de que XAMPP esté encendido y que la base de datos 'intranet_formacion' esté creada.");
+    } else {
+        die("Error de conexión de PRODUCCIÓN: " . $e->getMessage());
+    }
 }
 
 // Configuración de la aplicación
