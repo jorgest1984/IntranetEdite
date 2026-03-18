@@ -1,0 +1,8 @@
+Este archivo es necesario para que la carpeta `docs/` exista en el repositorio Git.
+Sube aquí los PDFs corporativos y enlázalos desde edite_formacion.php
+
+Ejemplo de archivos esperados:
+- manual_bienvenida.pdf
+- codigo_conducta.pdf
+- medidas_conciliacion.pdf
+- politica_calidad.pdf

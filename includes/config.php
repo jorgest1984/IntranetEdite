@@ -1,6 +1,5 @@
 <?php
 // includes/config.php
-if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
 // Detección de entorno (Local vs Producción)
 $is_local = in_array($_SERVER['HTTP_HOST'] ?? '', ['localhost', '127.0.0.1', 'localhost:8000', 'localhost:3000']);
@@ -77,6 +76,7 @@ if ($is_local) {
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
             curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Fix XAMPP SSL cert issues
             $response = curl_exec($ch);
             
             if ($response === false) {
@@ -112,6 +112,11 @@ if ($is_local) {
 
     $pdo = new DBBridge($bridge_url, $bridge_token);
 }
+
+// Inicializar Manejador de Sesiones en Base de Datos
+require_once __DIR__ . '/SessionHandlerDB.php';
+session_set_save_handler(new SessionHandlerDB($pdo), true);
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
 // Configuración de la aplicación
 define('APP_NAME', 'Intranet Formación');
