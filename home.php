@@ -31,8 +31,8 @@ $sections = [
         ['title' => 'Informática', 'icon' => '<svg viewBox="0 0 24 24"><path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z"/></svg>', 'url' => '#', 'color' => 'red']
     ],
     'Sitios y aplicaciones' => [
-        ['title' => 'Web Edite Formación', 'icon' => '<svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>', 'url' => '#', 'color' => 'red', 'external' => true],
-        ['title' => 'Webmail', 'icon' => '<svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>', 'url' => '#', 'color' => 'red', 'external' => true],
+        ['title' => 'Web Edite Formación', 'icon' => '<svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>', 'url' => 'https://escueladeformacionprofesional.com/', 'color' => 'red', 'external' => true],
+        ['title' => 'Webmail', 'icon' => '<svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>', 'url' => 'https://webmail.grupoefp.es/SOGo/', 'color' => 'red', 'external' => true],
         ['title' => 'NAS', 'icon' => '<svg viewBox="0 0 24 24"><path d="M2 20h20v-4H2v4zm2-3h2v2H4v-2zM2 4v4h20V4H2zm4 3H4V5h2v2zm-4 7h20v-4H2v4zm2-3h2v2H4v-2z"/></svg>', 'url' => '#', 'color' => 'red', 'external' => true],
         ['title' => 'Synology Drive', 'icon' => '<svg viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2zm0 3.99L18.53 19H5.47L12 5.99z"/></svg>', 'url' => '#', 'color' => 'red', 'external' => true],
         ['title' => 'FTP NAS Backup', 'icon' => '<svg viewBox="0 0 24 24"><path d="M15 13l-4 4-4-4h3V4h2v9h3zm4-2v6H5v-6H3v8h18v-8h-2z"/></svg>', 'url' => '#', 'color' => 'red', 'external' => true],
