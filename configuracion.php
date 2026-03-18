@@ -1,6 +1,5 @@
 <?php
 // configuracion.php
-session_start();
 require_once 'includes/auth.php';
 
 if (!has_permission([ROLE_ADMIN])) {

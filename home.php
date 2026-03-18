@@ -1,6 +1,5 @@
 <?php
 // home.php
-session_start();
 require_once 'includes/auth.php'; // Verifica login y permisos
 
 // Define los módulos de la página de inicio

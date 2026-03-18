@@ -1,6 +1,5 @@
 <?php
 // generar_certificado.php
-session_start();
 require_once 'includes/auth.php';
 require_once 'includes/config.php';
 

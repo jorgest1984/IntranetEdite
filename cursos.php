@@ -1,6 +1,5 @@
 <?php
 // cursos.php
-session_start();
 require_once 'includes/auth.php';
 require_once 'includes/moodle_api.php';
 

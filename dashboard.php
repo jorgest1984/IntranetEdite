@@ -1,6 +1,5 @@
 <?php
 // dashboard.php
-session_start();
 require_once 'includes/auth.php'; // Incluye config.php y verifica login
 
 // Obtener estadísticas rápidas (simuladas por ahora, luego se conectarán a DB/Moodle)

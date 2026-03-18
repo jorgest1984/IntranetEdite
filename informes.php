@@ -1,6 +1,5 @@
 <?php
 // informes.php
-session_start();
 require_once 'includes/auth.php';
 
 // Formadores no tienen acceso a esta parte por norma ISO 27001 (datos globales)

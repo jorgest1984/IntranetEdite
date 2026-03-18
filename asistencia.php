@@ -1,6 +1,5 @@
 <?php
 // asistencia.php
-session_start();
 require_once 'includes/auth.php';
 
 // Formadores pueden entrar para pasar lista

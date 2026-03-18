@@ -113,10 +113,12 @@ if ($is_local) {
     $pdo = new DBBridge($bridge_url, $bridge_token);
 }
 
-// Inicializar Manejador de Sesiones en Base de Datos
+// Inicializar Manejador de Sesiones en Base de Datos (debe hacerse ANTES de session_start)
 require_once __DIR__ . '/SessionHandlerDB.php';
-session_set_save_handler(new SessionHandlerDB($pdo), true);
-if (session_status() === PHP_SESSION_NONE) { session_start(); }
+if (session_status() === PHP_SESSION_NONE) {
+    session_set_save_handler(new SessionHandlerDB($pdo), true);
+    session_start();
+}
 
 // Configuración de la aplicación
 define('APP_NAME', 'Intranet Formación');
