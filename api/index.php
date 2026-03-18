@@ -41,7 +41,9 @@ if (file_exists($file) && is_file($file)) {
         'jpg' => 'image/jpeg',
         'jpeg' => 'image/jpeg',
         'json' => 'application/json',
-        'svg' => 'image/svg+xml'
+        'svg' => 'image/svg+xml',
+        'pdf' => 'application/pdf',
+        'txt' => 'text/plain'
     ];
     if (isset($mimes[$ext])) {
         header('Content-Type: ' . $mimes[$ext]);
