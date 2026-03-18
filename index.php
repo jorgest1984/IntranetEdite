@@ -5,9 +5,9 @@ require_once 'includes/config.php';
 
 $error = '';
 
-// Si ya está logueado, redirigir al dashboard
+// Si ya está logueado, redirigir al home
 if (isset($_SESSION['user_id'])) {
-    header("Location: dashboard.php");
+    header("Location: home.php");
     exit();
 }
 
@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                 // Registrar log de auditoría (ISO 27001)
                 audit_log($pdo, 'LOGIN_SUCCESS', 'sesion', $user['id'], null, ['ip' => $_SERVER['REMOTE_ADDR']]);
                 
-                header("Location: dashboard.php");
+                header("Location: home.php");
                 exit();
                 
             } else {

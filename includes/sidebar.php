@@ -23,9 +23,15 @@ $current_page = basename($_SERVER['PHP_SELF']);
     
     <ul class="sidebar-menu">
         <li>
+            <a href="home.php" class="<?= $current_page == 'home.php' ? 'active' : '' ?>">
+                <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                Inicio
+            </a>
+        </li>
+        <li>
             <a href="dashboard.php" class="<?= $current_page == 'dashboard.php' ? 'active' : '' ?>">
                 <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
-                Inicio
+                Formación
             </a>
         </li>
         <li>

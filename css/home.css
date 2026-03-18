@@ -1,0 +1,111 @@
+/* css/home.css */
+.home-container {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.home-section {
+    margin-bottom: 3rem;
+}
+
+.home-section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tiles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+.tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem 1rem;
+    border-radius: 8px;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.2s ease-in-out;
+    min-height: 120px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.tile:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.tile-icon {
+    width: 32px;
+    height: 32px;
+    margin-bottom: 0.75rem;
+    fill: currentColor;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tile-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.tile-title {
+    font-size: 0.95rem;
+    font-weight: 500;
+    line-height: 1.3;
+}
+
+/* Colors based on the corporate theme */
+.tile-red {
+    background-color: var(--primary-color); /* Rojo principal */
+    color: white;
+}
+
+.tile-red:hover {
+    background-color: var(--primary-hover); /* Rojo más oscuro al poner el ratón encima */
+}
+
+.tile-black {
+    background-color: #1e293b; /* Texto casi negro / slate oscuro */
+    color: white;
+}
+
+.tile-black:hover {
+    background-color: #0f172a;
+}
+
+/* External link indicator */
+.tile-external-icon {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 14px;
+    height: 14px;
+    opacity: 0.7;
+    fill: currentColor;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .tiles-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    }
+    .tile {
+        min-height: 100px;
+        padding: 1rem 0.5rem;
+    }
+    .tile-title {
+        font-size: 0.85rem;
+    }
+}
