@@ -1,5 +1,6 @@
 <?php
 // includes/SessionHandlerDB.php
+// Compatble con PHP 7.x y PHP 8.x
 
 class SessionHandlerDB implements SessionHandlerInterface {
     private $pdo;
@@ -8,15 +9,21 @@ class SessionHandlerDB implements SessionHandlerInterface {
         $this->pdo = $pdo;
     }
 
-    public function open(string $path, string $name): bool {
+    public function open($path, $name) {
+        // Crear la tabla si no existe (auto-setup para producción)
+        $this->pdo->query("CREATE TABLE IF NOT EXISTS sessions (
+            id VARCHAR(128) NOT NULL PRIMARY KEY,
+            data TEXT NOT NULL,
+            last_accessed TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )");
         return true;
     }
 
-    public function close(): bool {
+    public function close() {
         return true;
     }
 
-    public function read(string $id): string|false {
+    public function read($id) {
         $stmt = $this->pdo->prepare("SELECT data FROM sessions WHERE id = ?");
         $stmt->execute([$id]);
         $row = $stmt->fetch();
@@ -26,22 +33,20 @@ class SessionHandlerDB implements SessionHandlerInterface {
         return '';
     }
 
-    public function write(string $id, string $data): bool {
-        // En MySQL/MariaDB usamos REPLACE INTO si id es PRIMARY KEY o UNIQUE.
-        // Nos aseguramos de mantener un log de acceso para el Garbaje Collector.
+    public function write($id, $data) {
         $stmt = $this->pdo->prepare("REPLACE INTO sessions (id, data, last_accessed) VALUES (?, ?, NOW())");
         return $stmt->execute([$id, $data]);
     }
 
-    public function destroy(string $id): bool {
+    public function destroy($id) {
         $stmt = $this->pdo->prepare("DELETE FROM sessions WHERE id = ?");
         return $stmt->execute([$id]);
     }
 
-    public function gc(int $max_lifetime): int|false {
+    public function gc($max_lifetime) {
         $stmt = $this->pdo->prepare("DELETE FROM sessions WHERE last_accessed < DATE_SUB(NOW(), INTERVAL ? SECOND)");
         if ($stmt->execute([$max_lifetime])) {
-            return $stmt->rowCount() ?? true;
+            return $stmt->rowCount() ?: true;
         }
         return false;
     }
