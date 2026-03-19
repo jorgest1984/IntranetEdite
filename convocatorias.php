@@ -13,10 +13,10 @@ $success = '';
 // Procesar formulario de nueva convocatoria
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && has_permission([ROLE_ADMIN, ROLE_COORD])) {
     if ($_POST['action'] == 'create') {
-        $codigo = trim($_POST['codigo_expediente']);
-        $nombre = trim($_POST['nombre']);
-        $tipo = trim($_POST['tipo']);
-        $organismo = trim($_POST['organismo']);
+        $codigo = trim($_POST['codigo_expediente'] ?? '');
+        $nombre = trim($_POST['nombre'] ?? '');
+        $tipo = trim($_POST['tipo'] ?? '');
+        $organismo = trim($_POST['organismo'] ?? '');
         $presupuesto = empty($_POST['presupuesto']) ? null : floatval($_POST['presupuesto']);
         
         if (empty($codigo) || empty($nombre) || empty($tipo)) {
@@ -236,7 +236,7 @@ function getBadgeClass($estado) {
                                         Actas de evaluación
                                     </a>
                                     <div class="action-icons">
-                                        <a href="#" class="icon-btn icon-edit" title="Editar">
+                                        <a href="editar_convocatoria.php?id=<?= $conv['id'] ?>" class="icon-btn icon-edit" title="Editar">
                                             <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
                                         </a>
                                         <a href="#" class="icon-btn icon-delete" title="Eliminar">
