@@ -147,7 +147,7 @@ if (isset($_GET['success'])) $success = "Plan guardado correctamente.";
         <header class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
             <div class="page-title">
                 <h1 style="color: #8e1d52; font-size: 1.5rem; font-weight: 700; text-transform: uppercase;">Ficha Planes de Formación</h1>
-                <p style="color: #64748b; margin-top: 0.25rem;">Convocatoria: <?= htmlspecialchars($convocatoria['nombre']) ?> (<?= htmlspecialchars($convocatoria['anio']) ?>)</p>
+                <p style="color: #64748b; margin-top: 0.25rem;">Convocatoria: <?= htmlspecialchars($convocatoria['nombre'] ?? '') ?> (<?= htmlspecialchars($convocatoria['anio'] ?? '') ?>)</p>
             </div>
             <div class="btn-header">
                 <a href="editar_convocatoria.php?id=<?= $conv_id ?>" class="btn-back">Cancelar y Volver</a>
@@ -175,7 +175,7 @@ if (isset($_GET['success'])) $success = "Plan guardado correctamente.";
 
                     <div class="form-group">
                         <label class="form-label">Año Conv.:</label>
-                        <input type="text" name="anio_convocatoria" class="form-control" value="<?= htmlspecialchars($plan['anio_convocatoria'] ?? $convocatoria['anio']) ?>">
+                        <input type="text" name="anio_convocatoria" class="form-control" value="<?= htmlspecialchars(($plan['anio_convocatoria'] ?? $convocatoria['anio']) ?? '') ?>">
                     </div>
 
                     <div class="form-group half-width">

@@ -110,7 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         <header class="page-header" style="margin-bottom: 2rem;">
             <div class="page-title">
                 <h1>Editar Convocatoria</h1>
-                <p><?= htmlspecialchars($convocatoria['nombre']) ?></p>
+                <p><?= htmlspecialchars($convocatoria['nombre'] ?? '') ?></p>
             </div>
             <a href="convocatorias.php" class="btn btn-neutral" style="border: 1px solid #ccc; padding: 0.5rem 1rem; text-decoration: none; border-radius: 4px; color: #666;">Volver al listado</a>
         </header>
@@ -125,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                 <div class="form-row">
                     <label class="form-label">Convocatoria</label>
                     <div class="form-input-container">
-                        <input type="text" name="nombre" class="form-control" value="<?= htmlspecialchars($convocatoria['nombre']) ?>">
+                        <input type="text" name="nombre" class="form-control" value="<?= htmlspecialchars($convocatoria['nombre'] ?? '') ?>">
                         <div class="input-hint">Nombre de la convocatoria</div>
                     </div>
                 </div>
@@ -254,8 +254,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                     <?php else: ?>
                         <?php foreach ($planes as $plan): ?>
                         <tr>
-                            <td><?= htmlspecialchars($plan['codigo']) ?></td>
-                            <td><a href="#" style="color: #006ce4; text-decoration: none;"><?= htmlspecialchars($plan['nombre']) ?></a></td>
+                            <td><?= htmlspecialchars($plan['codigo'] ?? '') ?></td>
+                            <td><a href="#" style="color: #006ce4; text-decoration: none;"><?= htmlspecialchars($plan['nombre'] ?? '') ?></a></td>
                             <td><?= $plan['activo'] ? 'SÍ' : 'NO' ?></td>
                             <td style="text-align: right;">
                                 <a href="editar_plan.php?id=<?= $plan['id'] ?>&convocatoria_id=<?= $id ?>" class="icon-btn icon-edit" style="justify-content: flex-end;">
