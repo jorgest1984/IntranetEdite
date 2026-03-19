@@ -76,6 +76,24 @@
     background-color: var(--primary-hover); /* Rojo más oscuro al poner el ratón encima */
 }
 
+.tile-blue {
+    background-color: #006ce4; /* Azul vibrante */
+    color: white;
+}
+
+.tile-blue:hover {
+    background-color: #0056b3; 
+}
+
+.tile-purple {
+    background-color: #8e1d52; /* Púrpura/Magentizo */
+    color: white;
+}
+
+.tile-purple:hover {
+    background-color: #721541;
+}
+
 .tile-black {
     background-color: #1e293b; /* Texto casi negro / slate oscuro */
     color: white;
