@@ -19,7 +19,7 @@ try {
         // Verificar si la columna existe antes de añadirla
         $check = $pdo->query("SHOW COLUMNS FROM convocatorias LIKE '$col'");
         if ($check->rowCount() == 0) {
-            $pdo->exec($sql);
+            $pdo->query($sql);
             echo "Columna '$col' añadida.<br>";
         } else {
             echo "Columna '$col' ya existe.<br>";
@@ -36,7 +36,7 @@ try {
         FOREIGN KEY (convocatoria_id) REFERENCES convocatorias(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
     
-    $pdo->exec($sqlPlanes);
+    $pdo->query($sqlPlanes);
     echo "Tabla 'planes' verificada/creada.<br>";
 
     echo "Migración completada con éxito.";
