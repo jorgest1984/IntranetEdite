@@ -233,7 +233,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         <section class="planes-section">
             <div class="section-header">
                 <h2 class="section-title">Planes</h2>
-                <a href="#" class="btn-new-plan">
+                <a href="editar_plan.php?convocatoria_id=<?= $id ?>" class="btn-new-plan">
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
                     Nuevo plan
                 </a>
@@ -258,7 +258,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                             <td><a href="#" style="color: #006ce4; text-decoration: none;"><?= htmlspecialchars($plan['nombre']) ?></a></td>
                             <td><?= $plan['activo'] ? 'SÍ' : 'NO' ?></td>
                             <td style="text-align: right;">
-                                <a href="#" class="icon-btn icon-edit" style="justify-content: flex-end;">
+                                <a href="editar_plan.php?id=<?= $plan['id'] ?>&convocatoria_id=<?= $id ?>" class="icon-btn icon-edit" style="justify-content: flex-end;">
                                     <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
                                 </a>
                             </td>
