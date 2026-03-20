@@ -27,7 +27,26 @@ try {
     }
     
     $stmt = $pdo->query("SELECT DISTINCT entidad FROM planes WHERE entidad IS NOT NULL AND entidad != '' ORDER BY entidad ASC");
-    if ($stmt) { $proveedores = $stmt->fetchAll(PDO::FETCH_COLUMN); }
+    if ($stmt) { 
+        $db_proveedores = $stmt->fetchAll(PDO::FETCH_COLUMN); 
+    } else {
+        $db_proveedores = [];
+    }
+
+    // Lista base de Proveedores (según imagen)
+    $base_proveedores = [
+        '1&1 INTERNET ESPAÑA S.L.U.', '10DENCEHISPAHARD S.L.', 'ADAMS', 
+        'ALBERCA PROYECTOS S. L.', 'ALBROK MEDIACION S. A.', 'ALLIANZ SEGUROS', 
+        'ALSEVA ALMACENAJES Y SERVICIOS SL', 'AMAZON.COM', 
+        'AMV-EDICIONES (ANTONIO MADRID VICENTE, EDICIONES)', 'APPFORBRANDS', 
+        'ARTUAL S.L. EDICIONES', 'ASEPEYO SOCIEDAD DE PREVENCIÓN', 
+        'ASOCIACIÓN ÁREA DE FORMACIÓN', 'ASOCIACIÓN PUERTA ALCALÁ', 'AVANSIL', 
+        'BITLAN ASESORES INFORMATICOS CB', 'BRUNEAU', 'BUM CREACIONES S. L.', 
+        'CAE (COMPUTER AIDER ELEARNING S.A)'
+    ];
+
+    $proveedores = array_unique(array_merge($base_proveedores, $db_proveedores));
+    sort($proveedores);
 
     // Lista completa de Sectores (FUNDAE/SEPE + Petición Usuario)
     $base_sectores = [
