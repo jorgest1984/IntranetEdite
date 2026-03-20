@@ -43,15 +43,17 @@ try {
         'Consultoría', 'Consultoría Informática', 'Contact Center', 'Coperativas',
         'copisterias/fotocopias', 'Decoración', 'Desconocido', 'Desempleados',
         'Dietetica y Nutricion', 'Diseño especializado', 'Economía social',
-        'Educación y Formación', 'Empleados Fincas Urbanas',
-        'Energía y Agua', 'Enseñanza Privada', 'Entidades de Seguros', 
-        'Estaciones de Servicio', 'Exhibición Cinematográfica', 'Farmacia', 
-        'Hostelería', 'Industrias Químicas', 'Inmobiliaria', 'Limpieza de Edificios y Locales', 
-        'Madera y Mueble', 'Metal', 'Minería', 'Ocio y Tiempo Libre', 
-        'Peluquería y Estética', 'Pesca', 'Pompas Fúnebres', 'Producción Audiovisual', 
-        'Publicidad', 'Sanidad', 'Seguridad Privada', 'Seguros', 
-        'Servicios a la Comunidad', 'Telecomunicaciones', 'Transporte', 
-        'Textil y Confección', 'Vidrio y Cerámica'
+        'Educación y Formación', 'Empleados Fincas Urbanas', 'Empresas de trabajo temporal',
+        'Energía y Agua', 'Enseñanza Privada', 'Entidades de Seguros', 'Estaciones de Servicio', 
+        'Estética', 'Estudio de tatuajes', 'Estudios de mercado', 'Exhibición Cinematográfica', 
+        'Farmacia', 'Fisioterapeutas', 'Fotografía', 'Fundaciones', 'Gestorías administrativas', 
+        'Gimnasios', 'Guarderías', 'Hostelería', 'Imagen y sonido', 'Industria manufacturera', 
+        'Industria vinícola', 'Industrias Químicas', 'Ingenierías', 'Inmobiliarias', 
+        'Instalaciones Deportivas', 'Limpieza de Edificios y Locales', 'Madera y Mueble', 
+        'Metal', 'Minería', 'Ocio y Tiempo Libre', 'Peluquería y Estética', 'Pesca', 
+        'Pompas Fúnebres', 'Producción Audiovisual', 'Publicidad', 'Sanidad', 
+        'Seguridad Privada', 'Seguros', 'Servicios a la Comunidad', 'Telecomunicaciones', 
+        'Transporte', 'Textil y Confección', 'Vidrio y Cerámica'
     ];
 
     $stmt = $pdo->query("SELECT DISTINCT sector FROM planes WHERE sector IS NOT NULL AND sector != '' ORDER BY sector ASC");
