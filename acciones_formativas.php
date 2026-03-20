@@ -50,10 +50,13 @@ try {
         'Gimnasios', 'Guarderías', 'Hostelería', 'Imagen y sonido', 'Industria manufacturera', 
         'Industria vinícola', 'Industrias Químicas', 'Ingenierías', 'Inmobiliarias', 
         'Instalaciones Deportivas', 'Limpieza de Edificios y Locales', 'Madera y Mueble', 
-        'Metal', 'Minería', 'Ocio y Tiempo Libre', 'Peluquería y Estética', 'Pesca', 
-        'Pompas Fúnebres', 'Producción Audiovisual', 'Publicidad', 'Sanidad', 
-        'Seguridad Privada', 'Seguros', 'Servicios a la Comunidad', 'Telecomunicaciones', 
-        'Transporte', 'Textil y Confección', 'Vidrio y Cerámica'
+        'Metal', 'Minería', 'Ocio y Tiempo Libre', 'Parques Temáticos', 'Peluquería y Estética', 
+        'Peluquerías', 'Pesca', 'Pintura', 'Pompas Fúnebres', 'Prensa', 'Prensa diaria', 
+        'Prensa no diaria', 'Producción Audiovisual', 'Publicidad', 'Público', 'Químicas', 
+        'Recreativos', 'Residencias privadas', 'Sanidad', 'Seguridad Privada', 'Seguros', 
+        'Serveis Financiers i Oficines', 'Servicio Doméstico', 'Servicios a la Comunidad', 
+        'Servicios a las empresas', 'Servicios Auxiliares', 'Servicios de Prevención Ajenos', 
+        'Telecomunicaciones', 'Transporte', 'Textil y Confección', 'Vidrio y Cerámica'
     ];
 
     $stmt = $pdo->query("SELECT DISTINCT sector FROM planes WHERE sector IS NOT NULL AND sector != '' ORDER BY sector ASC");
