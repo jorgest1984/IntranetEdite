@@ -8,21 +8,42 @@ if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA, ROLE_FORMADOR])) {
 
 // Fetch lists for selects
 $convocatorias = [];
-try {
-    $stmt = $pdo->query("SELECT id, nombre FROM convocatorias ORDER BY nombre ASC");
-    if ($stmt) {
-        $convocatorias = $stmt->fetchAll();
-    }
-} catch (Throwable $e) {
-    // Silently fail in production or log to file
-}
-
-// Placeholder for other lists if tables exist
 $planes = [];
 $solicitantes = [];
 $sectores = [];
 $proveedores = [];
-$catalogos = [];
+
+try {
+    // Convocatorias
+    $stmt = $pdo->query("SELECT id, nombre FROM convocatorias ORDER BY nombre ASC");
+    if ($stmt) {
+        $convocatorias = $stmt->fetchAll();
+    }
+    
+    // Planes
+    $stmt = $pdo->query("SELECT id, nombre, codigo FROM planes ORDER BY nombre ASC");
+    if ($stmt) {
+        $planes = $stmt->fetchAll();
+    }
+    
+    // Valores únicos de Solicitantes, Sectores y Entidades (Proveedores) desde la tabla planes
+    $stmt = $pdo->query("SELECT DISTINCT solicitante FROM planes WHERE solicitante IS NOT NULL AND solicitante != '' ORDER BY solicitante ASC");
+    if ($stmt) { $solicitantes = $stmt->fetchAll(PDO::FETCH_COLUMN); }
+    
+    $stmt = $pdo->query("SELECT DISTINCT sector FROM planes WHERE sector IS NOT NULL AND sector != '' ORDER BY sector ASC");
+    if ($stmt) { $sectores = $stmt->fetchAll(PDO::FETCH_COLUMN); }
+    
+    $stmt = $pdo->query("SELECT DISTINCT entidad FROM planes WHERE entidad IS NOT NULL AND entidad != '' ORDER BY entidad ASC");
+    if ($stmt) { $proveedores = $stmt->fetchAll(PDO::FETCH_COLUMN); }
+
+    // Catálogo (desde cursos)
+    $stmt = $pdo->query("SELECT id, nombre_corto FROM cursos ORDER BY nombre_corto ASC");
+    if ($stmt) { $catalogos = $stmt->fetchAll(); }
+
+} catch (Throwable $e) {
+    // Silently fail in production or log to file
+}
+
 $consultoras = [];
 $modalidades = ['TELEFORMACIÓN', 'PRESENCIAL', 'MIXTA', 'AULA VIRTUAL'];
 $prioridades = ['Alta', 'Media', 'Baja'];
@@ -257,36 +278,51 @@ $prioridades = ['Alta', 'Media', 'Baja'];
                         
                         <div class="form-group col-6">
                             <label>Plan:</label>
-                            <select name="plan_id" class="form-control">
-                                <option value="">Todos los planes</option>
-                            </select>
+                            <select name="plan" class="form-control">
+                            <option value="">Seleccione...</option>
+                            <?php foreach ($planes as $p): ?>
+                                <option value="<?= $p['id'] ?>"><?= htmlspecialchars($p['nombre']) ?> (<?= htmlspecialchars($p['codigo']) ?>)</option>
+                            <?php endforeach; ?>
+                        </select>
                         </div>
 
                         <div class="form-group col-6">
                             <label>Solicitante:</label>
-                            <select name="solicitante_id" class="form-control">
-                                <option value=""></option>
-                            </select>
+                            <select name="solicitante" class="form-control">
+                            <option value="">Seleccione...</option>
+                            <?php foreach ($solicitantes as $s): ?>
+                                <option value="<?= htmlspecialchars($s) ?>"><?= htmlspecialchars($s) ?></option>
+                            <?php endforeach; ?>
+                        </select>
                         </div>
                         
                         <div class="form-group col-6">
                             <label>Sector:</label>
-                            <select name="sector_id" class="form-control">
-                                <option value=""></option>
-                            </select>
+                            <select name="sector" class="form-control">
+                            <option value="">Seleccione...</option>
+                            <?php foreach ($sectores as $sec): ?>
+                                <option value="<?= htmlspecialchars($sec) ?>"><?= htmlspecialchars($sec) ?></option>
+                            <?php endforeach; ?>
+                        </select>
                         </div>
 
                         <div class="form-group col-6">
                             <label>Proveedor:</label>
-                            <select name="proveedor_id" class="form-control">
-                                <option value=""></option>
-                            </select>
+                            <select name="proveedor" class="form-control">
+                            <option value="">Seleccione...</option>
+                            <?php foreach ($proveedores as $prov): ?>
+                                <option value="<?= htmlspecialchars($prov) ?>"><?= htmlspecialchars($prov) ?></option>
+                            <?php endforeach; ?>
+                        </select>
                         </div>
                         
                         <div class="form-group col-6">
                             <label>Catálogo:</label>
                             <select name="catalogo_id" class="form-control">
-                                <option value=""></option>
+                                <option value="">Seleccione...</option>
+                                <?php foreach ($catalogos as $cat): ?>
+                                    <option value="<?= $cat['id'] ?>"><?= htmlspecialchars($cat['nombre_corto']) ?></option>
+                                <?php endforeach; ?>
                             </select>
                         </div>
 
