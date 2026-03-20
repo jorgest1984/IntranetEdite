@@ -14,8 +14,7 @@ try {
         $convocatorias = $stmt->fetchAll();
     }
 } catch (Throwable $e) {
-    // Para depuración si "no funciona" - se puede comentar en prod
-    $db_error = $e->getMessage();
+    // Silently fail in production or log to file
 }
 
 // Placeholder for other lists if tables exist
