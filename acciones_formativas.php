@@ -29,8 +29,34 @@ try {
     $stmt = $pdo->query("SELECT DISTINCT entidad FROM planes WHERE entidad IS NOT NULL AND entidad != '' ORDER BY entidad ASC");
     if ($stmt) { $proveedores = $stmt->fetchAll(PDO::FETCH_COLUMN); }
 
+    // Lista completa de Sectores (FUNDAE/SEPE)
+    $base_sectores = [
+        'Abogados', 'Acción e Intervención Social', 'Administracion y gestion', 
+        'Agencias de Viaje', 'Agricultura y otro sector ganaderia', 'Agroalimentaria', 
+        'Alimentación', 'Alojamientos turísticos', 'Ambulancias', 'Arquitectura', 
+        'Artes Gráficas', 'Artistas y Técnicos en Salas de Fiestas, Bailes y Discotecas', 
+        'Asesorías', 'Asociaciones', 'Atención a personas con discapacidad', 
+        'Atención Domiciliaria', 'Atención Especializada Familia', 'Automoción', 
+        'Ayuda a domicilio', 'Banca', 'Centros de Asistencia Administrativa', 
+        'Comercio', 'Construcción', 'Consultoría', 'Educación y Formación', 
+        'Energía y Agua', 'Enseñanza Privada', 'Entidades de Seguros', 
+        'Estaciones de Servicio', 'Exhibición Cinematográfica', 'Farmacia', 
+        'Hostelería', 'Industrias Químicas', 'Inmobiliaria', 'Limpieza de Edificios y Locales', 
+        'Madera y Mueble', 'Metal', 'Minería', 'Ocio y Tiempo Libre', 
+        'Peluquería y Estética', 'Pesca', 'Pompas Fúnebres', 'Producción Audiovisual', 
+        'Publicidad', 'Sanidad', 'Seguridad Privada', 'Seguros', 
+        'Servicios a la Comunidad', 'Telecomunicaciones', 'Transporte', 
+        'Textil y Confección', 'Vidrio y Cerámica'
+    ];
+
     $stmt = $pdo->query("SELECT DISTINCT sector FROM planes WHERE sector IS NOT NULL AND sector != '' ORDER BY sector ASC");
-    if ($stmt) { $sectores = $stmt->fetchAll(PDO::FETCH_COLUMN); }
+    if ($stmt) { 
+        $db_sectores = $stmt->fetchAll(PDO::FETCH_COLUMN); 
+        $sectores = array_unique(array_merge($base_sectores, $db_sectores));
+    } else {
+        $sectores = $base_sectores;
+    }
+    sort($sectores);
 
     // Lista base de Solicitantes (según imagen y petición usuario)
     $base_solicitantes = [
