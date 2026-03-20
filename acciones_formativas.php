@@ -133,11 +133,29 @@ try {
     }
     sort($solicitantes);
 
-    // Catálogo (desde cursos)
-    $stmt = $pdo->query("SELECT id, nombre_corto FROM cursos ORDER BY nombre_corto ASC");
-    if ($stmt) { $catalogos = $stmt->fetchAll(); }
+    // Catálogo (desde cursos + Lista Base)
+    $stmt = $pdo->query("SELECT nombre_corto FROM cursos ORDER BY nombre_corto ASC");
+    if ($stmt) { 
+        $db_catalogos = $stmt->fetchAll(PDO::FETCH_COLUMN); 
+    } else {
+        $db_catalogos = [];
+    }
 
-} catch (Throwable $e) {
+    $base_catalogos = [
+        'Certificado de Profesionalidad', 'Familia- Actividades Físicas y Deportivas',
+        'Familia- Administración y Gestión', 'Familia- Agraria', 'Familia- Artes graficas',
+        'Familia- Comercio y Marketing', 'Familia- Edificación y Obra Civil',
+        'Familia- Energía y Agua', 'Familia- Hostelería y Turismo', 'Familia- Imagen Personal',
+        'Familia- Imagen y Sonido', 'Familia- Industria alimentaria',
+        'Familia- Informática y Comunicaciones', 'Familia- Seguridad y Medioambiente',
+        'Familia: Sevicios socioculturales y a la comunidad', 'Oferta 1.Appforbrands',
+        'Oferta 2.Appforbrands', 'Oferta 3. Hosteleria y Restauracion',
+        'Prevención de Riesgos Laborales', 'SAP'
+    ];
+
+    $catalogos = array_unique(array_merge($base_catalogos, $db_catalogos));
+    sort($catalogos);
+} catch (Exception $e) {
     // Silently fail in production or log to file
 }
 
@@ -415,10 +433,10 @@ $prioridades = ['Alta', 'Media', 'Baja'];
                         
                         <div class="form-group col-6">
                             <label>Catálogo:</label>
-                            <select name="catalogo_id" class="form-control">
+                            <select name="catalogo" class="form-control">
                                 <option value="">Seleccione...</option>
                                 <?php foreach ($catalogos as $cat): ?>
-                                    <option value="<?= $cat['id'] ?>"><?= htmlspecialchars($cat['nombre_corto']) ?></option>
+                                    <option value="<?= htmlspecialchars($cat) ?>"><?= htmlspecialchars($cat) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
