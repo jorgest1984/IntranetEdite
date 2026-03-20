@@ -29,7 +29,7 @@ try {
     $stmt = $pdo->query("SELECT DISTINCT entidad FROM planes WHERE entidad IS NOT NULL AND entidad != '' ORDER BY entidad ASC");
     if ($stmt) { $proveedores = $stmt->fetchAll(PDO::FETCH_COLUMN); }
 
-    // Lista completa de Sectores (FUNDAE/SEPE)
+    // Lista completa de Sectores (FUNDAE/SEPE + Petición Usuario)
     $base_sectores = [
         'Abogados', 'Acción e Intervención Social', 'Administracion y gestion', 
         'Agencias de Viaje', 'Agricultura y otro sector ganaderia', 'Agroalimentaria', 
@@ -37,8 +37,13 @@ try {
         'Artes Gráficas', 'Artistas y Técnicos en Salas de Fiestas, Bailes y Discotecas', 
         'Asesorías', 'Asociaciones', 'Atención a personas con discapacidad', 
         'Atención Domiciliaria', 'Atención Especializada Familia', 'Automoción', 
-        'Ayuda a domicilio', 'Banca', 'Centros de Asistencia Administrativa', 
-        'Comercio', 'Construcción', 'Consultoría', 'Educación y Formación', 
+        'Ayuda a domicilio', 'Banca', 'Cajas de ahorro', 'Centros de Asistencia Administrativa',
+        'Centros de día', 'Cerámicas y Artesanos', 'Chapa y pintura', 'cliente_artoblanco',
+        'Clinicas Privadas', 'Colegios/Institutos', 'Comercio', 'Construcción', 
+        'Consultoría', 'Consultoría Informática', 'Contact Center', 'Coperativas',
+        'copisterias/fotocopias', 'Decoración', 'Desconocido', 'Desempleados',
+        'Dietetica y Nutricion', 'Diseño especializado', 'Economía social',
+        'Educación y Formación', 'Empleados Fincas Urbanas',
         'Energía y Agua', 'Enseñanza Privada', 'Entidades de Seguros', 
         'Estaciones de Servicio', 'Exhibición Cinematográfica', 'Farmacia', 
         'Hostelería', 'Industrias Químicas', 'Inmobiliaria', 'Limpieza de Edificios y Locales', 
