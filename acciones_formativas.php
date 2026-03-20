@@ -166,7 +166,7 @@ try {
     ];
     sort($consultoras);
 
-}
+} catch (Throwable $e) { }
 $modalidades = ['TELEFORMACIÓN', 'PRESENCIAL', 'MIXTA', 'AULA VIRTUAL'];
 $prioridades = ['Alta', 'Media', 'Baja'];
 ?>
