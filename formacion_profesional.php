@@ -41,7 +41,7 @@ $sections = [
         <header class="page-header">
             <div class="page-title">
                 <h1>Formación Profesional</h1>
-                <p>Gestión académica y herramientas de Moodle <span style="font-size: 0.7rem; color: #ccc;">[Build ID: <?= time() ?>]</span></p>
+                <p>Gestión académica y herramientas de Moodle</p>
             </div>
             <div class="page-actions">
                 <a href="home.php" class="btn btn-primary">

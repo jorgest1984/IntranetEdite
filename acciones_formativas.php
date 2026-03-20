@@ -220,12 +220,6 @@ $prioridades = ['Alta', 'Media', 'Baja'];
     <?php include 'includes/sidebar.php'; ?>
 
     <main class="main-content">
-        <?php if (isset($db_error)): ?>
-            <div class="alert alert-error" style="background: #fee2e2; color: #dc2626; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
-                <strong>Error de base de datos:</strong> <?= htmlspecialchars($db_error) ?>
-            </div>
-        <?php endif; ?>
-
         <header class="page-header">
 
             <div class="page-title">
