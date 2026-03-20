@@ -149,6 +149,9 @@ try {
         'Familia- Imagen y Sonido', 'Familia- Industria alimentaria',
         'Familia- Informática y Comunicaciones', 'Familia- Seguridad y Medioambiente',
         'Familia: Sevicios socioculturales y a la comunidad', 'Oferta 1.Appforbrands',
+        'Oferta 2.Appforbrands', 'Oferta 3. Hosteleria y Restauracion',
+        'Prevención de Riesgos Laborales', 'SAP', 'Seguridad Privada', 'Transversal'
+    ];
     $catalogos = array_unique(array_merge($base_catalogos, $db_catalogos));
     sort($catalogos);
 
