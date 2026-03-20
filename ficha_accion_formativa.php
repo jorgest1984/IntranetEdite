@@ -18,6 +18,20 @@ $niveles = ['Básico', 'Medio', 'Medio-superior', 'Superior'];
 $prioridades = ['Alta', 'Media', 'Baja'];
 $estados = ['No programable', 'Programable', 'En curso', 'Finalizado'];
 
+// Base list for families (reused from catalog)
+$familias = [
+    'Certificado de Profesionalidad', 'Familia- Actividades Físicas y Deportivas',
+    'Familia- Administración y Gestión', 'Familia- Agraria', 'Familia- Artes graficas',
+    'Familia- Comercio y Marketing', 'Familia- Edificación y Obra Civil',
+    'Familia- Energía y Agua', 'Familia- Hostelería y Turismo', 'Familia- Imagen Personal',
+    'Familia- Imagen y Sonido', 'Familia- Industria alimentaria',
+    'Familia- Informática y Comunicaciones', 'Familia- Seguridad y Medioambiente',
+    'Familia: Sevicios socioculturales y a la comunidad', 'Oferta 1.Appforbrands',
+    'Oferta 2.Appforbrands', 'Oferta 3. Hosteleria y Restauracion',
+    'Prevención de Riesgos Laborales', 'SAP', 'Seguridad Privada', 'Transversal'
+];
+sort($familias);
+
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -382,6 +396,9 @@ $estados = ['No programable', 'Programable', 'En curso', 'Finalizado'];
                             <label>Familia profesional:</label>
                             <select name="familia_profesional">
                                 <option value=""></option>
+                                <?php foreach ($familias as $fam): ?>
+                                    <option value="<?= htmlspecialchars($fam) ?>"><?= htmlspecialchars($fam) ?></option>
+                                <?php endforeach; ?>
                             </select>
                         </div>
                     </div>
