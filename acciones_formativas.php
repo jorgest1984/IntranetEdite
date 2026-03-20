@@ -7,166 +7,146 @@ if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA, ROLE_FORMADOR])) {
 }
 
 // Fetch lists for selects
+// Definición de Listas Base (según imágenes y requerimientos)
+$base_proveedores = [
+    '1&1 INTERNET ESPAÑA S.L.U.', '10DENCEHISPAHARD S.L.', 'ADAMS', 'ALBERCA PROYECTOS S. L.', 
+    'ALBROK MEDIACION S. A.', 'ALLIANZ SEGUROS', 'ALSEVA ALMACENAJES Y SERVICIOS SL', 'AMAZON.COM', 
+    'AMV-EDICIONES (ANTONIO MADRID VICENTE, EDICIONES)', 'APPFORBRANDS', 'ARTUAL S.L. EDICIONES', 
+    'ASEPEYO SOCIEDAD DE PREVENCIÓN', 'ASOCIACIÓN ÁREA DE FORMACIÓN', 'ASOCIACIÓN PUERTA ALCALÁ', 
+    'AVANSIL', 'BITLAN ASESORES INFORMATICOS CB', 'BRUNEAU', 'BUM CREACIONES S. L.', 
+    'CAE (COMPUTER AIDER ELEARNING S.A)', 'CAJAMAR CAJA RURAL, SOCIEDAD COOPERATIVA DE CRÉDIT',
+    'CESA PREVENCIÓN', 'CISS (GRUPO WOLTERS KLUWER)', 'CODIAL DOCUMENTOS Y SOLUCIONES S. L. U.',
+    'COMERCIAL GRUPO ANAYA', 'COMVIVE SERVIDORES S. L.', 'CONEXIA', 'CORREOS',
+    'CRESPO COMERCIAL ESPAÑOLA DE PROTECCIÓN', 'CRESPO COMERCIAL ESPAÑOLA DE PROTECCIÓN S.L',
+    'CURSOFORUM, S.L.U', 'DASERIN', 'DELL COMPUTER S.A', 'DGF', 'EDICIONES PROTOCOLO',
+    'EDITORIAL CEP, S.L', 'EDITORIAL PAIDOTRIBO', 'EMASAGRA', 'ENCUADERNACIONES SAN MIGUEL',
+    'ENDESA', 'ENTABLA MM S. L.', 'ESIC, BUSINESS&MARKETING SCHOOL', 'ESTACIÓN DISEÑO',
+    'EVALUASUR', 'FAXTECO', 'FIATC MUTUA DE SEGUROS Y REASEGUROS', 'FORMACIÓN 2020 S.A',
+    'FORMATEL', 'FORMATOS COLOR Y DISEÑO S.L', 'FOTOCOPIAS ROMÁN', 'FOTOMECÁNICA INDALO SL',
+    'FUNDACIÓ PRIVADA ROMÁN PRADO JUNIOR', 'FUNDAE (FUNDACIÓN TRIPARTITA)', 'G17',
+    'GENERAL SEGUROS', 'GRÁFICAS ALHAMBRA', 'GRAFICAS AZACAYAS', 'GRAFICAS MALPICA',
+    'GRAFICAS ZAIDIN', 'GRAPHIBOOK', 'GUARDIA CIVIL. DIRECCIÓN GENERAL', 'IDFO',
+    'IEDITORIAL', 'IMADOC', 'IMAGESA21 CB', 'IMPRESIÓN DIGITAL GAMI S. L.',
+    'INURRIETA CONSULTORÍA INTEGRAL', 'ITE-CECE', 'JESATEL', 'JUAN ANTONIO MONTILLA JIMENES',
+    'JUMIALPRINT S.L. (ACOPIAS)', 'LA VENTANA INVISIBLE', 'LIBRERIA RENO',
+    'LINEA DIRECTA ASEGURADORA', 'LOGOSS', 'MAINFOR.EDU.ES', 'MANZANO PROTECCIÓN CONTRA ROBO E INCENDIOS',
+    'MARCOMBO, S.A.', 'MARGAR S.L', 'MARÍA BEL GALACHE (ANGOMA)', 'MARSDIGITAL S.L',
+    'MENSAJERÍA DE LA FUNDACIÓN UNIPOST// REDISER', 'MOVISTAR', 'MRW (MENSAJERO DEL TIEMPO SLU)',
+    'MUTUAVENIR', 'NOSOLORED S.L.', 'OFICINA ESPAÑOLA DE PATENTES Y MARCA', 'ONO',
+    'ORBE FORMACION TECNOLOGICA Y DISTRIBUCION SL', 'PAPELERIA MIZAR', 'PATRIA HISPANA S. A.',
+    'PC COSTE', 'PC-BOX', 'PC-ONLINE.NET', 'PRS SEGURIDAD', 'R. OLID MERCA',
+    'REALE SEGUROS GENERALES, S.A.', 'RICOH', 'SECUENCIA INVERSORA SL', 'SELUAN S. L.',
+    'SGS ICS IBÉRICA S.A.', 'SISTEMA INTERNO', 'SIT CADIZ', 'TAINE', 'TECNITEL S.L.',
+    'TOURLINE EXPRESS', 'TRANSPORTES VIANA S. L.', 'UNIDAD ALIMENTARIA DE VALLADOLID S. A. (MERCAOLID)',
+    'VERTICE', 'VIVA COPIER, S.L.', 'VODAFONE', 'YELLOW CONSULTORES, S.L'
+];
+
+$base_sectores = [
+    'Abogados', 'Acción e Intervención Social', 'Administracion y gestion', 'Agencias de Viaje', 
+    'Agricultura y otro sector ganaderia', 'Agroalimentaria', 'Alimentación', 'Alojamientos turísticos', 
+    'Ambulancias', 'Arquitectura', 'Artes Gráficas', 'Artistas y Técnicos en Salas de Fiestas, Bailes y Discotecas', 
+    'Asesorías', 'Asociaciones', 'Atención a personas con discapacidad', 'Atención Domiciliaria', 
+    'Atención Especializada Familia', 'Automoción', 'Ayuda a domicilio', 'Banca', 'Cajas de ahorro', 
+    'Centros de Asistencia Administrativa', 'Centros de día', 'Cerámicas y Artesanos', 'Chapa y pintura', 
+    'cliente_artoblanco', 'Clinicas Privadas', 'Colegios/Institutos', 'Comercio', 'Construcción', 
+    'Consultoría', 'Consultoría Informática', 'Contact Center', 'Coperativas', 'copisterias/fotocopias', 
+    'Decoración', 'Desconocido', 'Desempleados', 'Dietetica y Nutricion', 'Diseño especializado', 
+    'Economía social', 'Educación y Formación', 'Empleados Fincas Urbanas', 'Empresas de trabajo temporal', 
+    'Energía y Agua', 'Enseñanza Privada', 'Entidades de Seguros', 'Estaciones de Servicio', 'Estética', 
+    'Estudio de tatuajes', 'Estudios de mercado', 'Exhibición Cinematográfica', 'Farmacia', 'Fisioterapeutas', 
+    'Fotografía', 'Fundaciones', 'Gestorías administrativas', 'Gimnasios', 'Guarderías', 'Hostelería', 
+    'Imagen y sonido', 'Industria manufacturera', 'Industria vinícola', 'Industrias Químicas', 'Ingenierías', 
+    'Inmobiliarias', 'Instalaciones Deportivas', 'Limpieza de Edificios y Locales', 'Madera y Mueble', 
+    'Metal', 'Minería', 'Ocio y Tiempo Libre', 'Parques Temáticos', 'Peluquería y Estética', 'Peluquerías', 
+    'Pesca', 'Pintura', 'Pompas Fúnebres', 'Prensa', 'Prensa diaria', 'Prensa no diaria', 'Producción Audiovisual', 
+    'Publicidad', 'Público', 'Químicas', 'Recreativos', 'Residencias privadas', 'Sanidad', 'Seguridad Privada', 
+    'Seguros', 'Serveis Financiers i Oficines', 'Servicio Doméstico', 'Servicios a la Comunidad', 
+    'Servicios a las empresas', 'Servicios Auxiliares', 'Servicios de Prevención Ajenos', 'Servicios Funerarios', 
+    'Servicios Sociales', 'Siderurgia', 'Suministros agrícolas', 'Talleres de restauración', 
+    'Telecomunicaciones', 'Textil', 'Textil y Confección', 'Tintorerías', 'Transporte', 'Transportes', 
+    'Turismo', 'Universidades', 'Vidrio y Cerámica'
+];
+
+$base_solicitantes = [
+    'FED. ESTATAL DE SERVICIOS-UGT', 'COMFIA', 'FED. COM. Y TTE. CCOO MADRID', 'UGT DE CATALUNYA', 
+    'UGT Madrid', 'FETCM-UGT', 'FETE-UGT', 'FED. NACIONAL DE DETALLISTAS DE FRUTAS Y HORTALIZAS', 
+    'MARS', 'FITAG', 'Comunidad de Madrid', 'FAECTA', 'UGT Andalucía', 'FTFE', 'Criteria', 
+    'FSP-UGT Palencia', 'JUNTA DE CASTILLA Y LEON', 'JUNTA DE ANDALUCIA', 'CRUZ ROJA ESPAÑOLA', 
+    'MARSDIGITAL S.L.', 'Fundación Piquer'
+];
+
+$base_catalogos = [
+    'Certificado de Profesionalidad', 'Familia- Actividades Físicas y Deportivas', 'Familia- Administración y Gestión', 
+    'Familia- Agraria', 'Familia- Artes graficas', 'Familia- Comercio y Marketing', 'Familia- Edificación y Obra Civil', 
+    'Familia- Energía y Agua', 'Familia- Hostelería y Turismo', 'Familia- Imagen Personal', 'Familia- Imagen y Sonido', 
+    'Familia- Industria alimentaria', 'Familia- Informática y Comunicaciones', 'Familia- Seguridad y Medioambiente', 
+    'Familia: Sevicios socioculturales y a la comunidad', 'Oferta 1.Appforbrands', 'Oferta 2.Appforbrands', 
+    'Oferta 3. Hosteleria y Restauracion', 'Prevención de Riesgos Laborales', 'SAP', 'Seguridad Privada', 'Transversal'
+];
+
+$consultoras = [
+    'ACADEMIA VISAN', 'ADAMS', 'AE S. MARTIN', 'AGE', 'AREA FORMACION AULAS', 'Asociación Puerta de Alcalá', 
+    'AZUVIS S.C.A', 'BODYFACTORY SOMOSAGUAS', 'BOROXSPORT CLUB SPORT', 'C/ CORCEGA,371', 
+    'CENTRO DE FORMACION ALFER', 'CLUB DE TENIS Y PADEL MONTEVERDE', 'EDITRAIN SL', 
+    'EDITRAIN, S.L. (P.E.LA FINCA)', 'ELOGOS, S.L.', 'ENSEÑANZAS ORTHOS', 'FESS LA SALLE', 
+    'Grupo Coremsa', 'INSTITUTO MADRILEÑO DE FORMACION S.L'
+];
+
+// Inicialización de variables definitivas con listas base
+$proveedores = $base_proveedores;
+$sectores = $base_sectores;
+$solicitantes = $base_solicitantes;
+$catalogos = $base_catalogos;
 $convocatorias = [];
 $planes = [];
-$solicitantes = [];
-$sectores = [];
-$proveedores = [];
 
+// Enriquecer con datos de la BD (si están disponibles)
 try {
     // Convocatorias
     $stmt = $pdo->query("SELECT id, nombre FROM convocatorias ORDER BY nombre ASC");
-    if ($stmt) {
-        $convocatorias = $stmt->fetchAll();
-    }
-    
-    // Planes
+    if ($stmt) { $convocatorias = $stmt->fetchAll(); }
+
+    // Planes y sus dimensiones (Sector, Solicitante, Entidad/Proveedor)
     $stmt = $pdo->query("SELECT id, nombre, codigo FROM planes ORDER BY nombre ASC");
-    if ($stmt) {
-        $planes = $stmt->fetchAll();
-    }
-    
-    $stmt = $pdo->query("SELECT DISTINCT entidad FROM planes WHERE entidad IS NOT NULL AND entidad != '' ORDER BY entidad ASC");
+    if ($stmt) { $planes = $stmt->fetchAll(); }
+
+    // Proveedores dinámicos
+    $stmt = $pdo->query("SELECT DISTINCT entidad FROM planes WHERE entidad IS NOT NULL AND entidad != ''");
     if ($stmt) { 
         $db_proveedores = $stmt->fetchAll(PDO::FETCH_COLUMN); 
-    } else {
-        $db_proveedores = [];
+        $proveedores = array_unique(array_merge($proveedores, $db_proveedores));
     }
 
-    // Lista base de Proveedores (según imagen)
-    $base_proveedores = [
-        '1&1 INTERNET ESPAÑA S.L.U.', '10DENCEHISPAHARD S.L.', 'ADAMS', 
-        'ALBERCA PROYECTOS S. L.', 'ALBROK MEDIACION S. A.', 'ALLIANZ SEGUROS', 
-        'ALSEVA ALMACENAJES Y SERVICIOS SL', 'AMAZON.COM', 
-        'AMV-EDICIONES (ANTONIO MADRID VICENTE, EDICIONES)', 'APPFORBRANDS', 
-        'ARTUAL S.L. EDICIONES', 'ASEPEYO SOCIEDAD DE PREVENCIÓN', 
-        'ASOCIACIÓN ÁREA DE FORMACIÓN', 'ASOCIACIÓN PUERTA ALCALÁ', 'AVANSIL', 
-        'BITLAN ASESORES INFORMATICOS CB', 'BRUNEAU', 'BUM CREACIONES S. L.', 
-        'CAE (COMPUTER AIDER ELEARNING S.A)', 'CAJAMAR CAJA RURAL, SOCIEDAD COOPERATIVA DE CRÉDIT',
-        'CESA PREVENCIÓN', 'CISS (GRUPO WOLTERS KLUWER)', 'CODIAL DOCUMENTOS Y SOLUCIONES S. L. U.',
-        'COMERCIAL GRUPO ANAYA', 'COMVIVE SERVIDORES S. L.', 'CONEXIA', 'CORREOS',
-        'CRESPO COMERCIAL ESPAÑOLA DE PROTECCIÓN', 'CRESPO COMERCIAL ESPAÑOLA DE PROTECCIÓN S.L',
-        'CURSOFORUM, S.L.U', 'DASERIN', 'DELL COMPUTER S.A', 'DGF', 'EDICIONES PROTOCOLO',
-        'EDITORIAL CEP, S.L', 'EDITORIAL PAIDOTRIBO', 'EMASAGRA', 'ENCUADERNACIONES SAN MIGUEL',
-        'ENDESA', 'ENTABLA MM S. L.', 'ESIC, BUSINESS&MARKETING SCHOOL', 'ESTACIÓN DISEÑO',
-        'EVALUASUR', 'FAXTECO', 'FIATC MUTUA DE SEGUROS Y REASEGUROS', 'FORMACIÓN 2020 S.A',
-        'FORMATEL', 'FORMATOS COLOR Y DISEÑO S.L', 'FOTOCOPIAS ROMÁN', 'FOTOMECÁNICA INDALO SL',
-        'FUNDACIÓ PRIVADA ROMÁN PRADO JUNIOR', 'FUNDAE (FUNDACIÓN TRIPARTITA)', 'G17',
-        'GENERAL SEGUROS', 'GRÁFICAS ALHAMBRA', 'GRAFICAS AZACAYAS', 'GRAFICAS MALPICA',
-        'GRAFICAS ZAIDIN', 'GRAPHIBOOK', 'GUARDIA CIVIL. DIRECCIÓN GENERAL', 'IDFO',
-        'IEDITORIAL', 'IMADOC', 'IMAGESA21 CB', 'IMPRESIÓN DIGITAL GAMI S. L.',
-        'INURRIETA CONSULTORÍA INTEGRAL', 'ITE-CECE', 'JESATEL', 'JUAN ANTONIO MONTILLA JIMENES',
-        'JUMIALPRINT S.L. (ACOPIAS)', 'LA VENTANA INVISIBLE', 'LIBRERIA RENO',
-        'LINEA DIRECTA ASEGURADORA', 'LOGOSS', 'MAINFOR.EDU.ES', 'MANZANO PROTECCIÓN CONTRA ROBO E INCENDIOS',
-        'MARCOMBO, S.A.', 'MARGAR S.L', 'MARÍA BEL GALACHE (ANGOMA)', 'MARSDIGITAL S.L',
-        'MENSAJERÍA DE LA FUNDACIÓN UNIPOST// REDISER', 'MOVISTAR', 'MRW (MENSAJERO DEL TIEMPO SLU)',
-        'MUTUAVENIR', 'NOSOLORED S.L.', 'OFICINA ESPAÑOLA DE PATENTES Y MARCA', 'ONO',
-        'ORBE FORMACION TECNOLOGICA Y DISTRIBUCION SL', 'PAPELERIA MIZAR', 'PATRIA HISPANA S. A.',
-        'PC COSTE', 'PC-BOX', 'PC-ONLINE.NET', 'PRS SEGURIDAD', 'R. OLID MERCA',
-        'REALE SEGUROS GENERALES, S.A.', 'RICOH', 'SECUENCIA INVERSORA SL', 'SELUAN S. L.',
-        'SGS ICS IBÉRICA S.A.', 'SISTEMA INTERNO', 'SIT CADIZ', 'TAINE', 'TECNITEL S.L.',
-        'TOURLINE EXPRESS', 'TRANSPORTES VIANA S. L.', 'UNIDAD ALIMENTARIA DE VALLADOLID S. A. (MERCAOLID)',
-        'VERTICE', 'VIVA COPIER, S.L.', 'VODAFONE', 'YELLOW CONSULTORES, S.L'
-    ];
-
-    $proveedores = array_unique(array_merge($base_proveedores, $db_proveedores));
-    sort($proveedores);
-
-    // Lista completa de Sectores (FUNDAE/SEPE + Petición Usuario)
-    $base_sectores = [
-        'Abogados', 'Acción e Intervención Social', 'Administracion y gestion', 
-        'Agencias de Viaje', 'Agricultura y otro sector ganaderia', 'Agroalimentaria', 
-        'Alimentación', 'Alojamientos turísticos', 'Ambulancias', 'Arquitectura', 
-        'Artes Gráficas', 'Artistas y Técnicos en Salas de Fiestas, Bailes y Discotecas', 
-        'Asesorías', 'Asociaciones', 'Atención a personas con discapacidad', 
-        'Atención Domiciliaria', 'Atención Especializada Familia', 'Automoción', 
-        'Ayuda a domicilio', 'Banca', 'Cajas de ahorro', 'Centros de Asistencia Administrativa',
-        'Centros de día', 'Cerámicas y Artesanos', 'Chapa y pintura', 'cliente_artoblanco',
-        'Clinicas Privadas', 'Colegios/Institutos', 'Comercio', 'Construcción', 
-        'Consultoría', 'Consultoría Informática', 'Contact Center', 'Coperativas',
-        'copisterias/fotocopias', 'Decoración', 'Desconocido', 'Desempleados',
-        'Dietetica y Nutricion', 'Diseño especializado', 'Economía social',
-        'Educación y Formación', 'Empleados Fincas Urbanas', 'Empresas de trabajo temporal',
-        'Energía y Agua', 'Enseñanza Privada', 'Entidades de Seguros', 'Estaciones de Servicio', 
-        'Estética', 'Estudio de tatuajes', 'Estudios de mercado', 'Exhibición Cinematográfica', 
-        'Farmacia', 'Fisioterapeutas', 'Fotografía', 'Fundaciones', 'Gestorías administrativas', 
-        'Gimnasios', 'Guarderías', 'Hostelería', 'Imagen y sonido', 'Industria manufacturera', 
-        'Industria vinícola', 'Industrias Químicas', 'Ingenierías', 'Inmobiliarias', 
-        'Instalaciones Deportivas', 'Limpieza de Edificios y Locales', 'Madera y Mueble', 
-        'Metal', 'Minería', 'Ocio y Tiempo Libre', 'Parques Temáticos', 'Peluquería y Estética', 
-        'Peluquerías', 'Pesca', 'Pintura', 'Pompas Fúnebres', 'Prensa', 'Prensa diaria', 
-        'Prensa no diaria', 'Producción Audiovisual', 'Publicidad', 'Público', 'Químicas', 
-        'Recreativos', 'Residencias privadas',        'Sanidad', 'Seguridad Privada', 'Seguros', 
-        'Serveis Financiers i Oficines', 'Servicio Doméstico', 'Servicios a la Comunidad', 
-        'Servicios a las empresas', 'Servicios Auxiliares', 'Servicios de Prevención Ajenos', 
-        'Servicios Funerarios', 'Servicios Sociales', 'Siderurgia', 'Suministros agrícolas',
-        'Talleres de restauración', 'Telecomunicaciones', 'Textil', 'Textil y Confección', 
-        'Tintorerías', 'Transporte', 'Transportes', 'Turismo', 'Universidades', 'Vidrio y Cerámica'
-    ];
-
-    $stmt = $pdo->query("SELECT DISTINCT sector FROM planes WHERE sector IS NOT NULL AND sector != '' ORDER BY sector ASC");
+    // Sectores dinámicos
+    $stmt = $pdo->query("SELECT DISTINCT sector FROM planes WHERE sector IS NOT NULL AND sector != ''");
     if ($stmt) { 
         $db_sectores = $stmt->fetchAll(PDO::FETCH_COLUMN); 
-        $sectores = array_unique(array_merge($base_sectores, $db_sectores));
-    } else {
-        $sectores = $base_sectores;
+        $sectores = array_unique(array_merge($sectores, $db_sectores));
     }
-    sort($sectores);
 
-    // Lista base de Solicitantes (según imagen y petición usuario)
-    $base_solicitantes = [
-        'FED. ESTATAL DE SERVICIOS-UGT', 'COMFIA', 'FED. COM. Y TTE. CCOO MADRID',
-        'UGT DE CATALUNYA', 'UGT Madrid', 'FETCM-UGT', 'FETE-UGT',
-        'FED. NACIONAL DE DETALLISTAS DE FRUTAS Y HORTALIZAS', 'MARS', 'FITAG',
-        'Comunidad de Madrid', 'FAECTA', 'UGT Andalucía', 'FTFE', 'Criteria',
-        'FSP-UGT Palencia', 'JUNTA DE CASTILLA Y LEON', 'JUNTA DE ANDALUCIA',
-        'CRUZ ROJA ESPAÑOLA', 'MARSDIGITAL S.L.', 'Fundación Piquer'
-    ];
-
-    // Combinar con los que haya en la base de datos
-    $stmt = $pdo->query("SELECT DISTINCT solicitante FROM planes WHERE solicitante IS NOT NULL AND solicitante != '' ORDER BY solicitante ASC");
+    // Solicitantes dinámicos
+    $stmt = $pdo->query("SELECT DISTINCT solicitante FROM planes WHERE solicitante IS NOT NULL AND solicitante != ''");
     if ($stmt) { 
         $db_solicitantes = $stmt->fetchAll(PDO::FETCH_COLUMN); 
-        $solicitantes = array_unique(array_merge($base_solicitantes, $db_solicitantes));
-    } else {
-        $solicitantes = $base_solicitantes;
+        $solicitantes = array_unique(array_merge($solicitantes, $db_solicitantes));
     }
-    sort($solicitantes);
 
-    // Catálogo (desde cursos + Lista Base)
-    $stmt = $pdo->query("SELECT nombre_corto FROM cursos ORDER BY nombre_corto ASC");
+    // Catálogos dinámicos
+    $stmt = $pdo->query("SELECT DISTINCT nombre_corto FROM cursos WHERE nombre_corto IS NOT NULL AND nombre_corto != ''");
     if ($stmt) { 
         $db_catalogos = $stmt->fetchAll(PDO::FETCH_COLUMN); 
-    } else {
-        $db_catalogos = [];
+        $catalogos = array_unique(array_merge($catalogos, $db_catalogos));
     }
 
-    $base_catalogos = [
-        'Certificado de Profesionalidad', 'Familia- Actividades Físicas y Deportivas',
-        'Familia- Administración y Gestión', 'Familia- Agraria', 'Familia- Artes graficas',
-        'Familia- Comercio y Marketing', 'Familia- Edificación y Obra Civil',
-        'Familia- Energía y Agua', 'Familia- Hostelería y Turismo', 'Familia- Imagen Personal',
-        'Familia- Imagen y Sonido', 'Familia- Industria alimentaria',
-        'Familia- Informática y Comunicaciones', 'Familia- Seguridad y Medioambiente',
-        'Familia: Sevicios socioculturales y a la comunidad', 'Oferta 1.Appforbrands',
-        'Oferta 2.Appforbrands', 'Oferta 3. Hosteleria y Restauracion',
-        'Prevención de Riesgos Laborales', 'SAP', 'Seguridad Privada', 'Transversal'
-    ];
-    $catalogos = array_unique(array_merge($base_catalogos, $db_catalogos));
-    sort($catalogos);
-
-    // Lista base de Consultoras (según imagen)
-    $consultoras = [
-        'ACADEMIA VISAN', 'ADAMS', 'AE S. MARTIN', 'AGE', 'AREA FORMACION AULAS', 
-        'Asociación Puerta de Alcalá', 'AZUVIS S.C.A', 'BODYFACTORY SOMOSAGUAS', 
-        'BOROXSPORT CLUB SPORT', 'C/ CORCEGA,371', 'CENTRO DE FORMACION ALFER', 
-        'CLUB DE TENIS Y PADEL MONTEVERDE', 'EDITRAIN SL', 
-        'EDITRAIN, S.L. (P.E.LA FINCA)', 'ELOGOS, S.L.', 'ENSEÑANZAS ORTHOS', 
-        'FESS LA SALLE', 'Grupo Coremsa', 'INSTITUTO MADRILEÑO DE FORMACION S.L'
-    ];
-    sort($consultoras);
-
 } catch (Throwable $e) { }
+
+// Ordenar todas las listas finales
+sort($proveedores);
+sort($sectores);
+sort($solicitantes);
+sort($catalogos);
+sort($consultoras);
+
 $modalidades = ['TELEFORMACIÓN', 'PRESENCIAL', 'MIXTA', 'AULA VIRTUAL'];
 $prioridades = ['Alta', 'Media', 'Baja'];
 ?>
