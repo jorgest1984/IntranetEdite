@@ -166,11 +166,7 @@ try {
     ];
     sort($consultoras);
 
-} catch (Exception $e) {
-    // Silently fail in production or log to file
 }
-
-$consultoras = [];
 $modalidades = ['TELEFORMACIÓN', 'PRESENCIAL', 'MIXTA', 'AULA VIRTUAL'];
 $prioridades = ['Alta', 'Media', 'Baja'];
 ?>
