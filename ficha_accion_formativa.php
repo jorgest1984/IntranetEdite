@@ -39,96 +39,125 @@ sort($familias);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ficha de Acción Formativa | Intranet Edite</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
     <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+
         .page-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 25px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #e0e0e0;
+            padding: 1rem 2rem;
+            background: #fff;
+            border-bottom: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
         .header-title h1 {
-            color: #d32f2f;
-            font-size: 1.4rem;
-            margin-bottom: 5px;
+            color: #b91c1c;
+            font-size: 1.25rem;
+            margin: 0;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
         }
 
         .btn-group-header {
             display: flex;
-            gap: 8px;
+            gap: 10px;
         }
 
         .btn-header {
-            padding: 6px 12px;
-            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
             font-size: 0.85rem;
-            font-weight: 500;
+            font-weight: 600;
             text-decoration: none;
-            border: 1px solid #ccc;
-            background: #f8f9fa;
-            color: #333;
+            border: 1px solid #cbd5e1;
+            background: #fff;
+            color: #334155;
             transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .btn-header:hover {
-            background: #e9ecef;
+            background: #f1f5f9;
+            border-color: #94a3b8;
         }
 
         .course-title-display {
             text-align: center;
-            font-weight: bold;
-            font-size: 1.2rem;
-            margin-bottom: 20px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            margin: 20px 0;
+            color: #1e293b;
             text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         .tabs-container {
-            border: 1px solid #ccc;
+            border: 1px solid #e2e8f0;
             background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
 
         .tabs-header {
             display: flex;
-            background: #f1f1f1;
-            border-bottom: 1px solid #ccc;
+            background: #f1f5f9;
+            border-bottom: 1px solid #e2e8f0;
         }
 
         .tab-btn {
-            padding: 10px 15px;
+            padding: 12px 24px;
             border: none;
             background: none;
             cursor: pointer;
-            font-size: 0.9rem;
-            border-right: 1px solid #ccc;
-            transition: background 0.2s;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #64748b;
+            border-right: 1px solid #e2e8f0;
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover {
+            background: #e2e8f0;
         }
 
         .tab-btn.active {
             background: #fff;
-            font-weight: bold;
-            border-bottom: 2px solid #d32f2f;
+            color: #b91c1c;
+            border-bottom: 2px solid #b91c1c;
         }
 
         .tab-content {
-            padding: 20px;
+            padding: 2rem;
         }
 
         .form-section-title {
             text-align: center;
-            color: #d32f2f;
-            font-weight: bold;
-            margin-bottom: 20px;
+            color: #b91c1c;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
             font-size: 0.9rem;
             text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 0.5rem;
         }
 
         .form-row {
             display: flex;
             flex-wrap: wrap;
-            margin: 0 -10px 15px -10px;
+            margin: 0 -10px 1.25rem -10px;
         }
 
         .form-col {
@@ -138,25 +167,36 @@ sort($familias);
 
         .form-group label {
             display: block;
-            font-size: 0.85rem;
-            font-weight: bold;
-            margin-bottom: 5px;
-            color: #333;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 0.4rem;
+            color: #1e3a8a; /* Azul corporativo para labels */
+            text-transform: uppercase;
         }
 
         .form-group input, .form-group select {
             width: 100%;
-            padding: 6px 10px;
-            border: 1px solid #ccc;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #cbd5e1;
             border-radius: 4px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            background: #f8fafc;
+            color: #334155;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: #fff;
         }
 
         .checkbox-group {
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-top: 25px;
+            height: 100%;
+            padding-top: 1.5rem;
         }
 
         .checkbox-group input {
@@ -167,48 +207,66 @@ sort($familias);
             display: flex;
             justify-content: center;
             gap: 15px;
-            margin-top: 20px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-top: 1px solid #ccc;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
         }
 
         .btn-save {
-            background: #fff;
-            border: 1px solid #ccc;
-            padding: 8px 25px;
-            border-radius: 4px;
+            background: #b91c1c;
+            border: 1px solid #991b1b;
+            padding: 0.6rem 2rem;
+            border-radius: 6px;
             cursor: pointer;
-            font-weight: bold;
+            font-weight: 700;
+            color: #fff;
+            transition: all 0.2s;
+        }
+
+        .btn-save:hover {
+            background: #991b1b;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
 
         .btn-back {
             background: #fff;
-            border: 1px solid #ccc;
-            padding: 8px 25px;
-            border-radius: 4px;
+            border: 1px solid #cbd5e1;
+            padding: 0.6rem 2rem;
+            border-radius: 6px;
             text-decoration: none;
-            color: #333;
-            font-weight: bold;
+            color: #475569;
+            font-weight: 700;
+            transition: all 0.2s;
+        }
+
+        .btn-back:hover {
+            background: #f1f5f9;
         }
 
         /* Responsive */
         @media (max-width: 768px) {
             .form-col { width: 100% !important; }
+            .tabs-header { flex-wrap: wrap; }
         }
 
         .sectores-table-container {
-            margin-top: 30px;
-            border: 1px solid #ccc;
+            margin-top: 2rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #fff;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
 
         .sectores-table-header {
-            background: #fff;
-            padding: 10px;
+            background: #1e293b;
+            padding: 12px;
             text-align: center;
-            font-weight: bold;
-            color: #d32f2f;
-            border-bottom: 1px solid #ccc;
+            font-weight: 800;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
         }
 
         .sectores-table {
@@ -217,27 +275,38 @@ sort($familias);
         }
 
         .sectores-table th {
-            background: #fff;
-            border: 1px solid #ccc;
-            padding: 8px;
-            font-size: 0.85rem;
-            color: #d32f2f;
+            background: #f1f5f9;
+            border-bottom: 2px solid #e2e8f0;
+            padding: 12px;
+            font-size: 0.8rem;
+            color: #475569;
             text-align: center;
+            font-weight: 700;
+            text-transform: uppercase;
         }
 
         .sectores-table td {
-            border: 1px solid #ccc;
-            padding: 15px;
+            border-bottom: 1px solid #f1f5f9;
+            padding: 1rem;
             text-align: center;
+            color: #334155;
         }
 
         .btn-add-sector {
-            padding: 5px 15px;
-            background: #f1f1f1;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            padding: 0.5rem 1.5rem;
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 0.85rem;
+            font-weight: 600;
+            color: #1e3a8a;
+            transition: all 0.2s;
+        }
+
+        .btn-add-sector:hover {
+            background: #e2e8f0;
+            border-color: #94a3b8;
         }
     </style>
 </head>
