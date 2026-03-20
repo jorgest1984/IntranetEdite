@@ -26,15 +26,31 @@ try {
         $planes = $stmt->fetchAll();
     }
     
-    // Valores únicos de Solicitantes, Sectores y Entidades (Proveedores) desde la tabla planes
-    $stmt = $pdo->query("SELECT DISTINCT solicitante FROM planes WHERE solicitante IS NOT NULL AND solicitante != '' ORDER BY solicitante ASC");
-    if ($stmt) { $solicitantes = $stmt->fetchAll(PDO::FETCH_COLUMN); }
-    
-    $stmt = $pdo->query("SELECT DISTINCT sector FROM planes WHERE sector IS NOT NULL AND sector != '' ORDER BY sector ASC");
-    if ($stmt) { $sectores = $stmt->fetchAll(PDO::FETCH_COLUMN); }
-    
     $stmt = $pdo->query("SELECT DISTINCT entidad FROM planes WHERE entidad IS NOT NULL AND entidad != '' ORDER BY entidad ASC");
     if ($stmt) { $proveedores = $stmt->fetchAll(PDO::FETCH_COLUMN); }
+
+    $stmt = $pdo->query("SELECT DISTINCT sector FROM planes WHERE sector IS NOT NULL AND sector != '' ORDER BY sector ASC");
+    if ($stmt) { $sectores = $stmt->fetchAll(PDO::FETCH_COLUMN); }
+
+    // Lista base de Solicitantes (según imagen y petición usuario)
+    $base_solicitantes = [
+        'FED. ESTATAL DE SERVICIOS-UGT', 'COMFIA', 'FED. COM. Y TTE. CCOO MADRID',
+        'UGT DE CATALUNYA', 'UGT Madrid', 'FETCM-UGT', 'FETE-UGT',
+        'FED. NACIONAL DE DETALLISTAS DE FRUTAS Y HORTALIZAS', 'MARS', 'FITAG',
+        'Comunidad de Madrid', 'FAECTA', 'UGT Andalucía', 'FTFE', 'Criteria',
+        'FSP-UGT Palencia', 'JUNTA DE CASTILLA Y LEON', 'JUNTA DE ANDALUCIA',
+        'CRUZ ROJA ESPAÑOLA', 'MARSDIGITAL S.L.', 'Fundación Piquer'
+    ];
+
+    // Combinar con los que haya en la base de datos
+    $stmt = $pdo->query("SELECT DISTINCT solicitante FROM planes WHERE solicitante IS NOT NULL AND solicitante != '' ORDER BY solicitante ASC");
+    if ($stmt) { 
+        $db_solicitantes = $stmt->fetchAll(PDO::FETCH_COLUMN); 
+        $solicitantes = array_unique(array_merge($base_solicitantes, $db_solicitantes));
+    } else {
+        $solicitantes = $base_solicitantes;
+    }
+    sort($solicitantes);
 
     // Catálogo (desde cursos)
     $stmt = $pdo->query("SELECT id, nombre_corto FROM cursos ORDER BY nombre_corto ASC");
