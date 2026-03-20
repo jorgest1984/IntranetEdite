@@ -349,6 +349,10 @@ $prioridades = ['Alta', 'Media', 'Baja'];
                 <p>Gestión y búsqueda de acciones de formación</p>
             </div>
             <div class="page-actions">
+                <a href="ficha_accion_formativa.php" class="btn btn-success" style="margin-right: 10px;">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="white" style="vertical-align: middle; margin-right: 5px;"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                    Nueva Acción Formativa
+                </a>
                 <a href="formacion_profesional.php" class="btn btn-primary">
                     <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
                     Volver
