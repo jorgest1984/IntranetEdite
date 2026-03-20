@@ -1,6 +1,6 @@
 <?php
 // includes/auth.php
-require_once 'config.php';
+require_once __DIR__ . '/config.php';
 
 // Verificar si el usuario está logueado
 if (!isset($_SESSION['user_id'])) {

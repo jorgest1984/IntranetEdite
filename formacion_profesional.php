@@ -6,7 +6,7 @@ require_once 'includes/auth.php'; // Verifica login y permisos
 $sections = [
     '' => [
         ['title' => 'Convocatorias', 'icon' => '<svg viewBox="0 0 24 24"><path d="M5 4h14v2H5zm0 10h4v6h6v-6h4l-7-7-7 7z"/></svg>', 'url' => 'convocatorias.php', 'color' => 'blue'],
-        ['title' => 'Acciones Formativas', 'icon' => '<svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2h12c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/></svg>', 'url' => '#', 'color' => 'blue', 'external' => true],
+        ['title' => 'Acciones Formativas', 'icon' => '<svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2h12c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/></svg>', 'url' => 'acciones_formativas.php?v=' . time(), 'color' => 'blue'],
         ['title' => 'Grupos', 'icon' => '<svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>', 'url' => '#', 'color' => 'blue', 'external' => true],
         ['title' => 'Inscripciones', 'icon' => '<svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>', 'url' => '#', 'color' => 'blue', 'external' => true],
         ['title' => 'Tutorías', 'icon' => '<svg viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v4h8v-4h5c1.1 0 1.99-.9 1.99-2L23 5c0-1.1-.9-2-2-2zm0 14H3V5h18v12z"/></svg>', 'url' => '#', 'color' => 'blue', 'external' => true],
@@ -41,7 +41,7 @@ $sections = [
         <header class="page-header">
             <div class="page-title">
                 <h1>Formación Profesional</h1>
-                <p>Gestión académica y herramientas de Moodle</p>
+                <p>Gestión académica y herramientas de Moodle <span style="font-size: 0.7rem; color: #ccc;">[Build ID: <?= time() ?>]</span></p>
             </div>
             <div class="page-actions">
                 <a href="home.php" class="btn btn-primary">
