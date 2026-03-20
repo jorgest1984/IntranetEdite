@@ -149,12 +149,20 @@ try {
         'Familia- Imagen y Sonido', 'Familia- Industria alimentaria',
         'Familia- Informática y Comunicaciones', 'Familia- Seguridad y Medioambiente',
         'Familia: Sevicios socioculturales y a la comunidad', 'Oferta 1.Appforbrands',
-        'Oferta 2.Appforbrands', 'Oferta 3. Hosteleria y Restauracion',
-        'Prevención de Riesgos Laborales', 'SAP', 'Seguridad Privada', 'Transversal'
-    ];
-
     $catalogos = array_unique(array_merge($base_catalogos, $db_catalogos));
     sort($catalogos);
+
+    // Lista base de Consultoras (según imagen)
+    $consultoras = [
+        'ACADEMIA VISAN', 'ADAMS', 'AE S. MARTIN', 'AGE', 'AREA FORMACION AULAS', 
+        'Asociación Puerta de Alcalá', 'AZUVIS S.C.A', 'BODYFACTORY SOMOSAGUAS', 
+        'BOROXSPORT CLUB SPORT', 'C/ CORCEGA,371', 'CENTRO DE FORMACION ALFER', 
+        'CLUB DE TENIS Y PADEL MONTEVERDE', 'EDITRAIN SL', 
+        'EDITRAIN, S.L. (P.E.LA FINCA)', 'ELOGOS, S.L.', 'ENSEÑANZAS ORTHOS', 
+        'FESS LA SALLE', 'Grupo Coremsa', 'INSTITUTO MADRILEÑO DE FORMACION S.L'
+    ];
+    sort($consultoras);
+
 } catch (Exception $e) {
     // Silently fail in production or log to file
 }
@@ -443,8 +451,11 @@ $prioridades = ['Alta', 'Media', 'Baja'];
 
                         <div class="form-group col-4">
                             <label>Consultora:</label>
-                            <select name="consultora_id" class="form-control">
-                                <option value=""></option>
+                            <select name="consultora" class="form-control">
+                                <option value="">Seleccione...</option>
+                                <?php foreach ($consultoras as $cons): ?>
+                                    <option value="<?= htmlspecialchars($cons) ?>"><?= htmlspecialchars($cons) ?></option>
+                                <?php endforeach; ?>
                             </select>
                         </div>
                         
