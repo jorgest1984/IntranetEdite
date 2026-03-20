@@ -2,6 +2,10 @@
 // ficha_accion_formativa.php
 require_once 'includes/auth.php';
 
+// Debugging errors
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA, ROLE_FORMADOR])) {
     die("No tiene permisos suficientes. Su rol actual es: " . ($_SESSION['rol_nombre'] ?? 'Desconocido'));
 }
