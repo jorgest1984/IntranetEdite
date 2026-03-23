@@ -356,6 +356,27 @@ $current_page = 'grupos.php';
                             <option value="Centro de Estudios y Experimentación de Obras Públ">
                             <option value="CENTRO DE FORMACION ALFER">
                             <option value="CENTRO DE FORMACION ARSENIO JIMENO">
+                            <!-- Tercera tanda de centros -->
+                            <option value="centro de formación oasis">
+                            <option value="CENTRO DE FORMACION PRAXIS">
+                            <option value="CENTRO DE FORMACION PRAXIS II">
+                            <option value="CENTRO EMPRESARIAL CEMEI">
+                            <option value="CEPAL">
+                            <option value="CFI SEGURIDAD">
+                            <option value="CICE S.A">
+                            <option value="CIS-FORMACION ESPECIALIZADA SEGURIDAD-SALUD S.L.">
+                            <option value="Ciudad Escuela de Formacion">
+                            <option value="CLUB DE GOLF GUADALMINA">
+                            <option value="CLUB DE TENIS Y PADEL MONTEVERDE">
+                            <option value="Club Natació Barcelona">
+                            <option value="CLUB NAUTICO DE GANDIA">
+                            <option value="COMERCIANTES DEL PONIENTE, S.A.">
+                            <option value="Consultores de Formacion">
+                            <option value="CONSULTORIA Y FORMACION BALBO S.L">
+                            <option value="CONTROL DE FORMACION">
+                            <option value="CREATI MOMENTUM">
+                            <option value="D.D. SPORT FG S.L. (CIS)">
+                            <option value="Dedalo Proyectos XYZ (Vicar)">
                         </datalist>
                     </div>
                     <div class="form-group w-30">
