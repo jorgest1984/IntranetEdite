@@ -285,9 +285,10 @@ $current_page = 'inscripciones.php';
 
                     <!-- Fila 3 -->
                     <div class="search-row">
+                        <!-- Campo Solicitante - Actualizado v1.1 -->
                         <div class="form-group">
                             <label>Solicitante:</label>
-                            <select name="solicitante" class="form-control" style="width: 250px;">
+                            <select name="solicitante" class="form-control" style="width: 280px;">
                                 <option value="">---</option>
                                 <option value="COMFIA">COMFIA</option>
                                 <option value="FED. COM. Y TTE. CCOO MADRID">FED. COM. Y TTE. CCOO MADRID</option>
@@ -298,7 +299,7 @@ $current_page = 'inscripciones.php';
                                 <option value="FED. NACIONAL DE DETALLISTAS DE FRUTAS Y HORTALIZA">FED. NACIONAL DE DETALLISTAS DE FRUTAS Y HORTALIZA</option>
                                 <option value="MARS">MARS</option>
                                 <option value="FITAG">FITAG</option>
-                                <option value="Comunidada de Madrid">Comunidad de Madrid</option>
+                                <option value="Comunidad de Madrid">Comunidad de Madrid</option>
                                 <option value="FAECTA">FAECTA</option>
                                 <option value="UGT Andalucía">UGT Andalucía</option>
                                 <option value="FTFE">FTFE</option>
