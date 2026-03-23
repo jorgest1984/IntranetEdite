@@ -506,10 +506,12 @@ $current_page = 'grupos.php';
                         <label>Grupo:</label>
                         <input type="text" name="grupo_num" class="form-control">
                     </div>
-                    <div class="form-group w-25">
-                        <label>Cursos nuestros:</label>
-                        <select name="nuestros" class="form-control">
-                            <option value=""></option>
+                    <div class="form-group w-30">
+                        <label>Cursos propios:</label>
+                        <select name="cursos_propios" class="form-control">
+                            <option value="">Todos</option>
+                            <option value="1">Sí</option>
+                            <option value="0">No</option>
                         </select>
                     </div>
 
