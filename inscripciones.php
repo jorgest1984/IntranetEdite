@@ -319,7 +319,30 @@ $current_page = 'inscripciones.php';
                         </div>
                         <div class="form-group">
                             <label>Colectivo:</label>
-                            <select name="colectivo" class="form-control" style="width: 380px;"><option value="">---</option></select>
+                            <select name="colectivo" class="form-control" style="width: 380px;">
+                                <option value="">---</option>
+                                <option value="Cuidadores no profesionales de las personas en situación de dependencia">Cuidadores no profesionales de las personas en situación de dependencia</option>
+                                <option value="Empleado hogar">Empleado hogar</option>
+                                <option value="ERE (Art. 51 y 52 del Estatuto de los Trabajadores)">ERE (Art. 51 y 52 del Estatuto de los Trabajadores)</option>
+                                <option value="ERTE (Art. 47 del Estatuto de los Trabajadores)">ERTE (Art. 47 del Estatuto de los Trabajadores)</option>
+                                <option value="Fijos discontinuos en periodo de no ocupación">Fijos discontinuos en periodo de no ocupación</option>
+                                <option value="Mutualistas de Colegios Profesionales no incluidos como autónomos">Mutualistas de Colegios Profesionales no incluidos como autónomos</option>
+                                <option value="Persona actualmente desempleada que anteriormente ha estado en situación de ERTE.">Persona actualmente desempleada que anteriormente ha estado en situación de ERTE.</option>
+                                <option value="Persona que actualmente está trabajando pero que anteriormente ha estado en situación de ERTE.">Persona que actualmente está trabajando pero que anteriormente ha estado en situación de ERTE.</option>
+                                <option value="Régimen especial agrario por cuenta ajena">Régimen especial agrario por cuenta ajena</option>
+                                <option value="Régimen especial agrario por cuenta propia">Régimen especial agrario por cuenta propia</option>
+                                <option value="Régimen especial autónomos">Régimen especial autónomos</option>
+                                <option value="Régimen general">Régimen general</option>
+                                <option value="Regulación de empleo en periodos de no ocupación">Regulación de empleo en periodos de no ocupación</option>
+                                <option value="Trabajador con contrato a tiempo parcial">Trabajador con contrato a tiempo parcial</option>
+                                <option value="Trabajador con contrato temporal">Trabajador con contrato temporal</option>
+                                <option value="Trabajadores a tiempo parcial de carácter indefinido con trabajos discontinuos en sus periodos de no ocupación">Trabajadores a tiempo parcial de carácter indefinido con trabajos discontinuos en sus periodos de no ocupación</option>
+                                <option value="Trabajadores con convenio especial con la Seguridad Social">Trabajadores con convenio especial con la Seguridad Social</option>
+                                <option value="Trabajadores con relaciones laborales de carácter especial que se recogen en el art.2 del Estatuto de los Trabajadores">Trabajadores con relaciones laborales de carácter especial que se recogen en el art.2 del Estatuto de los Trabajadores</option>
+                                <option value="Trabajadores incluidos en el Régimen especial del mar">Trabajadores incluidos en el Régimen especial del mar</option>
+                                <option value="Trabajadores no ocupados inscritos como demandantes de empleo en los servicios públicos de empleo">Trabajadores no ocupados inscritos como demandantes de empleo en los servicios públicos de empleo</option>
+                                <option value="administración pública">administración pública</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>No válido:</label>
