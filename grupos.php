@@ -252,9 +252,61 @@ $current_page = 'grupos.php';
                     <!-- Fila 2 -->
                     <div class="form-group w-30">
                         <label>Provincia de impartición:</label>
-                        <select name="provincia" class="form-control">
-                            <option value="">Todas</option>
-                        </select>
+                        <input type="text" name="provincia" id="provincia-input" class="form-control" list="provincias-list" placeholder="Escriba la provincia...">
+                        <datalist id="provincias-list">
+                            <option value="Álava">
+                            <option value="Albacete">
+                            <option value="Alicante">
+                            <option value="Almería">
+                            <option value="Asturias">
+                            <option value="Ávila">
+                            <option value="Badajoz">
+                            <option value="Baleares">
+                            <option value="Barcelona">
+                            <option value="Burgos">
+                            <option value="Cáceres">
+                            <option value="Cádiz">
+                            <option value="Cantabria">
+                            <option value="Castellón">
+                            <option value="Ciudad Real">
+                            <option value="Córdoba">
+                            <option value="Cuenca">
+                            <option value="Gerona">
+                            <option value="Granada">
+                            <option value="Guadalajara">
+                            <option value="Guipúzcoa">
+                            <option value="Huelva">
+                            <option value="Huesca">
+                            <option value="Jaén">
+                            <option value="La Coruña">
+                            <option value="La Rioja">
+                            <option value="Las Palmas">
+                            <option value="León">
+                            <option value="Lérida">
+                            <option value="Lugo">
+                            <option value="Madrid">
+                            <option value="Málaga">
+                            <option value="Murcia">
+                            <option value="Navarra">
+                            <option value="Orense">
+                            <option value="Palencia">
+                            <option value="Pontevedra">
+                            <option value="Salamanca">
+                            <option value="Segovia">
+                            <option value="Sevilla">
+                            <option value="Soria">
+                            <option value="Tarragona">
+                            <option value="Santa Cruz de Tenerife">
+                            <option value="Teruel">
+                            <option value="Toledo">
+                            <option value="Valencia">
+                            <option value="Valladolid">
+                            <option value="Vizcaya">
+                            <option value="Zamora">
+                            <option value="Zaragoza">
+                            <option value="Ceuta">
+                            <option value="Melilla">
+                        </datalist>
                     </div>
                     <div class="form-group w-40">
                         <label>Centro impartición:</label>
