@@ -366,7 +366,21 @@ $current_page = 'inscripciones.php';
                     <div class="search-row">
                         <div class="form-group">
                             <label>Grupo cotización:</label>
-                            <select name="grupo_cotizacion" class="form-control" style="width: 320px;"><option value="">---</option></select>
+                            <select name="grupo_cotizacion" class="form-control" style="width: 320px;">
+                                <option value="">---</option>
+                                <option value="1.- Ingenieros y licenciados">1.- Ingenieros y licenciados</option>
+                                <option value="2.- Ingenieros técnicos, peritos y Aytes. titulados">2.- Ingenieros técnicos, peritos y Aytes. titulados</option>
+                                <option value="3.- Jefes Advos. y de taller">3.- Jefes Advos. y de taller</option>
+                                <option value="4.- Ayudantes no titulados">4.- Ayudantes no titulados</option>
+                                <option value="5.- Oficiales administrativos">5.- Oficiales administrativos</option>
+                                <option value="6.- Subalternos">6.- Subalternos</option>
+                                <option value="7.- Auxiliares administrativos">7.- Auxiliares administrativos</option>
+                                <option value="8.- Oficiales de primera y segunda">8.- Oficiales de primera y segunda</option>
+                                <option value="9.- Oficiales de tercera y especialistas">9.- Oficiales de tercera y especialistas</option>
+                                <option value="10.- Peones">10.- Peones</option>
+                                <option value="11.- Trabajadores menores de 18 años">11.- Trabajadores menores de 18 años</option>
+                                <option value="Trabajadores mayores de 18 años no cualif.">Trabajadores mayores de 18 años no cualif.</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>Centro impartición:</label>
