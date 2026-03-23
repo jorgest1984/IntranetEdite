@@ -268,7 +268,18 @@ $current_page = 'inscripciones.php';
                         </div>
                         <div class="form-group">
                             <label>Motivo No-Admisión:</label>
-                            <select name="motivo_rechazo" class="form-control" style="width: 150px;"><option value="">---</option></select>
+                            <select name="motivo_rechazo" class="form-control" style="width: 150px;">
+                                <option value="">---</option>
+                                <option value="Acción agotada">Acción agotada</option>
+                                <option value="Acción no programable">Acción no programable</option>
+                                <option value="Falta doc">Falta doc</option>
+                                <option value="Falta grupo">Falta grupo</option>
+                                <option value="Falta tutor">Falta tutor</option>
+                                <option value="Otro curso">Otro curso</option>
+                                <option value="Plan agotado">Plan agotado</option>
+                                <option value="Sector NO Correcto">Sector NO Correcto</option>
+                                <option value="Tutor completo">Tutor completo</option>
+                            </select>
                         </div>
                     </div>
 
