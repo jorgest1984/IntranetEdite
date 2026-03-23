@@ -524,21 +524,37 @@ $current_page = 'grupos.php';
                         <label>Fecha fin hasta:</label>
                         <input type="date" name="fecha_fin_hasta" class="form-control">
                     </div>
-                    <div class="form-group w-15">
+                    <div class="form-group w-30">
                         <label>Comunicados:</label>
-                        <select name="comunicados" class="form-control"><option value=""></option></select>
+                        <select name="comunicados" class="form-control">
+                            <option value="">Todos</option>
+                            <option value="1">Sí</option>
+                            <option value="0">No</option>
+                        </select>
                     </div>
-                    <div class="form-group w-15">
-                        <label>Comunicados Solic.:</label>
-                        <select name="comunicados_solic" class="form-control"><option value=""></option></select>
+                    <div class="form-group w-30">
+                        <label>Comunicados Solicitados:</label>
+                        <select name="comunicados_solicitados" class="form-control">
+                            <option value="">Todos</option>
+                            <option value="1">Sí</option>
+                            <option value="0">No</option>
+                        </select>
                     </div>
                     <div class="form-group w-20">
                         <label>Objetos de control:</label>
-                        <select name="objetos_control" class="form-control"><option value=""></option></select>
+                        <select name="objetos_control" class="form-control">
+                            <option value="">Todos</option>
+                            <option value="1">Sí</option>
+                            <option value="0">No</option>
+                        </select>
                     </div>
                     <div class="form-group w-20">
                         <label>Desempleados:</label>
-                        <select name="desempleados" class="form-control"><option value=""></option></select>
+                        <select name="desempleados" class="form-control">
+                            <option value="">Todos</option>
+                            <option value="1">Sí</option>
+                            <option value="0">No</option>
+                        </select>
                     </div>
 
                     <!-- Fila 5 -->
