@@ -560,7 +560,24 @@ $current_page = 'inscripciones.php';
                         </div>
                         <div class="form-group">
                             <label>Estado:</label>
-                            <select name="estado" class="form-control" style="width: 150px;"><option value="">---</option></select>
+                            <select name="estado" class="form-control" style="width: 150px;">
+                                <option value="">---</option>
+                                <option value="Abandono">Abandono</option>
+                                <option value="Admitido">Admitido</option>
+                                <option value="Baja">Baja</option>
+                                <option value="Baja por colocación">Baja por colocación</option>
+                                <option value="Empleado en curso">Empleado en curso</option>
+                                <option value="Espera">Espera</option>
+                                <option value="Finalizado">Finalizado</option>
+                                <option value="Finalizado sobrante">Finalizado sobrante</option>
+                                <option value="Inscrito">Inscrito</option>
+                                <option value="Pendiente docu">Pendiente docu</option>
+                                <option value="Pendiente estado">Pendiente estado</option>
+                                <option value="Pendiente otro curso">Pendiente otro curso</option>
+                                <option value="Pendiente validacion">Pendiente validacion</option>
+                                <option value="Preinscrito">Preinscrito</option>
+                                <option value="Reserva">Reserva</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>Modalidad:</label>
