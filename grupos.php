@@ -457,6 +457,22 @@ $current_page = 'grupos.php';
                             <option value="SERVICIOS FUNERARIOS DE BARCELONA">
                             <option value="SERVICIOS SECURITAS S.A.">
                             <option value="Soom Management S.L">
+                            <!-- Octava y última tanda de centros -->
+                            <option value="SQUASH GYM SIERRA S.L.">
+                            <option value="Swiss Sports Club">
+                            <option value="TALKING ENGLISH">
+                            <option value="TANATORIO MONTSERRAT TRUYOLS">
+                            <option value="TANATORIO MUNICIPAL CIUDAD DE VALENCIA">
+                            <option value="TANATORIO SAN LAZARO S.L.">
+                            <option value="TANATORIO SERVICIOS FUNERARIOS SAGUNTO. FUALRUB S.">
+                            <option value="TANATORIO TORRERO">
+                            <option value="TANATORIO VELATORIO LUCENSES">
+                            <option value="Tecnas">
+                            <option value="TWENTY4HELP KNOWLEDGE SERVICE ESPAÑA">
+                            <option value="ULTRAGYM/BODY FACTORY">
+                            <option value="Universidad de Granada">
+                            <option value="VALLADOLID 1402 S.L. ESCUELA DE SEGURIDAD">
+                            <option value="vigilantes">
                         </datalist>
                     </div>
                     <div class="form-group w-30">
