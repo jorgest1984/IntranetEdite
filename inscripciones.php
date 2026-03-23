@@ -287,7 +287,30 @@ $current_page = 'inscripciones.php';
                     <div class="search-row">
                         <div class="form-group">
                             <label>Solicitante:</label>
-                            <select name="solicitante" class="form-control" style="width: 250px;"><option value="">---</option></select>
+                            <select name="solicitante" class="form-control" style="width: 250px;">
+                                <option value="">---</option>
+                                <option value="COMFIA">COMFIA</option>
+                                <option value="FED. COM. Y TTE. CCOO MADRID">FED. COM. Y TTE. CCOO MADRID</option>
+                                <option value="UGT DE CATALUNYA">UGT DE CATALUNYA</option>
+                                <option value="UGT Madrid">UGT Madrid</option>
+                                <option value="FETCM-UGT">FETCM-UGT</option>
+                                <option value="FETE-UGT">FETE-UGT</option>
+                                <option value="FED. NACIONAL DE DETALLISTAS DE FRUTAS Y HORTALIZA">FED. NACIONAL DE DETALLISTAS DE FRUTAS Y HORTALIZA</option>
+                                <option value="MARS">MARS</option>
+                                <option value="FITAG">FITAG</option>
+                                <option value="Comunidada de Madrid">Comunidad de Madrid</option>
+                                <option value="FAECTA">FAECTA</option>
+                                <option value="UGT Andalucía">UGT Andalucía</option>
+                                <option value="FTFE">FTFE</option>
+                                <option value="Criteria">Criteria</option>
+                                <option value="FSP-UGT Palencia">FSP-UGT Palencia</option>
+                                <option value="JUNTA DE CASTILLA Y LEON">JUNTA DE CASTILLA Y LEON</option>
+                                <option value="JUNTA DE ANDALUCIA">JUNTA DE ANDALUCIA</option>
+                                <option value="CRUZ ROJA ESPAÑOLA">CRUZ ROJA ESPAÑOLA</option>
+                                <option value="MARSDIGITAL S.L.">MARSDIGITAL S.L.</option>
+                                <option value="FUNDACIÓN PIQUER">FUNDACIÓN PIQUER</option>
+                                <option value="Fed. Estatal de servicios - UGT">Fed. Estatal de servicios - UGT</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>Sexo:</label>
