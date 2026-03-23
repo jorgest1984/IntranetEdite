@@ -261,10 +261,10 @@ $current_page = 'inscripciones.php';
                         </div>
                         <div class="form-group">
                             <label>Provincia:</label>
-                            <select name="provincia" class="form-control" style="width: 150px;">
-                                <option value="">---</option>
-                                <?php foreach($provincias as $prov): ?><option value="<?= $prov ?>"><?= $prov ?></option><?php endforeach; ?>
-                            </select>
+                            <input type="text" name="provincia" class="form-control" list="provincias_list" placeholder="Escriba provincia..." style="width: 150px;">
+                            <datalist id="provincias_list">
+                                <?php foreach($provincias as $prov): ?><option value="<?= mb_strtoupper($prov, 'UTF-8') ?>"><?php endforeach; ?>
+                            </datalist>
                         </div>
                         <div class="form-group">
                             <label>Motivo No-Admisión:</label>
