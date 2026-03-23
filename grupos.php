@@ -71,45 +71,58 @@ $current_page = 'grupos.php';
         .search-form { padding: 1.5rem; }
         
         .form-grid {
-            display: grid;
-            grid-template-columns: repeat(12, 1fr);
-            gap: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px 10px;
         }
         .form-group {
             display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .form-group.row-layout {
+            flex-direction: row;
             align-items: center;
-            gap: 0.5rem;
         }
         .form-group label {
             font-size: 0.75rem;
             font-weight: 700;
             color: #1e3a8a;
             white-space: nowrap;
-            min-width: 100px;
-            text-align: right;
+            text-transform: capitalize;
+        }
+        .form-group.row-layout label {
+            min-width: auto;
+            margin-right: 5px;
         }
         .form-control {
-            width: 100%;
-            padding: 0.35rem 0.5rem;
+            padding: 0.4rem 0.6rem;
             border: 1px solid #cbd5e1;
             border-radius: 4px;
             font-size: 0.85rem;
             background: #f8fafc;
-            transition: all 0.2s;
-        }
-        .form-control:focus {
-            outline: none;
-            border-color: #3b82f6;
-            background: #fff;
+            width: 100%;
+            box-sizing: border-box;
         }
 
-        /* Responsive grid */
-        .col-12 { grid-column: span 12; }
-        .col-6 { grid-column: span 6; }
-        .col-4 { grid-column: span 4; }
-        .col-3 { grid-column: span 3; }
-        .col-2 { grid-column: span 2; }
-        .col-2-5 { grid-column: span 2.5; }
+        /* Layout Helpers */
+        .w-10 { width: calc(10% - 10px); }
+        .w-15 { width: calc(15% - 10px); }
+        .w-20 { width: calc(20% - 10px); }
+        .w-25 { width: calc(25% - 10px); }
+        .w-30 { width: calc(30% - 10px); }
+        .w-33 { width: calc(33.33% - 10px); }
+        .w-40 { width: calc(40% - 10px); }
+        .w-50 { width: calc(50% - 10px); }
+        .w-60 { width: calc(60% - 10px); }
+        .w-100 { width: 100%; }
+
+        @media (max-width: 1024px) {
+            .w-10, .w-15, .w-20, .w-25, .w-30, .w-33, .w-40, .w-50, .w-60 { width: calc(50% - 10px); }
+        }
+        @media (max-width: 640px) {
+            .w-10, .w-15, .w-20, .w-25, .w-30, .w-33, .w-40, .w-50, .w-60 { width: 100%; }
+        }
 
         .search-actions {
             display: flex;
@@ -198,15 +211,15 @@ $current_page = 'grupos.php';
             <form class="search-form" method="GET">
                 <div class="form-grid">
                     <!-- Fila 1 -->
-                    <div class="form-group col-3">
+                    <div class="form-group w-25">
                         <label>Curso:</label>
                         <input type="text" name="curso" class="form-control">
                     </div>
-                    <div class="form-group col-2">
+                    <div class="form-group w-20">
                         <label>Código grupo:</label>
                         <input type="text" name="codigo_grupo" class="form-control">
                     </div>
-                    <div class="form-group col-2">
+                    <div class="form-group w-15">
                         <label>Situación:</label>
                         <select name="situacion" class="form-control">
                             <option value="">Todas</option>
@@ -217,7 +230,7 @@ $current_page = 'grupos.php';
                             <option value="Inactivo">Inactivo</option>
                         </select>
                     </div>
-                    <div class="form-group col-2">
+                    <div class="form-group w-15">
                         <label>Modalidad:</label>
                         <select name="modalidad" class="form-control">
                             <option value="">Todas</option>
@@ -226,7 +239,7 @@ $current_page = 'grupos.php';
                             <option value="Mixta">Mixta</option>
                         </select>
                     </div>
-                    <div class="form-group col-3">
+                    <div class="form-group w-25">
                         <label>Tutor:</label>
                         <select name="tutor" class="form-control">
                             <option value="">Todos</option>
@@ -237,13 +250,13 @@ $current_page = 'grupos.php';
                     </div>
 
                     <!-- Fila 2 -->
-                    <div class="form-group col-4">
+                    <div class="form-group w-30">
                         <label>Provincia de impartición:</label>
                         <select name="provincia" class="form-control">
                             <option value="">Todas</option>
                         </select>
                     </div>
-                    <div class="form-group col-5">
+                    <div class="form-group w-40">
                         <label>Centro impartición:</label>
                         <select name="centro" class="form-control">
                             <option value="">Todos</option>
@@ -252,7 +265,7 @@ $current_page = 'grupos.php';
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="form-group col-3">
+                    <div class="form-group w-30">
                         <label>Asignación:</label>
                         <select name="asignacion" class="form-control">
                             <option value=""></option>
@@ -260,57 +273,61 @@ $current_page = 'grupos.php';
                     </div>
 
                     <!-- Fila 3 -->
-                    <div class="form-group col-3">
+                    <div class="form-group w-15">
                         <label>Fecha inicio desde:</label>
                         <input type="date" name="fecha_ini_desde" class="form-control">
                     </div>
-                    <div class="form-group col-3">
+                    <div class="form-group w-15">
                         <label>Fecha inicio hasta:</label>
                         <input type="date" name="fecha_ini_hasta" class="form-control">
                     </div>
-                    <div class="form-group col-1">
-                        <label style="min-width: auto;">Sin fechas:</label>
+                    <div class="form-group row-layout w-10">
+                        <label>Sin fechas:</label>
                         <input type="checkbox" name="sin_fechas">
                     </div>
-                    <div class="form-group col-2">
-                        <label style="min-width: auto;">Acción:</label>
+                    <div class="form-group w-25">
+                        <label>Acción:</label>
                         <input type="text" name="accion" class="form-control">
                     </div>
-                    <div class="form-group col-1">
-                        <label style="min-width: auto;">Grupo:</label>
+                    <div class="form-group w-10">
+                        <label>Grupo:</label>
                         <input type="text" name="grupo_num" class="form-control">
                     </div>
-                    <div class="form-group col-2">
-                        <label style="min-width: auto;">Cursos nuestros:</label>
+                    <div class="form-group w-25">
+                        <label>Cursos nuestros:</label>
                         <select name="nuestros" class="form-control">
                             <option value=""></option>
                         </select>
                     </div>
 
                     <!-- Fila 4 -->
-                    <div class="form-group col-3">
+                    <div class="form-group w-15">
                         <label>Fecha fin desde:</label>
                         <input type="date" name="fecha_fin_desde" class="form-control">
                     </div>
-                    <div class="form-group col-3">
+                    <div class="form-group w-15">
                         <label>Fecha fin hasta:</label>
                         <input type="date" name="fecha_fin_hasta" class="form-control">
                     </div>
-                    <div class="form-group col-2">
-                        <label style="min-width: auto;">Comunicados:</label>
+                    <div class="form-group w-15">
+                        <label>Comunicados:</label>
                         <select name="comunicados" class="form-control"><option value=""></option></select>
                     </div>
-                    <div class="form-group col-2">
-                        <label style="min-width: auto;">Comunicados Solic.:</label>
+                    <div class="form-group w-15">
+                        <label>Comunicados Solic.:</label>
                         <select name="comunicados_solic" class="form-control"><option value=""></option></select>
                     </div>
-                    <div class="form-group col-2">
-                        <label style="min-width: auto;">Objetos de control:</label>
+                    <div class="form-group w-20">
+                        <label>Objetos de control:</label>
                         <select name="objetos_control" class="form-control"><option value=""></option></select>
+                    </div>
+                    <div class="form-group w-20">
+                        <label>Desempleados:</label>
+                        <select name="desempleados" class="form-control"><option value=""></option></select>
                     </div>
 
                     <!-- Fila 5 -->
-                    <div class="form-group col-6">
+                    <div class="form-group w-50">
                         <label>Convocatoria:</label>
                         <select name="convocatoria_id" class="form-control">
                             <option value="">Todas las convocatorias</option>
@@ -319,7 +336,7 @@ $current_page = 'grupos.php';
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="form-group col-6">
+                    <div class="form-group w-50">
                         <label>Plan:</label>
                         <select name="plan_id" class="form-control">
                             <option value="">Todos los planes</option>
