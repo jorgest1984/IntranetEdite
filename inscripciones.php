@@ -20,7 +20,15 @@ $planes = [];
 
 try {
     $convocatorias = $pdo->query("SELECT id, nombre FROM convocatorias ORDER BY nombre ASC LIMIT 50")->fetchAll();
-    // $planes = $pdo->query("SELECT id, nombre FROM planes ORDER BY nombre ASC")->fetchAll();
+    
+    // Obtener Comerciales (Rol 'Comercial' o buscando por nombre de rol similar)
+    $stmtComerciales = $pdo->query("SELECT u.id, u.nombre, u.apellidos FROM usuarios u JOIN roles r ON u.rol_id = r.id WHERE r.nombre LIKE '%Comercial%' AND u.activo = 1 ORDER BY u.nombre ASC");
+    $comerciales = $stmtComerciales->fetchAll();
+
+    // Obtener Tutores (Rol 'Formador' o 'Tutor')
+    $stmtTutores = $pdo->query("SELECT u.id, u.nombre, u.apellidos FROM usuarios u JOIN roles r ON u.rol_id = r.id WHERE (r.nombre LIKE '%Formador%' OR r.nombre LIKE '%Tutor%') AND u.activo = 1 ORDER BY u.nombre ASC");
+    $tutores = $stmtTutores->fetchAll();
+
 } catch (Exception $e) {}
 
 $current_page = 'inscripciones.php';
@@ -221,11 +229,21 @@ $current_page = 'inscripciones.php';
                         </div>
                         <div class="form-group">
                             <label>Comercial:</label>
-                            <select name="comercial" class="form-control" style="width: 180px;"><option value="">---</option></select>
+                            <select name="comercial" class="form-control" style="width: 180px;">
+                                <option value="">---</option>
+                                <?php foreach ($comerciales as $c): ?>
+                                    <option value="<?= $c['id'] ?>"><?= htmlspecialchars($c['nombre'] . ' ' . $c['apellidos']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>Tutor:</label>
-                            <select name="tutor" class="form-control" style="width: 250px;"><option value="">---</option></select>
+                            <select name="tutor" class="form-control" style="width: 250px;">
+                                <option value="">---</option>
+                                <?php foreach ($tutores as $t): ?>
+                                    <option value="<?= $t['id'] ?>"><?= htmlspecialchars($t['nombre'] . ' ' . $t['apellidos']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
                     </div>
 
