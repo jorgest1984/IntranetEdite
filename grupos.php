@@ -506,7 +506,7 @@ $current_page = 'grupos.php';
                         <label>Grupo:</label>
                         <input type="text" name="grupo_num" class="form-control">
                     </div>
-                    <div class="form-group w-30">
+                    <div class="form-group w-25">
                         <label>Cursos propios:</label>
                         <select name="cursos_propios" class="form-control">
                             <option value="">Todos</option>
@@ -524,7 +524,7 @@ $current_page = 'grupos.php';
                         <label>Fecha fin hasta:</label>
                         <input type="date" name="fecha_fin_hasta" class="form-control">
                     </div>
-                    <div class="form-group w-30">
+                    <div class="form-group w-15">
                         <label>Comunicados:</label>
                         <select name="comunicados" class="form-control">
                             <option value="">Todos</option>
@@ -532,8 +532,8 @@ $current_page = 'grupos.php';
                             <option value="0">No</option>
                         </select>
                     </div>
-                    <div class="form-group w-30">
-                        <label>Comunicados Solicitados:</label>
+                    <div class="form-group w-15">
+                        <label>Comunicados solic.:</label>
                         <select name="comunicados_solicitados" class="form-control">
                             <option value="">Todos</option>
                             <option value="1">Sí</option>
