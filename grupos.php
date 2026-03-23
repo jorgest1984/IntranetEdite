@@ -310,12 +310,32 @@ $current_page = 'grupos.php';
                     </div>
                     <div class="form-group w-40">
                         <label>Centro impartición:</label>
-                        <select name="centro" class="form-control">
-                            <option value="">Todos</option>
+                        <input type="text" name="centro" id="centro-input" class="form-control" list="centros-list" placeholder="Escriba el centro...">
+                        <datalist id="centros-list">
                             <?php foreach ($centros as $c): ?>
-                                <option value="<?= $c['id'] ?>"><?= htmlspecialchars($c['nombre']) ?></option>
+                                <option value="<?= htmlspecialchars($c['nombre']) ?>">
                             <?php endforeach; ?>
-                        </select>
+                            <!-- Centros adicionales de la imagen -->
+                            <option value="A. F. C. CONSULTING DEPORTIVO">
+                            <option value="ACADEMIA CERVANTES , CARLOS AMEZ LAIZ CB">
+                            <option value="ACADEMIA FIPP">
+                            <option value="ACADEMIA SOCE S.L.U.">
+                            <option value="ACADEMIA TECNAS">
+                            <option value="ACADEMIA VIGILANT S.L.">
+                            <option value="ACADEMIA VISAN">
+                            <option value="ADAMS">
+                            <option value="AE S. MARTIN">
+                            <option value="AEFOL EXPOELEARNING S.L.">
+                            <option value="AESS">
+                            <option value="AFA-FORMACION CONTINUA S.L.">
+                            <option value="AGE">
+                            <option value="AMUSAL">
+                            <option value="AREA FORMACION AULAS">
+                            <option value="asimag servicios empresariales, s.l">
+                            <option value="ASIMAG SERVICIOS EMPRESARIALES, S.L.">
+                            <option value="Asociación Puerta de Alcalá">
+                            <option value="ATENTO TELESERVICIOS ESPAÑA, S.A.">
+                        </datalist>
                     </div>
                     <div class="form-group w-30">
                         <label>Asignación:</label>
