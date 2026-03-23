@@ -334,6 +334,7 @@ sort($familias);
         <div class="tabs-container">
             <div class="tabs-header">
                 <button class="tab-btn active">Datos Generales</button>
+                <button class="tab-btn">Grupos</button>
                 <button class="tab-btn">Contenidos</button>
                 <button class="tab-btn">Material</button>
                 <button class="tab-btn">Gestión</button>
