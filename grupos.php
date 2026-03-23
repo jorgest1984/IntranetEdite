@@ -396,6 +396,27 @@ $current_page = 'grupos.php';
                             <option value="EUROPEANQUALITY S.L.">
                             <option value="F.I.P.P">
                             <option value="FEDERAC. PROV. DE MINUSVALIDOS FISICOS DE CORDOBA">
+                            <!-- Quinta tanda de centros -->
+                            <option value="FESS LA SALLE">
+                            <option value="FONDO DE PROMOCION Y DESARROLLO PROFESIONAL">
+                            <option value="FPDP">
+                            <option value="FPDP-VALENCIA">
+                            <option value="FUNDACIÓN SAN VALERO">
+                            <option value="GENERAL PLAN">
+                            <option value="GESTIÓN DE LA EXCELENCIA Y COACHING APLICADO A LOS">
+                            <option value="Gimnasio Triunfo S.A.">
+                            <option value="Green Apple School">
+                            <option value="GREEN TAL S.A.">
+                            <option value="Grupo Coremsa">
+                            <option value="GRUPO DTM CONSULTING S.L.U.">
+                            <option value="GRUPO EDNE, S.L.">
+                            <option value="GRUPO SUR RECICLAJE Y FORMACIÓN S.L.">
+                            <option value="Hotel Avenida">
+                            <option value="IDFO">
+                            <option value="IFES">
+                            <option value="IFES ( ZARAGOZA)">
+                            <option value="IFES (EUSKADI)">
+                            <option value="IFES NAVARRA">
                         </datalist>
                     </div>
                     <div class="form-group w-30">
