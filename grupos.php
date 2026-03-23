@@ -377,6 +377,25 @@ $current_page = 'grupos.php';
                             <option value="CREATI MOMENTUM">
                             <option value="D.D. SPORT FG S.L. (CIS)">
                             <option value="Dedalo Proyectos XYZ (Vicar)">
+                            <!-- Cuarta tanda de centros -->
+                            <option value="EDIFICIO SINDICATOS (A CORUÑA)">
+                            <option value="EDITEFORMACION (Madrid)">
+                            <option value="EDITEFORMACION-MERCAOLID">
+                            <option value="EDITRAIN SL">
+                            <option value="EDITRAIN, S.L. (P.E.LA FINCA)">
+                            <option value="El Ser Creativo SL">
+                            <option value="EL VENTAL DE OCASION S.L.">
+                            <option value="ELOGOS, S.L.">
+                            <option value="EMPRESA MIXTA DE SERVICIOS FUNERARIOS DE MADRID">
+                            <option value="ENSEÑANZAS ORTHOS">
+                            <option value="ESCUELA DE FORMACIÓN PROFESIONAL">
+                            <option value="ESCUELA DE FORMACIÓN PROFESIONAL (Vícar)">
+                            <option value="Escuela Internacional de Gerencia">
+                            <option value="ESTACION DISEÑO">
+                            <option value="ESTACION DISEÑO (Antiguo)">
+                            <option value="EUROPEANQUALITY S.L.">
+                            <option value="F.I.P.P">
+                            <option value="FEDERAC. PROV. DE MINUSVALIDOS FISICOS DE CORDOBA">
                         </datalist>
                     </div>
                     <div class="form-group w-30">
