@@ -417,6 +417,26 @@ $current_page = 'grupos.php';
                             <option value="IFES ( ZARAGOZA)">
                             <option value="IFES (EUSKADI)">
                             <option value="IFES NAVARRA">
+                            <!-- Sexta tanda de centros -->
+                            <option value="IFES UGT">
+                            <option value="IFES-CENTRO DE FORMACION ARSENIO JIMENO">
+                            <option value="IFES-SEVILLA">
+                            <option value="IFES-UGT (ALICANTE)">
+                            <option value="INGAFOR">
+                            <option value="INSFORCAN, S.L CENTRO DE ESTUDIOS EMPRESARIALES">
+                            <option value="Instituto Educacion Secundaria Elaios">
+                            <option value="INSTITUTO FORMACION ESTUDIOS SOCIALES">
+                            <option value="INSTITUTO MADRILEÑO DE FORMACION S.L">
+                            <option value="LA MIRADA DIGITAL">
+                            <option value="LA MIRADA DIGITAL, S.L.">
+                            <option value="MAREN">
+                            <option value="MARSDIGITAL S.L (antiguo)">
+                            <option value="Marsdigital S.L (Granada )">
+                            <option value="Marsdigital S.L. (Barcelona)">
+                            <option value="Marsdigital S.L. (la Mirada)">
+                            <option value="MASTER (CENTRO DE ESTUDIOS - TIENDA DE INFORMATICA">
+                            <option value="MBNA EUROPE BANK LIMITED ESPAÑA">
+                            <option value="Método Consultores, S.L">
                         </datalist>
                     </div>
                     <div class="form-group w-30">
