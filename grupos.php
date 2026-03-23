@@ -209,8 +209,12 @@ $current_page = 'grupos.php';
                     <div class="form-group col-2">
                         <label>Situación:</label>
                         <select name="situacion" class="form-control">
+                            <option value="">Todas</option>
                             <option value="Valido">Válido</option>
-                            <option value="Cancelado">Cancelado</option>
+                            <option value="Suspendido">Suspendido</option>
+                            <option value="Finalizado">Finalizado</option>
+                            <option value="Lista espera">Lista espera</option>
+                            <option value="Inactivo">Inactivo</option>
                         </select>
                     </div>
                     <div class="form-group col-2">
