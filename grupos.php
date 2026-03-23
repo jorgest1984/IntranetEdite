@@ -437,6 +437,26 @@ $current_page = 'grupos.php';
                             <option value="MASTER (CENTRO DE ESTUDIOS - TIENDA DE INFORMATICA">
                             <option value="MBNA EUROPE BANK LIMITED ESPAÑA">
                             <option value="Método Consultores, S.L">
+                            <!-- Séptima tanda de centros -->
+                            <option value="METODO ESTUDIOS CONSULTORES ( ARENAL)">
+                            <option value="METODO ESTUDIOS CONSULTORES, S.L.">
+                            <option value="METODO ESTUDIOS CONSULTORES,S.L (C/DIEGO)">
+                            <option value="MGI NEVA CENTROS DE FORMACION">
+                            <option value="MORTUALBA SCL ( TANATORIO MUNICIPAL ALBACETE)">
+                            <option value="OROVIDA S.L.">
+                            <option value="PARCESA, PARQUES DE LA PAZ S.A">
+                            <option value="PARCESA, PARQUES DE LA PAZ S.A ( segundo centro)">
+                            <option value="PARCESA, PARQUES DE LA PAZ S.A ( tercer centro)">
+                            <option value="POLIDEPORTIVO LAS CRUCES">
+                            <option value="PRODUCCIONES HINOJOSA BECERRA MEDIA2 S.L">
+                            <option value="PROINTEC S.A.">
+                            <option value="PROMAX S.L.L">
+                            <option value="Remo RCNGandia">
+                            <option value="SANTAGADEA GESTIÓN S.L. ( CENTRO DE DEPORTIVO DEHESA">
+                            <option value="SEGURIDAD CERES S.A.">
+                            <option value="SERVICIOS FUNERARIOS DE BARCELONA">
+                            <option value="SERVICIOS SECURITAS S.A.">
+                            <option value="Soom Management S.L">
                         </datalist>
                     </div>
                     <div class="form-group w-30">
