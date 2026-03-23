@@ -333,8 +333,29 @@ $current_page = 'grupos.php';
                             <option value="AREA FORMACION AULAS">
                             <option value="asimag servicios empresariales, s.l">
                             <option value="ASIMAG SERVICIOS EMPRESARIALES, S.L.">
-                            <option value="Asociación Puerta de Alcalá">
+                            <option value="Association Puerta de Alcalá">
                             <option value="ATENTO TELESERVICIOS ESPAÑA, S.A.">
+                            <!-- Segunda tanda de centros -->
+                            <option value="AUDEMA">
+                            <option value="AUTOESCUELA EMERITA S.L.">
+                            <option value="AVEFOR ARAGÓN DAIDA PEREZ HERNANDEZ">
+                            <option value="AVIZOR, CENTRO SUPERIOR DE FORMACIÓN EN ESTUDIOS D">
+                            <option value="Ayuntamiento de Cajar">
+                            <option value="AZUVIS S.C.A">
+                            <option value="BODYFACTORY SOMOSAGUAS">
+                            <option value="BOROXSPORT CLUB SPORT">
+                            <option value="C/ CORCEGA,371">
+                            <option value="CAD-SEGURIDAD">
+                            <option value="CENTRO DE ENSEÑANZAS PROFESIONALES Y TECNOLOGICAS">
+                            <option value="Centro de Estudio Arsenio Toral S.A.L.">
+                            <option value="Centro de Estudio Arsenio Toral S.A.L.. 2012">
+                            <option value="CENTRO DE ESTUDIOS APPA SCL">
+                            <option value="CENTRO DE ESTUDIOS DE FORMACION ALFER">
+                            <option value="CENTRO DE ESTUDIOS DE FORMACION ALFER S.L.">
+                            <option value="CENTRO DE ESTUDIOS LA ACADEMIA CB">
+                            <option value="Centro de Estudios y Experimentación de Obras Públ">
+                            <option value="CENTRO DE FORMACION ALFER">
+                            <option value="CENTRO DE FORMACION ARSENIO JIMENO">
                         </datalist>
                     </div>
                     <div class="form-group w-30">
