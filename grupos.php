@@ -478,7 +478,10 @@ $current_page = 'grupos.php';
                     <div class="form-group w-30">
                         <label>Asignación:</label>
                         <select name="asignacion" class="form-control">
-                            <option value=""></option>
+                            <option value="">Todas</option>
+                            <option value="I">I</option>
+                            <option value="E">E</option>
+                            <option value="M">M</option>
                         </select>
                     </div>
 
