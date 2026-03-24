@@ -605,7 +605,16 @@ $current_page = 'inscripciones.php';
                         </div>
                         <div class="form-group">
                             <label>Prioridad:</label>
-                            <select name="prioridad" class="form-control"><option value="">---</option></select>
+                            <select name="prioridad" class="form-control">
+                                <option value="">---</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>Inscripciones:</label>
