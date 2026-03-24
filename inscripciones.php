@@ -626,7 +626,11 @@ $current_page = 'inscripciones.php';
                         </div>
                         <div class="form-group">
                             <label>Cursos nuestros:</label>
-                            <select name="nuestros" class="form-control" style="width: 150px;"><option value="">---</option></select>
+                            <select name="nuestros" class="form-control" style="width: 150px;">
+                                <option value="">Todos</option>
+                                <option value="S">Sí</option>
+                                <option value="N">No</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>Entregado mat:</label>
