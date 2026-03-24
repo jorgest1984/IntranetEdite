@@ -642,11 +642,19 @@ $current_page = 'inscripciones.php';
                         </div>
                         <div class="form-group">
                             <label>Captado:</label>
-                            <select name="captado" class="form-control" style="width: 80px;"><option value="">---</option></select>
+                            <select name="captado" class="form-control" style="width: 80px;">
+                                <option value="">Todos</option>
+                                <option value="S">Sí</option>
+                                <option value="N">No</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>CERTIFICABLES:</label>
-                            <select name="certificables" class="form-control" style="width: 50px;"><option value="">---</option></select>
+                            <select name="certificables" class="form-control" style="width: 80px;">
+                                <option value="">Todos</option>
+                                <option value="S">Sí</option>
+                                <option value="N">No</option>
+                            </select>
                         </div>
                     </div>
 
