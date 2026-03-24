@@ -53,6 +53,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
             </a>
 </li>
         <li>
+            <a href="tutorias.php" class="<?= $current_page == 'tutorias.php' ? 'active' : '' ?>">
+                <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2.12-1.15V17h2V8L12 3zm6.82 5.09L12 11.89 5.18 8.09 12 4.38l6.82 3.71zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/></svg>
+                Tutorías
+            </a>
+</li>
+        <li>
             <a href="grupos.php" class="<?= $current_page == 'grupos.php' ? 'active' : '' ?>">
                 <svg viewBox="0 0 24 24" width="20" height="20"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
                 Grupos
