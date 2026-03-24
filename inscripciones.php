@@ -581,7 +581,15 @@ $current_page = 'inscripciones.php';
                         </div>
                         <div class="form-group">
                             <label>Modalidad:</label>
-                            <select name="modalidad" class="form-control" style="width: 150px;"><option value="excepto_presencial">Excepto presencial</option></select>
+                            <select name="modalidad" class="form-control" style="width: 150px;">
+                                <option value="">---</option>
+                                <option value="Teleformación">Teleformación</option>
+                                <option value="Distancia">Distancia</option>
+                                <option value="Mixta">Mixta</option>
+                                <option value="Presencial">Presencial</option>
+                                <option value="Semipresencial">Semipresencial</option>
+                                <option value="Excepto presencial">Excepto presencial</option>
+                            </select>
                         </div>
                     </div>
 
