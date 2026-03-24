@@ -634,7 +634,11 @@ $current_page = 'inscripciones.php';
                         </div>
                         <div class="form-group">
                             <label>Entregado mat:</label>
-                            <select name="entregado" class="form-control" style="width: 50px;"><option value="">---</option></select>
+                            <select name="entregado" class="form-control" style="width: 80px;">
+                                <option value="">Todos</option>
+                                <option value="S">Sí</option>
+                                <option value="N">No</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>Captado:</label>
