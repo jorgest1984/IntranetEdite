@@ -644,8 +644,8 @@ $current_page = 'inscripciones.php';
                             <label>Captado:</label>
                             <select name="captado" class="form-control" style="width: 80px;">
                                 <option value="">Todos</option>
-                                <option value="S">Sí</option>
-                                <option value="N">No</option>
+                                <option value="IDFO">IDFO</option>
+                                <option value="UGT">UGT</option>
                             </select>
                         </div>
                         <div class="form-group">
