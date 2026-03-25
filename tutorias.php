@@ -252,7 +252,7 @@ $current_page = 'tutorias.php';
                 <button type="button" class="btn-action">Subir evals</button>
                 <button type="button" class="btn-action">Imprimir evals</button>
                 <button type="button" class="btn-action">Llamadas seguimiento</button>
-                <button type="button" class="btn-action">Calendario de tutorias</button>
+                <a href="calendario_tutorias.php" class="btn-action">Calendario de tutorias</a>
             </div>
 
             <!-- BUSCADOR -->
