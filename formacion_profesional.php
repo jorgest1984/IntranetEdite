@@ -12,7 +12,7 @@ $sections = [
         ['title' => 'Tutorías', 'icon' => '<svg viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v4h8v-4h5c1.1 0 1.99-.9 1.99-2L23 5c0-1.1-.9-2-2-2zm0 14H3V5h18v12z"/></svg>', 'url' => 'tutorias.php', 'color' => 'blue'],
         ['title' => 'Calendario de tutorías', 'icon' => '<svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg>', 'url' => 'calendario_tutorias.php', 'color' => 'blue'],
         ['title' => 'Email masivo', 'icon' => '<svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>', 'url' => 'email_masivo.php', 'color' => 'blue'],
-        ['title' => 'Foros - Mensaje de bienvenida (provisional)', 'icon' => '<svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>', 'url' => '#', 'color' => 'blue', 'external' => true],
+        ['title' => 'Foros - Mensaje de bienvenida (provisional)', 'icon' => '<svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>', 'url' => '#', 'onclick' => "var id=prompt('Introduce el ID del curso:'); if(id) { window.open('https://www.editeformacion.com/gestion/app/Controllers/Aulavirtual/Foros/Bienvenida.php?id='+id, '_blank'); } return false;", 'color' => 'blue', 'external' => false],
         ['title' => 'Informes', 'icon' => '<svg viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>', 'url' => 'informes.php', 'color' => 'blue'],
         ['title' => 'Envío de claves', 'icon' => '<svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5 8-5v10zm-8-7L4 6h16l-8 5z"/></svg>', 'url' => 'send_mail.php', 'color' => 'purple', 'external' => true],
     ],
@@ -66,6 +66,7 @@ $sections = [
                                     $target = $isExternal ? '_blank' : '_self';
                                 ?>
                                 <a href="<?= htmlspecialchars($tile['url']) ?>" 
+                                   <?= isset($tile['onclick']) ? 'onclick="' . htmlspecialchars($tile['onclick']) . '"' : '' ?>
                                    class="tile tile-<?= htmlspecialchars($tile['color']) ?>" 
                                    target="<?= $target ?>">
                                     <div class="tile-icon">
