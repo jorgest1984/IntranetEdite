@@ -311,40 +311,81 @@ $current_page = 'calendario_tutorias.php';
             <div class="calendar-container">
                 <div class="calendar-grid">
                     <?php 
-                    // Generar un par de semanas de demostración visual basadas en la captura
-                    $dias_ejemplo = [
-                        ['mes' => 'Marzo', 'dia' => 2, 'tipo' => 'semana', 'manana' => '9:00 - 15:00', 'tarde' => '16:00 - 18:30'],
-                        ['mes' => 'Marzo', 'dia' => 3, 'tipo' => 'semana', 'manana' => '9:00 - 15:00', 'tarde' => '16:00 - 18:30'],
-                        ['mes' => 'Marzo', 'dia' => 4, 'tipo' => 'semana', 'manana' => '9:00 - 15:00', 'tarde' => '16:00 - 18:30'],
-                        ['mes' => 'Marzo', 'dia' => 5, 'tipo' => 'semana', 'manana' => '9:00 - 15:00', 'tarde' => '16:00 - 18:30'],
-                        ['mes' => 'Marzo', 'dia' => 6, 'tipo' => 'semana', 'manana' => '9:00 - 15:00', 'tarde' => '16:00 - 18:30'],
-                        ['mes' => 'Marzo', 'dia' => 7, 'tipo' => 'finde', 'manana' => '9:00 - 15:00', 'tarde' => '16:00 - 18:30'],
-                        ['mes' => 'Marzo', 'dia' => 8, 'tipo' => 'finde', 'manana' => '9:00 - 15:00', 'tarde' => '16:00 - 18:30'],
-                        
-                        ['mes' => 'Marzo', 'dia' => 9, 'tipo' => 'semana', 'manana' => '9:00 - 15:00', 'tarde' => '16:00 - 18:30'],
-                        ['mes' => 'Marzo', 'dia' => 10, 'tipo' => 'semana', 'manana' => '9:00 - 15:00', 'tarde' => '16:00 - 18:30'],
-                        ['mes' => 'Marzo', 'dia' => 11, 'tipo' => 'semana', 'manana' => '9:00 - 15:00', 'tarde' => '16:00 - 18:30'],
-                        ['mes' => 'Marzo', 'dia' => 12, 'tipo' => 'semana', 'manana' => '9:00 - 15:00', 'tarde' => '16:00 - 18:30'],
-                        ['mes' => 'Marzo', 'dia' => 13, 'tipo' => 'semana', 'manana' => '9:00 - 15:00', 'tarde' => '16:00 - 18:30'],
-                        ['mes' => 'Marzo', 'dia' => 14, 'tipo' => 'finde', 'manana' => '9:00 - 15:00', 'tarde' => '16:00 - 18:30'],
-                        ['mes' => 'Marzo', 'dia' => 15, 'tipo' => 'finde', 'manana' => '9:00 - 15:00', 'tarde' => '16:00 - 18:30'],
-                    ];
+                    $nombres_meses = ['01'=>'Enero', '02'=>'Febrero', '03'=>'Marzo', '04'=>'Abril', '05'=>'Mayo', '06'=>'Junio', '07'=>'Julio', '08'=>'Agosto', '09'=>'Septiembre', '10'=>'Octubre', '11'=>'Noviembre', '12'=>'Diciembre'];
                     
-                    foreach ($dias_ejemplo as $d) {
-                        $is_finde = ($d['tipo'] === 'finde');
-                        $bg_class = $is_finde ? 'bg-fin-semana' : 'bg-semana';
-                        $header_class = $is_finde ? 'header-fin-semana' : 'header-semana';
+                    // Inicializar desde el primer día del mes actual
+                    $fecha_inicio = new DateTime('first day of this month');
+                    
+                    for ($m = 0; $m < 2; $m++): 
+                        $fecha_mes = clone $fecha_inicio;
+                        $fecha_mes->modify("+$m months");
                         
-                        echo "<div class='calendar-day {$bg_class}'>";
-                        echo "<div class='day-header {$header_class}'><span class='mes'>{$d['mes']}</span><span class='dia'>{$d['dia']}</span></div>";
-                        echo "<div class='day-content'>";
-                        echo "<div class='slot manana'>{$d['manana']}</div>";
-                        if (!empty($d['tarde'])) {
-                            echo "<div class='slot tarde'>{$d['tarde']}</div>";
+                        $mes_num = $fecha_mes->format('m');
+                        $anio = $fecha_mes->format('Y');
+                        $nombre_mes = $nombres_meses[$mes_num];
+                        
+                        // Primer dia y ultimo dia del mes
+                        $primer_dia_mes = new DateTime("$anio-$mes_num-01");
+                        $ultimo_dia_mes = clone $primer_dia_mes;
+                        $ultimo_dia_mes->modify('last day of this month');
+                        
+                        // Lunes inicial para cuadrar el grid
+                        $dia_semana_inicio = $primer_dia_mes->format('N');
+                        $fecha_grid = clone $primer_dia_mes;
+                        if ($dia_semana_inicio > 1) {
+                            $fecha_grid->modify('-' . ($dia_semana_inicio - 1) . ' days');
                         }
-                        echo "</div>";
-                        echo "</div>";
-                    }
+                        
+                        // Domingo final
+                        $dia_semana_fin = $ultimo_dia_mes->format('N');
+                        $fecha_grid_fin = clone $ultimo_dia_mes;
+                        if ($dia_semana_fin < 7) {
+                            $fecha_grid_fin->modify('+' . (7 - $dia_semana_fin) . ' days');
+                        }
+                    ?>
+                    
+                    <!-- Etiqueta del mes -->
+                    <div style="grid-column: span 7; background: #e2e8f0; padding: 10px; font-weight: 800; text-align: center; font-size: 1.1rem; color: #1e293b; border-bottom: 1px solid var(--border-gray); border-top: 1px solid var(--border-gray);">
+                        <?= mb_strtoupper($nombre_mes) ?> <?= $anio ?>
+                    </div>
+                    
+                    <!-- Días de la semana -->
+                    <div style="background:#f1f5f9; padding:5px; text-align:center; font-weight:700; border-bottom:1px solid #cbd5e1;">LUNES</div>
+                    <div style="background:#f1f5f9; padding:5px; text-align:center; font-weight:700; border-bottom:1px solid #cbd5e1;">MARTES</div>
+                    <div style="background:#f1f5f9; padding:5px; text-align:center; font-weight:700; border-bottom:1px solid #cbd5e1;">MIÉRCOLES</div>
+                    <div style="background:#f1f5f9; padding:5px; text-align:center; font-weight:700; border-bottom:1px solid #cbd5e1;">JUEVES</div>
+                    <div style="background:#f1f5f9; padding:5px; text-align:center; font-weight:700; border-bottom:1px solid #cbd5e1;">VIERNES</div>
+                    <div class="color-fin-semana" style="color:#fff; padding:5px; text-align:center; font-weight:700; border-bottom:1px solid #cbd5e1;">SÁBADO</div>
+                    <div class="color-fin-semana" style="color:#fff; padding:5px; text-align:center; font-weight:700; border-bottom:1px solid #cbd5e1;">DOMINGO</div>
+
+                    <?php
+                        while ($fecha_grid <= $fecha_grid_fin) {
+                            $es_finde = ($fecha_grid->format('N') >= 6);
+                            $es_mes_actual = ($fecha_grid->format('m') === $mes_num);
+                            
+                            $bg_class = $es_finde ? 'bg-fin-semana' : 'bg-semana';
+                            $header_class = $es_finde ? 'header-fin-semana' : 'header-semana';
+                            
+                            $opacidad = $es_mes_actual ? '1' : '0.4'; // Días de otro mes más claros
+                            
+                            echo "<div class='calendar-day {$bg_class}' style='opacity: {$opacidad};'>";
+                            echo "<div class='day-header {$header_class}'><span class='mes'>{$nombres_meses[$fecha_grid->format('m')]}</span><span class='dia'>{$fecha_grid->format('d')}</span></div>";
+                            
+                            // Contenido simulado si es del mes actual
+                            if ($es_mes_actual) {
+                                echo "<div class='day-content'>";
+                                echo "<div class='slot manana'>9:00 - 15:00</div>";
+                                echo "<div class='slot tarde'>16:00 - 18:30</div>";
+                                echo "</div>";
+                            } else {
+                                echo "<div class='day-content'></div>";
+                            }
+                            
+                            echo "</div>";
+                            
+                            $fecha_grid->modify('+1 day');
+                        }
+                    endfor;
                     ?>
                 </div>
             </div>
