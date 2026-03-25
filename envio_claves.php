@@ -291,6 +291,7 @@ $resultados_simulados = isset($_GET['buscar']);
                             <label>Tipo cursos</label>
                             <select name="tipo_curso" class="form-control">
                                 <option value="CP">Contratos-programa</option>
+                                <option value="B">Bonificados</option>
                                 <option value="O">Otros</option>
                             </select>
                         </div>
