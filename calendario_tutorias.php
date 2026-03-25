@@ -166,6 +166,52 @@ $current_page = 'calendario_tutorias.php';
         .color-festivo { background: #ef4444; }
         .color-tutorias { background: #8b5cf6; }
 
+        /* Grid del Calendario */
+        .calendar-container {
+            border: none;
+            box-shadow: none;
+            background: transparent;
+            margin-top: 2rem;
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0;
+            background: var(--border-gray);
+            border: 1px solid var(--border-gray);
+        }
+        .calendar-day {
+            background: #fff;
+            min-height: 250px;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--border-gray);
+        }
+        .bg-semana { background: #fff; }
+        .bg-fin-semana { background: #fef2f2; }
+        
+        .day-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border-gray);
+        }
+        .header-semana { background: #f8fafc; color: #334155; }
+        .header-fin-semana { background: #991b1b; color: #fff; }
+        
+        .day-header .mes { font-size: 0.75rem; font-weight: 600; text-transform: capitalize; }
+        .day-header .dia { font-size: 1.5rem; font-weight: 300; }
+        
+        .day-content { display: flex; flex-direction: column; flex: 1; }
+        .slot {
+            padding: 10px;
+            font-size: 0.8rem;
+            color: #334155;
+            flex: 1;
+        }
+        .tarde { border-top: 1px solid var(--border-gray); }
+
     </style>
 </head>
 <body>
@@ -260,7 +306,49 @@ $current_page = 'calendario_tutorias.php';
                 </div>
             </div>
 
-            <!-- Aquí iría el Calendario interactivo (Grid) que se renderiza dinámicamente -->
+            <!-- Grid del Calendario interactivo renderizado dinámicamente -->
+            <?php if (isset($_GET['tutor']) && $_GET['tutor'] != ''): ?>
+            <div class="calendar-container">
+                <div class="calendar-grid">
+                    <?php 
+                    // Generar un par de semanas de demostración visual basadas en la captura
+                    $dias_ejemplo = [
+                        ['mes' => 'Marzo', 'dia' => 2, 'tipo' => 'semana', 'manana' => '9:00 - 15:00', 'tarde' => '16:00 - 18:30'],
+                        ['mes' => 'Marzo', 'dia' => 3, 'tipo' => 'semana', 'manana' => '9:00 - 15:00', 'tarde' => '16:00 - 18:30'],
+                        ['mes' => 'Marzo', 'dia' => 4, 'tipo' => 'semana', 'manana' => '9:00 - 15:00', 'tarde' => '16:00 - 18:30'],
+                        ['mes' => 'Marzo', 'dia' => 5, 'tipo' => 'semana', 'manana' => '9:00 - 15:00', 'tarde' => '16:00 - 18:30'],
+                        ['mes' => 'Marzo', 'dia' => 6, 'tipo' => 'semana', 'manana' => '9:00 - 15:00', 'tarde' => '16:00 - 18:30'],
+                        ['mes' => 'Marzo', 'dia' => 7, 'tipo' => 'finde', 'manana' => '9:00 - 15:00', 'tarde' => '16:00 - 18:30'],
+                        ['mes' => 'Marzo', 'dia' => 8, 'tipo' => 'finde', 'manana' => '9:00 - 15:00', 'tarde' => '16:00 - 18:30'],
+                        
+                        ['mes' => 'Marzo', 'dia' => 9, 'tipo' => 'semana', 'manana' => '9:00 - 15:00', 'tarde' => '16:00 - 18:30'],
+                        ['mes' => 'Marzo', 'dia' => 10, 'tipo' => 'semana', 'manana' => '9:00 - 15:00', 'tarde' => '16:00 - 18:30'],
+                        ['mes' => 'Marzo', 'dia' => 11, 'tipo' => 'semana', 'manana' => '9:00 - 15:00', 'tarde' => '16:00 - 18:30'],
+                        ['mes' => 'Marzo', 'dia' => 12, 'tipo' => 'semana', 'manana' => '9:00 - 15:00', 'tarde' => '16:00 - 18:30'],
+                        ['mes' => 'Marzo', 'dia' => 13, 'tipo' => 'semana', 'manana' => '9:00 - 15:00', 'tarde' => '16:00 - 18:30'],
+                        ['mes' => 'Marzo', 'dia' => 14, 'tipo' => 'finde', 'manana' => '9:00 - 15:00', 'tarde' => '16:00 - 18:30'],
+                        ['mes' => 'Marzo', 'dia' => 15, 'tipo' => 'finde', 'manana' => '9:00 - 15:00', 'tarde' => '16:00 - 18:30'],
+                    ];
+                    
+                    foreach ($dias_ejemplo as $d) {
+                        $is_finde = ($d['tipo'] === 'finde');
+                        $bg_class = $is_finde ? 'bg-fin-semana' : 'bg-semana';
+                        $header_class = $is_finde ? 'header-fin-semana' : 'header-semana';
+                        
+                        echo "<div class='calendar-day {$bg_class}'>";
+                        echo "<div class='day-header {$header_class}'><span class='mes'>{$d['mes']}</span><span class='dia'>{$d['dia']}</span></div>";
+                        echo "<div class='day-content'>";
+                        echo "<div class='slot manana'>{$d['manana']}</div>";
+                        if (!empty($d['tarde'])) {
+                            echo "<div class='slot tarde'>{$d['tarde']}</div>";
+                        }
+                        echo "</div>";
+                        echo "</div>";
+                    }
+                    ?>
+                </div>
+            </div>
+            <?php endif; ?>
 
         </main>
     </div>
