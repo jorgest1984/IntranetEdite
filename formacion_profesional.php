@@ -17,7 +17,7 @@ $sections = [
         ['title' => 'Envío de claves', 'icon' => '<svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5 8-5v10zm-8-7L4 6h16l-8 5z"/></svg>', 'url' => 'envio_claves.php', 'color' => 'purple', 'external' => false],
     ],
     'Herramientas' => [
-        ['title' => 'Editor de Evaluaciones de Moodle', 'icon' => '<svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>', 'url' => '#', 'color' => 'blue', 'external' => true],
+        ['title' => 'Editor de Evaluaciones de Moodle', 'icon' => '<svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>', 'url' => 'moodle_editor.php', 'color' => 'blue', 'external' => false],
         ['title' => 'Generador de glosarios de Moodle', 'icon' => '<svg viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>', 'url' => '#', 'color' => 'blue', 'external' => true],
     ]
 ];
