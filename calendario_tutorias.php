@@ -3,9 +3,9 @@
 require_once 'includes/config.php';
 require_once 'includes/auth.php';
 
-// Redireccionar si no se tiene sesión
-if (!is_logged_in()) {
-    header("Location: index.php");
+// Validar permisos
+if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_FORMADOR, ROLE_LECTURA])) {
+    header("Location: dashboard.php");
     exit();
 }
 
