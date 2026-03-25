@@ -38,7 +38,7 @@ $current_page = 'calendario_tutorias.php';
         }
 
         body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
-        .main-content { padding: 2rem; max-width: 1200px; margin: 0 auto; }
+        .main-content { padding: 2rem; }
 
         .page-title {
             font-size: 1.25rem;
