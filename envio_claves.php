@@ -14,7 +14,7 @@ $current_page = 'envio_claves.php';
 // Datos para combos (Simulados o de DB)
 $planes = [['id'=>1, 'nombre'=>'Plan 2024'], ['id'=>2, 'nombre'=>'Plan 2025']];
 $modalidades = ['Teleformación', 'Presencial', 'Mixta'];
-$estados = ['Activo', 'Finalizado', 'Cancelado'];
+$estados = ['Activo', 'Admitido', 'Finalizado', 'Cancelado'];
 $comerciales = [['id'=>1, 'nombre'=>'Juan Pérez'], ['id'=>2, 'nombre'=>'Ana García']];
 $tutores = [['id'=>1, 'nombre'=>'Prof. Martínez'], ['id'=>2, 'nombre'=>'Prof. Rodríguez']];
 
