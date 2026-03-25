@@ -244,7 +244,7 @@ $current_page = 'tutorias.php';
             <!-- ACTION BAR -->
             <div class="action-bar">
                 <button type="button" class="btn-action">Calcular llamadas</button>
-                <button type="button" class="btn-action">E-mails masivos</button>
+                <a href="email_masivo.php" class="btn-action">E-mails masivos</a>
                 <button type="button" class="btn-action">Inicio curso ()</button>
                 <button type="button" class="btn-action">Mitad de curso ()</button>
                 <button type="button" class="btn-action">7 días fin ()</button>
