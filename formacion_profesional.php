@@ -18,7 +18,7 @@ $sections = [
     ],
     'Herramientas' => [
         ['title' => 'Editor de Evaluaciones de Moodle', 'icon' => '<svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>', 'url' => 'moodle_editor.php', 'color' => 'blue', 'external' => false],
-        ['title' => 'Generador de glosarios de Moodle', 'icon' => '<svg viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>', 'url' => '#', 'color' => 'blue', 'external' => true],
+        ['title' => 'Generador de glosarios de Moodle', 'icon' => '<svg viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>', 'url' => 'glosario_moodle.php', 'color' => 'blue', 'external' => false],
     ]
 ];
 ?>
