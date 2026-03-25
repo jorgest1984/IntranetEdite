@@ -207,21 +207,44 @@ $current_page = 'moodle_editor.php';
             </header>
 
             <div class="editor-container">
-                <div class="editor-viewport" id="questionsContainer">
+                <div class="editor-viewport">
                     
-                    <div class="content-card" id="introCard">
-                        <div class="card-title">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                            Información del cuestionario
-                        </div>
-                        <div class="info-grid">
-                            <span class="info-label">Curso:</span> <input type="text" class="form-control-minimal" value="Nombre del curso...">
-                            <span class="info-label">Título:</span> <input type="text" class="form-control-minimal" value="Evaluación General">
-                            <span class="info-label">Prefijo:</span> <input type="text" class="form-control-minimal" style="font-family: monospace;" value="EV0-">
+                    <div id="questionsContainer">
+                        <div class="content-card" id="introCard">
+                            <div class="card-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                                Información del cuestionario
+                            </div>
+                            <div class="info-grid">
+                                <span class="info-label">Curso:</span> <input type="text" class="form-control-minimal" value="Nombre del curso...">
+                                <span class="info-label">Título:</span> <input type="text" class="form-control-minimal" value="Evaluación General">
+                                <span class="info-label">Prefijo:</span> <input type="text" class="form-control-minimal" style="font-family: monospace;" value="EV0-">
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Las preguntas se añadirán aquí -->
+                    <!-- Instrucciones persistentes -->
+                    <div id="instructionsWrapper">
+                        <div class="content-card">
+                            <div class="card-title">Instrucciones de uso</div>
+                            <ul class="list-style">
+                                <li>Clic en el <span class="highlight-blue">título del curso</span> para modificarlo.</li>
+                                <li>Añada preguntas usando el botón superior.</li>
+                                <li>Tipos disponibles: <span class="highlight-blue">Ensayo, Verdadero/Falso, Respuesta corta, Relacionar columnas y Numérico.</span></li>
+                                <li>Utilice <span class="highlight-red">-></span> para relacionar columnas (Ej: España -> Madrid).</li>
+                                <li>Guarde su trabajo periódicamente pulsando en <span class="highlight-blue">Guardar</span>.</li>
+                            </ul>
+                        </div>
+
+                        <div class="content-card" style="border-left: 4px solid #ef4444;">
+                            <div class="card-title" style="color: #ef4444;">Importante</div>
+                            <ul class="list-style" style="font-size: 0.8rem;">
+                                <li>Evite prefijos como <span class="highlight-red">a), 1.-</span> ya que Moodle lo gestiona automáticamente.</li>
+                                <li>La puntuación máxima por pregunta es de <span class="highlight-blue">1.0</span>.</li>
+                                <li>Puede usar etiquetas <span class="highlight-blue">&lt;strong&gt;</span> para negritas.</li>
+                            </ul>
+                        </div>
+                    </div>
 
                 </div>
 
