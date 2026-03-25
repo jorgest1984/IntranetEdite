@@ -253,9 +253,9 @@ $titulos = [
                                 <th style="width: 10%;"></th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="titulosBody">
                             <?php foreach ($titulos as $t): ?>
-                            <tr>
+                            <tr id="row-<?= htmlspecialchars($t['codigo']) ?>">
                                 <td style="font-weight: 600;"><?= htmlspecialchars($t['titulo']) ?></td>
                                 <td><?= htmlspecialchars($t['codigo']) ?></td>
                                 <td><?= htmlspecialchars($t['duracion']) ?></td>
@@ -264,7 +264,7 @@ $titulos = [
                                     <a href="editar_titulo_formativo.php?id=<?= urlencode($t['codigo']) ?>" class="action-btn edit" title="Editar">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                     </a>
-                                    <button class="action-btn delete" title="Eliminar">
+                                    <button class="action-btn delete" title="Eliminar" onclick="deleteTitulo('<?= htmlspecialchars($t['codigo']) ?>')">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                     </button>
                                 </td>
@@ -294,6 +294,26 @@ $titulos = [
         </div>
     </main>
 </div>
+
+<script>
+    function deleteTitulo(codigo) {
+        if (confirm('¿Estás seguro de que deseas eliminar el título ' + codigo + '?')) {
+            const row = document.getElementById('row-' + codigo);
+            if (row) {
+                // Animación de salida "Premium"
+                row.style.transition = 'all 0.4s ease';
+                row.style.opacity = '0';
+                row.style.transform = 'translateX(20px)';
+                
+                setTimeout(() => {
+                    row.remove();
+                    // Aquí se añadiría el AJAX para eliminar de la DB real
+                    console.log('Título ' + codigo + ' eliminado correctamente.');
+                }, 400);
+            }
+        }
+    }
+</script>
 
 </body>
 </html>
