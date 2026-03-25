@@ -14,17 +14,10 @@ $current_page = 'informe_comunicaciones.php';
 // Obtener lista de usuarios activos para el desplegable
 $usuarios = [];
 try {
-    // Tratamos de obtener nombre, apellidos y username
-    $stmt = $pdo->query("SELECT id, username, nombre, primer_apellido, segundo_apellido FROM usuarios WHERE activo = 1 ORDER BY nombre ASC");
+    $stmt = $pdo->query("SELECT id, username, nombre, apellidos FROM usuarios WHERE activo = 1 ORDER BY nombre ASC");
     $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
-    // Failsafe por si no existen las columnas de apellido
-    try {
-        $stmt = $pdo->query("SELECT id, username, nombre FROM usuarios WHERE activo = 1 ORDER BY nombre ASC");
-        $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    } catch (Exception $e2) {
-        $usuarios = [];
-    }
+    $usuarios = [];
 }
 
 // Datos de ejemplo para mostrar estructura
@@ -239,9 +232,7 @@ if (isset($_GET['usuario']) || isset($_GET['desde'])) {
                                 <option value="">- Todos -</option>
                                 <?php foreach($usuarios as $u): ?>
                                     <?php 
-                                        $primer_app = $u['primer_apellido'] ?? '';
-                                        $segundo_app = $u['segundo_apellido'] ?? '';
-                                        $nombreCompleto = trim($u['nombre'] . ' ' . $primer_app . ' ' . $segundo_app); 
+                                        $nombreCompleto = trim($u['nombre'] . ' ' . ($u['apellidos'] ?? '')); 
                                         $selected = (isset($_GET['usuario']) && $_GET['usuario'] == $u['id']) ? 'selected' : '';
                                     ?>
                                     <option value="<?= $u['id'] ?>" <?= $selected ?>>
