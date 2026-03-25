@@ -201,12 +201,77 @@ $current_page = 'glosario_moodle.php';
 
     <script>
         function generateXML() {
-            const text = document.getElementById('glosarioText').value;
-            if(!text.trim()) {
+            const rawText = document.getElementById('glosarioText').value.trim();
+            if(!rawText) {
                 alert('Por favor, introduce al menos un término.');
                 return;
             }
-            alert('Lógica de generación XML en preparación. El formato se ha validado correctamente.');
+
+            // Separar por #
+            const rawEntries = rawText.split('#').map(e => e.trim()).filter(e => e.length > 0);
+            if(rawEntries.length === 0) {
+                alert('No se han encontrado entradas válidas. Recuerda finalizar cada una con el símbolo #.');
+                return;
+            }
+
+            let entriesXML = '';
+            rawEntries.forEach(entry => {
+                const parts = entry.split('|').map(p => p.trim());
+                if(parts.length >= 2) {
+                    const concept = parts[0];
+                    const definition = parts.slice(1).join('|'); // Por si hay | en la definición
+                    
+                    entriesXML += `
+    <ENTRY>
+      <CONCEPT><![CDATA[${concept}]]></CONCEPT>
+      <DEFINITION><![CDATA[${definition}]]></DEFINITION>
+      <FORMAT>1</FORMAT>
+      <USEDYNALINK>0</USEDYNALINK>
+      <CASESENSITIVE>0</CASESENSITIVE>
+      <FULLMATCH>0</FULLMATCH>
+      <TEACHERENTRY>1</TEACHERENTRY>
+    </ENTRY>`;
+                }
+            });
+
+            if(!entriesXML) {
+                alert('No se ha podido procesar ninguna entrada. Asegúrate de usar el formato: Concepto | Definición #');
+                return;
+            }
+
+            const xmlHeader = String.fromCharCode(60, 63, 120, 109, 108) + String.fromCharCode(32, 118, 101, 114, 115, 105, 111, 110, 61, 34, 49, 46, 48, 34, 32, 101, 110, 99, 111, 100, 105, 110, 103, 61, 34, 85, 84, 70, 45, 56, 34) + String.fromCharCode(63, 62);
+            const xmlContent = xmlHeader + `
+<GLOSSARY>
+  <INFO>
+    <NAME>Glosario Importado</NAME>
+    <INTRO></INTRO>
+    <ALLOWDUPLICATEDENTRIES>0</ALLOWDUPLICATEDENTRIES>
+    <DISPLAYFORMAT>dictionary</DISPLAYFORMAT>
+    <SHOWSPECIAL>1</SHOWSPECIAL>
+    <SHOWALPHABET>1</SHOWALPHABET>
+    <SHOWALL>1</SHOWALL>
+    <ALLOWCOMMENTS>0</ALLOWCOMMENTS>
+    <USEDYNALINK>1</USEDYNALINK>
+    <DEFAULTAPPROVAL>1</DEFAULTAPPROVAL>
+    <GLOBALGLOSSARY>0</GLOBALGLOSSARY>
+    <ENTBYPAGE>10</ENTBYPAGE>
+  </INFO>
+  <ENTRIES>${entriesXML}
+  </ENTRIES>
+</GLOSSARY>`;
+
+            // Crear Blob y descargar
+            const blob = new Blob([xmlContent], { type: 'text/xml' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const timestamp = new Date().toISOString().slice(0,10);
+            
+            a.href = url;
+            a.download = `glosario_moodle_${timestamp}.xml`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
         }
     </script>
 </body>
