@@ -1,5 +1,5 @@
 <?php
-// formacion_profesional.php
+// formacion.php
 require_once 'includes/auth.php'; // Verifica login y permisos
 
 // Define los módulos de la página Formación
@@ -27,7 +27,7 @@ $sections = [
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Formación Profesional - <?= APP_NAME ?></title>
+    <title>Formación - <?= APP_NAME ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/home.css?v=<?= time() ?>">
@@ -40,7 +40,7 @@ $sections = [
     <main class="main-content">
         <header class="page-header">
             <div class="page-title">
-                <h1>Formación Profesional</h1>
+                <h1>Formación</h1>
                 <p>Gestión académica y herramientas de Moodle</p>
             </div>
             <div class="page-actions">
