@@ -85,6 +85,76 @@ $titulos = [
             opacity: 0.7;
         }
 
+        /* Submenús (Flyouts) */
+        .fp-menu li {
+            position: relative;
+        }
+
+        .fp-submenu {
+            display: none;
+            position: absolute;
+            left: 100%;
+            top: 0;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 5px;
+            z-index: 100;
+            width: 220px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            list-style: none;
+            margin-left: 5px;
+        }
+
+        .fp-submenu::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 15px;
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-left: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            transform: rotate(45deg);
+        }
+
+        .fp-menu li:hover .fp-submenu {
+            display: block;
+        }
+
+        .fp-submenu li {
+            margin-bottom: 2px;
+        }
+
+        .fp-submenu a {
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            background: #fff;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .fp-submenu a:hover {
+            background: #f1f5f9;
+            color: var(--primary-color);
+        }
+
+        .fp-submenu a.active {
+            background: #e2e8f0;
+            color: #1e293b;
+            font-weight: 600;
+        }
+
+        .submenu-icon {
+            width: 14px;
+            height: 14px;
+            opacity: 0.5;
+        }
+
         /* Tabla de Títulos */
         .fp-content {
             background: white;
@@ -225,7 +295,26 @@ $titulos = [
             <!-- Sidebar Izquierdo -->
             <aside class="fp-sidebar">
                 <ul class="fp-menu">
-                    <li><a href="#" class="active">Títulos formativos</a></li>
+                    <li>
+                        <a href="formacion_profesional.php" class="active">
+                            <svg class="fp-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+                            Títulos formativos
+                        </a>
+                        <ul class="fp-submenu">
+                            <li>
+                                <a href="formacion_profesional.php" class="active">
+                                    <svg class="submenu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+                                    Listado de títulos formativos
+                                </a>
+                            </li>
+                            <li>
+                                <a href="editar_titulo_formativo.php?new=1">
+                                    <svg class="submenu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                    Nuevo título formativo
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
                     <li><a href="#">Asignaturas / acciones "abuela"</a></li>
                     <li><a href="#">Contenidos acciones / acciones "madre"</a></li>
                     <li><a href="#">Acc. Formativas / Acc. "hija"</a></li>
