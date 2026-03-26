@@ -262,8 +262,11 @@ body {
     .main-content {
         margin-left: 0;
         width: 100%;
-        padding: 4rem 1.5rem 1.5rem 1.5rem;
-        /* Space for toggle */
+        padding: 4.5rem 1.5rem 1.5rem 1.5rem;
+    }
+
+    .page-header {
+        padding-left: 3rem; /* Espacio extra para el botón hamburguesa */
     }
 }
 
