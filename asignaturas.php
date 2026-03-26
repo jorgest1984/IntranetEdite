@@ -200,8 +200,8 @@ $asignaturas = [
                     <h1>Asignaturas / Acciones "Abuela"</h1>
                     <p>Gestión de acciones formativas de primer nivel vinculadas a títulos</p>
                 </div>
-                <a href="formacion_profesional.php" class="btn-fp" style="display: flex; align-items: center; gap: 8px; text-decoration: none; background: var(--primary-color); color: white; border-radius: 0; padding: 10px 20px; font-weight: 700; box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.2); transition: all 0.2s; border: 1px solid #b91c1c;">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                <a href="formacion_profesional.php" class="btn-fp" style="display: flex; align-items: center; gap: 8px; text-decoration: none; background: var(--primary-color); color: white; border-radius: 0; padding: 6px 12px; font-weight: 700; font-size: 0.75rem; box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.2); transition: all 0.2s; border: 1px solid #b91c1c;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="15 18 9 12 15 6"></polyline></svg>
                     VOLVER
                 </a>
             </div>
