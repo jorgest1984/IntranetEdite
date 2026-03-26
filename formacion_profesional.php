@@ -142,63 +142,94 @@ $titulos = [
             border: none;
         }
 
-        .btn-fp-search { background: #334155; color: white; }
-        .btn-fp-search:hover { background: #1e293b; }
-        .btn-fp-new { background: var(--primary-color); color: white; }
-        .btn-fp-new:hover { background: var(--primary-hover); }
-        /* Fin estilos premium */
-    </style>
-
-        /* Buscador Inferior */
+        /* Buscador Inferior Dinámico con Estética Premium */
         .fp-search-section {
-            padding: 20px;
-            background: #fff;
-            border-top: 1px solid var(--border-color);
-            margin-top: auto;
+            margin-top: 30px;
+            padding: 25px;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
 
         .fp-search-title {
             font-weight: 700;
-            font-size: 0.9rem;
-            margin-bottom: 15px;
-            text-decoration: underline;
+            font-size: 0.85rem;
+            color: #1e3a8a;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none !important; /* Quitar subrayado del anterior style */
         }
 
         .fp-checkbox-group {
             display: flex;
-            flex-direction: column;
-            gap: 10px;
+            gap: 25px;
+            flex-wrap: wrap;
             margin-bottom: 20px;
         }
 
         .fp-checkbox-item {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             font-size: 0.85rem;
+            color: #475569;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .fp-checkbox-item:hover {
+            color: var(--primary-color);
+        }
+
+        .fp-checkbox-item input {
+            width: 17px;
+            height: 17px;
+            accent-color: var(--primary-color);
             cursor: pointer;
         }
 
         .fp-actions {
             display: flex;
-            gap: 10px;
+            gap: 12px;
         }
 
-        .btn-fp {
-            padding: 8px 20px;
-            border-radius: 4px;
-            font-weight: 600;
+        /* Botones unificados con el estilo global */
+        .btn-fp-premium {
+            padding: 10px 24px;
+            border-radius: 6px;
+            font-weight: 700;
             font-size: 0.85rem;
             cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             border: none;
-            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .btn-fp-search { background: #0ea5e9; color: white; }
-        .btn-fp-search:hover { background: #0284c7; }
-        .btn-fp-new { background: #1e293b; color: white; }
-        .btn-fp-new:hover { background: #0f172a; }
+        .btn-fp-search { 
+            background: #334155; 
+            color: white; 
+        }
+        .btn-fp-search:hover { 
+            background: #1e293b; 
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
 
+        .btn-fp-new { 
+            background: var(--primary-color); 
+            color: white; 
+        }
+        .btn-fp-new:hover { 
+            background: var(--primary-hover); 
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px var(--primary-hover-shadow);
+        }
     </style>
 </head>
 <body>
