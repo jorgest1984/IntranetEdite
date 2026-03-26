@@ -28,92 +28,45 @@ $titulos = [
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/main.css">
     <style>
-        .fp-layout {
-            display: grid;
-            grid-template-columns: 240px 1fr;
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        /* Sidebar Específico */
-        .fp-sidebar {
-            background: #f1f5f9;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            padding: 10px;
-            height: fit-content;
-        }
-
-        .fp-menu {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .fp-menu li {
-            margin-bottom: 5px;
-        }
-
-        .fp-menu a {
-        .submenu-icon {
-            width: 14px;
-            height: 14px;
-            opacity: 0.5;
-        }
-
-        /* Tabla de Títulos */
-        .fp-content {
+        /* Estilos específicos para la tabla de Títulos Formativos */
+        .fp-table-premium {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
             background: white;
             border: 1px solid var(--border-color);
             border-radius: 8px;
             overflow: hidden;
-            display: flex;
-            flex-direction: column;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
 
-        .fp-header {
-            background: #334155;
+        .fp-table-premium thead tr {
+            background: #1e293b;
             color: white;
-            padding: 12px 20px;
-            font-weight: 700;
-            font-size: 1rem;
-            text-transform: uppercase;
         }
 
-        .fp-table-container {
-            overflow-x: auto;
-        }
-
-        .fp-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
-        }
-
-        .fp-table tr.table-subheader {
-            background: #f8fafc;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .fp-table th {
+        .fp-table-premium th {
             text-align: left;
-            padding: 10px 15px;
-            background: #0ea5e9;
-            color: white;
+            padding: 12px 15px;
             font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.3px;
+            border-right: 1px solid rgba(255,255,255,0.1);
         }
 
-        .fp-table td {
-            padding: 10px 15px;
+        .fp-table-premium td {
+            padding: 12px 15px;
             border-bottom: 1px solid #f1f5f9;
-            color: #1e293b;
+            color: #334155;
+            vertical-align: middle;
         }
 
-        .fp-table tr:hover td {
-            background: #f8fcfd;
+        .fp-table-premium tr:hover td {
+            background: #f8fafc;
         }
 
-        .row-actions {
+        .fp-table-premium .row-actions {
             display: flex;
             gap: 8px;
             justify-content: flex-end;
@@ -131,6 +84,70 @@ $titulos = [
         .action-btn:hover { background: #f1f5f9; }
         .action-btn.edit { color: #f59e0b; }
         .action-btn.delete { color: #ef4444; }
+
+        /* Buscador Inferior Dinámico */
+        .fp-search-section {
+            margin-top: 30px;
+            padding: 25px;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        .fp-search-title {
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #1e3a8a;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .fp-checkbox-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .fp-checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: #475569;
+            cursor: pointer;
+        }
+
+        .fp-checkbox-item input {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--primary-color);
+        }
+
+        .fp-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-fp-premium {
+            padding: 8px 24px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-fp-search { background: #334155; color: white; }
+        .btn-fp-search:hover { background: #1e293b; }
+        .btn-fp-new { background: var(--primary-color); color: white; }
+        .btn-fp-new:hover { background: var(--primary-hover); }
+        /* Fin estilos premium */
+    </style>
 
         /* Buscador Inferior */
         .fp-search-section {
@@ -203,35 +220,32 @@ $titulos = [
 
             <!-- Contenido Principal -->
             <section class="fp-content-main">
-                <div class="fp-header">Títulos Formativos</div>
+                <div class="fp-header" style="background:var(--primary-color);">Títulos Formativos</div>
                 
                 <div class="fp-table-container">
-                    <table class="fp-table">
+                    <table class="fp-table-premium">
                         <thead>
-                            <tr class="table-subheader">
-                                <td colspan="5" style="text-align: center; color: #64748b; font-size: 0.7rem;">Listado</td>
-                            </tr>
                             <tr>
-                                <th style="width: 50%;">Título</th>
+                                <th style="width: 50%;">Título / Denominación</th>
                                 <th style="width: 15%;">Código</th>
                                 <th style="width: 15%;">Duración</th>
                                 <th style="width: 10%;">Créditos</th>
-                                <th style="width: 10%;"></th>
+                                <th style="width: 10%; border-right:none;">Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="titulosBody">
                             <?php foreach ($titulos as $t): ?>
                             <tr id="row-<?= htmlspecialchars($t['codigo']) ?>">
-                                <td style="font-weight: 600;"><?= htmlspecialchars($t['titulo']) ?></td>
-                                <td><?= htmlspecialchars($t['codigo']) ?></td>
-                                <td><?= htmlspecialchars($t['duracion']) ?></td>
-                                <td><?= htmlspecialchars($t['creditos']) ?></td>
-                                <td class="row-actions">
+                                <td style="font-weight: 700; color: #1e293b;"><?= htmlspecialchars($t['titulo']) ?></td>
+                                <td style="font-family: monospace; font-weight: 600;"><?= htmlspecialchars($t['codigo']) ?></td>
+                                <td style="font-weight: 600; color: #475569;"><?= htmlspecialchars($t['duracion']) ?>h</td>
+                                <td style="font-weight: 600; color: #475569;"><?= htmlspecialchars($t['creditos']) ?></td>
+                                <td class="row-actions" style="border-right:none;">
                                     <a href="editar_titulo_formativo.php?id=<?= urlencode($t['codigo']) ?>" class="action-btn edit" title="Editar">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                     </a>
                                     <button class="action-btn delete" title="Eliminar" onclick="deleteTitulo('<?= htmlspecialchars($t['codigo']) ?>')">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                     </button>
                                 </td>
                             </tr>
@@ -242,18 +256,21 @@ $titulos = [
 
                 <!-- Parámetros de Búsqueda -->
                 <div class="fp-search-section">
-                    <div class="fp-search-title">Parámetros de búsqueda</div>
+                    <div class="fp-search-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        Parámetros de búsqueda
+                    </div>
                     <div class="fp-checkbox-group">
                         <label class="fp-checkbox-item">
-                            <input type="checkbox"> formación profesional
+                            <input type="checkbox" checked> Formación Profesional
                         </label>
                         <label class="fp-checkbox-item">
-                            <input type="checkbox"> certificados de profesionalidad
+                            <input type="checkbox"> Certificados de Profesionalidad
                         </label>
                     </div>
                     <div class="fp-actions">
-                        <button class="btn-fp btn-fp-search">Buscar</button>
-                        <button class="btn-fp btn-fp-new">Nuevo</button>
+                        <button class="btn-fp-premium btn-fp-search">Buscar Títulos</button>
+                        <button class="btn-fp-premium btn-fp-new">Añadir Nuevo Título</button>
                     </div>
                 </div>
             </section>
