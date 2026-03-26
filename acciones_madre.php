@@ -226,6 +226,49 @@ $acciones_madre = [
         .action-btn:hover { border-color: #e2e8f0; background: #f1f5f9; }
         .action-btn.edit { color: #b45309; }
         .action-btn.delete { color: #dc2626; }
+
+        /* Modal confirmación borrado */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(3px);
+        }
+        .modal-overlay.active { display: flex; animation: fadeInBody 0.2s; }
+        .modal-box {
+            background: white;
+            border-radius: 10px;
+            padding: 28px 32px;
+            max-width: 420px;
+            width: 90%;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        .modal-icon {
+            width: 52px; height: 52px;
+            background: #fee2e2;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 16px;
+        }
+        .modal-icon svg { color: #dc2626; }
+        .modal-title { font-size: 1.05rem; font-weight: 700; color: #1e293b; margin-bottom: 8px; }
+        .modal-desc { font-size: 0.85rem; color: #64748b; margin-bottom: 22px; }
+        .modal-actions { display: flex; gap: 10px; justify-content: center; }
+        .btn-modal-cancel {
+            padding: 8px 24px; border: 1px solid #cbd5e1; border-radius: 6px;
+            background: white; color: #64748b; font-weight: 600; cursor: pointer; font-size: 0.85rem;
+        }
+        .btn-modal-delete {
+            padding: 8px 24px; border: none; border-radius: 6px;
+            background: #dc2626; color: white; font-weight: 700; cursor: pointer; font-size: 0.85rem;
+            transition: background 0.2s;
+        }
+        .btn-modal-delete:hover { background: #b91c1c; }
     </style>
 </head>
 <body>
@@ -337,10 +380,11 @@ $acciones_madre = [
                             </td>
                             <td style="border-right:none;">
                                 <div class="row-actions">
-                                    <button class="action-btn edit" title="Editar">
+                                    <a href="editar_accion_madre.php?id=<?= $m['id'] ?>" class="action-btn edit" title="Editar">
                                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                                    </button>
-                                    <button class="action-btn delete" title="Eliminar">
+                                    </a>
+                                    <button class="action-btn delete" title="Eliminar"
+                                        onclick="confirmarBorrado(<?= $m['id'] ?>, '<?= htmlspecialchars(addslashes($m['contenido'])) ?>', this)">
                                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                     </button>
                                 </div>
@@ -353,6 +397,58 @@ $acciones_madre = [
         </section>
     </main>
 </div>
+
+<!-- Modal confirmación borrado -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal-box">
+        <div class="modal-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        </div>
+        <div class="modal-title">¿Eliminar este contenido?</div>
+        <div class="modal-desc" id="deleteModalDesc">Esta acción no se puede deshacer.</div>
+        <div class="modal-actions">
+            <button class="btn-modal-cancel" onclick="cerrarModal()">Cancelar</button>
+            <button class="btn-modal-delete" id="btnConfirmDelete" onclick="ejecutarBorrado()">Sí, eliminar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let _rowToDelete = null;
+
+function confirmarBorrado(id, nombre, btn) {
+    _rowToDelete = btn.closest('tr');
+    document.getElementById('deleteModalDesc').textContent =
+        '"' + nombre + '" será eliminado permanentemente.';
+    document.getElementById('deleteModal').classList.add('active');
+}
+
+function cerrarModal() {
+    document.getElementById('deleteModal').classList.remove('active');
+    _rowToDelete = null;
+}
+
+function ejecutarBorrado() {
+    if (!_rowToDelete) return;
+    _rowToDelete.style.transition = 'all 0.35s ease';
+    _rowToDelete.style.opacity = '0';
+    _rowToDelete.style.transform = 'translateX(30px)';
+    setTimeout(() => {
+        _rowToDelete.remove();
+        cerrarModal();
+        // Actualizar contador
+        const tbody = document.querySelector('.table-madre tbody');
+        const rows = tbody ? tbody.querySelectorAll('tr').length : 0;
+        const counter = document.querySelector('.results-count');
+        if (counter) counter.textContent = rows + ' registros encontrados';
+    }, 350);
+}
+
+// Cerrar al hacer clic fuera del modal
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) cerrarModal();
+});
+</script>
 
 </body>
 </html>
