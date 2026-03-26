@@ -559,5 +559,7 @@ body {
 
 .fp-content-main {
     flex: 1;
+    min-width: 0; /* Permite que el flex item se encoja correctamente */
     padding: 30px;
+    overflow-x: hidden; /* Evita que la sección principal cree scroll extraño */
 }
