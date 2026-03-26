@@ -277,6 +277,9 @@ $acciones_madre = [
     <?php include 'includes/sidebar.php'; ?>
 
     <main class="main-content">
+        <div class="fp-layout">
+            <?php include 'includes/fp_sidebar.php'; ?>
+            <section class="fp-content-main">
         <header class="page-header">
             <div class="page-title" style="display:flex; align-items:center; justify-content:space-between; width:100%; gap:20px;">
                 <div>
@@ -395,6 +398,8 @@ $acciones_madre = [
                 </table>
             </div>
         </section>
+            </section>
+        </div>
     </main>
 </div>
 

@@ -1,0 +1,28 @@
+{
+    "roles": [
+        {
+            "id": 1,
+            "nombre": "Administrador"
+        },
+        {
+            "id": 2,
+            "nombre": "Coordinador"
+        },
+        {
+            "id": 3,
+            "nombre": "Formador"
+        },
+        {
+            "id": 4,
+            "nombre": "Solo Lectura"
+        }
+    ],
+    "usuarios": [
+        {
+            "id": 1,
+            "nombre": "Admin",
+            "apellidos": "Sistema",
+            "rol_id": 1
+        }
+    ]
+}

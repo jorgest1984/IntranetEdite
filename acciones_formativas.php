@@ -159,86 +159,86 @@ $prioridades = ['Alta', 'Media', 'Baja'];
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/main.css">
     <style>
-        .search-card {
-            background: #fff;
+        .search-container-fp {
+            background: white;
+            border: 1px solid var(--border-color);
             border-radius: 8px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            margin-bottom: 2rem;
+            margin-bottom: 25px;
             overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
-        .search-card-header {
-            background: #f8fafc;
-            padding: 0.75rem 1.5rem;
-            border-bottom: 2px solid #e2e8f0;
-            text-align: center;
-        }
-        .search-card-header h2 {
-            margin: 0;
-            font-size: 0.9rem;
+
+        .search-header-fp {
+            background: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
             font-weight: 700;
-            color: #c2410c;
+            text-align: center;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
         }
-        .search-form {
-            padding: 1.5rem;
+
+        .search-form-fp {
+            padding: 20px 25px;
         }
-        .form-grid {
+
+        .form-grid-fp {
             display: grid;
             grid-template-columns: repeat(12, 1fr);
-            gap: 1rem;
+            gap: 15px;
+            align-items: flex-end;
         }
-        .form-group {
+
+        .form-group-fp {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 10px;
         }
-        .form-group label {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #1e40af;
+
+        .form-label-fp {
+            font-weight: 700;
+            font-size: 0.75rem;
+            color: #1e3a8a;
             white-space: nowrap;
+            text-align: right;
+            min-width: 80px;
         }
-        .form-control {
+
+        .form-control-fp {
             width: 100%;
-            padding: 0.4rem 0.6rem;
+            padding: 6px 10px;
             border: 1px solid #cbd5e1;
             border-radius: 4px;
-            font-size: 0.9rem;
-            background: #f1f5f9;
-            transition: all 0.2s;
+            font-size: 0.8rem;
+            background: #f8fafc;
+            font-family: inherit;
         }
-        .form-control:focus {
-            outline: none;
-            border-color: #3b82f6;
-            background: #fff;
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
-        }
-        
-        /* Grid Layout Sizes */
-        .col-12 { grid-column: span 12; }
-        .col-6 { grid-column: span 6; }
-        .col-4 { grid-column: span 4; }
-        .col-3 { grid-column: span 3; }
-        .col-2 { grid-column: span 2; }
 
-        .search-actions {
+        .form-control-fp:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: white;
+        }
+
+        .search-actions-fp {
+            grid-column: span 12;
             display: flex;
             justify-content: center;
-            gap: 1rem;
-            margin-top: 1.5rem;
-            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #f1f5f9;
         }
-        
-        .btn-action {
+
+        .btn-fp-action {
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1.2rem;
-            border-radius: 6px;
-            font-weight: 500;
-            font-size: 0.85rem;
+            gap: 8px;
+            padding: 6px 15px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.75rem;
             cursor: pointer;
             transition: all 0.2s;
             border: 1px solid #cbd5e1;
@@ -246,93 +246,112 @@ $prioridades = ['Alta', 'Media', 'Baja'];
             color: #334155;
             text-decoration: none;
         }
-        .btn-action:hover {
+
+        .btn-fp-action:hover {
             background: #f1f5f9;
             border-color: #94a3b8;
         }
-        .btn-action.primary {
-            background: #f1f5f9;
+
+        .btn-fp-action.primary {
+            background: #f8fafc;
+            border-color: #cbd5e1;
             font-weight: 700;
-        }
-        .btn-action.pdf {
-            color: #dc2626;
-        }
-        .btn-action svg {
-            width: 16px;
-            height: 16px;
         }
 
-        /* Results table */
-        .results-header {
-            margin-bottom: 1rem;
+        .btn-fp-action.pdf {
+            color: #b91c1c;
+        }
+
+        .btn-fp-action svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* Tabla de Resultados */
+        .results-container-fp {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .results-header-fp {
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .results-title-fp {
+            color: var(--primary-color);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            flex: 1;
             text-align: center;
         }
-        .results-header h2 {
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: #c2410c;
-            text-transform: uppercase;
-        }
-        .table-responsive {
-            width: 100%;
-            overflow-x: auto;
-            background: #fff;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-        }
-        .table-custom {
+
+        .table-fp {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.85rem;
-            min-width: 1200px;
-        }
-        .table-custom th {
-            background: #1e293b;
-            color: #fff;
-            padding: 0.75rem;
-            text-align: left;
-            font-weight: 500;
-            white-space: nowrap;
-            border-right: 1px solid rgba(255,255,255,0.1);
-        }
-        .table-custom th svg {
-            width: 10px;
-            height: 10px;
-            margin-left: 4px;
-            vertical-align: middle;
-        }
-        .table-custom td {
-            padding: 0.75rem;
-            border-bottom: 1px solid #e2e8f0;
-            border-right: 1px solid #f1f5f9;
-            color: #334155;
-        }
-        .table-custom tr:hover {
-            background: #f8fafc;
-        }
-        
-        .checkbox-container {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.85rem;
-            margin-bottom: 0.5rem;
+            font-size: 0.71rem;
         }
 
-        .footer-actions {
-            margin-top: 2rem;
+        .table-fp th {
+            background: #1e293b;
+            color: white;
+            padding: 8px 4px;
+            text-align: left;
+            border-right: 1px solid rgba(255,255,255,0.1);
+            font-weight: 600;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .header-inner {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .sort-icon {
+            width: 10px;
+            height: 10px;
+            opacity: 0.6;
+        }
+
+        .table-fp td {
+            padding: 8px 4px;
+            border-bottom: 1px solid #f1f5f9;
+            border-right: 1px solid #f1f5f9;
+            color: #334155;
+            vertical-align: middle;
+        }
+
+        .table-fp tr:hover td {
+            background: #fffafa;
+        }
+
+        .ordenar-multiple-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #1e40af;
+        }
+
+        .btn-volver-footer {
+            margin-top: 25px;
             text-align: center;
-            padding-bottom: 2rem;
+            padding-bottom: 30px;
         }
 
         @media (max-width: 1024px) {
-            .form-grid { grid-template-columns: repeat(6, 1fr); }
-            .col-6, .col-4, .col-3, .col-2 { grid-column: span 3; }
-            .col-12 { grid-column: span 6; }
-        }
-        @media (max-width: 640px) {
-            .form-grid { display: block; }
-            .form-group { margin-bottom: 1rem; }
+            .form-grid-fp { grid-template-columns: repeat(6, 1fr); }
         }
     </style>
 </head>
@@ -342,191 +361,191 @@ $prioridades = ['Alta', 'Media', 'Baja'];
     <?php include 'includes/sidebar.php'; ?>
 
     <main class="main-content">
+        <div class="fp-layout">
+            <?php include 'includes/fp_sidebar.php'; ?>
+            <section class="fp-content-main">
         <header class="page-header">
-
             <div class="page-title">
-                <h1>Acciones Formativas</h1>
-                <p>Gestión y búsqueda de acciones de formación</p>
+                <h1>Acciones Formativas (Hija)</h1>
+                <p>Gestión técnica de acciones formativas finales</p>
             </div>
-            <div class="page-actions">
-                <a href="ficha_accion_formativa.php" class="btn btn-success" style="margin-right: 10px;">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="white" style="vertical-align: middle; margin-right: 5px;"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-                    Nueva Acción Formativa
+            <div class="page-actions" style="display: flex; gap: 10px;">
+                <a href="ficha_accion_formativa.php" class="btn btn-primary" style="background: #059669; border: none;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    NUEVA ACCIÓN
                 </a>
-                <a href="formacion_profesional.php" class="btn btn-primary">
-                    <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-                    Volver
+                <a href="formacion_profesional.php" class="btn btn-primary" style="background: var(--primary-color); border-radius: 0; font-weight: 700;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    VOLVER
                 </a>
             </div>
         </header>
 
-        <section class="search-card">
-            <div class="search-card-header">
-                <h2>Acciones Formativas - Campos de Búsqueda</h2>
-            </div>
-            <div class="search-form">
-                <form method="GET">
-                    <div class="form-grid">
-                        <div class="form-group col-12">
-                            <label>Nombre:</label>
-                            <input type="text" name="nombre" class="form-control" placeholder="Buscar por nombre...">
-                        </div>
-                        
-                        <div class="form-group col-6">
-                            <label>Convocatoria:</label>
-                            <select name="convocatoria_id" class="form-control">
-                                <option value="">Todas</option>
-                                <?php foreach ($convocatorias as $conv): ?>
-                                    <option value="<?= $conv['id'] ?>"><?= htmlspecialchars($conv['nombre']) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group col-6">
-                            <label>Plan:</label>
-                            <select name="plan" class="form-control">
-                            <option value="">Seleccione...</option>
-                            <?php foreach ($planes as $p): ?>
-                                <option value="<?= $p['id'] ?>"><?= htmlspecialchars($p['nombre']) ?> (<?= htmlspecialchars($p['codigo']) ?>)</option>
-                            <?php endforeach; ?>
-                        </select>
-                        </div>
+        <section class="search-container-fp">
+            <div class="search-header-fp">Acciones Formativas - Campos de Búsqueda</div>
+            <form class="search-form-fp" method="GET">
+                <div class="form-grid-fp">
+                    <!-- Fila 1 -->
+                    <div class="form-group-fp" style="grid-column: span 12;">
+                        <label class="form-label-fp" style="min-width: 60px;">Nombre:</label>
+                        <input type="text" name="nombre" class="form-control-fp">
+                    </div>
 
-                        <div class="form-group col-6">
-                            <label>Solicitante:</label>
-                            <select name="solicitante" class="form-control">
-                            <option value="">Seleccione...</option>
-                            <?php foreach ($solicitantes as $s): ?>
-                                <option value="<?= htmlspecialchars($s) ?>"><?= htmlspecialchars($s) ?></option>
+                    <!-- Fila 2 -->
+                    <div class="form-group-fp" style="grid-column: span 6;">
+                        <label class="form-label-fp">Convocatoria:</label>
+                        <select name="convocatoria_id" class="form-control-fp">
+                            <option value="">Todas</option>
+                            <?php foreach ($convocatorias as $conv): ?>
+                                <option value="<?= $conv['id'] ?>"><?= htmlspecialchars($conv['nombre']) ?></option>
                             <?php endforeach; ?>
                         </select>
-                        </div>
-                        
-                        <div class="form-group col-6">
-                            <label>Sector:</label>
-                            <select name="sector" class="form-control">
+                    </div>
+                    <div class="form-group-fp" style="grid-column: span 6;">
+                        <label class="form-label-fp">Plan:</label>
+                        <select name="plan" class="form-control-fp">
+                            <option value="">Todos los planes</option>
+                            <?php foreach ($planes as $p): ?>
+                                <option value="<?= $p['id'] ?>"><?= htmlspecialchars($p['nombre']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <!-- Fila 3 -->
+                    <div class="form-group-fp" style="grid-column: span 6;">
+                        <label class="form-label-fp">Solicitante:</label>
+                        <select name="solicitante" class="form-control-fp">
+                            <option value="">Seleccione...</option>
+                            <?php foreach ($solicitantes as $sol): ?>
+                                <option><?= $sol ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group-fp" style="grid-column: span 6;">
+                        <label class="form-label-fp">Sector:</label>
+                        <select name="sector" class="form-control-fp">
                             <option value="">Seleccione...</option>
                             <?php foreach ($sectores as $sec): ?>
-                                <option value="<?= htmlspecialchars($sec) ?>"><?= htmlspecialchars($sec) ?></option>
+                                <option><?= $sec ?></option>
                             <?php endforeach; ?>
                         </select>
-                        </div>
+                    </div>
 
-                        <div class="form-group col-6">
-                            <label>Proveedor:</label>
-                            <select name="proveedor" class="form-control">
+                    <!-- Fila 4 -->
+                    <div class="form-group-fp" style="grid-column: span 6;">
+                        <label class="form-label-fp">Proveedor:</label>
+                        <select name="proveedor" class="form-control-fp">
                             <option value="">Seleccione...</option>
                             <?php foreach ($proveedores as $prov): ?>
-                                <option value="<?= htmlspecialchars($prov) ?>"><?= htmlspecialchars($prov) ?></option>
+                                <option><?= $prov ?></option>
                             <?php endforeach; ?>
                         </select>
-                        </div>
-                        
-                        <div class="form-group col-6">
-                            <label>Catálogo:</label>
-                            <select name="catalogo" class="form-control">
-                                <option value="">Seleccione...</option>
-                                <?php foreach ($catalogos as $cat): ?>
-                                    <option value="<?= htmlspecialchars($cat) ?>"><?= htmlspecialchars($cat) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-
-                        <div class="form-group col-4">
-                            <label>Consultora:</label>
-                            <select name="consultora" class="form-control">
-                                <option value="">Seleccione...</option>
-                                <?php foreach ($consultoras as $cons): ?>
-                                    <option value="<?= htmlspecialchars($cons) ?>"><?= htmlspecialchars($cons) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group col-2">
-                            <label>Num. acción:</label>
-                            <input type="text" name="num_accion" class="form-control">
-                        </div>
-                        
-                        <div class="form-group col-2">
-                            <label>Prioridad:</label>
-                            <select name="prioridad" class="form-control">
-                                <option value=""></option>
-                                <?php foreach ($prioridades as $p): ?>
-                                    <option value="<?= $p ?>"><?= $p ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group col-2">
-                            <label>Modalidad:</label>
-                            <select name="modalidad" class="form-control">
-                                <option value=""></option>
-                                <?php foreach ($modalidades as $m): ?>
-                                    <option value="<?= $m ?>"><?= $m ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group col-2">
-                            <label>Reserva:</label>
-                            <input type="text" name="reserva" class="form-control">
-                        </div>
+                    </div>
+                    <div class="form-group-fp" style="grid-column: span 6;">
+                        <label class="form-label-fp">Catálogo:</label>
+                        <select name="catalogo" class="form-control-fp">
+                            <option value="">Seleccione...</option>
+                            <?php foreach ($catalogos as $cat): ?>
+                                <option><?= $cat ?></option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
 
-                    <div class="search-actions">
-                        <button type="submit" class="btn-action primary">Buscar</button>
-                        <button type="button" class="btn-action pdf">
-                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM14 12h1V8h-1v4zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6z"/></svg>
-                            Imprimir Contenidos
-                        </button>
-                        <button type="button" class="btn-action pdf">
-                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM14 12h1V8h-1v4zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6z"/></svg>
-                            Contenidos resumidos
-                        </button>
-                        <button type="button" class="btn-action pdf">
-                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
-                            Imprimir
-                        </button>
+                    <!-- Fila 5 -->
+                    <div class="form-group-fp" style="grid-column: span 4;">
+                        <label class="form-label-fp">Consultora:</label>
+                        <select name="consultora" class="form-control-fp">
+                            <option value="">Seleccione...</option>
+                            <?php foreach ($consultoras as $cons): ?>
+                                <option><?= $cons ?></option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
-                </form>
-            </div>
+                    <div class="form-group-fp" style="grid-column: span 2;">
+                        <label class="form-label-fp" style="min-width: auto;">Num. acción:</label>
+                        <input type="text" name="id_accion" class="form-control-fp" style="background: white;">
+                    </div>
+                    <div class="form-group-fp" style="grid-column: span 2;">
+                        <label class="form-label-fp" style="min-width: auto;">Prioridad:</label>
+                        <select name="prioridad" class="form-control-fp">
+                            <option value=""></option>
+                            <?php foreach ($prioridades as $p): ?>
+                                <option value="<?= $p ?>"><?= $p ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group-fp" style="grid-column: span 2;">
+                        <label class="form-label-fp" style="min-width: auto;">Modalidad:</label>
+                        <select name="modalidad" class="form-control-fp">
+                            <option value=""></option>
+                            <?php foreach ($modalidades as $mod): ?>
+                                <option><?= $mod ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group-fp" style="grid-column: span 2;">
+                        <label class="form-label-fp" style="min-width: auto;">Reserva:</label>
+                        <select name="reserva" class="form-control-fp">
+                            <option value=""></option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="search-actions-fp">
+                    <button type="submit" class="btn-fp-action primary">Buscar</button>
+                    <button type="button" class="btn-fp-action pdf">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM14 12h1V8h-1v4zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6z"/></svg>
+                        Imprimir Contenidos
+                    </button>
+                    <button type="button" class="btn-fp-action pdf">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM14 12h1V8h-1v4zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6z"/></svg>
+                        Contenidos resumidos
+                    </button>
+                    <button type="button" class="btn-fp-action pdf">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
+                        Imprimir
+                    </button>
+                </div>
+            </form>
         </section>
 
-        <section class="results-container">
-            <div class="checkbox-container">
-                <input type="checkbox" id="ordenar_multiple" name="ordenar_multiple">
-                <label for="ordenar_multiple" style="color: #1e40af; font-weight: 700;">Ordenar múltiple</label>
+        <section class="results-container-fp">
+            <div class="results-header-fp">
+                <div class="ordenar-multiple-wrap">
+                    Ordenar múltiple <input type="checkbox">
+                </div>
+                <div class="results-title-fp">Resultado de la Búsqueda</div>
+                <div style="width: 120px; text-align: right;">
+                    <a href="formacion_profesional.php" class="btn-fp-action" style="padding: 4px 10px; font-size: 0.7rem;">Volver</a>
+                </div>
             </div>
             
-            <div class="results-header">
-                <h2>Resultado de la Búsqueda</h2>
-            </div>
-            
-            <div class="table-responsive">
-                <table class="table-custom">
+            <div style="overflow-x: auto;">
+                <table class="table-fp">
                     <thead>
                         <tr>
-                            <th>Nº Acc <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5H7z"/></svg></th>
-                            <th>Título <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5H7z"/></svg></th>
-                            <th>Abrev. <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5H7z"/></svg></th>
-                            <th>Modalidad <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5H7z"/></svg></th>
-                            <th>Duración <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5H7z"/></svg></th>
-                            <th>Plan <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5H7z"/></svg></th>
-                            <th>Partic. <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5H7z"/></svg></th>
-                            <th>Mostrar <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5H7z"/></svg></th>
-                            <th>Estado <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5H7z"/></svg></th>
-                            <th>Tutor1 <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5H7z"/></svg></th>
-                            <th>Tutor2 <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5H7z"/></svg></th>
-                            <th>Win <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5H7z"/></svg></th>
-                            <th>Mac <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5H7z"/></svg></th>
-                            <th>Proveedor <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5H7z"/></svg></th>
-                            <th>Último inicio <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5H7z"/></svg></th>
+                            <th><div class="header-inner">Nº Acc <svg class="sort-icon" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5H7z" fill="currentColor"/></svg></div></th>
+                            <th><div class="header-inner">Título <svg class="sort-icon" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5H7z" fill="currentColor"/></svg></div></th>
+                            <th><div class="header-inner">Abrev. <svg class="sort-icon" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5H7z" fill="currentColor"/></svg></div></th>
+                            <th><div class="header-inner">Modalidad <svg class="sort-icon" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5H7z" fill="currentColor"/></svg></div></th>
+                            <th><div class="header-inner">Duración <svg class="sort-icon" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5H7z" fill="currentColor"/></svg></div></th>
+                            <th><div class="header-inner">Plan <svg class="sort-icon" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5H7z" fill="currentColor"/></svg></div></th>
+                            <th><div class="header-inner">Partic. <svg class="sort-icon" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5H7z" fill="currentColor"/></svg></div></th>
+                            <th><div class="header-inner">Mostrar <svg class="sort-icon" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5H7z" fill="currentColor"/></svg></div></th>
+                            <th><div class="header-inner">Estado <svg class="sort-icon" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5H7z" fill="currentColor"/></svg></div></th>
+                            <th><div class="header-inner">Tutor1 <svg class="sort-icon" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5H7z" fill="currentColor"/></svg></div></th>
+                            <th><div class="header-inner">Tutor2 <svg class="sort-icon" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5H7z" fill="currentColor"/></svg></div></th>
+                            <th><div class="header-inner">Win <svg class="sort-icon" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5H7z" fill="currentColor"/></svg></div></th>
+                            <th><div class="header-inner">Mac <svg class="sort-icon" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5H7z" fill="currentColor"/></svg></div></th>
+                            <th><div class="header-inner">Proveedor <svg class="sort-icon" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5H7z" fill="currentColor"/></svg></div></th>
+                            <th><div class="header-inner">Pr. venta <svg class="sort-icon" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5H7z" fill="currentColor"/></svg></div></th>
+                            <th style="border-right: none;"><div class="header-inner">U. inicio <svg class="sort-icon" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5H7z" fill="currentColor"/></svg></div></th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td colspan="15" style="text-align: center; padding: 3rem; color: #64748b;">
-                                Realice una búsqueda para ver los resultados.
+                            <td colspan="16" style="text-align: center; padding: 40px; color: #64748b; font-style: italic;">
+                                Realice una búsqueda para cargar las acciones formativas...
                             </td>
                         </tr>
                     </tbody>
@@ -534,8 +553,12 @@ $prioridades = ['Alta', 'Media', 'Baja'];
             </div>
         </section>
 
-        <div class="footer-actions">
-            <button class="btn-action" onclick="history.back()">Volver</button>
+        <div class="btn-volver-footer">
+            <button class="btn btn-primary" onclick="history.back()" style="background: var(--primary-color); padding: 8px 30px; border-radius: 0; font-weight: 700; text-transform: uppercase; font-size: 0.8rem;">
+                Volver
+            </button>
+        </div>
+            </section>
         </div>
     </main>
 </div>
