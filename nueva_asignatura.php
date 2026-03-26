@@ -178,7 +178,7 @@ require_once 'includes/auth.php'; // Verifica login y permisos
 
         /* Footer */
         .ficha-footer {
-            padding: 20px;
+            padding: 15px;
             background: #f8fafc;
             border-top: 1px solid var(--border-color);
             display: flex;
@@ -189,14 +189,14 @@ require_once 'includes/auth.php'; // Verifica login y permisos
         .btn-insertar {
             background: #1e293b;
             color: white;
-            padding: 12px 40px;
+            padding: 10px 30px;
             border-radius: 6px;
             font-weight: 700;
             border: none;
             cursor: pointer;
             transition: all 0.2s;
             text-transform: uppercase;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             letter-spacing: 0.5px;
         }
 
@@ -207,14 +207,14 @@ require_once 'includes/auth.php'; // Verifica login y permisos
         }
 
         .btn-cancelar-ficha {
-            padding: 12px 30px;
+            padding: 10px 20px;
             background: white;
             border: 1px solid #cbd5e1;
             color: #64748b;
             border-radius: 6px;
             font-weight: 600;
             text-decoration: none;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
         .btn-cancelar-ficha:hover {
