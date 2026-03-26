@@ -55,7 +55,7 @@ $asignaturas = [
         }
 
         .search-header-fp {
-            background: #f97316; /* Naranja corporativo visualmente más premium que el de la captura */
+            background: var(--primary-color); /* Rojo corporativo Edite */
             color: white;
             padding: 10px 20px;
             font-weight: 700;
@@ -131,7 +131,7 @@ $asignaturas = [
         }
 
         .results-title-fp {
-            color: #c2410c;
+            color: var(--primary-color);
             font-weight: 700;
             text-transform: uppercase;
             font-size: 0.85rem;
@@ -195,9 +195,15 @@ $asignaturas = [
 
     <main class="main-content">
         <header class="page-header">
-            <div class="page-title">
-                <h1>Asignaturas / Acciones "Abuela"</h1>
-                <p>Gestión de acciones formativas de primer nivel vinculadas a títulos</p>
+            <div class="page-title" style="display: flex; align-items: center; gap: 20px; justify-content: space-between; width: 100%;">
+                <div>
+                    <h1>Asignaturas / Acciones "Abuela"</h1>
+                    <p>Gestión de acciones formativas de primer nivel vinculadas a títulos</p>
+                </div>
+                <a href="formacion_profesional.php" class="btn-fp btn-fp-new" style="display: flex; align-items: center; gap: 8px; text-decoration: none;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    Volver
+                </a>
             </div>
         </header>
 

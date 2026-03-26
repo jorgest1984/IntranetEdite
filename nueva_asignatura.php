@@ -20,7 +20,7 @@ require_once 'includes/auth.php'; // Verifica login y permisos
         }
 
         .ficha-header {
-            background: #f97316;
+            background: var(--primary-color);
             color: white;
             padding: 12px 20px;
             font-weight: 700;
