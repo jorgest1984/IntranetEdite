@@ -1,6 +1,46 @@
 <?php
 // nueva_asignatura.php
 require_once 'includes/auth.php'; // Verifica login y permisos
+
+$sectores = [
+    'Abogados', 'Acción e Intervención Social', 'Administracion y gestion', 'Agencias de Viaje', 
+    'Agricultura y otro sector ganaderia', 'Agroalimentaria', 'Alimentación', 'Alojamientos turísticos', 
+    'Ambulancias', 'Arquitectura', 'Artes Gráficas', 'Artistas y Técnicos en Salas de Fiestas, Bailes y Discotecas', 
+    'Asesorías', 'Asociaciones', 'Atención a personas con discapacidad', 'Atención Domiciliaria', 
+    'Atención Especializada Familia', 'Automoción', 'Ayuda a domicilio', 'Banca', 'Cajas de ahorro', 
+    'Centros de Asistencia Administrativa', 'Centros de día', 'Cerámicas y Artesanos', 'Chapa y pintura', 
+    'Clinicas Privadas', 'Colegios/Institutos', 'Comercio', 'Construcción', 
+    'Consultoría', 'Consultoría Informática', 'Contact Center', 'Coperativas', 'copisterias/fotocopias', 
+    'Decoración', 'Desconocido', 'Desempleados', 'Dietetica y Nutricion', 'Diseño especializado', 
+    'Economía social', 'Educación y Formación', 'Empleados Fincas Urbanas', 'Empresas de trabajo temporal', 
+    'Energía y Agua', 'Enseñanza Privada', 'Entidades de Seguros', 'Estaciones de Servicio', 'Estética', 
+    'Estudio de tatuajes', 'Estudios de mercado', 'Exhibición Cinematográfica', 'Farmacia', 'Fisioterapeutas', 
+    'Fotografía', 'Fundaciones', 'Gestorías administrativas', 'Gimnasios', 'Guarderías', 'Hostelería', 
+    'Imagen y sonido', 'Industria manufacturera', 'Industria vinícola', 'Industrias Químicas', 'Ingenierías', 
+    'Inmobiliarias', 'Instalaciones Deportivas', 'Limpieza de Edificios y Locales', 'Madera y Mueble', 
+    'Metal', 'Minería', 'Ocio y Tiempo Libre', 'Parques Temáticos', 'Peluquería y Estética', 'Peluquerías', 
+    'Pesca', 'Pintura', 'Pompas Fúnebres', 'Prensa', 'Prensa diaria', 'Prensa no diaria', 'Producción Audiovisual', 
+    'Publicidad', 'Público', 'Químicas', 'Recreativos', 'Residencias privadas', 'Sanidad', 'Seguridad Privada', 
+    'Seguros', 'Serveis Financiers i Oficines', 'Servicio Doméstico', 'Servicios a la Comunidad', 
+    'Servicios a las empresas', 'Servicios Auxiliares', 'Servicios de Prevención Ajenos', 'Servicios Funerarios', 
+    'Servicios Sociales', 'Siderurgia', 'Suministros agrícolas', 'Talleres de restauración', 
+    'Telecomunicaciones', 'Textil', 'Textil y Confección', 'Tintorerías', 'Transporte', 'Transportes', 
+    'Turismo', 'Universidades', 'Vidrio y Cerámica'
+];
+sort($sectores);
+
+$familias = [
+    'Certificado de Profesionalidad', 'Familia- Actividades Físicas y Deportivas',
+    'Familia- Administración y Gestión', 'Familia- Agraria', 'Familia- Artes graficas',
+    'Familia- Comercio y Marketing', 'Familia- Edificación y Obra Civil',
+    'Familia- Energía y Agua', 'Familia- Hostelería y Turismo', 'Familia- Imagen Personal',
+    'Familia- Imagen y Sonido', 'Familia- Industria alimentaria',
+    'Familia- Informática y Comunicaciones', 'Familia- Seguridad y Medioambiente',
+    'Familia: Sevicios socioculturales y a la comunidad', 'Oferta 1.Appforbrands',
+    'Oferta 2.Appforbrands', 'Oferta 3. Hosteleria y Restauracion',
+    'Prevención de Riesgos Laborales', 'SAP', 'Seguridad Privada', 'Transversal'
+];
+sort($familias);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -221,6 +261,67 @@ require_once 'includes/auth.php'; // Verifica login y permisos
             background: #f1f5f9;
         }
 
+        /* Tabla de Sectores Adicionales */
+        .sectores-table-container {
+            margin-top: 30px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #fff;
+        }
+
+        .sectores-table-header {
+            background: #1e293b;
+            padding: 10px;
+            text-align: center;
+            font-weight: 700;
+            color: #fff;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        .sectores-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .sectores-table th {
+            background: #f8fafc;
+            border-bottom: 2px solid #e2e8f0;
+            padding: 10px;
+            font-size: 0.75rem;
+            color: #1e3a8a;
+            text-align: center;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .sectores-table td {
+            border-bottom: 1px solid #f1f5f9;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #334155;
+        }
+
+        .btn-add-sector-tab {
+            padding: 5px 15px;
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #1e3a8a;
+            transition: all 0.2s;
+        }
+
+        .btn-add-sector-tab:hover {
+            background: #f1f5f9;
+            border-color: #1e3a8a;
+        }
+
     </style>
 </head>
 <body>
@@ -320,28 +421,60 @@ require_once 'includes/auth.php'; // Verifica login y permisos
 
                 <!-- Áreas temáticas -->
                 <div class="ficha-section">
-                    <div class="form-group-ficha" style="grid-column: span 6;">
+                    <div class="form-group-ficha" style="grid-column: span 4;">
                         <label class="label-ficha">Área temática:</label>
                         <div class="area-wrapper">
                             <select class="input-ficha">
-                                <option>Atención al Cliente</option>
-                                <option>Sanidad</option>
-                                <option>Educación</option>
+                                <option value="">Seleccione área...</option>
+                                <?php foreach ($sectores as $s): ?>
+                                    <option value="<?= $s ?>"><?= $s ?></option>
+                                <?php endforeach; ?>
                             </select>
                             <button type="button" class="btn-dots">...</button>
                         </div>
                     </div>
-                    <div class="form-group-ficha" style="grid-column: span 6;">
+                    <div class="form-group-ficha" style="grid-column: span 4;">
                         <label class="label-ficha">Segunda área temática:</label>
                         <div class="area-wrapper">
                             <select class="input-ficha">
-                                <option>Atención al Cliente</option>
-                                <option>Prevención</option>
-                                <option>Gestión</option>
+                                <option value="">Seleccione área...</option>
+                                <?php foreach ($sectores as $s): ?>
+                                    <option value="<?= $s ?>"><?= $s ?></option>
+                                <?php endforeach; ?>
                             </select>
                             <button type="button" class="btn-dots">...</button>
                         </div>
                     </div>
+                    <div class="form-group-ficha" style="grid-column: span 4;">
+                        <label class="label-ficha">Familia profesional:</label>
+                        <select class="input-ficha">
+                            <option value="">Seleccione familia...</option>
+                            <?php foreach ($familias as $f): ?>
+                                <option value="<?= $f ?>"><?= $f ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Tabla de Sectores -->
+                <div class="sectores-table-container">
+                    <div class="sectores-table-header">SECTORES ADICIONALES</div>
+                    <table class="sectores-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 40%;">SECTOR</th>
+                                <th style="width: 30%;">SOLICITANTE</th>
+                                <th style="width: 30%;">CONVOCATORIA</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="3" style="padding: 15px;">
+                                    <button type="button" class="btn-add-sector-tab">+ Añadir nuevo sector</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
 
                 <!-- Editores -->
