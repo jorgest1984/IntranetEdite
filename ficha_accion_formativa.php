@@ -333,13 +333,13 @@ sort($familias);
 
         <div class="tabs-container">
             <div class="tabs-header">
-                <button class="tab-btn active">Datos Generales</button>
-                <button class="tab-btn">Grupos</button>
-                <button class="tab-btn">Contenidos</button>
-                <button class="tab-btn">Material</button>
-                <button class="tab-btn">Gestión</button>
-                <button class="tab-btn">Ejecución</button>
-                <button class="tab-btn">Instalación</button>
+                <button class="tab-btn active" onclick="switchTab('datos-generales')">Datos Generales</button>
+                <button class="tab-btn" onclick="switchTab('grupos')">Grupos</button>
+                <button class="tab-btn" onclick="switchTab('contenidos')">Contenidos</button>
+                <button class="tab-btn" onclick="switchTab('material')">Material</button>
+                <button class="tab-btn" onclick="switchTab('gestion')">Gestión</button>
+                <button class="tab-btn" onclick="switchTab('ejecucion')">Ejecución</button>
+                <button class="tab-btn" onclick="switchTab('instalacion')">Instalación</button>
             </div>
 
             <div class="tab-content" id="datos-generales">
@@ -499,11 +499,112 @@ sort($familias);
                         </div>
                     </div>
 
-                    <div class="btn-footer-container">
-                        <button type="submit" class="btn-save">Guardar registro</button>
-                        <a href="acciones_formativas.php" class="btn-back">Volver</a>
+                    <div class="tab-content" id="grupos" style="display: none;">
+                <div class="form-section-title">Grupos vinculados a esta acción</div>
+                <div class="table-responsive">
+                    <style>
+                        .table-grupos-ficha { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+                        .table-grupos-ficha th { background: #1e293b; color: white; padding: 10px; text-align: left; text-transform: uppercase; font-size: 0.7rem; }
+                        .table-grupos-ficha td { padding: 10px; border-bottom: 1px solid #e2e8f0; color: #334155; }
+                        .table-grupos-ficha tr:hover td { background: #f8fafc; }
+                        .badge-ficha { padding: 2px 8px; border-radius: 10px; font-weight: 700; font-size: 0.65rem; text-transform: uppercase; }
+                        .badge-valido { background: #dcfce7; color: #166534; }
+                        .badge-progra { background: #dbeafe; color: #1e40af; }
+                    </style>
+                    <table class="table-grupos-ficha">
+                        <thead>
+                            <tr>
+                                <th>Nº Grupo</th>
+                                <th>Código Plataforma</th>
+                                <th>Centro Impartición</th>
+                                <th>F. Inicio</th>
+                                <th>F. Fin</th>
+                                <th>Alumnos (I/A/F)</th>
+                                <th>Tutor / Docente</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="font-weight:700;">G1</td>
+                                <td style="font-family:monospace;">ADT-2024-01</td>
+                                <td>EDITEFORMACION (Madrid)</td>
+                                <td>15/04/2024</td>
+                                <td>30/05/2024</td>
+                                <td style="text-align:center;"><span style="color:#1e40af;">25</span> / <span style="color:#166534;">20</span> / <span style="color:#64748b;">0</span></td>
+                                <td style="font-weight:600;">JUAN PÉREZ</td>
+                                <td><span class="badge-ficha badge-valido">Válido</span></td>
+                                <td>
+                                    <div style="display:flex; gap:5px;">
+                                        <a href="ficha_grupo_edicion.php?id=1" style="color:#64748b;" title="Ver/Editar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div style="margin-top:20px; text-align:center;">
+                        <button class="btn-add-sector" style="background:var(--primary-color); color:white; border:none; padding:10px 20px;">+ Crear Nuevo Grupo para esta Acción</button>
                     </div>
-                </form>
+                </div>
+            </div>
+
+            <div class="tab-content" id="contenidos" style="display: none;">
+                <div class="form-section-title">Contenidos, Objetivos y Unidades</div>
+                <div style="display: flex; gap: 20px; margin-bottom: 20px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <label style="display:flex; align-items:center; gap:8px; font-size:0.8rem; font-weight:700; color:#1e3a8a;">
+                        Módulo Sensib.: <input type="checkbox">
+                    </label>
+                    <label style="display:flex; align-items:center; gap:8px; font-size:0.8rem; font-weight:700; color:#1e3a8a;">
+                        Módulo Alfab.: <input type="checkbox">
+                    </label>
+                    <label style="display:flex; align-items:center; gap:8px; font-size:0.8rem; font-weight:700; color:#1e3a8a;">
+                        Encuesta post.: <input type="checkbox">
+                    </label>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group form-col" style="width: 50%;">
+                        <label>Duración del Módulo Int. Empresas:</label>
+                        <input type="number" value="0">
+                    </div>
+                    <div class="form-group form-col" style="width: 50%;">
+                        <label>Duración del Módulo emprendimiento:</label>
+                        <input type="number" value="0">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom:20px;">
+                    <label>Objetivos:</label>
+                    <textarea style="width:100%; height:100px; border:1px solid #cbd5e1; border-radius:4px; padding:10px; font-family:inherit; font-size:0.85rem;" placeholder="Introduzca los objetivos del curso..."></textarea>
+                </div>
+
+                <div class="form-group" style="margin-bottom:20px;">
+                    <label>Objetivos específicos:</label>
+                    <textarea style="width:100%; height:100px; border:1px solid #cbd5e1; border-radius:4px; padding:10px; font-family:inherit; font-size:0.85rem;" placeholder="Saber hacer X, Conocer Y..."></textarea>
+                    <a href="#" style="font-size:0.75rem; color:#b91c1c; font-weight:700; text-decoration:none; display:block; margin-top:5px;">Ver / Editar Unidades</a>
+                </div>
+
+                <div class="form-group" style="margin-bottom:20px;">
+                    <label>Contenidos:</label>
+                    <textarea style="width:100%; height:150px; border:1px solid #cbd5e1; border-radius:4px; padding:10px; font-family:inherit; font-size:0.85rem;" placeholder="Desglose de contenidos teóricos y prácticos..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Contenidos breves:</label>
+                    <p style="font-size:0.7rem; color:#64748b; margin-bottom:5px;">(Se mostrará en el apartado "Contenidos" en la ficha)</p>
+                    <textarea style="width:100%; height:80px; border:1px solid #cbd5e1; border-radius:4px; padding:10px; font-family:inherit; font-size:0.85rem;"></textarea>
+                </div>
+            </div>
+
+            <div class="tab-content" id="material" style="display: none;">
+                <div class="form-section-title">Material Didáctico y Recursos</div>
+                <p style="text-align:center; color:#64748b;">Sección en desarrollo...</p>
+            </div>
+            
+            <div class="tab-content" id="gestion" style="display: none;">
+                <div class="form-section-title">Gestión Administrativa</div>
+                <p style="text-align:center; color:#64748b;">Sección en desarrollo...</p>
             </div>
         </div>
 
@@ -529,12 +630,23 @@ sort($familias);
     </main>
 
     <script>
-        // Basic tab switching (static for now as only one tab is implemented)
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                // Future implementation for other tabs
+        function switchTab(tabId) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.style.display = 'none';
             });
-        });
+            
+            // Deactivate all tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show the selected tab content
+            document.getElementById(tabId).style.display = 'block';
+            
+            // Activate the clicked button
+            event.currentTarget.classList.add('active');
+        }
     </script>
 </body>
 </html>
