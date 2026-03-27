@@ -61,10 +61,10 @@ try {
     if ($stmt) { $usuarios = $stmt->fetchAll(); }
 } catch (Throwable $e) { }
 
-// Fetch formadores for the Teleformador dropdown
+// Fetch formadores for the Teleformador dropdown (using usuarios with role Formador/Tutor)
 $formadores = [];
 try {
-    $stmt = $pdo->query("SELECT id, nombre, primer_apellido FROM alumnos WHERE es_teleformador = 1 OR es_tutor = 1 ORDER BY nombre ASC");
+    $stmt = $pdo->query("SELECT u.id, u.nombre, u.apellidos as primer_apellido FROM usuarios u JOIN roles r ON u.rol_id = r.id WHERE (r.nombre LIKE '%Formador%' OR r.nombre LIKE '%Tutor%') AND u.activo = 1 ORDER BY u.nombre ASC");
     if ($stmt) { $formadores = $stmt->fetchAll(); }
 } catch (Throwable $e) { }
 ?>
