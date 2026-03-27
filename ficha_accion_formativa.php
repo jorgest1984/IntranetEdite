@@ -30,9 +30,19 @@ $familias = [
     'Oferta 2.Appforbrands', 'Oferta 3. Hosteleria y Restauracion',
     'Prevención de Riesgos Laborales', 'SAP', 'Seguridad Privada', 'Transversal'
 ];
-sort($familias);
 
+// Fetch existing action if ID is provided
+$accion = [];
+$id = isset($_GET['id']) ? (int)$_GET['id'] : null;
+if ($id) {
+    try {
+        $stmt = $pdo->prepare("SELECT * FROM acciones_formativas WHERE id = ?");
+        $stmt->execute([$id]);
+        $accion = $stmt->fetch();
+    } catch (Throwable $e) { }
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -328,18 +338,27 @@ sort($familias);
         </header>
 
         <div class="course-title-display">
-            ACREDITACIÓN DOCENTE PARA TELEFORMACIÓN (ADT)
+            <?= !empty($accion['titulo']) ? htmlspecialchars($accion['titulo']) : 'NUEVA ACCIÓN FORMATIVA' ?>
+            <?= !empty($accion['abreviatura']) ? '('.htmlspecialchars($accion['abreviatura']).')' : '' ?>
         </div>
         <form id="main-form" method="POST" action="guardar_accion.php">
+        <?php if (isset($_GET['success'])): ?>
+            <div style="background: #dcfce7; color: #166534; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: 700; text-align: center; border: 1px solid #166534;">
+                ¡Acción formativa guardada con éxito!
+            </div>
+        <?php endif; ?>
+        <?php if ($id): ?>
+            <input type="hidden" name="id" value="<?= $id ?>">
+        <?php endif; ?>
         <div class="tabs-container">
             <div class="tabs-header">
-                <button class="tab-btn active" onclick="switchTab('datos-generales')">Datos Generales</button>
-                <button class="tab-btn" onclick="switchTab('grupos')">Grupos</button>
-                <button class="tab-btn" onclick="switchTab('contenidos')">Contenidos</button>
-                <button class="tab-btn" onclick="switchTab('material')">Material</button>
-                <button class="tab-btn" onclick="switchTab('gestion')">Gestión</button>
-                <button class="tab-btn" onclick="switchTab('ejecucion')">Ejecución</button>
-                <button class="tab-btn" onclick="switchTab('instalacion')">Instalación</button>
+                <button type="button" class="tab-btn active" onclick="switchTab(event, 'datos-generales')">Datos Generales</button>
+                <button type="button" class="tab-btn" onclick="switchTab(event, 'grupos')">Grupos</button>
+                <button type="button" class="tab-btn" onclick="switchTab(event, 'contenidos')">Contenidos</button>
+                <button type="button" class="tab-btn" onclick="switchTab(event, 'material')">Material</button>
+                <button type="button" class="tab-btn" onclick="switchTab(event, 'gestion')">Gestión</button>
+                <button type="button" class="tab-btn" onclick="switchTab(event, 'ejecucion')">Ejecución</button>
+                <button type="button" class="tab-btn" onclick="switchTab(event, 'instalacion')">Instalación</button>
             </div>
 
             <div class="tab-content" id="datos-generales">
@@ -352,7 +371,7 @@ sort($familias);
                             <select name="plan_id">
                                 <option value="">Seleccione un plan...</option>
                                 <?php foreach ($planes as $p): ?>
-                                    <option value="<?= $p['id'] ?>"><?= htmlspecialchars($p['nombre']) ?> (<?= htmlspecialchars($p['codigo']) ?>)</option>
+                                    <option value="<?= $p['id'] ?>" <?= ($accion['plan_id'] ?? '') == $p['id'] ? 'selected' : '' ?>><?= htmlspecialchars($p['nombre']) ?> (<?= htmlspecialchars($p['codigo']) ?>)</option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -360,7 +379,7 @@ sort($familias);
                             <label>Nivel:</label>
                             <select name="nivel">
                                 <?php foreach ($niveles as $n): ?>
-                                    <option value="<?= $n ?>"><?= $n ?></option>
+                                    <option value="<?= $n ?>" <?= ($accion['nivel'] ?? '') == $n ? 'selected' : '' ?>><?= $n ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -369,7 +388,7 @@ sort($familias);
                             <select name="prioridad">
                                 <option value=""></option>
                                 <?php foreach ($prioridades as $pr): ?>
-                                    <option value="<?= $pr ?>"><?= $pr ?></option>
+                                    <option value="<?= $pr ?>" <?= ($accion['prioridad'] ?? '') == $pr ? 'selected' : '' ?>><?= $pr ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -380,41 +399,41 @@ sort($familias);
                             <label>Estado de la acción:</label>
                             <select name="estado">
                                 <?php foreach ($estados as $e): ?>
-                                    <option value="<?= $e ?>"><?= $e ?></option>
+                                    <option value="<?= $e ?>" <?= ($accion['estado'] ?? '') == $e ? 'selected' : '' ?>><?= $e ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
                         <div class="form-group form-col" style="width: 20%;">
                             <label>Destacar en la web:</label>
                             <select name="destacar_web">
-                                <option value="0">No</option>
-                                <option value="1">Sí</option>
+                                <option value="0" <?= ($accion['destacar_web'] ?? 0) == 0 ? 'selected' : '' ?>>No</option>
+                                <option value="1" <?= ($accion['destacar_web'] ?? 0) == 1 ? 'selected' : '' ?>>Sí</option>
                             </select>
                         </div>
                         <div class="form-group form-col" style="width: 15%;">
                             <div class="checkbox-group">
                                 <label>Últimas plazas</label>
-                                <input type="checkbox" name="ultimas_plazas">
+                                <input type="checkbox" name="ultimas_plazas" <?= !empty($accion['ultimas_plazas']) ? 'checked' : '' ?>>
                             </div>
                         </div>
                         <div class="form-group form-col" style="width: 15%;">
                             <label>id plataforma:</label>
-                            <input type="text" name="id_plataforma">
+                            <input type="text" name="id_plataforma" value="<?= htmlspecialchars($accion['id_plataforma'] ?? '') ?>">
                         </div>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group form-col" style="width: 50%;">
                             <label>Título:</label>
-                            <input type="text" name="titulo" value="ACREDITACIÓN DOCENTE PARA TELEFORMACIÓN">
+                            <input type="text" name="titulo" value="<?= htmlspecialchars($accion['titulo'] ?? 'ACREDITACIÓN DOCENTE PARA TELEFORMACIÓN') ?>">
                         </div>
                         <div class="form-group form-col" style="width: 15%;">
                             <label>Abreviatura:</label>
-                            <input type="text" name="abreviatura" value="ADT">
+                            <input type="text" name="abreviatura" value="<?= htmlspecialchars($accion['abreviatura'] ?? 'ADT') ?>">
                         </div>
                         <div class="form-group form-col" style="width: 15%;">
                             <label>Nº Acción:</label>
-                            <input type="number" name="num_accion" value="0">
+                            <input type="number" name="num_accion" value="<?= htmlspecialchars($accion['num_accion'] ?? '0') ?>">
                         </div>
                         <div class="form-group form-col" style="width: 20%;">
                             <label>Grupos anteriores:</label>
@@ -425,25 +444,25 @@ sort($familias);
                     <div class="form-row">
                         <div class="form-group form-col" style="width: 10%;">
                             <label>Duración:</label>
-                            <input type="number" name="duracion" value="60">
+                            <input type="number" name="duracion" value="<?= htmlspecialchars($accion['duracion'] ?? '60') ?>">
                         </div>
                         <div class="form-group form-col" style="width: 10%;">
                             <label>P.:</label>
-                            <input type="number" name="p" value="0">
+                            <input type="number" name="p" value="<?= htmlspecialchars($accion['p'] ?? '0') ?>">
                         </div>
                         <div class="form-group form-col" style="width: 10%;">
                             <label>D.:</label>
-                            <input type="number" name="d" value="0">
+                            <input type="number" name="d" value="<?= htmlspecialchars($accion['d'] ?? '0') ?>">
                         </div>
                         <div class="form-group form-col" style="width: 10%;">
                             <label>T.:</label>
-                            <input type="number" name="t" value="60">
+                            <input type="number" name="t" value="<?= htmlspecialchars($accion['t'] ?? '60') ?>">
                         </div>
                         <div class="form-group form-col" style="width: 30%;">
                             <label>Modalidad:</label>
                             <select name="modalidad">
                                 <?php foreach ($modalidades as $m): ?>
-                                    <option value="<?= $m ?>" <?= $m == 'Teleformacion' ? 'selected' : '' ?>><?= $m ?></option>
+                                    <option value="<?= $m ?>" <?= ($accion['modalidad'] ?? 'Teleformacion') == $m ? 'selected' : '' ?>><?= $m ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -454,7 +473,7 @@ sort($familias);
                             <label>Área temática (a eliminar):</label>
                             <div style="display: flex; gap: 5px;">
                                 <select name="area_tematica">
-                                    <option value=""></option>
+                                    <option value="<?= htmlspecialchars($accion['area_tematica'] ?? '') ?>"><?= htmlspecialchars($accion['area_tematica'] ?? '') ?></option>
                                 </select>
                                 <button type="button" class="btn-add-sector">...</button>
                             </div>
@@ -467,7 +486,7 @@ sort($familias);
                             <select name="familia_profesional">
                                 <option value=""></option>
                                 <?php foreach ($familias as $fam): ?>
-                                    <option value="<?= htmlspecialchars($fam) ?>"><?= htmlspecialchars($fam) ?></option>
+                                    <option value="<?= htmlspecialchars($fam) ?>" <?= ($accion['familia_profesional'] ?? '') == $fam ? 'selected' : '' ?>><?= htmlspecialchars($fam) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -478,9 +497,9 @@ sort($familias);
                             <label>Para presenciales:</label>
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <span style="font-size: 0.85rem;">Horas teóricas:</span>
-                                <input type="number" name="horas_teoricas" value="0" style="width: 80px;">
+                                <input type="number" name="horas_teoricas" value="<?= htmlspecialchars($accion['horas_teoricas'] ?? '0') ?>" style="width: 80px;">
                                 <span style="font-size: 0.85rem;">Horas prácticas:</span>
-                                <input type="number" name="horas_practicas" value="0" style="width: 80px;">
+                                <input type="number" name="horas_practicas" value="<?= htmlspecialchars($accion['horas_practicas'] ?? '0') ?>" style="width: 80px;">
                             </div>
                         </div>
                     </div>
@@ -490,10 +509,10 @@ sort($familias);
                             <label>Para cursos cortos:</label>
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <span style="font-size: 0.85rem;">Días extra sin tutorización:</span>
-                                <input type="number" name="dias_extra" value="0" style="width: 80px;">
+                                <input type="number" name="dias_extra" value="<?= htmlspecialchars($accion['dias_extra'] ?? '0') ?>" style="width: 80px;">
                                 <span style="font-size: 0.85rem;">Asignación:</span>
                                 <select name="asignacion" style="width: 150px;">
-                                    <option value=""></option>
+                                    <option value="<?= htmlspecialchars($accion['asignacion'] ?? '') ?>"><?= htmlspecialchars($accion['asignacion'] ?? '') ?></option>
                                 </select>
                             </div>
                         </div>
@@ -672,16 +691,16 @@ sort($familias);
                     <div class="contenidos-header-box">
                         <div class="contenidos-title-red">CONTENIDOS, OBJETIVOS...</div>
                         <div class="contenidos-row-blue">
-                            <label class="label-blue-bold">Módulo Sensib. : <input type="checkbox" name="modulo_sensib"></label>
-                            <label class="label-blue-bold">Módulo Alfab. : <input type="checkbox" name="modulo_alfab"></label>
-                            <label class="label-blue-bold">Encuesta post . : <input type="checkbox" name="encuesta_post"></label>
+                            <label class="label-blue-bold">Módulo Sensib. : <input type="checkbox" name="modulo_sensib" <?= !empty($accion['modulo_sensib']) ? 'checked' : '' ?>></label>
+                            <label class="label-blue-bold">Módulo Alfab. : <input type="checkbox" name="modulo_alfab" <?= !empty($accion['modulo_alfab']) ? 'checked' : '' ?>></label>
+                            <label class="label-blue-bold">Encuesta post . : <input type="checkbox" name="encuesta_post" <?= !empty($accion['encuesta_post']) ? 'checked' : '' ?>></label>
                         </div>
                         <div class="contenidos-row-blue" style="justify-content: flex-start; gap: 40px; padding-left: 10px;">
                             <label class="label-blue-bold">
-                                Duración del Módulo Int. Empresas: <input type="text" class="input-underline" name="dur_int_empresas" value="___"> h.
+                                Duración del Módulo Int. Empresas: <input type="text" class="input-underline" name="dur_int_empresas" value="<?= htmlspecialchars($accion['dur_int_empresas'] ?? '___') ?>"> h.
                             </label>
                             <label class="label-blue-bold">
-                                Duración del Módulo emprendimiento: <input type="text" class="input-underline" name="dur_emprendimiento" value="___"> h.
+                                Duración del Módulo emprendimiento: <input type="text" class="input-underline" name="dur_emprendimiento" value="<?= htmlspecialchars($accion['dur_emprendimiento'] ?? '___') ?>"> h.
                             </label>
                         </div>
                     </div>
@@ -735,14 +754,12 @@ sort($familias);
                             <!-- Source code -->
                             <button type="button" class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg></button>
                         </div>
-                        <textarea class="editor-textarea" name="objetivos"></textarea>
+                        <textarea class="editor-textarea" name="objetivos"><?= htmlspecialchars($accion['objetivos'] ?? '') ?></textarea>
                     </div>
 
                     <div class="editor-container">
                         <h2 class="section-title-blue">Objetivos específicos:</h2>
-                        <textarea class="editor-textarea textarea-grey" name="objetivos_especificos" style="height: 120px;">Saber hacer X
-Conocer Y
-...</textarea>
+                        <textarea class="editor-textarea textarea-grey" name="objetivos_especificos" style="height: 120px;"><?= htmlspecialchars($accion['objetivos_especificos'] ?? "Saber hacer X\nConocer Y\n...") ?></textarea>
                         <a href="editar_unidades.php" class="link-units">Ver / Editar Unidades</a>
                     </div>
 
@@ -795,13 +812,13 @@ Conocer Y
                             <!-- Source code -->
                             <button type="button" class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg></button>
                         </div>
-                        <textarea class="editor-textarea" name="contenidos" style="height: 350px;"></textarea>
+                        <textarea class="editor-textarea" name="contenidos" style="height: 350px;"><?= htmlspecialchars($accion['contenidos'] ?? '') ?></textarea>
                     </div>
 
                     <div class="editor-container">
                         <h2 class="section-title-blue">Contenidos breves:</h2>
                         <p class="hint-text">(Se mostrará en el apartado &ldquo;Contenidos&rdquo; en la ficha)</p>
-                        <textarea class="editor-textarea textarea-grey" name="contenidos_breves" style="height: 120px;"></textarea>
+                        <textarea class="editor-textarea textarea-grey" name="contenidos_breves" style="height: 120px;"><?= htmlspecialchars($accion['contenidos_breves'] ?? '') ?></textarea>
                     </div>
 
                     <div class="editor-container">
@@ -839,7 +856,7 @@ Conocer Y
                             <div class="toolbar-sep"></div>
                             <button type="button" class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg></button>
                         </div>
-                        <textarea class="editor-textarea" name="que_aprenden"></textarea>
+                        <textarea class="editor-textarea" name="que_aprenden"><?= htmlspecialchars($accion['que_aprenden'] ?? '') ?></textarea>
                     </div>
 
                     <div class="editor-container">
@@ -876,7 +893,7 @@ Conocer Y
                             <div class="toolbar-sep"></div>
                             <button type="button" class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg></button>
                         </div>
-                        <textarea class="editor-textarea" name="contenidos_fes"></textarea>
+                        <textarea class="editor-textarea" name="contenidos_fes"><?= htmlspecialchars($accion['contenidos_fes'] ?? '') ?></textarea>
                     </div>
 
                     <div class="editor-container">
@@ -913,7 +930,7 @@ Conocer Y
                             <div class="toolbar-sep"></div>
                             <button type="button" class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg></button>
                         </div>
-                        <textarea class="editor-textarea" name="recursos_accion"></textarea>
+                        <textarea class="editor-textarea" name="recursos_accion"><?= htmlspecialchars($accion['recursos_accion'] ?? '') ?></textarea>
                     </div>
 
                     <div class="editor-container">
@@ -950,7 +967,7 @@ Conocer Y
                             <div class="toolbar-sep"></div>
                             <button type="button" class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg></button>
                         </div>
-                        <textarea class="editor-textarea" name="demanda_mercado"></textarea>
+                        <textarea class="editor-textarea" name="demanda_mercado"><?= htmlspecialchars($accion['demanda_mercado'] ?? '') ?></textarea>
                     </div>
                 </div>
             </div>
@@ -989,7 +1006,12 @@ Conocer Y
     </main>
 
     <script>
-        function switchTab(tabId) {
+        function switchTab(event, tabId) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            
             // Hide all tab contents
             document.querySelectorAll('.tab-content').forEach(content => {
                 content.style.display = 'none';
@@ -1001,10 +1023,15 @@ Conocer Y
             });
             
             // Show the selected tab content
-            document.getElementById(tabId).style.display = 'block';
+            const targetContent = document.getElementById(tabId);
+            if (targetContent) {
+                targetContent.style.display = 'block';
+            }
             
             // Activate the clicked button
-            event.currentTarget.classList.add('active');
+            if (event && event.currentTarget) {
+                event.currentTarget.classList.add('active');
+            }
         }
     </script>
 </body>
