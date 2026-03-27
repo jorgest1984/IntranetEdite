@@ -33,12 +33,24 @@ $familias = [
 
 // Fetch existing action if ID is provided
 $accion = [];
+$grupos = [];
 $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
 if ($id) {
     try {
         $stmt = $pdo->prepare("SELECT * FROM acciones_formativas WHERE id = ?");
         $stmt->execute([$id]);
         $accion = $stmt->fetch();
+
+        // Fetch groups
+        $stmtGrupos = $pdo->prepare("SELECT g.*, e.nombre as centro_nombre, CONCAT(a.nombre, ' ', a.primer_apellido) as tutor_nombre 
+                                    FROM grupos g 
+                                    LEFT JOIN empresas e ON g.centro_id = e.id 
+                                    LEFT JOIN alumnos a ON g.tutor_id = a.id 
+                                    WHERE g.accion_id = ? 
+                                    ORDER BY g.creado_en DESC");
+        $stmtGrupos->execute([$id]);
+        $grupos = $stmtGrupos->fetchAll();
+
     } catch (Throwable $e) { }
 }
 ?>
@@ -546,25 +558,35 @@ if ($id) {
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td style="font-weight:700;">G1</td>
-                                <td style="font-family:monospace;">ADT-2024-01</td>
-                                <td>EDITEFORMACION (Madrid)</td>
-                                <td>15/04/2024</td>
-                                <td>30/05/2024</td>
-                                <td style="text-align:center;"><span style="color:#1e40af;">25</span> / <span style="color:#166534;">20</span> / <span style="color:#64748b;">0</span></td>
-                                <td style="font-weight:600;">JUAN PÉREZ</td>
-                                <td><span class="badge-ficha badge-valido">Válido</span></td>
-                                <td>
-                                    <div style="display:flex; gap:5px;">
-                                        <a href="ficha_grupo_edicion.php?id=1" style="color:#64748b;" title="Ver/Editar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></a>
-                                    </div>
-                                </td>
-                            </tr>
+                            <?php if (empty($grupos)): ?>
+                                <tr>
+                                    <td colspan="9" style="text-align:center; padding: 20px; color: #64748b;">No hay grupos vinculados a esta acción.</td>
+                                </tr>
+                            <?php else: ?>
+                                <?php foreach ($grupos as $g): ?>
+                                    <tr>
+                                        <td style="font-weight:700;"><?= htmlspecialchars($g['numero_grupo']) ?></td>
+                                        <td style="font-family:monospace;"><?= htmlspecialchars($g['codigo_plataforma']) ?></td>
+                                        <td><?= htmlspecialchars($g['centro_nombre'] ?? '---') ?></td>
+                                        <td><?= $g['fecha_inicio'] ? date('d/m/Y', strtotime($g['fecha_inicio'])) : '---' ?></td>
+                                        <td><?= $g['fecha_fin'] ? date('d/m/Y', strtotime($g['fecha_fin'])) : '---' ?></td>
+                                        <td style="text-align:center;">
+                                            <span style="color:#1e40af;">0</span> / <span style="color:#166534;">0</span> / <span style="color:#64748b;">0</span>
+                                        </td>
+                                        <td style="font-weight:600;"><?= htmlspecialchars($g['tutor_nombre'] ?? '---') ?></td>
+                                        <td><span class="badge-ficha badge-valido"><?= htmlspecialchars($g['situacion']) ?></span></td>
+                                        <td>
+                                            <div style="display:flex; gap:5px;">
+                                                <a href="ficha_grupo_edicion.php?id=<?= $g['id'] ?>" style="color:#64748b;" title="Ver/Editar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                     <div style="margin-top:20px; text-align:center;">
-                        <button class="btn-add-sector" style="background:var(--primary-color); color:white; border:none; padding:10px 20px;">+ Crear Nuevo Grupo para esta Acción</button>
+                        <a href="ficha_grupo_edicion.php?accion_id=<?= $id ?>" class="btn-add-sector" style="background:var(--primary-color); color:white; border:none; padding:10px 20px; text-decoration:none; display:inline-block;">+ Crear Nuevo Grupo para esta Acción</a>
                     </div>
                 </div>
             </div>
@@ -973,13 +995,104 @@ if ($id) {
             </div>
 
             <div class="tab-content" id="material" style="display: none;">
-                <div class="form-section-title">Material Didáctico y Recursos</div>
-                <p style="text-align:center; color:#64748b;">Sección en desarrollo...</p>
+                <div class="form-section-title" style="color: #d32f2f; text-align: center; font-weight: bold; margin-bottom: 25px;">
+                    DATOS DE MATERIAL, ENVÍOS...
+                </div>
+                
+                <div class="info-grid" style="grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 25px;">
+                    <div class="info-box">
+                        <label class="info-label" style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" name="hay_material" value="1" <?= ($accion['hay_material'] ?? 0) ? 'checked' : '' ?>>
+                            HAY MATERIAL
+                        </label>
+                    </div>
+                    <div class="info-box">
+                        <label class="info-label">Nº ENTREGAS</label>
+                        <input type="number" class="info-value" name="num_entregas" value="<?= htmlspecialchars($accion['num_entregas'] ?? '0') ?>">
+                    </div>
+                    <div class="info-box">
+                        <label class="info-label">CÓDIGO ENTREGAS</label>
+                        <select class="info-value" name="codigo_entregas">
+                            <option value="">Seleccione...</option>
+                            <option value="ESTANDAR" <?= ($accion['codigo_entregas'] ?? '') == 'ESTANDAR' ? 'selected' : '' ?>>ESTÁNDAR</option>
+                            <option value="ESPECIAL" <?= ($accion['codigo_entregas'] ?? '') == 'ESPECIAL' ? 'selected' : '' ?>>ESPECIAL</option>
+                        </select>
+                    </div>
+                    <div class="info-box">
+                        <label class="info-label">Nº MÓDULOS</label>
+                        <input type="number" class="info-value" name="num_modulos" value="<?= htmlspecialchars($accion['num_modulos'] ?? '0') ?>">
+                    </div>
+                </div>
+
+                <div class="editor-container" style="margin-bottom: 25px;">
+                    <h2 class="section-title-blue" style="font-size: 0.9rem; margin-bottom: 5px;">Detalle entregas:</h2>
+                    <textarea class="editor-textarea textarea-grey" name="detalle_entregas" style="height: 100px;"><?= htmlspecialchars($accion['detalle_entregas'] ?? '') ?></textarea>
+                </div>
+
+                <div class="info-box" style="margin-bottom: 25px;">
+                    <label class="section-title-blue" style="font-size: 0.9rem; margin-bottom: 15px; display: block;">Material:</label>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #1e293b; font-size: 0.85rem;">
+                            <input type="checkbox" name="manual_curso" value="1" <?= ($accion['manual_curso'] ?? 0) ? 'checked' : '' ?>> MANUAL CURSO
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #1e293b; font-size: 0.85rem;">
+                            <input type="checkbox" name="manual_sensibilizacion" value="1" <?= ($accion['manual_sensibilizacion'] ?? 0) ? 'checked' : '' ?>> MANUAL SENSIBILIZACIÓN
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #1e293b; font-size: 0.85rem;">
+                            <input type="checkbox" name="carpeta_clasificadora" value="1" <?= ($accion['carpeta_clasificadora'] ?? 0) ? 'checked' : '' ?>> CARPETA CLASIFICADORA
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #1e293b; font-size: 0.85rem;">
+                            <input type="checkbox" name="cuaderno_a4" value="1" <?= ($accion['cuaderno_a4'] ?? 0) ? 'checked' : '' ?>> CUADERNO A4
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #1e293b; font-size: 0.85rem;">
+                            <input type="checkbox" name="boligrafo" value="1" <?= ($accion['boligrafo'] ?? 0) ? 'checked' : '' ?>> BOLÍGRAFO
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #1e293b; font-size: 0.85rem;">
+                            <input type="checkbox" name="maletin" value="1" <?= ($accion['maletin'] ?? 0) ? 'checked' : '' ?>> MALETÍN
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #1e293b; font-size: 0.85rem;">
+                            <input type="checkbox" name="otros_materiales" value="1" <?= ($accion['otros_materiales'] ?? 0) ? 'checked' : '' ?>> OTROS
+                        </label>
+                    </div>
+                </div>
+
+                <div class="editor-container">
+                    <textarea class="editor-textarea textarea-grey" name="otros_materiales_txt" style="height: 100px;"><?= htmlspecialchars($accion['otros_materiales_txt'] ?? '') ?></textarea>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <input type="text" class="info-value" name="material_extra_info" style="width: 100%;" placeholder="...">
+                </div>
             </div>
             
             <div class="tab-content" id="gestion" style="display: none;">
                 <div class="form-section-title">Gestión Administrativa</div>
-                <p style="text-align:center; color:#64748b;">Sección en desarrollo...</p>
+                <div class="form-row">
+                    <div class="form-group form-col" style="width: 100%;">
+                        <label>Notas de Gestión:</label>
+                        <textarea class="editor-textarea textarea-grey" name="notas_gestion" style="height: 150px;"><?= htmlspecialchars($accion['notas_gestion'] ?? '') ?></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="ejecucion" style="display: none;">
+                <div class="form-section-title">Ejecución y Seguimiento</div>
+                <div class="form-row">
+                    <div class="form-group form-col" style="width: 100%;">
+                        <label>Notas de Ejecución:</label>
+                        <textarea class="editor-textarea textarea-grey" name="notas_ejecucion" style="height: 150px;"><?= htmlspecialchars($accion['notas_ejecucion'] ?? '') ?></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="instalacion" style="display: none;">
+                <div class="form-section-title">Instalación y Logística</div>
+                <div class="form-row">
+                    <div class="form-group form-col" style="width: 100%;">
+                        <label>Notas de Instalación:</label>
+                        <textarea class="editor-textarea textarea-grey" name="notas_instalacion" style="height: 150px;"><?= htmlspecialchars($accion['notas_instalacion'] ?? '') ?></textarea>
+                    </div>
+                </div>
             </div>
         </div>
         </form>

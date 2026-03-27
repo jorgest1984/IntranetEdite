@@ -41,7 +41,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'que_aprenden' => $_POST['que_aprenden'] ?? null,
         'contenidos_fes' => $_POST['contenidos_fes'] ?? null,
         'recursos_accion' => $_POST['recursos_accion'] ?? null,
-        'demanda_mercado' => $_POST['demanda_mercado'] ?? null
+        'demanda_mercado' => $_POST['demanda_mercado'] ?? null,
+        // Material Fields
+        'hay_material' => isset($_POST['hay_material']) ? 1 : 0,
+        'num_entregas' => !empty($_POST['num_entregas']) ? (int)$_POST['num_entregas'] : 0,
+        'codigo_entregas' => $_POST['codigo_entregas'] ?? null,
+        'num_modulos' => !empty($_POST['num_modulos']) ? (int)$_POST['num_modulos'] : 0,
+        'detalle_entregas' => $_POST['detalle_entregas'] ?? null,
+        'manual_curso' => isset($_POST['manual_curso']) ? 1 : 0,
+        'manual_sensibilizacion' => isset($_POST['manual_sensibilizacion']) ? 1 : 0,
+        'carpeta_clasificadora' => isset($_POST['carpeta_clasificadora']) ? 1 : 0,
+        'cuaderno_a4' => isset($_POST['cuaderno_a4']) ? 1 : 0,
+        'boligrafo' => isset($_POST['boligrafo']) ? 1 : 0,
+        'maletin' => isset($_POST['maletin']) ? 1 : 0,
+        'otros_materiales' => isset($_POST['otros_materiales']) ? 1 : 0,
+        'otros_materiales_txt' => $_POST['otros_materiales_txt'] ?? null,
+        'material_extra_info' => $_POST['material_extra_info'] ?? null,
+        'notas_gestion' => $_POST['notas_gestion'] ?? null,
+        'notas_ejecucion' => $_POST['notas_ejecucion'] ?? null,
+        'notas_instalacion' => $_POST['notas_instalacion'] ?? null
     ];
 
     try {
@@ -58,7 +76,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 dur_int_empresas = :dur_int_empresas, dur_emprendimiento = :dur_emprendimiento, 
                 objetivos = :objetivos, objetivos_especificos = :objetivos_especificos, contenidos = :contenidos, 
                 contenidos_breves = :contenidos_breves, que_aprenden = :que_aprenden, contenidos_fes = :contenidos_fes, 
-                recursos_accion = :recursos_accion, demanda_mercado = :demanda_mercado
+                recursos_accion = :recursos_accion, demanda_mercado = :demanda_mercado,
+                hay_material = :hay_material, num_entregas = :num_entregas, codigo_entregas = :codigo_entregas,
+                num_modulos = :num_modulos, detalle_entregas = :detalle_entregas, manual_curso = :manual_curso,
+                manual_sensibilizacion = :manual_sensibilizacion, carpeta_clasificadora = :carpeta_clasificadora,
+                cuaderno_a4 = :cuaderno_a4, boligrafo = :boligrafo, maletin = :maletin,
+                otros_materiales = :otros_materiales, otros_materiales_txt = :otros_materiales_txt,
+                material_extra_info = :material_extra_info,
+                notas_gestion = :notas_gestion, notas_ejecucion = :notas_ejecucion,
+                notas_instalacion = :notas_instalacion
                 WHERE id = :id";
             $data['id'] = $id;
         } else {
@@ -69,14 +95,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 familia_profesional, horas_teoricas, horas_practicas, dias_extra, asignacion, 
                 modulo_sensib, modulo_alfab, encuesta_post, dur_int_empresas, dur_emprendimiento, 
                 objetivos, objetivos_especificos, contenidos, contenidos_breves, que_aprenden, 
-                contenidos_fes, recursos_accion, demanda_mercado
+                contenidos_fes, recursos_accion, demanda_mercado,
+                hay_material, num_entregas, codigo_entregas, num_modulos, detalle_entregas,
+                manual_curso, manual_sensibilizacion, carpeta_clasificadora, cuaderno_a4,
+                boligrafo, maletin, otros_materiales, otros_materiales_txt,
+                material_extra_info, notas_gestion, notas_ejecucion,
+                notas_instalacion
             ) VALUES (
                 :plan_id, :nivel, :prioridad, :estado, :destacar_web, :ultimas_plazas, :id_plataforma, 
                 :titulo, :abreviatura, :num_accion, :duracion, :p, :d, :t, :modalidad, :area_tematica, 
                 :familia_profesional, :horas_teoricas, :horas_practicas, :dias_extra, :asignacion, 
                 :modulo_sensib, :modulo_alfab, :encuesta_post, :dur_int_empresas, :dur_emprendimiento, 
                 :objetivos, :objetivos_especificos, :contenidos, :contenidos_breves, :que_aprenden, 
-                :contenidos_fes, :recursos_accion, :demanda_mercado
+                :contenidos_fes, :recursos_accion, :demanda_mercado,
+                :hay_material, :num_entregas, :codigo_entregas, :num_modulos, :detalle_entregas,
+                :manual_curso, :manual_sensibilizacion, :carpeta_clasificadora, :cuaderno_a4,
+                :boligrafo, :maletin, :otros_materiales, :otros_materiales_txt,
+                :material_extra_info, :notas_gestion, :notas_ejecucion,
+                :notas_instalacion
             )";
         }
 
