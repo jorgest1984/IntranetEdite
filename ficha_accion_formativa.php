@@ -1242,24 +1242,26 @@ try {
                 </div>
 
                 <!-- Sistemas y Nivel -->
-                <div class="form-row">
-                    <div class="form-group form-col" style="width: 15%; display: flex; align-items: center; gap: 8px; padding-top: 15px;">
-                        <label style="margin:0;">Conexia:</label>
-                        <input type="checkbox" name="conexia_check" value="1" <?= ($accion['conexia_check'] ?? 0) ? 'checked' : '' ?> style="width: auto;">
+                <div class="form-row" style="gap: 20px;">
+                    <div style="display: flex; align-items: center; gap: 30px; flex-grow: 1; padding-top: 15px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label style="margin:0; white-space: nowrap; font-weight: 600; color: #1e40af;">CONEXIA:</label>
+                            <input type="checkbox" name="conexia_check" value="1" <?= ($accion['conexia_check'] ?? 0) ? 'checked' : '' ?> style="width: auto; margin: 0;">
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label style="margin:0; white-space: nowrap; font-weight: 600; color: #1e40af;">CAE:</label>
+                            <input type="checkbox" name="cae_check" value="1" <?= ($accion['cae_check'] ?? 0) ? 'checked' : '' ?> style="width: auto; margin: 0;">
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label style="margin:0; white-space: nowrap; font-weight: 600; color: #1e40af;">EDITE:</label>
+                            <input type="checkbox" name="edite_gestion_check" value="1" <?= ($accion['edite_gestion_check'] ?? 0) ? 'checked' : '' ?> style="width: auto; margin: 0;">
+                        </div>
                     </div>
-                    <div class="form-group form-col" style="width: 12%; display: flex; align-items: center; gap: 8px; padding-top: 15px;">
-                        <label style="margin:0;">CAE:</label>
-                        <input type="checkbox" name="cae_check" value="1" <?= ($accion['cae_check'] ?? 0) ? 'checked' : '' ?> style="width: auto;">
-                    </div>
-                    <div class="form-group form-col" style="width: 12%; display: flex; align-items: center; gap: 8px; padding-top: 15px;">
-                        <label style="margin:0;">EDITE:</label>
-                        <input type="checkbox" name="edite_gestion_check" value="1" <?= ($accion['edite_gestion_check'] ?? 0) ? 'checked' : '' ?> style="width: auto;">
-                    </div>
-                    <div class="form-group form-col" style="width: 15%;">
+                    <div class="form-group" style="width: 15%;">
                         <label>Nivel:</label>
                         <input type="number" name="nivel_gestion" value="<?= htmlspecialchars($accion['nivel_gestion'] ?? '1') ?>">
                     </div>
-                    <div class="form-group form-col" style="width: 46%;">
+                    <div class="form-group" style="width: 30%;">
                         <label>Paquete:</label>
                         <select name="paquete_gestion">
                             <option value="">-- Seleccione --</option>
