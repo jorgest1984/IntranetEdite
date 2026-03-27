@@ -64,7 +64,7 @@ try {
 // Fetch formadores for the Teleformador dropdown
 $formadores = [];
 try {
-    $stmt = $pdo->query("SELECT id, nombre, primer_apellido FROM alumnos WHERE rol = 'formador' OR es_tutor = 1 ORDER BY nombre ASC");
+    $stmt = $pdo->query("SELECT id, nombre, primer_apellido FROM alumnos WHERE es_teleformador = 1 OR es_tutor = 1 ORDER BY nombre ASC");
     if ($stmt) { $formadores = $stmt->fetchAll(); }
 } catch (Throwable $e) { }
 ?>
