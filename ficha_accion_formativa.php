@@ -1204,18 +1204,20 @@ try {
                 </div>
 
                 <!-- Evaluaciones Base -->
-                <div class="form-row">
-                    <div class="form-group form-col" style="width: 25%;">
+                <div class="form-row" style="gap: 20px;">
+                    <div class="form-group" style="width: 20%;">
                         <label>Nº Evaluaciones:</label>
                         <input type="number" name="num_evaluaciones" value="<?= htmlspecialchars($accion['num_evaluaciones'] ?? '0') ?>">
                     </div>
-                    <div class="form-group form-col" style="width: 25%; display: flex; align-items: center; gap: 10px; padding-top: 15px;">
-                        <label style="margin: 0;">Recibí material 1:</label>
-                        <input type="checkbox" name="recibi_material1" value="1" <?= ($accion['recibi_material1'] ?? 0) ? 'checked' : '' ?>>
-                    </div>
-                    <div class="form-group form-col" style="width: 25%; display: flex; align-items: center; gap: 10px; padding-top: 15px;">
-                        <label style="margin: 0;">Recibí material 2:</label>
-                        <input type="checkbox" name="recibi_material2" value="1" <?= ($accion['recibi_material2'] ?? 0) ? 'checked' : '' ?>>
+                    <div style="display: flex; align-items: center; gap: 40px; flex-grow: 1; padding-top: 15px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label style="margin: 0; white-space: nowrap; font-weight: 600; color: #1e40af;">Recibí material 1:</label>
+                            <input type="checkbox" name="recibi_material1" value="1" <?= ($accion['recibi_material1'] ?? 0) ? 'checked' : '' ?> style="width: auto; margin: 0;">
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label style="margin: 0; white-space: nowrap; font-weight: 600; color: #1e40af;">Recibí material 2:</label>
+                            <input type="checkbox" name="recibi_material2" value="1" <?= ($accion['recibi_material2'] ?? 0) ? 'checked' : '' ?> style="width: auto; margin: 0;">
+                        </div>
                     </div>
                 </div>
 
