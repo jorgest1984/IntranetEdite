@@ -330,7 +330,7 @@ sort($familias);
         <div class="course-title-display">
             ACREDITACIÓN DOCENTE PARA TELEFORMACIÓN (ADT)
         </div>
-
+        <form id="main-form" method="POST" action="guardar_accion.php">
         <div class="tabs-container">
             <div class="tabs-header">
                 <button class="tab-btn active" onclick="switchTab('datos-generales')">Datos Generales</button>
@@ -345,7 +345,7 @@ sort($familias);
             <div class="tab-content" id="datos-generales">
                 <div class="form-section-title">Datos Generales</div>
                 
-                <form id="main-form">
+                
                     <div class="form-row">
                         <div class="form-group form-col" style="width: 60%;">
                             <label>Plan:</label>
@@ -498,8 +498,9 @@ sort($familias);
                             </div>
                         </div>
                     </div>
+            </div>
 
-                    <div class="tab-content" id="grupos" style="display: none;">
+            <div class="tab-content" id="grupos" style="display: none;">
                 <div class="form-section-title">Grupos vinculados a esta acción</div>
                 <div class="table-responsive">
                     <style>
@@ -551,26 +552,75 @@ sort($familias);
 
             <div class="tab-content" id="contenidos" style="display: none;">
                 <style>
-                    .contenidos-header-box { border: 1px solid #94a3b8; padding: 15px; margin-bottom: 25px; background: white; }
-                    .contenidos-title-red { text-align: center; color: #b91c1c; font-weight: 800; font-size: 0.85rem; text-transform: uppercase; margin-bottom: 15px; }
-                    .contenidos-row-blue { display: flex; gap: 30px; border-top: 1px solid #e2e8f0; padding-top: 12px; margin-bottom: 12px; }
-                    .label-blue-bold { color: #00008b; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
-                    .input-underline { border: none; border-bottom: 2px solid #00008b; background: transparent; width: 40px; text-align: center; font-weight: 700; color: #00008b; outline: none; }
+                    .contenidos-wrapper {
+                        max-width: 1000px;
+                        margin: 0 auto;
+                    }
+                    .contenidos-header-box { 
+                        border: 1px solid #94a3b8; 
+                        padding: 20px; 
+                        margin-bottom: 30px; 
+                        background: #fff;
+                    }
+                    .contenidos-title-red { 
+                        text-align: center; 
+                        color: #b91c1c; 
+                        font-weight: 800; 
+                        font-size: 0.9rem; 
+                        text-transform: uppercase; 
+                        margin-bottom: 20px; 
+                    }
+                    .contenidos-row-blue { 
+                        display: flex; 
+                        justify-content: space-around;
+                        padding: 10px 0;
+                        border-top: 1px solid #e2e8f0;
+                    }
+                    .label-blue-bold { 
+                        color: #00008b; 
+                        font-weight: 700; 
+                        font-size: 0.85rem; 
+                        display: flex; 
+                        align-items: center; 
+                        gap: 10px; 
+                    }
+                    .input-underline { 
+                        border: none; 
+                        border-bottom: 2px solid #00008b !important; 
+                        background: transparent; 
+                        width: 45px; 
+                        text-align: center; 
+                        font-weight: 700; 
+                        color: #00008b; 
+                        outline: none; 
+                        padding: 2px;
+                    }
                     
-                    .section-title-blue { color: #00008b; font-size: 1.6rem; font-weight: 500; margin-bottom: 15px; margin-top: 25px; }
+                    .section-title-blue { 
+                        color: #1e40af; 
+                        font-size: 1.75rem; 
+                        font-weight: 500; 
+                        margin-bottom: 12px; 
+                        margin-top: 35px; 
+                    }
                     
-                    /* Toolbar Mock */
+                    .editor-container {
+                        margin-bottom: 30px;
+                    }
+
+                    /* Toolbar Styles */
                     .editor-toolbar {
                         display: flex;
                         flex-wrap: wrap;
-                        gap: 2px;
+                        gap: 4px;
                         background: #f8fafc;
                         border: 1px solid #cbd5e1;
-                        padding: 4px;
+                        padding: 6px;
                         border-bottom: none;
+                        align-items: center;
                     }
                     .toolbar-btn {
-                        padding: 5px;
+                        padding: 6px 8px;
                         border: 1px solid transparent;
                         background: none;
                         cursor: pointer;
@@ -578,93 +628,181 @@ sort($familias);
                         align-items: center;
                         justify-content: center;
                         color: #475569;
+                        border-radius: 3px;
+                        transition: all 0.2s;
                     }
                     .toolbar-btn:hover { background: #e2e8f0; border-color: #cbd5e1; }
-                    .toolbar-sep { width: 1px; height: 20px; background: #cbd5e1; margin: 0 4px; align-self: center; }
-                    .toolbar-select { font-size: 0.75rem; padding: 2px 5px; border: 1px solid #cbd5e1; border-radius: 2px; }
+                    .toolbar-sep { width: 1px; height: 20px; background: #cbd5e1; margin: 0 6px; }
+                    .toolbar-select { font-size: 0.8rem; padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 3px; background: white; }
                     
                     .editor-textarea {
                         width: 100%;
-                        height: 200px;
+                        height: 250px;
                         border: 1px solid #cbd5e1;
                         padding: 15px;
-                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                        font-family: 'Inter', sans-serif;
                         font-size: 0.95rem;
                         color: #334155;
                         resize: vertical;
                         outline: none;
+                        box-sizing: border-box;
                     }
+                    .textarea-grey { background: #f1f5f9; }
+
+                    .hint-text {
+                        font-size: 0.85rem; 
+                        color: #1e40af; 
+                        margin-bottom: 12px; 
+                        font-weight: 500;
+                        font-style: italic;
+                    }
+                    .link-units {
+                        font-size: 0.85rem; 
+                        color: #1e40af; 
+                        font-weight: 700; 
+                        text-decoration: underline; 
+                        display: inline-block; 
+                        margin-top: 12px;
+                        transition: color 0.2s;
+                    }
+                    .link-units:hover { color: #1e3a8a; }
                 </style>
 
-                <div class="contenidos-header-box">
-                    <div class="contenidos-title-red">CONTENIDOS, OBJETIVOS...</div>
-                    <div class="contenidos-row-blue">
-                        <label class="label-blue-bold">Módulo Sensib. : <input type="checkbox"></label>
-                        <label class="label-blue-bold">Módulo Alfab. : <input type="checkbox"></label>
-                        <label class="label-blue-bold">Encuesta post . : <input type="checkbox"></label>
+                <div class="contenidos-wrapper">
+                    <div class="contenidos-header-box">
+                        <div class="contenidos-title-red">CONTENIDOS, OBJETIVOS...</div>
+                        <div class="contenidos-row-blue">
+                            <label class="label-blue-bold">Módulo Sensib. : <input type="checkbox" name="modulo_sensib"></label>
+                            <label class="label-blue-bold">Módulo Alfab. : <input type="checkbox" name="modulo_alfab"></label>
+                            <label class="label-blue-bold">Encuesta post . : <input type="checkbox" name="encuesta_post"></label>
+                        </div>
+                        <div class="contenidos-row-blue" style="justify-content: flex-start; gap: 40px; padding-left: 10px;">
+                            <label class="label-blue-bold">
+                                Duración del Módulo Int. Empresas: <input type="text" class="input-underline" name="dur_int_empresas" value="___"> h.
+                            </label>
+                            <label class="label-blue-bold">
+                                Duración del Módulo emprendimiento: <input type="text" class="input-underline" name="dur_emprendimiento" value="___"> h.
+                            </label>
+                        </div>
                     </div>
-                    <div class="label-blue-bold" style="border-top: 1px solid #e2e8f0; padding-top: 12px; display: block;">
-                        Duración del Módulo Int. Empresas: <input type="text" class="input-underline" value="___"> h.
-                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                        Duración del Módulo emprendimiento: <input type="text" class="input-underline" value="___"> h.
-                    </div>
-                </div>
 
-                <div class="editor-container">
-                    <h2 class="section-title-blue">Objetivos:</h2>
-                    <div class="editor-toolbar">
-                        <button class="toolbar-btn" title="Deshacer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg></button>
-                        <button class="toolbar-btn" title="Rehacer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg></button>
-                        <div class="toolbar-sep"></div>
-                        <button class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
-                        <button class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg></button>
-                        <div class="toolbar-sep"></div>
-                        <select class="toolbar-select"><option>Párrafo</option></select>
-                        <div class="toolbar-sep"></div>
-                        <button class="toolbar-btn" style="font-weight:900;">B</button>
-                        <button class="toolbar-btn" style="font-style:italic; font-family:serif;">I</button>
-                        <button class="toolbar-btn">x²</button>
-                        <button class="toolbar-btn">x₂</button>
-                        <div class="toolbar-sep"></div>
-                        <button class="toolbar-btn">"</button>
-                        <button class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg></button>
-                        <button class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="10" y1="6" x2="21" y2="6"></line><line x1="10" y1="12" x2="21" y2="12"></line><line x1="10" y1="18" x2="21" y2="18"></line><path d="M4 6h1v4"></path><path d="M4 10h2"></path><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"></path></svg></button>
-                        <div class="toolbar-sep"></div>
-                        <button class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button>
-                        <button class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg></button>
-                        <div class="toolbar-sep"></div>
-                        <button class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg></button>
+                    <div class="editor-container">
+                        <h2 class="section-title-blue">Objetivos:</h2>
+                        <div class="editor-toolbar">
+                            <button type="button" class="toolbar-btn" title="Deshacer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg></button>
+                            <button type="button" class="toolbar-btn" title="Rehacer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg></button>
+                            <div class="toolbar-sep"></div>
+                            <!-- Cut -->
+                            <button type="button" class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><line x1="20" y1="4" x2="8.12" y2="15.88"></line><line x1="14.47" y1="14.48" x2="20" y2="20"></line><line x1="8.12" y1="8.12" x2="12" y2="12"></line></svg></button>
+                            <!-- Copy -->
+                            <button type="button" class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+                            <!-- Paste -->
+                            <button type="button" class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg></button>
+                            <!-- Paste as text -->
+                            <button type="button" class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><line x1="8" y1="12" x2="16" y2="12"></line></svg></button>
+                            <div class="toolbar-sep"></div>
+                            <select class="toolbar-select"><option>Párrafo</option></select>
+                            <div class="toolbar-sep"></div>
+                            <button type="button" class="toolbar-btn" style="font-weight:900;">B</button>
+                            <button type="button" class="toolbar-btn" style="font-style:italic; font-family:serif; font-size: 1.2rem;">I</button>
+                            <button type="button" class="toolbar-btn">x²</button>
+                            <button type="button" class="toolbar-btn">x₂</button>
+                            <div class="toolbar-sep"></div>
+                            <button type="button" class="toolbar-btn" style="font-size: 1.1rem; line-height: 1;">&rdquo;</button>
+                            <!-- Unordered list -->
+                            <button type="button" class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg></button>
+                            <!-- Ordered list -->
+                            <button type="button" class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="10" y1="6" x2="21" y2="6"></line><line x1="10" y1="12" x2="21" y2="12"></line><line x1="10" y1="18" x2="21" y2="18"></line><path d="M4 6h1v4"></path><path d="M4 10h2"></path><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"></path></svg></button>
+                            <div class="toolbar-sep"></div>
+                            <!-- Align left -->
+                            <button type="button" class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="17" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="17" y1="18" x2="3" y2="18"></line></svg></button>
+                            <!-- Align center -->
+                            <button type="button" class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="10" x2="6" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="18" y1="18" x2="6" y2="18"></line></svg></button>
+                            <!-- Align right -->
+                            <button type="button" class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="21" y1="10" x2="7" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="21" y1="18" x2="7" y2="18"></line></svg></button>
+                            <!-- Justify -->
+                            <button type="button" class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="21" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="21" y1="18" x2="3" y2="18"></line></svg></button>
+                            <!-- Language -->
+                            <button type="button" class="toolbar-btn" title="Idioma"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg></button>
+                            <div class="toolbar-sep"></div>
+                            <!-- Link -->
+                            <button type="button" class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button>
+                            <!-- Image -->
+                            <button type="button" class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></button>
+                            <!-- Table -->
+                            <button type="button" class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg></button>
+                            <div class="toolbar-sep"></div>
+                            <!-- Source code -->
+                            <button type="button" class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg></button>
+                        </div>
+                        <textarea class="editor-textarea" name="objetivos"></textarea>
                     </div>
-                    <textarea class="editor-textarea"></textarea>
-                </div>
 
-                <div class="editor-container">
-                    <h2 class="section-title-blue">Objetivos específicos:</h2>
-                    <textarea class="editor-textarea" style="height: 120px; background: #f1f5f9;">Saber hacer X
+                    <div class="editor-container">
+                        <h2 class="section-title-blue">Objetivos específicos:</h2>
+                        <textarea class="editor-textarea textarea-grey" name="objetivos_especificos" style="height: 120px;">Saber hacer X
 Conocer Y
 ...</textarea>
-                    <a href="#" style="font-size:0.85rem; color:#00008b; font-weight:700; text-decoration:none; display:block; margin-top:10px;">Ver / Editar Unidades</a>
-                </div>
-
-                <div class="editor-container">
-                    <h2 class="section-title-blue">Contenidos:</h2>
-                    <div class="editor-toolbar">
-                        <!-- Simplified Toolbar for Mock -->
-                        <button class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg></button>
-                        <button class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg></button>
-                        <div class="toolbar-sep"></div>
-                        <button class="toolbar-btn" style="font-weight:900;">B</button>
-                        <button class="toolbar-btn" style="font-style:italic;">I</button>
-                        <div class="toolbar-sep"></div>
-                        <button class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line></svg></button>
+                        <a href="editar_unidades.php" class="link-units">Ver / Editar Unidades</a>
                     </div>
-                    <textarea class="editor-textarea" style="height: 300px;"></textarea>
-                </div>
 
-                <div class="editor-container">
-                    <h2 class="section-title-blue">Contenidos breves:</h2>
-                    <p style="font-size:0.85rem; color:#00008b; margin-bottom:10px; font-weight: 500;">(Se mostrará en el apartado "Contenidos" en la ficha)</p>
-                    <textarea class="editor-textarea" style="height: 100px; background: #f1f5f9;"></textarea>
+                    <div class="editor-container">
+                        <h2 class="section-title-blue">Contenidos:</h2>
+                        <div class="editor-toolbar">
+                            <button type="button" class="toolbar-btn" title="Deshacer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg></button>
+                            <button type="button" class="toolbar-btn" title="Rehacer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg></button>
+                            <div class="toolbar-sep"></div>
+                            <!-- Cut -->
+                            <button type="button" class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><line x1="20" y1="4" x2="8.12" y2="15.88"></line><line x1="14.47" y1="14.48" x2="20" y2="20"></line><line x1="8.12" y1="8.12" x2="12" y2="12"></line></svg></button>
+                            <!-- Copy -->
+                            <button type="button" class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+                            <!-- Paste -->
+                            <button type="button" class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg></button>
+                            <!-- Paste as text -->
+                            <button type="button" class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><line x1="8" y1="12" x2="16" y2="12"></line></svg></button>
+                            <div class="toolbar-sep"></div>
+                            <select class="toolbar-select"><option>Párrafo</option></select>
+                            <div class="toolbar-sep"></div>
+                            <button type="button" class="toolbar-btn" style="font-weight:900;">B</button>
+                            <button type="button" class="toolbar-btn" style="font-style:italic; font-family:serif; font-size: 1.2rem;">I</button>
+                            <button type="button" class="toolbar-btn">x²</button>
+                            <button type="button" class="toolbar-btn">x₂</button>
+                            <div class="toolbar-sep"></div>
+                            <button type="button" class="toolbar-btn" style="font-size: 1.1rem; line-height: 1;">&rdquo;</button>
+                            <!-- Unordered list -->
+                            <button type="button" class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg></button>
+                            <!-- Ordered list -->
+                            <button type="button" class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="10" y1="6" x2="21" y2="6"></line><line x1="10" y1="12" x2="21" y2="12"></line><line x1="10" y1="18" x2="21" y2="18"></line><path d="M4 6h1v4"></path><path d="M4 10h2"></path><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"></path></svg></button>
+                            <div class="toolbar-sep"></div>
+                            <!-- Align left -->
+                            <button type="button" class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="17" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="17" y1="18" x2="3" y2="18"></line></svg></button>
+                            <!-- Align center -->
+                            <button type="button" class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="10" x2="6" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="18" y1="18" x2="6" y2="18"></line></svg></button>
+                            <!-- Align right -->
+                            <button type="button" class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="21" y1="10" x2="7" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="21" y1="18" x2="7" y2="18"></line></svg></button>
+                            <!-- Justify -->
+                            <button type="button" class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="21" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="21" y1="18" x2="3" y2="18"></line></svg></button>
+                            <!-- Language -->
+                            <button type="button" class="toolbar-btn" title="Idioma"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg></button>
+                            <div class="toolbar-sep"></div>
+                            <!-- Link -->
+                            <button type="button" class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button>
+                            <!-- Image -->
+                            <button type="button" class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></button>
+                            <!-- Table -->
+                            <button type="button" class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg></button>
+                            <div class="toolbar-sep"></div>
+                            <!-- Source code -->
+                            <button type="button" class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg></button>
+                        </div>
+                        <textarea class="editor-textarea" name="contenidos" style="height: 350px;"></textarea>
+                    </div>
+
+                    <div class="editor-container">
+                        <h2 class="section-title-blue">Contenidos breves:</h2>
+                        <p class="hint-text">(Se mostrará en el apartado &ldquo;Contenidos&rdquo; en la ficha)</p>
+                        <textarea class="editor-textarea textarea-grey" name="contenidos_breves" style="height: 120px;"></textarea>
+                    </div>
                 </div>
             </div>
 
@@ -678,6 +816,7 @@ Conocer Y
                 <p style="text-align:center; color:#64748b;">Sección en desarrollo...</p>
             </div>
         </div>
+        </form>
 
         <div class="sectores-table-container">
             <div class="sectores-table-header">SECTORES</div>
