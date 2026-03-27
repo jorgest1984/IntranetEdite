@@ -550,50 +550,121 @@ sort($familias);
             </div>
 
             <div class="tab-content" id="contenidos" style="display: none;">
-                <div class="form-section-title">Contenidos, Objetivos y Unidades</div>
-                <div style="display: flex; gap: 20px; margin-bottom: 20px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <label style="display:flex; align-items:center; gap:8px; font-size:0.8rem; font-weight:700; color:#1e3a8a;">
-                        Módulo Sensib.: <input type="checkbox">
-                    </label>
-                    <label style="display:flex; align-items:center; gap:8px; font-size:0.8rem; font-weight:700; color:#1e3a8a;">
-                        Módulo Alfab.: <input type="checkbox">
-                    </label>
-                    <label style="display:flex; align-items:center; gap:8px; font-size:0.8rem; font-weight:700; color:#1e3a8a;">
-                        Encuesta post.: <input type="checkbox">
-                    </label>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group form-col" style="width: 50%;">
-                        <label>Duración del Módulo Int. Empresas:</label>
-                        <input type="number" value="0">
+                <style>
+                    .contenidos-header-box { border: 1px solid #94a3b8; padding: 15px; margin-bottom: 25px; background: white; }
+                    .contenidos-title-red { text-align: center; color: #b91c1c; font-weight: 800; font-size: 0.85rem; text-transform: uppercase; margin-bottom: 15px; }
+                    .contenidos-row-blue { display: flex; gap: 30px; border-top: 1px solid #e2e8f0; padding-top: 12px; margin-bottom: 12px; }
+                    .label-blue-bold { color: #00008b; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
+                    .input-underline { border: none; border-bottom: 2px solid #00008b; background: transparent; width: 40px; text-align: center; font-weight: 700; color: #00008b; outline: none; }
+                    
+                    .section-title-blue { color: #00008b; font-size: 1.6rem; font-weight: 500; margin-bottom: 15px; margin-top: 25px; }
+                    
+                    /* Toolbar Mock */
+                    .editor-toolbar {
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 2px;
+                        background: #f8fafc;
+                        border: 1px solid #cbd5e1;
+                        padding: 4px;
+                        border-bottom: none;
+                    }
+                    .toolbar-btn {
+                        padding: 5px;
+                        border: 1px solid transparent;
+                        background: none;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: #475569;
+                    }
+                    .toolbar-btn:hover { background: #e2e8f0; border-color: #cbd5e1; }
+                    .toolbar-sep { width: 1px; height: 20px; background: #cbd5e1; margin: 0 4px; align-self: center; }
+                    .toolbar-select { font-size: 0.75rem; padding: 2px 5px; border: 1px solid #cbd5e1; border-radius: 2px; }
+                    
+                    .editor-textarea {
+                        width: 100%;
+                        height: 200px;
+                        border: 1px solid #cbd5e1;
+                        padding: 15px;
+                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                        font-size: 0.95rem;
+                        color: #334155;
+                        resize: vertical;
+                        outline: none;
+                    }
+                </style>
+
+                <div class="contenidos-header-box">
+                    <div class="contenidos-title-red">CONTENIDOS, OBJETIVOS...</div>
+                    <div class="contenidos-row-blue">
+                        <label class="label-blue-bold">Módulo Sensib. : <input type="checkbox"></label>
+                        <label class="label-blue-bold">Módulo Alfab. : <input type="checkbox"></label>
+                        <label class="label-blue-bold">Encuesta post . : <input type="checkbox"></label>
                     </div>
-                    <div class="form-group form-col" style="width: 50%;">
-                        <label>Duración del Módulo emprendimiento:</label>
-                        <input type="number" value="0">
+                    <div class="label-blue-bold" style="border-top: 1px solid #e2e8f0; padding-top: 12px; display: block;">
+                        Duración del Módulo Int. Empresas: <input type="text" class="input-underline" value="___"> h.
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        Duración del Módulo emprendimiento: <input type="text" class="input-underline" value="___"> h.
                     </div>
                 </div>
 
-                <div class="form-group" style="margin-bottom:20px;">
-                    <label>Objetivos:</label>
-                    <textarea style="width:100%; height:100px; border:1px solid #cbd5e1; border-radius:4px; padding:10px; font-family:inherit; font-size:0.85rem;" placeholder="Introduzca los objetivos del curso..."></textarea>
+                <div class="editor-container">
+                    <h2 class="section-title-blue">Objetivos:</h2>
+                    <div class="editor-toolbar">
+                        <button class="toolbar-btn" title="Deshacer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg></button>
+                        <button class="toolbar-btn" title="Rehacer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg></button>
+                        <div class="toolbar-sep"></div>
+                        <button class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+                        <button class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg></button>
+                        <div class="toolbar-sep"></div>
+                        <select class="toolbar-select"><option>Párrafo</option></select>
+                        <div class="toolbar-sep"></div>
+                        <button class="toolbar-btn" style="font-weight:900;">B</button>
+                        <button class="toolbar-btn" style="font-style:italic; font-family:serif;">I</button>
+                        <button class="toolbar-btn">x²</button>
+                        <button class="toolbar-btn">x₂</button>
+                        <div class="toolbar-sep"></div>
+                        <button class="toolbar-btn">"</button>
+                        <button class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg></button>
+                        <button class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="10" y1="6" x2="21" y2="6"></line><line x1="10" y1="12" x2="21" y2="12"></line><line x1="10" y1="18" x2="21" y2="18"></line><path d="M4 6h1v4"></path><path d="M4 10h2"></path><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"></path></svg></button>
+                        <div class="toolbar-sep"></div>
+                        <button class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button>
+                        <button class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg></button>
+                        <div class="toolbar-sep"></div>
+                        <button class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg></button>
+                    </div>
+                    <textarea class="editor-textarea"></textarea>
                 </div>
 
-                <div class="form-group" style="margin-bottom:20px;">
-                    <label>Objetivos específicos:</label>
-                    <textarea style="width:100%; height:100px; border:1px solid #cbd5e1; border-radius:4px; padding:10px; font-family:inherit; font-size:0.85rem;" placeholder="Saber hacer X, Conocer Y..."></textarea>
-                    <a href="#" style="font-size:0.75rem; color:#b91c1c; font-weight:700; text-decoration:none; display:block; margin-top:5px;">Ver / Editar Unidades</a>
+                <div class="editor-container">
+                    <h2 class="section-title-blue">Objetivos específicos:</h2>
+                    <textarea class="editor-textarea" style="height: 120px; background: #f1f5f9;">Saber hacer X
+Conocer Y
+...</textarea>
+                    <a href="#" style="font-size:0.85rem; color:#00008b; font-weight:700; text-decoration:none; display:block; margin-top:10px;">Ver / Editar Unidades</a>
                 </div>
 
-                <div class="form-group" style="margin-bottom:20px;">
-                    <label>Contenidos:</label>
-                    <textarea style="width:100%; height:150px; border:1px solid #cbd5e1; border-radius:4px; padding:10px; font-family:inherit; font-size:0.85rem;" placeholder="Desglose de contenidos teóricos y prácticos..."></textarea>
+                <div class="editor-container">
+                    <h2 class="section-title-blue">Contenidos:</h2>
+                    <div class="editor-toolbar">
+                        <!-- Simplified Toolbar for Mock -->
+                        <button class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg></button>
+                        <button class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg></button>
+                        <div class="toolbar-sep"></div>
+                        <button class="toolbar-btn" style="font-weight:900;">B</button>
+                        <button class="toolbar-btn" style="font-style:italic;">I</button>
+                        <div class="toolbar-sep"></div>
+                        <button class="toolbar-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line></svg></button>
+                    </div>
+                    <textarea class="editor-textarea" style="height: 300px;"></textarea>
                 </div>
 
-                <div class="form-group">
-                    <label>Contenidos breves:</label>
-                    <p style="font-size:0.7rem; color:#64748b; margin-bottom:5px;">(Se mostrará en el apartado "Contenidos" en la ficha)</p>
-                    <textarea style="width:100%; height:80px; border:1px solid #cbd5e1; border-radius:4px; padding:10px; font-family:inherit; font-size:0.85rem;"></textarea>
+                <div class="editor-container">
+                    <h2 class="section-title-blue">Contenidos breves:</h2>
+                    <p style="font-size:0.85rem; color:#00008b; margin-bottom:10px; font-weight: 500;">(Se mostrará en el apartado "Contenidos" en la ficha)</p>
+                    <textarea class="editor-textarea" style="height: 100px; background: #f1f5f9;"></textarea>
                 </div>
             </div>
 
