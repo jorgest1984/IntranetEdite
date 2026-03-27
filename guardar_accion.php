@@ -59,7 +59,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'material_extra_info' => $_POST['material_extra_info'] ?? null,
         'notas_gestion' => $_POST['notas_gestion'] ?? null,
         'notas_ejecucion' => $_POST['notas_ejecucion'] ?? null,
-        'notas_instalacion' => $_POST['notas_instalacion'] ?? null
+        'notas_instalacion' => $_POST['notas_instalacion'] ?? null,
+        // New Gestion Fields
+        'resp_documentacion_id' => !empty($_POST['resp_documentacion_id']) ? (int)$_POST['resp_documentacion_id'] : null,
+        'resp_seguimiento_id' => !empty($_POST['resp_seguimiento_id']) ? (int)$_POST['resp_seguimiento_id'] : null,
+        'resp_dudas_id' => !empty($_POST['resp_dudas_id']) ? (int)$_POST['resp_dudas_id'] : null,
+        'tutor1_id' => !empty($_POST['tutor1_id']) ? (int)$_POST['tutor1_id'] : null,
+        'tutor1_activo' => isset($_POST['tutor1_activo']) ? 1 : 0,
+        'tutor2_id' => !empty($_POST['tutor2_id']) ? (int)$_POST['tutor2_id'] : null,
+        'tutor2_activo' => isset($_POST['tutor2_activo']) ? 1 : 0,
+        'mostrar_otras_consultoras' => isset($_POST['mostrar_otras_consultoras']) ? 1 : 0,
+        'alumnos_otras_consultoras' => $_POST['alumnos_otras_consultoras'] ?? null,
+        'teleformador_id' => !empty($_POST['teleformador_id']) ? (int)$_POST['teleformador_id'] : null,
+        'id_grupo_gestion' => $_POST['id_grupo_gestion'] ?? null,
+        'email_tutor_gestion' => $_POST['email_tutor_gestion'] ?? null,
+        'nuestra_check' => isset($_POST['nuestra_check']) ? 1 : 0,
+        'prioritaria_check' => isset($_POST['prioritaria_check']) ? 1 : 0,
+        'num_evaluaciones' => !empty($_POST['num_evaluaciones']) ? (int)$_POST['num_evaluaciones'] : 0,
+        'recibi_material1' => isset($_POST['recibi_material1']) ? 1 : 0,
+        'recibi_material2' => isset($_POST['recibi_material2']) ? 1 : 0,
+        'eval1_check' => isset($_POST['eval1_check']) ? 1 : 0,
+        'eval1_titulo' => $_POST['eval1_titulo'] ?? null,
+        'eval2_check' => isset($_POST['eval2_check']) ? 1 : 0,
+        'eval2_titulo' => $_POST['eval2_titulo'] ?? null,
+        'eval3_check' => isset($_POST['eval3_check']) ? 1 : 0,
+        'eval3_titulo' => $_POST['eval3_titulo'] ?? null,
+        'eval4_check' => isset($_POST['eval4_check']) ? 1 : 0,
+        'eval4_titulo' => $_POST['eval4_titulo'] ?? null,
+        'supuesto_practico' => $_POST['supuesto_practico'] ?? null,
+        'conexia_check' => isset($_POST['conexia_check']) ? 1 : 0,
+        'cae_check' => isset($_POST['cae_check']) ? 1 : 0,
+        'edite_gestion_check' => isset($_POST['edite_gestion_check']) ? 1 : 0,
+        'nivel_gestion' => !empty($_POST['nivel_gestion']) ? (int)$_POST['nivel_gestion'] : 1,
+        'paquete_gestion' => $_POST['paquete_gestion'] ?? null,
+        'observaciones_gestion' => $_POST['observaciones_gestion'] ?? null
     ];
 
     try {
@@ -84,7 +117,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 otros_materiales = :otros_materiales, otros_materiales_txt = :otros_materiales_txt,
                 material_extra_info = :material_extra_info,
                 notas_gestion = :notas_gestion, notas_ejecucion = :notas_ejecucion,
-                notas_instalacion = :notas_instalacion
+                notas_instalacion = :notas_instalacion,
+                resp_documentacion_id = :resp_documentacion_id, resp_seguimiento_id = :resp_seguimiento_id,
+                resp_dudas_id = :resp_dudas_id, tutor1_id = :tutor1_id, tutor1_activo = :tutor1_activo,
+                tutor2_id = :tutor2_id, tutor2_activo = :tutor2_activo,
+                mostrar_otras_consultoras = :mostrar_otras_consultoras, alumnos_otras_consultoras = :alumnos_otras_consultoras,
+                teleformador_id = :teleformador_id, id_grupo_gestion = :id_grupo_gestion,
+                email_tutor_gestion = :email_tutor_gestion, nuestra_check = :nuestra_check,
+                prioritaria_check = :prioritaria_check, num_evaluaciones = :num_evaluaciones,
+                recibi_material1 = :recibi_material1, recibi_material2 = :recibi_material2,
+                eval1_check = :eval1_check, eval1_titulo = :eval1_titulo,
+                eval2_check = :eval2_check, eval2_titulo = :eval2_titulo,
+                eval3_check = :eval3_check, eval3_titulo = :eval3_titulo,
+                eval4_check = :eval4_check, eval4_titulo = :eval4_titulo,
+                supuesto_practico = :supuesto_practico, conexia_check = :conexia_check,
+                cae_check = :cae_check, edite_gestion_check = :edite_gestion_check,
+                nivel_gestion = :nivel_gestion, paquete_gestion = :paquete_gestion,
+                observaciones_gestion = :observaciones_gestion
                 WHERE id = :id";
             $data['id'] = $id;
         } else {
@@ -100,7 +149,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 manual_curso, manual_sensibilizacion, carpeta_clasificadora, cuaderno_a4,
                 boligrafo, maletin, otros_materiales, otros_materiales_txt,
                 material_extra_info, notas_gestion, notas_ejecucion,
-                notas_instalacion
+                notas_instalacion, resp_documentacion_id, resp_seguimiento_id,
+                resp_dudas_id, tutor1_id, tutor1_activo, tutor2_id,
+                tutor2_activo, mostrar_otras_consultoras, alumnos_otras_consultoras,
+                teleformador_id, id_grupo_gestion, email_tutor_gestion,
+                nuestra_check, prioritaria_check, num_evaluaciones,
+                recibi_material1, recibi_material2, eval1_check, eval1_titulo,
+                eval2_check, eval2_titulo, eval3_check, eval3_titulo,
+                eval4_check, eval4_titulo, supuesto_practico, conexia_check,
+                cae_check, edite_gestion_check, nivel_gestion, paquete_gestion,
+                observaciones_gestion
             ) VALUES (
                 :plan_id, :nivel, :prioridad, :estado, :destacar_web, :ultimas_plazas, :id_plataforma, 
                 :titulo, :abreviatura, :num_accion, :duracion, :p, :d, :t, :modalidad, :area_tematica, 
@@ -112,7 +170,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 :manual_curso, :manual_sensibilizacion, :carpeta_clasificadora, :cuaderno_a4,
                 :boligrafo, :maletin, :otros_materiales, :otros_materiales_txt,
                 :material_extra_info, :notas_gestion, :notas_ejecucion,
-                :notas_instalacion
+                :notas_instalacion, :resp_documentacion_id, :resp_seguimiento_id,
+                :resp_dudas_id, :tutor1_id, :tutor1_activo, :tutor2_id,
+                :tutor2_activo, :mostrar_otras_consultoras, :alumnos_otras_consultoras,
+                :teleformador_id, :id_grupo_gestion, :email_tutor_gestion,
+                :nuestra_check, :prioritaria_check, :num_evaluaciones,
+                :recibi_material1, :recibi_material2, :eval1_check, :eval1_titulo,
+                :eval2_check, :eval2_titulo, :eval3_check, :eval3_titulo,
+                :eval4_check, :eval4_titulo, :supuesto_practico, :conexia_check,
+                :cae_check, :edite_gestion_check, :nivel_gestion, :paquete_gestion,
+                :observaciones_gestion
             )";
         }
 

@@ -53,6 +53,20 @@ if ($id) {
 
     } catch (Throwable $e) { }
 }
+
+// Fetch users for Responsables and Tutores
+$usuarios = [];
+try {
+    $stmt = $pdo->query("SELECT id, nombre, apellidos FROM usuarios ORDER BY nombre ASC");
+    if ($stmt) { $usuarios = $stmt->fetchAll(); }
+} catch (Throwable $e) { }
+
+// Fetch formadores for the Teleformador dropdown
+$formadores = [];
+try {
+    $stmt = $pdo->query("SELECT id, nombre, primer_apellido FROM alumnos WHERE rol = 'formador' OR es_tutor = 1 ORDER BY nombre ASC");
+    if ($stmt) { $formadores = $stmt->fetchAll(); }
+} catch (Throwable $e) { }
 ?>
 
 <!DOCTYPE html>
@@ -1066,11 +1080,200 @@ if ($id) {
             </div>
             
             <div class="tab-content" id="gestion" style="display: none;">
-                <div class="form-section-title">Gestión Administrativa</div>
+                <div class="form-section-title" style="color: #d32f2f;">DATOS PARA GESTIÓN, SEGUIMIENTO, ETC.</div>
+                
+                <!-- Responsables -->
+                <div class="form-row">
+                    <div class="form-group form-col" style="width: 33%;">
+                        <label>Resp documentacion :</label>
+                        <select name="resp_documentacion_id">
+                            <option value="">-- Seleccione --</option>
+                            <?php foreach ($usuarios as $u): ?>
+                                <option value="<?= $u['id'] ?>" <?= ($accion['resp_documentacion_id'] ?? '') == $u['id'] ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($u['nombre'] . ' ' . $u['apellidos']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group form-col" style="width: 33%;">
+                        <label>Resp seguimiento :</label>
+                        <select name="resp_seguimiento_id">
+                            <option value="">-- Seleccione --</option>
+                            <?php foreach ($usuarios as $u): ?>
+                                <option value="<?= $u['id'] ?>" <?= ($accion['resp_seguimiento_id'] ?? '') == $u['id'] ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($u['nombre'] . ' ' . $u['apellidos']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group form-col" style="width: 34%;">
+                        <label>Resp dudas :</label>
+                        <select name="resp_dudas_id">
+                            <option value="">-- Seleccione --</option>
+                            <?php foreach ($usuarios as $u): ?>
+                                <option value="<?= $u['id'] ?>" <?= ($accion['resp_dudas_id'] ?? '') == $u['id'] ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($u['nombre'] . ' ' . $u['apellidos']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Tutores -->
+                <div class="form-row">
+                    <div class="form-group form-col" style="width: 40%; display: flex; align-items: flex-end; gap: 10px;">
+                        <div style="flex-grow: 1;">
+                            <label>Tutor 1 :</label>
+                            <select name="tutor1_id">
+                                <option value="">-- Seleccione --</option>
+                                <?php foreach ($usuarios as $u): ?>
+                                    <option value="<?= $u['id'] ?>" <?= ($accion['tutor1_id'] ?? '') == $u['id'] ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($u['nombre'] . ' ' . $u['apellidos']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div style="margin-bottom: 8px; display: flex; align-items: center; gap: 5px;">
+                            <label style="margin: 0; font-size: 0.75rem;">Activo:</label>
+                            <input type="checkbox" name="tutor1_activo" value="1" <?= ($accion['tutor1_activo'] ?? 0) ? 'checked' : '' ?>>
+                        </div>
+                    </div>
+                    <div class="form-group form-col" style="width: 40%; display: flex; align-items: flex-end; gap: 10px;">
+                        <div style="flex-grow: 1;">
+                            <label>Tutor 2 :</label>
+                            <select name="tutor2_id">
+                                <option value="">-- Seleccione --</option>
+                                <?php foreach ($usuarios as $u): ?>
+                                    <option value="<?= $u['id'] ?>" <?= ($accion['tutor2_id'] ?? '') == $u['id'] ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($u['nombre'] . ' ' . $u['apellidos']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div style="margin-bottom: 8px; display: flex; align-items: center; gap: 5px;">
+                            <label style="margin: 0; font-size: 0.75rem;">Activo:</label>
+                            <input type="checkbox" name="tutor2_activo" value="1" <?= ($accion['tutor2_activo'] ?? 0) ? 'checked' : '' ?>>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Otras consultoras -->
+                <div class="form-row">
+                    <div class="form-group form-col" style="width: 15%; display: flex; align-items: center; gap: 10px; padding-top: 15px;">
+                        <label style="margin: 0;">Mostrar:</label>
+                        <input type="checkbox" name="mostrar_otras_consultoras" value="1" <?= ($accion['mostrar_otras_consultoras'] ?? 0) ? 'checked' : '' ?>>
+                    </div>
+                    <div class="form-group form-col" style="width: 35%;">
+                        <label>Alumnos otras consultoras:</label>
+                        <input type="text" name="alumnos_otras_consultoras" value="<?= htmlspecialchars($accion['alumnos_otras_consultoras'] ?? '') ?>">
+                    </div>
+                    <div class="form-group form-col" style="width: 50%;">
+                        <label>Teleformador:</label>
+                        <select name="teleformador_id">
+                            <option value="">-- Seleccione --</option>
+                            <?php foreach ($formadores as $f): ?>
+                                <option value="<?= $f['id'] ?>" <?= ($accion['teleformador_id'] ?? '') == $f['id'] ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($f['nombre'] . ' ' . $f['primer_apellido']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Grupo, Email y Checks -->
+                <div class="form-row">
+                    <div class="form-group form-col" style="width: 20%;">
+                        <label>Id grupo:</label>
+                        <input type="text" name="id_grupo_gestion" value="<?= htmlspecialchars($accion['id_grupo_gestion'] ?? '') ?>">
+                    </div>
+                    <div class="form-group form-col" style="width: 40%;">
+                        <label>e-mail tutor:</label>
+                        <div style="display: flex; gap: 5px;">
+                            <input type="email" name="email_tutor_gestion" value="<?= htmlspecialchars($accion['email_tutor_gestion'] ?? '') ?>" style="flex-grow: 1;">
+                            <button type="button" class="toolbar-btn" style="padding: 0 5px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33 1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82 1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button>
+                        </div>
+                    </div>
+                    <div class="form-group form-col" style="width: 20%; display: flex; align-items: center; gap: 10px; padding-top: 15px;">
+                        <label style="margin: 0;">Nuestra:</label>
+                        <input type="checkbox" name="nuestra_check" value="1" <?= ($accion['nuestra_check'] ?? 0) ? 'checked' : '' ?>>
+                    </div>
+                    <div class="form-group form-col" style="width: 20%; display: flex; align-items: center; gap: 10px; padding-top: 15px;">
+                        <label style="margin: 0;">Prioritaria:</label>
+                        <input type="checkbox" name="prioritaria_check" value="1" <?= ($accion['prioritaria_check'] ?? 0) ? 'checked' : '' ?>>
+                    </div>
+                </div>
+
+                <!-- Evaluaciones Base -->
+                <div class="form-row">
+                    <div class="form-group form-col" style="width: 25%;">
+                        <label>Nº Evaluaciones:</label>
+                        <input type="number" name="num_evaluaciones" value="<?= htmlspecialchars($accion['num_evaluaciones'] ?? '0') ?>">
+                    </div>
+                    <div class="form-group form-col" style="width: 25%; display: flex; align-items: center; gap: 10px; padding-top: 15px;">
+                        <label style="margin: 0;">Recibí material 1:</label>
+                        <input type="checkbox" name="recibi_material1" value="1" <?= ($accion['recibi_material1'] ?? 0) ? 'checked' : '' ?>>
+                    </div>
+                    <div class="form-group form-col" style="width: 25%; display: flex; align-items: center; gap: 10px; padding-top: 15px;">
+                        <label style="margin: 0;">Recibí material 2:</label>
+                        <input type="checkbox" name="recibi_material2" value="1" <?= ($accion['recibi_material2'] ?? 0) ? 'checked' : '' ?>>
+                    </div>
+                </div>
+
+                <!-- Evaluaciones Detalle -->
+                <?php for($i=1; $i<=4; $i++): ?>
+                <div class="form-row" style="align-items: center;">
+                    <div class="form-group form-col" style="width: 15%; display: flex; align-items: center; gap: 10px; padding-top: 15px;">
+                        <label style="margin: 0; white-space: nowrap;"><?= $i ?>ª Evaluación:</label>
+                        <input type="checkbox" name="eval<?= $i ?>_check" value="1" <?= ($accion['eval' . $i . '_check'] ?? 0) ? 'checked' : '' ?>>
+                    </div>
+                    <div class="form-group form-col" style="width: 85%;">
+                        <label>Título:</label>
+                        <input type="text" name="eval<?= $i ?>_titulo" value="<?= htmlspecialchars($accion['eval' . $i . '_titulo'] ?? '') ?>" class="textarea-grey">
+                    </div>
+                </div>
+                <?php endfor; ?>
+
+                <!-- Supuesto Práctico -->
                 <div class="form-row">
                     <div class="form-group form-col" style="width: 100%;">
-                        <label>Notas de Gestión:</label>
-                        <textarea class="editor-textarea textarea-grey" name="notas_gestion" style="height: 150px;"><?= htmlspecialchars($accion['notas_gestion'] ?? '') ?></textarea>
+                        <label>Supuesto práctico:</label>
+                        <input type="text" name="supuesto_practico" value="<?= htmlspecialchars($accion['supuesto_practico'] ?? '') ?>" class="textarea-grey" placeholder="Título del supuesto práctico">
+                    </div>
+                </div>
+
+                <!-- Sistemas y Nivel -->
+                <div class="form-row">
+                    <div class="form-group form-col" style="width: 10%; display: flex; align-items: center; gap: 8px; padding-top: 15px;">
+                        <label style="margin:0;">Conexia:</label>
+                        <input type="checkbox" name="conexia_check" value="1" <?= ($accion['conexia_check'] ?? 0) ? 'checked' : '' ?>>
+                    </div>
+                    <div class="form-group form-col" style="width: 10%; display: flex; align-items: center; gap: 8px; padding-top: 15px;">
+                        <label style="margin:0;">CAE:</label>
+                        <input type="checkbox" name="cae_check" value="1" <?= ($accion['cae_check'] ?? 0) ? 'checked' : '' ?>>
+                    </div>
+                    <div class="form-group form-col" style="width: 10%; display: flex; align-items: center; gap: 8px; padding-top: 15px;">
+                        <label style="margin:0;">EDITE:</label>
+                        <input type="checkbox" name="edite_gestion_check" value="1" <?= ($accion['edite_gestion_check'] ?? 0) ? 'checked' : '' ?>>
+                    </div>
+                    <div class="form-group form-col" style="width: 20%;">
+                        <label>Nivel:</label>
+                        <input type="number" name="nivel_gestion" value="<?= htmlspecialchars($accion['nivel_gestion'] ?? '1') ?>">
+                    </div>
+                    <div class="form-group form-col" style="width: 50%;">
+                        <label>Paquete:</label>
+                        <select name="paquete_gestion">
+                            <option value="">-- Seleccione --</option>
+                            <option value="Paquete 1" <?= ($accion['paquete_gestion'] ?? '') == 'Paquete 1' ? 'selected' : '' ?>>Paquete 1</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Observaciones -->
+                <div class="form-row">
+                    <div class="form-group form-col" style="width: 100%;">
+                        <label style="font-weight: 800; text-decoration: underline;">Observaciones:</label>
+                        <textarea name="observaciones_gestion" style="width:100%; height: 100px; border: 1px solid #cbd5e1; background: #f1f5f9; border-radius: 4px; padding: 10px;"
+                        ><?= htmlspecialchars($accion['observaciones_gestion'] ?? '') ?></textarea>
                     </div>
                 </div>
             </div>
