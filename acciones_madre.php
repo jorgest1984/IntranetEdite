@@ -350,18 +350,18 @@ $acciones_madre = [
                 </div>
             </div>
 
-            <div style="overflow-x:auto;">
+            <div>
                 <table class="table-madre">
                     <thead>
                         <tr>
-                            <th style="width:5%;">Cód.</th>
-                            <th style="width:27%;">Asignatura (Abuela)</th>
-                            <th style="width:27%;">Contenido (Madre)</th>
-                            <th style="width:8%;">Abrev.</th>
-                            <th style="width:8%;">Horas</th>
-                            <th style="width:15%;">Sector</th>
-                            <th style="width:5%;">Estado</th>
-                            <th style="width:5%; border-right:none;">Acc.</th>
+                            <th style="width: 80px;">CÓD.</th>
+                            <th>ASIGNATURA (ABUELA)</th>
+                            <th>CONTENIDO (MADRE)</th>
+                            <th style="width: 100px;">ABREV.</th>
+                            <th style="width: 80px;">HORAS</th>
+                            <th style="width: 150px;">SECTOR</th>
+                            <th style="width: 100px;">ESTADO</th>
+                            <th style="width: 80px; border-right:none; text-align: center;">ACC.</th>
                         </tr>
                     </thead>
                     <tbody>

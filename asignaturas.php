@@ -4,11 +4,11 @@ require_once 'includes/auth.php'; // Verifica login y permisos
 
 // Fetch from database
 try {
-    $stmt = $pdo->query("SELECT id, titulo, num_accion, abreviatura, codigo_externo, modalidad, nivel, horas FROM acciones_formativas ORDER BY id DESC");
+    $stmt = $pdo->query("SELECT id, titulo, num_accion, abreviatura, id_plataforma, modalidad, nivel, duracion FROM acciones_formativas ORDER BY id DESC");
     $asignaturas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
     $asignaturas = [];
-    $error = $e->getMessage();
+    $error = "Error al cargar datos: " . $e->getMessage();
 }
 ?>
 <!DOCTYPE html>
@@ -308,10 +308,10 @@ try {
                             <td style="color: #0369a1; font-weight: 600;"><?= htmlspecialchars($a['titulo'] ?? '-') ?></td>
                             <td><?= htmlspecialchars($a['num_accion'] ?? '-') ?></td>
                             <td><?= htmlspecialchars($a['abreviatura'] ?? '-') ?></td>
-                            <td><?= htmlspecialchars($a['codigo_externo'] ?? '-') ?></td>
+                            <td><?= htmlspecialchars($a['id_plataforma'] ?? '-') ?></td>
                             <td><?= htmlspecialchars($a['modalidad'] ?? '-') ?></td>
                             <td><?= htmlspecialchars($a['nivel'] ?? '-') ?></td>
-                            <td style="font-weight: 700;"><?= htmlspecialchars($a['horas'] ?? '0') ?>h</td>
+                            <td style="font-weight: 700;"><?= htmlspecialchars($a['duracion'] ?? '0') ?>h</td>
                             <td style="border-right: none;">
                                 <div style="display: flex; gap: 8px; justify-content: center;">
                                     <a href="ficha_accion_formativa.php?id=<?= $a['id'] ?>" class="btn-action" title="Editar">
