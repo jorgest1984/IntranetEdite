@@ -2,39 +2,14 @@
 // asignaturas.php
 require_once 'includes/auth.php'; // Verifica login y permisos
 
-// Datos de ejemplo para las asignaturas (acciones abuela)
-$asignaturas = [
-    [
-        'titulo_formativo' => 'Técnico en Emergencias Sanitarias',
-        'curso' => 'Mantenimiento mecánico preventivo del vehículo',
-        'accion' => '001',
-        'abreviatura' => 'MMPV',
-        'codigo_externo' => 'E-00123',
-        'modalidad' => 'Presencial',
-        'nivel' => '3',
-        'horas' => 120
-    ],
-    [
-        'titulo_formativo' => 'Técnico Superior en Educación Infantil',
-        'curso' => 'Didáctica de la educación infantil',
-        'accion' => '002',
-        'abreviatura' => 'DEI',
-        'codigo_externo' => 'E-00456',
-        'modalidad' => 'Distancia',
-        'nivel' => '5',
-        'horas' => 150
-    ],
-    [
-        'titulo_formativo' => 'AFDA0109 Guía por itinerarios en bicicleta',
-        'curso' => 'Técnicas de conducción de bicicletas',
-        'accion' => '003',
-        'abreviatura' => 'TCB',
-        'codigo_externo' => 'B-7788',
-        'modalidad' => 'Presencial',
-        'nivel' => '2',
-        'horas' => 90
-    ]
-];
+// Fetch from database
+try {
+    $stmt = $pdo->query("SELECT id, titulo, num_accion, abreviatura, codigo_externo, modalidad, nivel, horas FROM acciones_formativas ORDER BY id DESC");
+    $asignaturas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (Exception $e) {
+    $asignaturas = [];
+    $error = $e->getMessage();
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -186,6 +161,32 @@ $asignaturas = [
             background: #f0f9ff;
         }
 
+        .btn-action {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 4px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #64748b;
+            text-decoration: none;
+        }
+        .btn-action:hover {
+            background: #f8fafc;
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .btn-action.delete:hover {
+            color: #ef4444;
+            border-color: #ef4444;
+        }
+
     </style>
 </head>
 <body>
@@ -297,19 +298,30 @@ $asignaturas = [
                                     Horas
                                 </div>
                             </th>
+                            <th style="border-right: none; text-align: center;">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php foreach ($asignaturas as $a): ?>
                         <tr>
-                            <td style="font-weight: 500;"><?= htmlspecialchars($a['titulo_formativo']) ?></td>
-                            <td style="color: #0369a1; font-weight: 600;"><?= htmlspecialchars($a['curso']) ?></td>
-                            <td><?= htmlspecialchars($a['accion']) ?></td>
-                            <td><?= htmlspecialchars($a['abreviatura']) ?></td>
-                            <td><?= htmlspecialchars($a['codigo_externo']) ?></td>
-                            <td><?= htmlspecialchars($a['modalidad']) ?></td>
-                            <td><?= htmlspecialchars($a['nivel']) ?></td>
-                            <td style="border-right: none; font-weight: 700;"><?= htmlspecialchars($a['horas']) ?>h</td>
+                            <td style="font-weight: 500;"><?= htmlspecialchars($a['titulo'] ?? '-') ?></td>
+                            <td style="color: #0369a1; font-weight: 600;"><?= htmlspecialchars($a['titulo'] ?? '-') ?></td>
+                            <td><?= htmlspecialchars($a['num_accion'] ?? '-') ?></td>
+                            <td><?= htmlspecialchars($a['abreviatura'] ?? '-') ?></td>
+                            <td><?= htmlspecialchars($a['codigo_externo'] ?? '-') ?></td>
+                            <td><?= htmlspecialchars($a['modalidad'] ?? '-') ?></td>
+                            <td><?= htmlspecialchars($a['nivel'] ?? '-') ?></td>
+                            <td style="font-weight: 700;"><?= htmlspecialchars($a['horas'] ?? '0') ?>h</td>
+                            <td style="border-right: none;">
+                                <div style="display: flex; gap: 8px; justify-content: center;">
+                                    <a href="ficha_accion_formativa.php?id=<?= $a['id'] ?>" class="btn-action" title="Editar">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                    </a>
+                                    <button onclick="confirmDelete(<?= $a['id'] ?>)" class="btn-action delete" title="Borrar">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                                    </button>
+                                </div>
+                            </td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -321,5 +333,12 @@ $asignaturas = [
     </main>
 </div>
 
+<script>
+function confirmDelete(id) {
+    if (confirm('¿Estás seguro de que deseas eliminar esta acción formativa? Esta acción no se puede deshacer.')) {
+        window.location.href = 'borrar_asignatura.php?id=' + id;
+    }
+}
+</script>
 </body>
 </html>
