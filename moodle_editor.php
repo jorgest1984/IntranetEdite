@@ -200,9 +200,9 @@ $current_page = 'moodle_editor.php';
                 <div class="toolbar-actions">
                     <button class="btn-tool primary" onclick="addQuestion()">+ Nueva pregunta</button>
                     <button class="btn-tool" onclick="alert('Funcionalidad en desarrollo')">📄 Nuevo test</button>
-                    <button class="btn-tool">📂 Abrir</button>
-                    <button class="btn-tool">💾 Guardar</button>
-                    <button class="btn-tool">📥 Descargar GIFT</button>
+                    <button class="btn-tool" onclick="alert('Funcionalidad en desarrollo')">📂 Abrir</button>
+                    <button class="btn-tool" onclick="saveData()">💾 Guardar</button>
+                    <button class="btn-tool" onclick="downloadGIFT()">📥 Descargar GIFT</button>
                 </div>
             </header>
 
@@ -516,6 +516,89 @@ $current_page = 'moodle_editor.php';
         function saveQuestion(id) {
             alert('Pregunta ' + id + ' guardada temporalmente en memoria.');
         }
+
+        // --- Nuevas funcionalidades: Guardar y Descargar ---
+        
+        function downloadGIFT() {
+            const gift = document.getElementById('giftPreview').value;
+            if(!gift || gift.trim().length < 10) {
+                alert('No hay suficiente contenido para generar un archivo GIFT.');
+                return;
+            }
+            const blob = new Blob([gift], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            
+            // Obtener el nombre del curso para el nombre del archivo
+            const cursoInput = document.querySelector('.info-grid input[type="text"]');
+            let filename = (cursoInput ? cursoInput.value : 'evaluacion').replace(/[/\\?%*:|"<>]/g, '-');
+            if(filename === 'Nombre del curso...') filename = 'evaluacion';
+            
+            a.href = url;
+            a.download = filename + '.gift';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function saveData() {
+            const data = {
+                curso: document.querySelector('.info-grid input:nth-child(2)').value,
+                titulo: document.querySelector('.info-grid input:nth-child(4)').value,
+                prefijo: document.querySelector('.info-grid input:nth-child(6)').value,
+                questions: []
+            };
+
+            const qBlocks = document.querySelectorAll('.question-block');
+            qBlocks.forEach(q => {
+                const questionText = q.querySelector('.question-textarea').value;
+                const responses = [];
+                q.querySelectorAll('.response-item').forEach(r => {
+                    responses.push({
+                        text: r.querySelector('.response-text').value,
+                        score: r.querySelector('.score-select').value
+                    });
+                });
+                data.questions.push({ text: questionText, responses: responses });
+            });
+
+            localStorage.setItem('moodle_editor_save', JSON.stringify(data));
+            alert('¡Cuestionario guardado localmente! Podrás recuperarlo si recargas la página.');
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem('moodle_editor_save');
+            if(!saved) return;
+
+            if(confirm('Se ha encontrado un cuestionario guardado. ¿Deseas recuperarlo?')) {
+                const data = JSON.parse(saved);
+                document.querySelector('.info-grid input:nth-child(2)').value = data.curso;
+                document.querySelector('.info-grid input:nth-child(4)').value = data.titulo;
+                document.querySelector('.info-grid input:nth-child(6)').value = data.prefijo;
+
+                data.questions.forEach(q => {
+                    addQuestion();
+                    const lastQ = document.querySelector('.question-block:last-child');
+                    lastQ.querySelector('.question-textarea').value = q.text;
+                    
+                    // Limpiar la respuesta por defecto y añadir las guardadas
+                    const resContainer = lastQ.querySelector('.responses-container');
+                    resContainer.querySelectorAll('.response-item').forEach(i => i.remove());
+                    
+                    q.responses.forEach(r => {
+                        addResponse(questionCount);
+                        const lastR = resContainer.querySelector('.response-item:last-child');
+                        lastR.querySelector('.response-text').value = r.text;
+                        lastR.querySelector('.score-select').value = r.score;
+                    });
+                    updateTotal(questionCount);
+                });
+                updateGIFT();
+            }
+        }
+
+        window.onload = function() {
+            loadData();
+        };
     </script>
 </body>
 </html>
