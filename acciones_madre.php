@@ -73,6 +73,33 @@ $acciones_madre = [
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/main.css">
     <style>
+        /* Force full width and remove intermediate paddings (Sync with Abuela) */
+        .main-content {
+            padding: 0 !important;
+            margin-left: var(--sidebar-width);
+            width: calc(100% - var(--sidebar-width));
+        }
+        .fp-content-main {
+            padding: 20px 40px 40px 40px !important;
+            display: flex;
+            flex-direction: column;
+            overflow-x: auto !important;
+        }
+        .fp-layout {
+            gap: 0;
+            width: 100%;
+        }
+
+        /* Contenedor con scroll lateral solo para la tabla if needed */
+        .table-responsive-fp {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 0 0 8px 8px;
+            border: 1px solid var(--border-color);
+            background: white;
+            border-top: none;
+        }
+
         /* Búsqueda */
         .search-container-fp {
             background: white;
@@ -98,6 +125,7 @@ $acciones_madre = [
             flex-wrap: wrap;
             gap: 15px;
             align-items: flex-end;
+            justify-content: flex-start;
         }
         .form-group-fp {
             display: flex;
@@ -152,48 +180,51 @@ $acciones_madre = [
             cursor: pointer;
         }
 
-        /* Tabla Resultados */
-        .results-wrapper {
-            background: white;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        /* --- Resultados (Sync con Abuela) --- */
+        .results-container-fp {
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            overflow: visible;
+            margin-top: 20px;
+            width: 100%;
         }
-        .results-bar {
-            background: #f8fafc;
-            border-bottom: 1px solid #e2e8f0;
+        .results-header-fp {
+            background: #1e293b;
+            color: white;
             padding: 10px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-radius: 8px 8px 0 0;
         }
-        .results-title {
+        .results-title-fp {
+            color: white;
             font-weight: 700;
-            font-size: 0.8rem;
             text-transform: uppercase;
-            color: #1e293b;
-            letter-spacing: 0.5px;
+            font-size: 0.85rem;
         }
         .results-count {
             font-size: 0.75rem;
-            color: #64748b;
+            color: #cbd5e1;
+            font-weight: 500;
         }
         .table-madre {
             width: 100%;
+            min-width: 1100px;
             border-collapse: collapse;
             font-size: 0.8rem;
+            background: white;
         }
         .table-madre th {
-            background: #1e293b;
-            color: white;
-            padding: 10px 12px;
+            background: #f8fafc;
+            color: #1e293b;
+            padding: 12px 10px;
             text-align: left;
-            font-weight: 600;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            border-right: 1px solid rgba(255,255,255,0.1);
+            border-right: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
+            font-weight: 700;
+            white-space: nowrap;
         }
         .table-madre td {
             padding: 10px 12px;
@@ -338,19 +369,19 @@ $acciones_madre = [
             </form>
         </section>
 
-        <!-- Resultados -->
-        <section class="results-wrapper">
-            <div class="results-bar">
-                <span class="results-title">Resultado de la Búsqueda</span>
+        <!-- Resultados (Sync con Abuela) -->
+        <section class="results-container-fp">
+            <div class="results-header-fp">
+                <div class="results-title-fp">Resultado de la Búsqueda</div>
                 <div style="display:flex; align-items:center; gap:15px;">
                     <span class="results-count"><?= count($acciones_madre) ?> registros encontrados</span>
-                    <a href="nueva_accion_madre.php" class="btn" style="background:#1e293b; color:white; padding:5px 16px; font-size:0.75rem;">
+                    <a href="nueva_accion_madre.php" class="btn" style="background:#f8fafc; color:#1e293b; padding:5px 16px; font-size:0.75rem; font-weight:600;">
                         + Nuevo Contenido
                     </a>
                 </div>
             </div>
 
-            <div>
+            <div class="table-responsive-fp">
                 <table class="table-madre">
                     <thead>
                         <tr>
