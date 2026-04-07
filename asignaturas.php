@@ -46,7 +46,7 @@ try {
             flex-wrap: wrap;
             gap: 20px;
             align-items: flex-end;
-            justify-content: center;
+            justify-content: flex-start;
         }
 
         .form-group-fp {
@@ -135,7 +135,6 @@ try {
             border-right: 1px solid #e2e8f0;
             border-bottom: 2px solid #cbd5e1;
             font-weight: 700;
-            white-space: nowrap;
         }
 
         .table-fp td {
@@ -277,7 +276,7 @@ try {
                             <th>
                                 <div class="header-with-icon">
                                     <svg class="sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg>
-                                    Código externo
+                                    Cód. Platof.
                                 </div>
                             </th>
                             <th>
@@ -313,7 +312,7 @@ try {
                             <td><?= htmlspecialchars($a['nivel'] ?? '-') ?></td>
                             <td style="font-weight: 700;"><?= htmlspecialchars($a['duracion'] ?? '0') ?>h</td>
                             <td style="border-right: none;">
-                                <div style="display: flex; gap: 8px; justify-content: center;">
+                                <div style="display: flex; gap: 8px; justify-content: flex-end; padding-right: 10px;">
                                     <a href="ficha_accion_formativa.php?id=<?= $a['id'] ?>" class="btn-action" title="Editar">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                     </a>
