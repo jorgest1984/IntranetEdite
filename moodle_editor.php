@@ -200,7 +200,8 @@ $current_page = 'moodle_editor.php';
                 <div class="toolbar-actions">
                     <button class="btn-tool primary" onclick="addQuestion()">+ Nueva pregunta</button>
                     <button class="btn-tool" onclick="alert('Funcionalidad en desarrollo')">📄 Nuevo test</button>
-                    <button class="btn-tool" onclick="alert('Funcionalidad en desarrollo')">📂 Abrir</button>
+                    <input type="file" id="importFile" style="display: none;" onchange="handleFileSelect(event)">
+                    <button class="btn-tool" onclick="document.getElementById('importFile').click()">📂 Abrir</button>
                     <button class="btn-tool" onclick="saveData()">💾 Guardar</button>
                     <button class="btn-tool" onclick="downloadGIFT()">📥 Descargar GIFT</button>
                 </div>
@@ -529,8 +530,7 @@ $current_page = 'moodle_editor.php';
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             
-            // Obtener el nombre del curso para el nombre del archivo
-            const cursoInput = document.querySelector('.info-grid input[type="text"]');
+            const cursoInput = document.querySelector('.info-grid input:nth-child(2)');
             let filename = (cursoInput ? cursoInput.value : 'evaluacion').replace(/[/\\?%*:|"<>]/g, '-');
             if(filename === 'Nombre del curso...') filename = 'evaluacion';
             
@@ -551,6 +551,7 @@ $current_page = 'moodle_editor.php';
             const qBlocks = document.querySelectorAll('.question-block');
             qBlocks.forEach(q => {
                 const questionText = q.querySelector('.question-textarea').value;
+                const noteText = q.querySelector('.textarea-custom') ? q.querySelector('.textarea-custom').value : '';
                 const responses = [];
                 q.querySelectorAll('.response-item').forEach(r => {
                     responses.push({
@@ -558,46 +559,103 @@ $current_page = 'moodle_editor.php';
                         score: r.querySelector('.score-select').value
                     });
                 });
-                data.questions.push({ text: questionText, responses: responses });
+                data.questions.push({ text: questionText, responses: responses, note: noteText });
             });
 
-            localStorage.setItem('moodle_editor_save', JSON.stringify(data));
-            alert('¡Cuestionario guardado localmente! Podrás recuperarlo si recargas la página.');
+            const jsonData = JSON.stringify(data, null, 2);
+            
+            // 1. Guardar en LocalStorage (para recuperación rápida)
+            localStorage.setItem('moodle_editor_save', jsonData);
+
+            // 2. Descargar archivo JSON (para guardado local persistente)
+            const blob = new Blob([jsonData], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            let filename = (data.curso || 'evaluacion').replace(/[/\\?%*:|"<>]/g, '-');
+            if(filename === 'Nombre del curso...') filename = 'backup_evaluacion';
+            
+            a.href = url;
+            a.download = filename + '.json';
+            a.click();
+            URL.revokeObjectURL(url);
+
+            alert('¡Cuestionario guardado! Se ha descargado un archivo .json y se ha guardado una copia en el navegador.');
         }
 
-        function loadData() {
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    loadDataIntoEditor(data);
+                } catch (err) {
+                    alert('Error al leer el archivo. Asegúrate de que sea un archivo .json válido generado por este editor.');
+                }
+            };
+            reader.readAsText(file);
+            // Reset file input
+            event.target.value = '';
+        }
+
+        function loadDataIntoEditor(data) {
+            // Limpiar editor actual
+            const container = document.getElementById('questionsContainer');
+            const intro = document.getElementById('introCard');
+            if(intro) intro.style.display = 'none';
+            
+            // Eliminar bloques de preguntas existentes
+            document.querySelectorAll('.question-block').forEach(q => q.remove());
+            questionCount = 0;
+
+            // Cargar cabecera
+            document.querySelector('.info-grid input:nth-child(2)').value = data.curso || '';
+            document.querySelector('.info-grid input:nth-child(4)').value = data.titulo || '';
+            document.querySelector('.info-grid input:nth-child(6)').value = data.prefijo || '';
+
+            // Cargar preguntas
+            if(data.questions && data.questions.length > 0) {
+                data.questions.forEach(q => {
+                    addQuestion();
+                    const currentQId = questionCount;
+                    const lastQ = document.getElementById(`q-block-${currentQId}`);
+                    lastQ.querySelector('.question-textarea').value = q.text || '';
+                    
+                    if(q.note && lastQ.querySelector('.textarea-custom')) {
+                        lastQ.querySelector('.textarea-custom').value = q.note;
+                    }
+
+                    const resContainer = document.getElementById(`responses-q-${currentQId}`);
+                    resContainer.querySelectorAll('.response-item').forEach(i => i.remove());
+                    
+                    if(q.responses) {
+                        q.responses.forEach(r => {
+                            addResponse(currentQId);
+                            const lastR = resContainer.querySelector('.response-item:last-child');
+                            lastR.querySelector('.response-text').value = r.text || '';
+                            lastR.querySelector('.score-select').value = r.score || '0';
+                        });
+                    }
+                    updateTotal(currentQId);
+                });
+            }
+            updateGIFT();
+        }
+
+        function restoreFromLocalStorage() {
             const saved = localStorage.getItem('moodle_editor_save');
             if(!saved) return;
 
-            if(confirm('Se ha encontrado un cuestionario guardado. ¿Deseas recuperarlo?')) {
+            if(confirm('Se ha encontrado una copia de seguridad en el navegador. ¿Deseas recuperarla?')) {
                 const data = JSON.parse(saved);
-                document.querySelector('.info-grid input:nth-child(2)').value = data.curso;
-                document.querySelector('.info-grid input:nth-child(4)').value = data.titulo;
-                document.querySelector('.info-grid input:nth-child(6)').value = data.prefijo;
-
-                data.questions.forEach(q => {
-                    addQuestion();
-                    const lastQ = document.querySelector('.question-block:last-child');
-                    lastQ.querySelector('.question-textarea').value = q.text;
-                    
-                    // Limpiar la respuesta por defecto y añadir las guardadas
-                    const resContainer = lastQ.querySelector('.responses-container');
-                    resContainer.querySelectorAll('.response-item').forEach(i => i.remove());
-                    
-                    q.responses.forEach(r => {
-                        addResponse(questionCount);
-                        const lastR = resContainer.querySelector('.response-item:last-child');
-                        lastR.querySelector('.response-text').value = r.text;
-                        lastR.querySelector('.score-select').value = r.score;
-                    });
-                    updateTotal(questionCount);
-                });
-                updateGIFT();
+                loadDataIntoEditor(data);
             }
         }
 
         window.onload = function() {
-            loadData();
+            restoreFromLocalStorage();
         };
     </script>
 </body>
