@@ -20,6 +20,19 @@ try {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/main.css">
     <style>
+        /* Force full width and remove intermediate paddings */
+        .main-content {
+            padding: 0 !important;
+            margin-left: var(--sidebar-width);
+            width: calc(100% - var(--sidebar-width));
+        }
+        .fp-content-main {
+            padding: 20px 40px 40px 40px !important;
+        }
+        .fp-layout {
+            gap: 0;
+        }
+
         .search-container-fp {
             background: white;
             border: 1px solid var(--border-color);
@@ -90,23 +103,25 @@ try {
 
         /* Tabla de Resultados */
         .results-container-fp {
-            background: white;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            overflow: hidden;
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            overflow: visible;
+            margin-top: 20px;
         }
 
         .results-header-fp {
-            background: #f8fafc;
-            border-bottom: 1px solid #e2e8f0;
-            padding: 12px 20px;
+            background: #1e293b;
+            border-bottom: none;
+            padding: 10px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-radius: 8px 8px 0 0;
         }
 
         .results-title-fp {
-            color: var(--primary-color);
+            color: white;
             font-weight: 700;
             text-transform: uppercase;
             font-size: 0.85rem;
@@ -125,15 +140,18 @@ try {
             width: 100%;
             border-collapse: collapse;
             font-size: 0.8rem;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-top: none;
         }
 
         .table-fp th {
-            background: #f1f5f9;
-            color: #0369a1;
+            background: #f8fafc;
+            color: #1e293b;
             padding: 12px 10px;
             text-align: left;
             border-right: 1px solid #e2e8f0;
-            border-bottom: 2px solid #cbd5e1;
+            border-bottom: 1px solid #e2e8f0;
             font-weight: 700;
         }
 
