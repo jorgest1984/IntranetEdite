@@ -215,10 +215,10 @@ $current_page = 'moodle_editor.php';
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                                 Información del cuestionario
                             </div>
-                            <div class="info-grid">
-                                <span class="info-label">Curso:</span> <input type="text" class="form-control-minimal" value="Nombre del curso...">
-                                <span class="info-label">Título:</span> <input type="text" class="form-control-minimal" value="Evaluación General">
-                                <span class="info-label">Prefijo:</span> <input type="text" class="form-control-minimal" style="font-family: monospace;" value="EV0-">
+                             <div class="info-grid">
+                                <span class="info-label">Curso:</span> <input type="text" class="form-control-minimal" value="Nombre del curso..." onfocus="this.value=''">
+                                <span class="info-label">Título:</span> <input type="text" class="form-control-minimal" value="Evaluación General" onfocus="this.value=''">
+                                <span class="info-label">Prefijo:</span> <input type="text" class="form-control-minimal" style="font-family: monospace;" value="EV0-" onfocus="this.value=''">
                             </div>
                         </div>
                     </div>
