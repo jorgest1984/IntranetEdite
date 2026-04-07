@@ -28,9 +28,23 @@ try {
         }
         .fp-content-main {
             padding: 20px 40px 40px 40px !important;
+            display: flex;
+            flex-direction: column;
+            overflow-x: auto !important; /* Permitir scroll si es necesario */
         }
         .fp-layout {
             gap: 0;
+            width: 100%;
+        }
+
+        /* Contenedor con scroll lateral solo para la tabla si no cabe */
+        .table-responsive-fp {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 0 0 8px 8px;
+            border: 1px solid var(--border-color);
+            background: white;
+            border-top: none;
         }
 
         .search-container-fp {
@@ -108,6 +122,7 @@ try {
             border-radius: 0;
             overflow: visible;
             margin-top: 20px;
+            width: 100%;
         }
 
         .results-header-fp {
@@ -138,11 +153,10 @@ try {
 
         .table-fp {
             width: 100%;
+            min-width: 1000px; /* Asegurar que no se comprima demasiado */
             border-collapse: collapse;
             font-size: 0.8rem;
             background: white;
-            border: 1px solid var(--border-color);
-            border-top: none;
         }
 
         .table-fp th {
@@ -153,6 +167,7 @@ try {
             border-right: 1px solid #e2e8f0;
             border-bottom: 1px solid #e2e8f0;
             font-weight: 700;
+            white-space: nowrap; /* Evitar corte de texto en cabeceras */
         }
 
         .table-fp td {
@@ -263,7 +278,7 @@ try {
                 <div style="width: 100px;"></div> <!-- Spacer -->
             </div>
 
-            <div style="overflow-x: auto;">
+            <div class="table-responsive-fp">
                 <table class="table-fp">
                     <thead>
                         <tr>
