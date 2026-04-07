@@ -588,16 +588,105 @@ $current_page = 'moodle_editor.php';
 
             const reader = new FileReader();
             reader.onload = function(e) {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    loadDataIntoEditor(data);
-                } catch (err) {
-                    alert('Error al leer el archivo. Asegúrate de que sea un archivo .json válido generado por este editor.');
+                const content = e.target.result;
+                if (file.name.endsWith('.gift')) {
+                    try {
+                        const data = parseGIFT(content);
+                        loadDataIntoEditor(data);
+                    } catch (err) {
+                        alert('Error al analizar el archivo GIFT: ' + err.message);
+                    }
+                } else {
+                    try {
+                        const data = JSON.parse(content);
+                        loadDataIntoEditor(data);
+                    } catch (err) {
+                        alert('Error al leer el archivo. Asegúrate de que sea un archivo válido (.json o .gift).');
+                    }
                 }
             };
             reader.readAsText(file);
-            // Reset file input
             event.target.value = '';
+        }
+
+        function parseGIFT(text) {
+            const data = {
+                curso: "Importado de GIFT",
+                titulo: "Evaluación Importada",
+                prefijo: "EV-",
+                questions: []
+            };
+
+            // Filtrar comentarios y líneas vacías
+            const lines = text.split('\n').filter(l => !l.startsWith('//') && l.trim() !== '');
+            const joinedText = lines.join('\n');
+            
+            // Separar por bloques de preguntas (habitualmente separados por doble salto de línea o })
+            const blocks = joinedText.split(/\}\s*\n*/);
+
+            blocks.forEach(block => {
+                if (!block.includes('{')) return;
+
+                const parts = block.split('{');
+                let questionPart = parts[0].trim();
+                let answersPart = parts[1].trim();
+
+                // Intentar extraer el título de la pregunta ::Título::
+                let questionText = questionPart;
+                if (questionPart.startsWith('::')) {
+                    const match = questionPart.match(/::(.*?)::(.*)/s);
+                    if (match) {
+                        questionText = match[2].trim();
+                    }
+                }
+
+                const questionObj = {
+                    text: questionText,
+                    responses: [],
+                    note: ""
+                };
+
+                // Procesar respuestas
+                if (answersPart === "") {
+                    // Ensayo (Essay)
+                    // Las respuestas están vacías
+                } else if (answersPart.toUpperCase() === "T" || answersPart.toUpperCase() === "TRUE") {
+                    questionObj.responses.push({ text: "Verdadero", score: "1" });
+                    questionObj.responses.push({ text: "Falso", score: "0" });
+                } else if (answersPart.toUpperCase() === "F" || answersPart.toUpperCase() === "FALSE") {
+                    questionObj.responses.push({ text: "Verdadero", score: "0" });
+                    questionObj.responses.push({ text: "Falso", score: "1" });
+                } else {
+                    // Opción múltiple u otros
+                    const answerLines = answersPart.split(/[\n~=]/).filter(al => al.trim() !== '');
+                    
+                    // Regex para encontrar = y ~ con sus pesos %weight%
+                    const rawAnswers = answersPart.split(/(?=[~=])/);
+                    rawAnswers.forEach(ans => {
+                        ans = ans.trim();
+                        if (ans.startsWith('=')) {
+                            let text = ans.substring(1).trim();
+                            questionObj.responses.push({ text: text, score: "1" });
+                        } else if (ans.startsWith('~')) {
+                            let text = ans.substring(1).trim();
+                            let score = "0";
+                            // Comprobar si tiene peso %50%
+                            if (text.startsWith('%')) {
+                                const weightMatch = text.match(/%(.*?)%(.*)/);
+                                if (weightMatch) {
+                                    score = (parseFloat(weightMatch[1]) / 100).toString();
+                                    text = weightMatch[2].trim();
+                                }
+                            }
+                            questionObj.responses.push({ text: text, score: score });
+                        }
+                    });
+                }
+
+                data.questions.push(questionObj);
+            });
+
+            return data;
         }
 
         function loadDataIntoEditor(data) {
@@ -621,6 +710,8 @@ $current_page = 'moodle_editor.php';
                     addQuestion();
                     const currentQId = questionCount;
                     const lastQ = document.getElementById(`q-block-${currentQId}`);
+                    if(!lastQ) return;
+                    
                     lastQ.querySelector('.question-textarea').value = q.text || '';
                     
                     if(q.note && lastQ.querySelector('.textarea-custom')) {
@@ -628,14 +719,18 @@ $current_page = 'moodle_editor.php';
                     }
 
                     const resContainer = document.getElementById(`responses-q-${currentQId}`);
+                    if(!resContainer) return;
+                    
                     resContainer.querySelectorAll('.response-item').forEach(i => i.remove());
                     
                     if(q.responses) {
                         q.responses.forEach(r => {
                             addResponse(currentQId);
                             const lastR = resContainer.querySelector('.response-item:last-child');
-                            lastR.querySelector('.response-text').value = r.text || '';
-                            lastR.querySelector('.score-select').value = r.score || '0';
+                            if(lastR) {
+                                lastR.querySelector('.response-text').value = r.text || '';
+                                lastR.querySelector('.score-select').value = r.score || '0';
+                            }
                         });
                     }
                     updateTotal(currentQId);
