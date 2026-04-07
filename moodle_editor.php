@@ -199,7 +199,7 @@ $current_page = 'moodle_editor.php';
                 </div>
                 <div class="toolbar-actions">
                     <button class="btn-tool primary" onclick="addQuestion()">+ Nueva pregunta</button>
-                    <button class="btn-tool" onclick="alert('Funcionalidad en desarrollo')">📄 Nuevo test</button>
+                    <button class="btn-tool" onclick="createNewTest()">📄 Nuevo test</button>
                     <input type="file" id="importFile" style="display: none;" onchange="handleFileSelect(event)">
                     <button class="btn-tool" onclick="document.getElementById('importFile').click()">📂 Abrir</button>
                     <button class="btn-tool" onclick="saveData()">💾 Guardar</button>
@@ -737,6 +737,38 @@ $current_page = 'moodle_editor.php';
                 });
             }
             updateGIFT();
+        }
+
+        function createNewTest() {
+            const hasContent = document.querySelectorAll('.question-block').length > 0;
+            
+            if (hasContent) {
+                if (confirm('¿Deseas guardar el cuestionario actual antes de crear uno nuevo?')) {
+                    saveData();
+                }
+            }
+            
+            if (confirm('¿Estás seguro de que deseas vaciar el editor para empezar un nuevo test?')) {
+                // Limpiar cabecera
+                document.querySelector('.info-grid input:nth-child(2)').value = 'Nombre del curso...';
+                document.querySelector('.info-grid input:nth-child(4)').value = 'Evaluación General';
+                document.querySelector('.info-grid input:nth-child(6)').value = 'EV0-';
+
+                // Eliminar bloques de preguntas
+                document.querySelectorAll('.question-block').forEach(q => q.remove());
+                questionCount = 0;
+                
+                // Mostrar intro card
+                const intro = document.getElementById('introCard');
+                if(intro) intro.style.display = 'flex';
+                
+                // Limpiar preview
+                const preview = document.getElementById('giftPreview');
+                if(preview) preview.value = '';
+                
+                updateGIFT();
+                alert('Nuevo test iniciado.');
+            }
         }
 
         function restoreFromLocalStorage() {
