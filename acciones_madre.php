@@ -1,5 +1,5 @@
 <?php
-// acciones_madre.php
+// acciones_madre.php (Layout Sync 2024)
 require_once 'includes/auth.php';
 
 $sectores = [

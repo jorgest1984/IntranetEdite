@@ -1,5 +1,5 @@
 <?php
-// asignaturas.php
+// asignaturas.php (Layout Sync 2024)
 require_once 'includes/auth.php'; // Verifica login y permisos
 
 // Fetch from database
