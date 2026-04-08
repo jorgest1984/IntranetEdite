@@ -177,15 +177,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
         .btn-buscar:hover { background: #e2e8f0; }
 
         /* Standardized FP Layout */
-        .main-content {
-            padding: 0 !important;
-            margin-left: 0; /* Adjusted for full-width if sidebar is absolute, check main.css */
-            width: 100%;
-        }
         .fp-content-main {
-            padding: 20px 40px 40px 40px !important;
+            padding: 20px 25px !important;
             display: flex;
             flex-direction: column;
+            gap: 20px;
         }
 
         .table-responsive-fp {
@@ -201,7 +197,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
             width: 100%;
             border-collapse: collapse;
             font-size: 0.75rem;
-            min-width: 1300px;
+            min-width: 1000px;
         }
 
         .results-header-fp {
@@ -235,10 +231,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
     </style>
 </head>
 <body>
-    <div class="app-container" style="display: flex; min-height: 100vh;">
+    <div class="app-container">
         <?php include 'includes/sidebar.php'; ?>
 
-        <main class="main-content" style="flex: 1; overflow-y: auto;">
+        <main class="main-content">
+            <div class="fp-content-main">
             
             <!-- BUSCADOR -->
             <div class="search-card">
@@ -781,6 +778,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
                 </div>
             </div>
 
+            </div>
         </main>
     </div>
 </body>
