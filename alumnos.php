@@ -325,9 +325,14 @@ $alumnosList = $stmt->fetchAll();
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <a href="ficha_alumno.php?id=<?= $alumno['id'] ?>" class="btn" style="padding: 0.4rem; border: 1px solid var(--border-color); color: var(--text-muted);" title="Ver Ficha Completa">
-                                            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
-                                        </a>
+                                        <div style="display: flex; gap: 0.5rem;">
+                                            <a href="ficha_alumno.php?id=<?= $alumno['id'] ?>" class="btn" style="padding: 0.4rem; border: 1px solid var(--border-color); color: var(--text-muted);" title="Ver Ficha Alumno">
+                                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" title="Alumno"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                                            </a>
+                                            <a href="ficha_trabajador.php?id=<?= $alumno['id'] ?>" class="btn" style="padding: 0.4rem; border: 1px solid var(--border-color); color: var(--primary-color);" title="Ver Ficha Trabajador">
+                                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                                 <?php endforeach; ?>
