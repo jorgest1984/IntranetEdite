@@ -46,6 +46,37 @@ $current_page = 'grupos.php';
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
         .main-content { padding: 2rem; }
         
+        /* Navigation Top Bar */
+        .page-navigation {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            color: #475569;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .nav-btn:hover {
+            background: #f8fafc;
+            color: #1e293b;
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
+        }
+        .nav-btn svg {
+            color: #64748b;
+        }
+
         .search-card {
             background: #fff;
             border-radius: 8px;
@@ -204,6 +235,17 @@ $current_page = 'grupos.php';
     <?php include 'includes/sidebar.php'; ?>
 
     <main class="main-content">
+        <div class="page-navigation">
+            <a href="home.php" class="nav-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                Inicio (Home)
+            </a>
+            <a href="formacion_profesional.php" class="nav-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                Volver a FP
+            </a>
+        </div>
+
         <div class="search-card">
             <div class="search-card-header">
                 <h2>GRUPOS - CAMPOS DE BÚSQUEDA</h2>
