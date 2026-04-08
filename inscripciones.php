@@ -712,15 +712,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
                     <div style="font-size: 0.75rem; color: #cbd5e1;">Se han encontrado <?= count($resultados) ?> resultados</div>
                 </div>
                 
-                <div class="status-header" style="background: #fff; border: 1px solid #cbd5e1; border-top: none; padding: 10px;">
-                    <div class="status-box bg-orange">Curso suspendido</div>
-                    <div class="status-box bg-cyan">Curso regalo</div>
-                    <div class="status-box bg-pink">Grupo 1</div>
-                    <div class="status-box bg-pink">Grupo 2</div>
-                    <div class="status-box bg-orange" style="color:#000;">Colec. prio.</div>
-                    <div class="status-box bg-cyan" style="color:#000;">Bonificado</div>
-                    <div class="status-box bg-green">No valido</div>
-                </div>
+
 
                 <div class="table-responsive-fp">
                     <table class="table-custom">
