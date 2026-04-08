@@ -3,7 +3,7 @@
 // Forzando un nuevo despliegue en Vercel tras actualizar a Pro
 // Con el nuevo correo electronico
 // Esto permite a Vercel tener su archivo dentro de la carpeta obligatoria "api"
-// Actualización de marca: Grupo EFP - 2026-04-08
+// pero ejecutar el código del directorio raíz para no romper las rutas de los includes locals.
 
 chdir(__DIR__ . '/..');
 
