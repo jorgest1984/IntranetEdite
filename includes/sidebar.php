@@ -189,6 +189,8 @@ function toggleSidebar() {
     if (!resizer) return;
 
     resizer.addEventListener('mousedown', (e) => {
+        if (window.innerWidth <= 1024) return; // No redimensionar en móvil/tablet
+        
         isResizing = true;
         document.body.classList.add('is-resizing');
         document.addEventListener('mousemove', handleMouseMove);
@@ -196,7 +198,7 @@ function toggleSidebar() {
     });
 
     function handleMouseMove(e) {
-        if (!isResizing) return;
+        if (!isResizing || window.innerWidth <= 1024) return;
         
         let newWidth = e.clientX;
         
