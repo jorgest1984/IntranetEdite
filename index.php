@@ -155,12 +155,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
         }
         
         .login-logo {
-            width: 80px;
-            height: 80px;
+            width: 200px;
+            height: auto;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
             overflow: hidden;
         }
         .login-logo img {
