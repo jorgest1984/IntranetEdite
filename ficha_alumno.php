@@ -720,17 +720,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 
                     <div class="prof-form-row" style="margin-bottom: 1.5rem;">
                         <label class="prof-form-label">Domicilio:</label>
-                        <input type="text" name="domicilio" class="prof-form-input" style="flex: 1; border: none; border-bottom: 1px solid #d1d5db; color: #dc2626; font-weight: 600;" value="<?= htmlspecialchars($alumno['domicilio']) ?>">
+                        <input type="text" name="domicilio" class="prof-form-input" style="flex: 1; border: none; border-bottom: 1px solid #d1d5db; color: #dc2626; font-weight: 600;" value="<?= htmlspecialchars($alumno['domicilio'] ?? '') ?>">
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                         <div class="prof-form-row">
                             <label class="prof-form-label">CP:</label>
-                            <input type="text" name="cp" class="prof-form-input" style="flex: 1; border: none; border-bottom: 1px solid #d1d5db; color: #dc2626; font-weight: 600;" value="<?= htmlspecialchars($alumno['cp']) ?>">
+                            <input type="text" name="cp" class="prof-form-input" style="flex: 1; border: none; border-bottom: 1px solid #d1d5db; color: #dc2626; font-weight: 600;" value="<?= htmlspecialchars($alumno['cp'] ?? '') ?>">
                         </div>
                         <div class="prof-form-row">
                             <label class="prof-form-label">Localidad:</label>
-                            <input type="text" name="localidad" class="prof-form-input" style="flex: 1; border: none; border-bottom: 1px solid #d1d5db; color: #dc2626; font-weight: 600;" value="<?= htmlspecialchars($alumno['localidad']) ?>">
+                            <input type="text" name="localidad" class="prof-form-input" style="flex: 1; border: none; border-bottom: 1px solid #d1d5db; color: #dc2626; font-weight: 600;" value="<?= htmlspecialchars($alumno['localidad'] ?? '') ?>">
                         </div>
                         <div class="prof-form-row">
                             <label class="prof-form-label">Provincia:</label>
@@ -931,9 +931,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                 <tr><td colspan="5" style="text-align: center; padding: 2rem; color: #9ca3af;">No hay documentos asociados.</td></tr>
                             <?php else: foreach($documentos as $doc): ?>
                                 <tr>
-                                    <td style="font-weight: 500; color: #1d4ed8;"><?= htmlspecialchars($doc['nombre_archivo']) ?></td>
+                                    <td style="font-weight: 500; color: #1d4ed8;"><?= htmlspecialchars($doc['nombre_archivo'] ?? '') ?></td>
                                     <td><span class="sync-badge" style="background: #f3f4f6; color: #4b5563;"><?= $doc['tipo_documento'] ?></span></td>
-                                    <td><?= htmlspecialchars($doc['username']) ?></td>
+                                    <td><?= htmlspecialchars($doc['username'] ?? '') ?></td>
                                     <td><?= date('d/m/Y H:i', strtotime($doc['fecha_subida'])) ?></td>
                                     <td>
                                         <a href="<?= $doc['ruta_archivo'] ?>" target="_blank" class="btn" style="padding: 0.2rem 0.5rem; font-size: 0.75rem; text-decoration: none;">Ver</a>
@@ -1000,8 +1000,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                             <tbody>
                                 <?php foreach($cv_formacion as $f): ?>
                                 <tr>
-                                    <td style="font-weight: 500;"><?= htmlspecialchars($f['denominacion']) ?></td>
-                                    <td><?= htmlspecialchars($f['organismo']) ?></td>
+                                    <td style="font-weight: 500;"><?= htmlspecialchars($f['denominacion'] ?? '') ?></td>
+                                    <td><?= htmlspecialchars($f['organismo'] ?? '') ?></td>
                                     <td><?= $f['desde'] ? date('m/Y', strtotime($f['desde'])) : '' ?> - <?= $f['hasta'] ? date('m/Y', strtotime($f['hasta'])) : 'Pres.' ?></td>
                                     <td><?= $f['horas'] ?>h</td>
                                     <td><span style="font-size: 0.75rem; background: #fee2e2; color: #b91c1c; padding: 2px 8px; border-radius: 99px; font-weight: 600;"><?= $f['tipo_formacion'] ?></span></td>
@@ -1047,10 +1047,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                             <tbody>
                                 <?php foreach($cv_experiencia as $e): ?>
                                 <tr>
-                                    <td style="font-weight: 600;"><?= htmlspecialchars($e['empresa']) ?></td>
+                                    <td style="font-weight: 600;"><?= htmlspecialchars($e['empresa'] ?? '') ?></td>
                                     <td><?= $e['desde'] ? date('m/Y', strtotime($e['desde'])) : '' ?> - <?= $e['hasta'] ? date('m/Y', strtotime($e['hasta'])) : 'Actualmente' ?></td>
-                                    <td><?= htmlspecialchars($e['cargo']) ?></td>
-                                    <td style="font-size: 0.85rem; color: var(--text-muted);"><?= nl2br(htmlspecialchars($e['tareas'])) ?></td>
+                                    <td><?= htmlspecialchars($e['cargo'] ?? '') ?></td>
+                                    <td style="font-size: 0.85rem; color: var(--text-muted);"><?= nl2br(htmlspecialchars($e['tareas'] ?? '')) ?></td>
                                 </tr>
                                 <?php endforeach; ?>
                                 <?php if(empty($cv_experiencia)): ?><tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">Sin experiencia profesional registrada.</td></tr><?php endif; ?>
@@ -1088,7 +1088,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                 <tbody>
                                     <?php foreach($cv_idiomas as $i): ?>
                                     <tr>
-                                        <td style="font-weight: 600;"><?= htmlspecialchars($i['idioma']) ?></td>
+                                        <td style="font-weight: 600;"><?= htmlspecialchars($i['idioma'] ?? '') ?></td>
                                         <td><?= $i['nivel_hablado'] ?> / <?= $i['nivel_oral'] ?> / <?= $i['nivel_escrito'] ?> / <?= $i['nivel_leido'] ?></td>
                                     </tr>
                                     <?php endforeach; ?>
@@ -1122,7 +1122,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                 <tbody>
                                     <?php foreach($cv_informatica as $inf): ?>
                                     <tr>
-                                        <td><?= htmlspecialchars($inf['programa']) ?></td>
+                                        <td><?= htmlspecialchars($inf['programa'] ?? '') ?></td>
                                         <td style="font-weight: 600; color: var(--primary-color);"><?= $inf['dominio'] ?></td>
                                     </tr>
                                     <?php endforeach; ?>
@@ -1164,8 +1164,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                 <div class="info-grid">
                     <div class="info-card">
                         <h3>Identidad</h3>
-                        <p><strong>Nombre:</strong> <?= htmlspecialchars($alumno['nombre'] . ' ' . $alumno['primer_apellido'] . ' ' . $alumno['segundo_apellido']) ?></p>
-                        <p><strong>DNI:</strong> <?= htmlspecialchars($alumno['dni']) ?></p>
+                        <p><strong>Nombre:</strong> <?= htmlspecialchars(($alumno['nombre'] ?? '') . ' ' . ($alumno['primer_apellido'] ?? '') . ' ' . ($alumno['segundo_apellido'] ?? '')) ?></p>
+                        <p><strong>DNI:</strong> <?= htmlspecialchars($alumno['dni'] ?? '') ?></p>
                     </div>
                 </div>
             </div>
@@ -1237,13 +1237,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                                     <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
                                                 </div>
                                                 <div>
-                                                    <div style="font-size: 0.95rem;"><?= htmlspecialchars($doc['tipo_documento']) ?></div>
-                                                    <div style="font-size: 0.75rem; color: var(--text-muted);"><?= htmlspecialchars($doc['nombre_archivo']) ?></div>
+                                                    <div style="font-size: 0.95rem;"><?= htmlspecialchars($doc['tipo_documento'] ?? '') ?></div>
+                                                    <div style="font-size: 0.75rem; color: var(--text-muted);"><?= htmlspecialchars($doc['nombre_archivo'] ?? '') ?></div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td><?= date('d/m/Y H:i', strtotime($doc['fecha_subida'])) ?></td>
-                                        <td><span style="font-size: 0.85rem; color: var(--text-muted);"><?= htmlspecialchars($doc['username']) ?></span></td>
+                                        <td><span style="font-size: 0.85rem; color: var(--text-muted);"><?= htmlspecialchars($doc['username'] ?? '') ?></span></td>
                                         <td>
                                             <?php 
                                             $ext = strtoupper(pathinfo($doc['nombre_archivo'], PATHINFO_EXTENSION));
@@ -1254,7 +1254,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                             </span>
                                         </td>
                                         <td style="text-align: right;">
-                                            <a href="<?= htmlspecialchars($doc['ruta_archivo']) ?>" target="_blank" class="btn" style="padding: 0.4rem 0.8rem; border: 1px solid var(--border-color); font-size: 0.8rem; backgroun: white;">
+                                            <a href="<?= htmlspecialchars($doc['ruta_archivo'] ?? '#') ?>" target="_blank" class="btn" style="padding: 0.4rem 0.8rem; border: 1px solid var(--border-color); font-size: 0.8rem; backgroun: white;">
                                                 Ver / Descargar
                                             </a>
                                         </td>
@@ -1347,12 +1347,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                 <?php else: ?>
                                     <?php foreach ($formacion_interna as $fi): ?>
                                     <tr>
-                                        <td style="font-weight: 600; color: #1e40af;"><?= htmlspecialchars($fi['accion_formativa']) ?></td>
+                                        <td style="font-weight: 600; color: #1e40af;"><?= htmlspecialchars($fi['accion_formativa'] ?? '') ?></td>
                                         <td><?= $fi['fecha_desde'] ? date('d/m/Y', strtotime($fi['fecha_desde'])) : '-' ?></td>
                                         <td><?= $Fi['fecha_hasta'] ? date('d/m/Y', strtotime($fi['fecha_hasta'])) : '-' ?></td>
                                         <td><?= $fi['duracion_horas'] ?>h</td>
-                                        <td><span style="font-weight: 500;"><?= htmlspecialchars($fi['calificacion'] ?: '-') ?></span></td>
-                                        <td><span title="<?= htmlspecialchars($fi['valoracion_usuario']) ?>" style="cursor: help; color: var(--text-muted);"><?= mb_strimwidth($fi['valoracion_usuario'], 0, 30, "...") ?></span></td>
+                                        <td><span style="font-weight: 500;"><?= htmlspecialchars(($fi['calificacion'] ?? '') ?: '-') ?></span></td>
+                                        <td><span title="<?= htmlspecialchars($fi['valoracion_usuario'] ?? '') ?>" style="cursor: help; color: var(--text-muted);"><?= mb_strimwidth($fi['valoracion_usuario'] ?? '', 0, 30, "...") ?></span></td>
                                         <td style="text-align: right;">
                                             <button class="btn" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">Detalles</button>
                                         </td>
