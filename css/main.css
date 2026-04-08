@@ -53,13 +53,43 @@ body {
     overflow-y: auto;
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.03);
     z-index: 1000;
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, width 0.05s linear;
+}
+
+/* Resize Handle */
+.sidebar-resizer {
+    position: absolute;
+    right: -3px;
+    top: 0;
+    width: 6px;
+    height: 100%;
+    cursor: col-resize;
+    z-index: 1001;
+}
+
+.sidebar-resizer:hover,
+.is-resizing .sidebar-resizer {
+    background-color: var(--primary-color);
+    opacity: 0.3;
+}
+
+/* Resizing State */
+body.is-resizing {
+    cursor: col-resize !important;
+    user-select: none !important;
+}
+
+body.is-resizing .sidebar,
+body.is-resizing .main-content {
+    transition: none !important;
 }
 
 /* Responsive Sidebar Mobile */
 @media (max-width: 1024px) {
+    .sidebar-resizer { display: none; }
     .sidebar {
         transform: translateX(-100%);
+        width: 260px !important;
     }
 
     .sidebar.active {

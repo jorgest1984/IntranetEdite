@@ -4,6 +4,15 @@ if (!isset($_SESSION['user_id'])) exit();
 
 $current_page = basename($_SERVER['PHP_SELF']);
 ?>
+<script>
+    // Aplicar el ancho de la sidebar antes de que se renderice el resto
+    (function() {
+        const savedWidth = localStorage.getItem('sidebarWidth');
+        if (savedWidth && window.innerWidth > 1024) {
+            document.documentElement.style.setProperty('--sidebar-width', savedWidth + 'px');
+        }
+    })();
+</script>
 <!-- Mobile Toggle Button -->
 <button class="menu-toggle" onclick="toggleSidebar()" aria-label="Abrir menú">
     <svg viewBox="0 0 24 24" width="24" height="24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
@@ -160,6 +169,9 @@ $current_page = basename($_SERVER['PHP_SELF']);
             Cerrar Sesión
         </a>
     </div>
+
+    <!-- Tirador para redimensionar -->
+    <div class="sidebar-resizer" id="sidebarResizer"></div>
 </aside>
 
 <script>
@@ -167,4 +179,44 @@ function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     sidebar.classList.toggle('active');
 }
+
+// Lógica de redimensionamiento
+(function() {
+    const resizer = document.getElementById('sidebarResizer');
+    const sidebar = document.getElementById('sidebar');
+    let isResizing = false;
+
+    if (!resizer) return;
+
+    resizer.addEventListener('mousedown', (e) => {
+        isResizing = true;
+        document.body.classList.add('is-resizing');
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', stopResizing);
+    });
+
+    function handleMouseMove(e) {
+        if (!isResizing) return;
+        
+        let newWidth = e.clientX;
+        
+        // Límites
+        if (newWidth < 200) newWidth = 200;
+        if (newWidth > 600) newWidth = 600;
+        
+        document.documentElement.style.setProperty('--sidebar-width', newWidth + 'px');
+    }
+
+    function stopResizing() {
+        if (!isResizing) return;
+        isResizing = false;
+        document.body.classList.remove('is-resizing');
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', stopResizing);
+        
+        // Guardar preferencia
+        const finalWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sidebar-width'));
+        localStorage.setItem('sidebarWidth', finalWidth);
+    }
+})();
 </script>
