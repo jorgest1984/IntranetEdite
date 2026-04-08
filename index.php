@@ -155,18 +155,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
         }
         
         .login-logo {
-            width: 70px;
-            height: 70px;
-            background: linear-gradient(135deg, #dc2626, #991b1b);
-            border-radius: 16px;
+            width: 80px;
+            height: 80px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-size: 28px;
-            font-weight: 800;
-            box-shadow: 0 10px 15px -3px rgba(220, 38, 38, 0.3);
             margin-bottom: 0.5rem;
+            overflow: hidden;
+        }
+        .login-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
         }
 
         .form-group {
@@ -268,9 +268,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
 
     <div class="login-container">
         <div class="login-header">
-            <div class="login-logo">EF</div>
+            <div class="login-logo">
+                <img src="img/logo_efp.png" alt="Grupo EFP Logo">
+            </div>
             <h1>Acceso al Sistema</h1>
-            <p>Intranet Edite Formación</p>
+            <p>Grupo EFP - Gestión Académica</p>
         </div>
         
         <?php if (!empty($error)): ?>

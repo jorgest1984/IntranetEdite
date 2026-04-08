@@ -60,7 +60,7 @@ $qr_url = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data={$qr_da
             <!-- Breadcrumb -->
             <nav class="breadcrumb">
                 <a href="home.php">Inicio</a><span>/</span>
-                <a href="edite_formacion.php">Edite Formación</a><span>/</span>
+                <a href="edite_formacion.php">Grupo EFP</a><span>/</span>
                 <span>Redes Wi-Fi</span>
             </nav>
 

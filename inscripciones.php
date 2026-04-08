@@ -38,6 +38,55 @@ try {
 } catch (Exception $e) {}
 
 $current_page = 'inscripciones.php';
+
+// --- LOGICA DE BÚSQUEDA ---
+$resultados = [];
+$buscando = false;
+
+if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET['convocatoria']) || isset($_GET['dni']))) {
+    $buscando = true;
+    $params = [];
+    $where = ["1=1"];
+
+    if (!empty($_GET['curso'])) {
+        $where[] = "p.nombre LIKE ?";
+        $params[] = "%" . $_GET['curso'] . "%";
+    }
+    if (!empty($_GET['cod_grupo'])) {
+        $where[] = "m.id LIKE ?"; // Asumiendo que el id de matricula o algun campo cod_grupo existe
+        $params[] = "%" . $_GET['cod_grupo'] . "%";
+    }
+    if (!empty($_GET['convocatoria']) && $_GET['convocatoria'] !== 'Todas') {
+        $where[] = "m.convocatoria_id = ?";
+        $params[] = $_GET['convocatoria'];
+    }
+    if (!empty($_GET['estado'])) {
+        $where[] = "m.estado = ?";
+        $params[] = $_GET['estado'];
+    }
+    if (!empty($_GET['provincia'])) {
+        $where[] = "a.provincia LIKE ?";
+        $params[] = "%" . $_GET['provincia'] . "%";
+    }
+
+    $sql = "SELECT m.*, a.nombre as alumno_nombre, a.primer_apellido, a.segundo_apellido, a.dni, a.provincia, 
+                   c.nombre as convocatoria_nombre, p.nombre as plan_nombre, e.nombre as empresa_nombre
+            FROM matriculas m
+            INNER JOIN alumnos a ON m.alumno_id = a.id
+            LEFT JOIN convocatorias c ON m.convocatoria_id = c.id
+            LEFT JOIN planes p ON c.id = p.convocatoria_id
+            LEFT JOIN empresas e ON a.id = e.id -- Ajustar segun relacion real alumno-empresa si existe
+            WHERE " . implode(" AND ", $where) . "
+            LIMIT 100";
+
+    try {
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        $resultados = $stmt->fetchAll();
+    } catch (Exception $e) {
+        $error = "Error en la búsqueda: " . $e->getMessage();
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -127,83 +176,62 @@ $current_page = 'inscripciones.php';
 
         .btn-buscar:hover { background: #e2e8f0; }
 
-        /* Results Table */
-        .results-section {
-            background: #fff;
-            border: 1px solid var(--border-gray);
-            border-radius: 4px;
-            overflow: hidden;
+        /* Standardized FP Layout */
+        .main-content {
+            padding: 0 !important;
+            margin-left: 0; /* Adjusted for full-width if sidebar is absolute, check main.css */
+            width: 100%;
         }
-
-        .results-header {
-            padding: 0.5rem;
-            text-align: center;
-            border-bottom: 1px solid var(--border-gray);
-        }
-
-        .results-header h2 {
-            margin: 0;
-            font-size: 0.85rem;
-            font-weight: 800;
-            color: var(--title-red);
-            text-transform: uppercase;
-        }
-
-        .status-header {
+        .fp-content-main {
+            padding: 20px 40px 40px 40px !important;
             display: flex;
-            gap: 5px;
-            padding: 5px;
-            font-size: 0.65rem;
-            font-weight: 700;
-            color: #fff;
+            flex-direction: column;
         }
 
-        .status-box { padding: 2px 5px; border-radius: 2px; }
-        .bg-orange { background: #f97316; }
-        .bg-cyan { background: #06b6d4; }
-        .bg-pink { background: #ec4899; }
-        .bg-teal { background: #14b8a6; }
-        .bg-green { background: #16a34a; }
+        .table-responsive-fp {
+            width: 100%;
+            overflow-x: auto;
+            border: 1px solid var(--border-gray);
+            background: white;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
 
-        .table-responsive { overflow-x: auto; }
-        
         .table-custom {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.7rem;
+            font-size: 0.75rem;
+            min-width: 1300px;
         }
 
-        .table-custom th {
-            background: #f8fafc;
-            border: 1px solid var(--border-gray);
-            padding: 4px;
-            text-align: left;
-            color: var(--label-blue);
+        .results-header-fp {
+            background: #333;
+            padding: 12px 20px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .results-header-fp h2 {
+            margin: 0;
+            font-size: 1rem;
             font-weight: 700;
-            position: relative;
+            text-transform: uppercase;
         }
 
-        .table-custom th .sort-icon {
-            display: inline-block;
-            margin-right: 3px;
-            vertical-align: middle;
-        }
-
-        .table-custom td {
-            border: 1px solid #f1f5f9;
-            padding: 4px;
-            white-space: nowrap;
-        }
-
-        .table-custom tr:nth-child(even) { background: #f8fafc; }
-        .table-custom tr:hover { background: #f1f5f9; }
-
-        /* Sidebar highlighting */
-        .sidebar-menu li a.active {
-            background: rgba(30, 64, 175, 0.1);
-            color: #1e40af;
+        .btn-edit-student {
+            background: #2563eb;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            text-decoration: none;
             font-weight: 600;
+            font-size: 0.7rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
+        .btn-edit-student:hover { background: #1d4ed8; }
     </style>
 </head>
 <body>
@@ -681,15 +709,13 @@ $current_page = 'inscripciones.php';
             </div>
 
             <!-- RESULTADOS -->
-            <div class="results-section">
-                <div class="results-header">
-                    <div style="font-size: 0.65rem; display: flex; align-items: center; gap: 5px; margin-bottom: 5px;">
-                        <input type="checkbox"> Ordenar múltiple
-                    </div>
+            <div class="fp-content-main">
+                <div class="results-header-fp">
                     <h2>RESULTADO DE LA BÚSQUEDA</h2>
+                    <div style="font-size: 0.75rem; color: #cbd5e1;">Se han encontrado <?= count($resultados) ?> resultados</div>
                 </div>
                 
-                <div class="status-header">
+                <div class="status-header" style="background: #fff; border: 1px solid #cbd5e1; border-top: none; padding: 10px;">
                     <div class="status-box bg-orange">Curso suspendido</div>
                     <div class="status-box bg-cyan">Curso regalo</div>
                     <div class="status-box bg-pink">Grupo 1</div>
@@ -699,40 +725,57 @@ $current_page = 'inscripciones.php';
                     <div class="status-box bg-green">No valido</div>
                 </div>
 
-                <div class="table-responsive">
+                <div class="table-responsive-fp">
                     <table class="table-custom">
                         <thead>
                             <tr>
-                                <th><span class="sort-icon"><svg width="10" viewBox="0 0 24 24"><path d="M12 21l-12-18h24z"/></svg></span>Plan</th>
-                                <th><span class="sort-icon"><svg width="10" viewBox="0 0 24 24"><path d="M12 21l-12-18h24z"/></svg></span>Modal.</th>
-                                <th><span class="sort-icon"><svg width="10" viewBox="0 0 24 24"><path d="M12 21l-12-18h24z"/></svg></span>Nº Acc.</th>
-                                <th><span class="sort-icon"><svg width="10" viewBox="0 0 24 24"><path d="M12 21l-12-18h24z"/></svg></span>Nº gr.</th>
-                                <th><span class="sort-icon"><svg width="10" viewBox="0 0 24 24"><path d="M12 21l-12-18h24z"/></svg></span>Cod Grupo</th>
-                                <th><span class="sort-icon"><svg width="10" viewBox="0 0 24 24"><path d="M12 21l-12-18h24z"/></svg></span>Curso</th>
-                                <th><span class="sort-icon"><svg width="10" viewBox="0 0 24 24"><path d="M12 21l-12-18h24z"/></svg></span>Alumno</th>
-                                <th><span class="sort-icon"><svg width="10" viewBox="0 0 24 24"><path d="M12 21l-12-18h24z"/></svg></span>Empresa</th>
-                                <th><span class="sort-icon"><svg width="10" viewBox="0 0 24 24"><path d="M12 21l-12-18h24z"/></svg></span>Sector empresa</th>
-                                <th><span class="sort-icon"><svg width="10" viewBox="0 0 24 24"><path d="M12 21l-12-18h24z"/></svg></span>Provincia</th>
-                                <th><span class="sort-icon"><svg width="10" viewBox="0 0 24 24"><path d="M12 21l-12-18h24z"/></svg></span>Comercial</th>
-                                <th><span class="sort-icon"><svg width="10" viewBox="0 0 24 24"><path d="M12 21l-12-18h24z"/></svg></span>Inicio</th>
-                                <th><span class="sort-icon"><svg width="10" viewBox="0 0 24 24"><path d="M12 21l-12-18h24z"/></svg></span>Mitad</th>
-                                <th><span class="sort-icon"><svg width="10" viewBox="0 0 24 24"><path d="M12 21l-12-18h24z"/></svg></span>Fin</th>
-                                <th><span class="sort-icon"><svg width="10" viewBox="0 0 24 24"><path d="M12 21l-12-18h24z"/></svg></span>Estado</th>
-                                <th><span class="sort-icon"><svg width="10" viewBox="0 0 24 24"><path d="M12 21l-12-18h24z"/></svg></span>No admision</th>
-                                <th><span class="sort-icon"><svg width="10" viewBox="0 0 24 24"><path d="M12 21l-12-18h24z"/></svg></span>Fecha Ins.</th>
-                                <th><span class="sort-icon"><svg width="10" viewBox="0 0 24 24"><path d="M12 21l-12-18h24z"/></svg></span>Cambio estado</th>
-                                <th><span class="sort-icon"><svg width="10" viewBox="0 0 24 24"><path d="M12 21l-12-18h24z"/></svg></span>Doc pte</th>
-                                <th><span class="sort-icon"><svg width="10" viewBox="0 0 24 24"><path d="M12 21l-12-18h24z"/></svg></span>Prioridad</th>
-                                <th><span class="sort-icon"><svg width="10" viewBox="0 0 24 24"><path d="M12 21l-12-18h24z"/></svg></span>Prefiere</th>
-                                <th><span class="sort-icon"><svg width="10" viewBox="0 0 24 24"><path d="M12 21l-12-18h24z"/></svg></span>Numero</th>
+                                <th>Plan</th>
+                                <th>Modal.</th>
+                                <th>Cod Grupo</th>
+                                <th>Curso</th>
+                                <th>Alumno</th>
+                                <th>Empresa</th>
+                                <th>Provincia</th>
+                                <th>Estado</th>
+                                <th>Fecha Ins.</th>
+                                <th style="background: #f1f5f9; text-align: center;">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td colspan="22" style="text-align: center; padding: 2rem; color: #64748b;">
-                                    Utilice los filtros para realizar una búsqueda.
-                                </td>
-                            </tr>
+                            <?php if (empty($resultados)): ?>
+                                <tr>
+                                    <td colspan="10" style="text-align: center; padding: 3rem; color: #64748b; font-style: italic;">
+                                        <?= $buscando ? 'No se han encontrado resultados para los criterios seleccionados.' : 'Utilice los filtros para realizar una búsqueda.' ?>
+                                    </td>
+                                </tr>
+                            <?php else: ?>
+                                <?php foreach ($resultados as $res): ?>
+                                    <tr>
+                                        <td><?= htmlspecialchars($res['plan_nombre'] ?? 'N/A') ?></td>
+                                        <td><?= htmlspecialchars($res['modalidad'] ?? 'N/A') ?></td>
+                                        <td><?= htmlspecialchars($res['id']) ?></td>
+                                        <td><?= htmlspecialchars($res['convocatoria_nombre'] ?? 'N/A') ?></td>
+                                        <td>
+                                            <div style="font-weight: 600;"><?= htmlspecialchars($res['primer_apellido'] . ' ' . $res['segundo_apellido'] . ', ' . $res['alumno_nombre']) ?></div>
+                                            <div style="font-size: 0.65rem; color: #64748b;"><?= htmlspecialchars($res['dni']) ?></div>
+                                        </td>
+                                        <td><?= htmlspecialchars($res['empresa_nombre'] ?? '-') ?></td>
+                                        <td><?= htmlspecialchars($res['provincia'] ?? '-') ?></td>
+                                        <td>
+                                            <span style="padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; background: #e2e8f0;">
+                                                <?= htmlspecialchars($res['estado']) ?>
+                                            </span>
+                                        </td>
+                                        <td><?= date('d/m/Y', strtotime($res['fecha_matricula'])) ?></td>
+                                        <td style="text-align: center;">
+                                            <a href="ficha_alumno.php?id=<?= $res['alumno_id'] ?>" class="btn-edit-student" title="Ver/Modificar ficha del alumno">
+                                                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                                Ficha
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>

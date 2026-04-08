@@ -193,7 +193,7 @@ $current_page = 'glosario_moodle.php';
             </div>
 
             <footer style="text-align: center; margin-top: 3rem; color: #94a3b8; font-size: 0.8rem;">
-                © <?= date('Y') ?> Edite Formación | www.editeformacion.com
+                © <?= date('Y') ?> Grupo EFP | www.escueladeformacionprofesional.com
             </footer>
 
         </main>

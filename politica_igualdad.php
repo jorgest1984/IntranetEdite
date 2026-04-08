@@ -188,7 +188,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <nav class="breadcrumb">
                 <a href="home.php">Inicio</a>
                 <span>/</span>
-                <a href="edite_formacion.php">Edite Formación</a>
+                <a href="edite_formacion.php">Grupo EFP</a>
                 <span>/</span>
                 <span>Política de Igualdad</span>
             </nav>
@@ -196,7 +196,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="pi-card">
                 <p class="pi-intro">
                     Desde este formulario puedes enviarnos tus quejas o sugerencias con respecto a nuestra
-                    <a href="https://www.editeformacion.com/politica-de-igualdad" target="_blank">Política de Igualdad</a>.
+                    <a href="https://escueladeformacionprofesional.com/politica-de-igualdad" target="_blank">Política de Igualdad</a>.
                 </p>
 
                 <?php if ($enviado): ?>

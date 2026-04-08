@@ -34,12 +34,12 @@ if (empty($asunto) || empty($descripcion)) {
 }
 
 $to      = 'jorge@estaciondiseno.es';
-$subject = '[Intranet Edite] Sugerencia: ' . $asunto;
-$body    = "Nueva sugerencia recibida desde la Intranet de Edite Formación.\n\n";
+$subject = '[Intranet Grupo EFP] Sugerencia: ' . $asunto;
+$body    = "Nueva sugerencia recibida desde la Intranet de Grupo EFP.\n\n";
 $body   .= "Usuario: $usuario\n";
 $body   .= "Asunto: $asunto\n\n";
 $body   .= "Descripción:\n" . strip_tags($descripcion) . "\n\n";
-$body   .= "---\nEnviado automáticamente desde la Intranet Edite Formación.";
+$body   .= "---\nEnviado automáticamente desde la Intranet Grupo EFP.";
 
 $headers  = "From: intranet@grupoefp.es\r\n";
 $headers .= "Reply-To: intranet@grupoefp.es\r\n";

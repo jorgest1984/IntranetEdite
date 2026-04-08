@@ -121,7 +121,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // Configuración de la aplicación
-define('APP_NAME', 'Intranet Formación');
+define('APP_NAME', 'Grupo EFP - Gestión Académica');
 define('APP_URL', 'http://localhost/intranet');
 
 // Tiempo de expiración de sesión (ej. 30 minutos para ISO 27001)

@@ -108,7 +108,7 @@ $dias_semana = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
             
             <nav style="display:flex; gap:0.4rem; font-size:0.85rem; color:#64748b; margin-bottom:1.5rem; align-items:center;">
                 <a href="home.php" style="color:#dc2626; text-decoration:none; font-weight:500;">Inicio</a><span>/</span>
-                <a href="edite_formacion.php" style="color:#dc2626; text-decoration:none; font-weight:500;">Edite Formación</a><span>/</span>
+                <a href="edite_formacion.php" style="color:#dc2626; text-decoration:none; font-weight:500;">Grupo EFP</a><span>/</span>
                 <span>Calendario laboral</span>
             </nav>
 

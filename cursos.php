@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     
     try {
         // 1. Crear el grupo
-        $groupResponse = $moodle->createGroup($courseId, $groupName, 'Grupo creado desde Intranet Edite Formación');
+        $groupResponse = $moodle->createGroup($courseId, $groupName, 'Grupo creado desde la Intranet de Grupo EFP');
         if (isset($groupResponse[0]['id'])) {
             $groupId = $groupResponse[0]['id'];
             
@@ -342,7 +342,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             
             <div class="form-group">
                 <label class="form-label">Email del Alumno de Prueba a auto-matricular</label>
-                <input type="email" name="student_email" class="form-input" required placeholder="alumno@editeformacion.es">
+                <input type="email" name="student_email" class="form-input" required placeholder="alumno@grupoefp.es">
             </div>
             
             <div style="text-align: right; margin-top: 1.5rem;">

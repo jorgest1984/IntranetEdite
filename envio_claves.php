@@ -359,7 +359,7 @@ $resultados_simulados = isset($_GET['buscar']);
                             <td>PEREZ GARCIA, JUAN</td>
                             <td>123</td>
                             <td>A30-G4</td>
-                            <td>Edite Formación S.L.</td>
+                            <td>Grupo EFP S.L.</td>
                             <td>01/03/2026</td>
                             <td>30/03/2026</td>
                             <td><span class="badge-status status-yes">SI</span></td>
