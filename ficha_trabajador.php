@@ -30,7 +30,7 @@ $prof = $stmtProf->fetch() ?: [];
 
 // Cargar Cursos (Contratos-Programa)
 $stmtCursos = $pdo->prepare("
-    SELECT m.id, m.situacion, c.denominacion as curso_nombre, p.nombre as plan_nombre, 
+    SELECT m.id, m.estado, c.denominacion as curso_nombre, p.nombre as plan_nombre, 
            conv.nombre as convocatoria_nombre, e.nombre_comercial as empresa_nombre,
            m.fecha_inicio, m.fecha_fin, m.n_accion, m.n_grupo, m.modalidad, m.horas
     FROM matriculas m
@@ -578,7 +578,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                 <td><?= htmlspecialchars($c['horas']) ?></td>
                                 <td><?= htmlspecialchars($c['curso_nombre']) ?></td>
                                 <td>Patricia Ferreiro Matias</td> <!-- Mocked based on screenshot -->
-                                <td><?= htmlspecialchars($c['situacion']) ?></td>
+                                <td><?= htmlspecialchars($c['estado']) ?></td>
                                 <td><?= date('d/m/Y', strtotime($c['fecha_inicio'])) ?></td>
                                 <td><?= date('d/m/Y', strtotime($c['fecha_fin'])) ?></td>
                                 <td class="text-center">📝 ❌</td>

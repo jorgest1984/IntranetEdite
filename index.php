@@ -95,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
             height: 100%;
             z-index: -1;
             overflow: hidden;
-            background-image: radial-gradient(#dc2626 0.5px, transparent 0.5px);
+            background-image: radial-gradient(#3b82f6 0.5px, transparent 0.5px);
             background-size: 30px 30px;
             opacity: 0.05;
         }
@@ -104,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
             width: 600px;
             height: 600px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(220,38,38,0.08) 0%, rgba(220,38,38,0) 70%);
+            background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, rgba(59,130,246,0) 70%);
             top: -150px;
             right: -150px;
             animation: float 20s infinite ease-in-out alternate;
@@ -114,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
             width: 500px;
             height: 500px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(220,38,38,0.05) 0%, rgba(220,38,38,0) 70%);
+            background: radial-gradient(circle, rgba(59,130,246,0.05) 0%, rgba(59,130,246,0) 70%);
             bottom: -100px;
             left: -150px;
             animation: float 15s infinite ease-in-out alternate-reverse;
@@ -130,8 +130,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
             padding: 3rem;
             background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
-            box-shadow: 0 25px 50px -12px rgba(220, 38, 38, 0.15);
-            border: 1px solid rgba(220, 38, 38, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.1);
             backdrop-filter: blur(10px);
             animation: fadeInBody 0.6s ease-out forwards;
         }
@@ -196,15 +196,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
         
         .form-control:focus {
             outline: none;
-            border-color: #dc2626;
-            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
             background-color: #ffffff;
         }
         
         .btn-login {
             width: 100%;
             padding: 0.85rem;
-            background: linear-gradient(to right, #dc2626, #b91c1c);
+            background: linear-gradient(to right, #3b82f6, #2563eb);
             color: white;
             border: none;
             border-radius: 8px;
@@ -212,14 +212,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
             font-size: 1rem;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.4);
+            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.4);
             margin-top: 1rem;
         }
         
         .btn-login:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(220, 38, 38, 0.5);
-            background: linear-gradient(to right, #b91c1c, #991b1b);
+            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.5);
+            background: linear-gradient(to right, #2563eb, #1d4ed8);
         }
         
         .alert {
