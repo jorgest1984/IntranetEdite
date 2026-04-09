@@ -80,6 +80,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             throw new Exception("Nombre, Primer Apellido, NIF y Email son obligatorios.");
         }
 
+        // 1.5 Comprobar duplicados en local antes de seguir
+        $stmtCheck = $pdo->prepare("SELECT id FROM alumnos WHERE dni = ? OR email = ?");
+        $stmtCheck->execute([$data['dni'], $data['email']]);
+        if ($stmtCheck->rowCount() > 0) {
+            throw new Exception("Ya existe un alumno con ese DNI o Email en el sistema.");
+        }
+
         // 2. Sincronización con Moodle (Opcional, no debe bloquear el registro local)
         $moodleUserId = null;
         if ($moodle->isConfigured()) {

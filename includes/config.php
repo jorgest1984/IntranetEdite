@@ -16,7 +16,7 @@ if ($is_local) {
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
-        die("Error de conexión LOCAL: " . $e->getMessage());
+        throw new Exception("Error de conexión LOCAL: " . $e->getMessage());
     }
 } else {
     /**
@@ -80,17 +80,17 @@ if ($is_local) {
             $response = curl_exec($ch);
             
             if ($response === false) {
-                die("Error de Curl: " . curl_error($ch));
+                throw new Exception("Error de Curl Bridge: " . curl_error($ch));
             }
             curl_close($ch);
 
             $result = json_decode($response, true);
             if (json_last_error() !== JSON_ERROR_NONE) {
-                die("Error de Bridge: No se pudo decodificar la respuesta JSON. <br>Respuesta recibida: <pre>" . htmlspecialchars($response) . "</pre><br>Error JSON: " . json_last_error_msg());
+                throw new Exception("Error de Bridge: No se pudo decodificar la respuesta JSON. Respuesta recibida: " . substr(strip_tags($response), 0, 200));
             }
 
             if (isset($result['error'])) {
-                die("Error de Bridge: " . $result['error']);
+                throw new Exception("Error de Bridge SQL: " . $result['error']);
             }
             
             $this->data = $result['data'] ?? [];
