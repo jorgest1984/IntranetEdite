@@ -85,6 +85,25 @@
         </li>
         <li><a href="grupos.php">Grupos</a></li>
         <li><a href="inscripciones.php">Inscripciones</a></li>
-        <li><a href="alumnos.php">Alumnos</a></li>
+        <li>
+            <a href="buscar_alumnos.php" <?php echo (in_array(basename($_SERVER['PHP_SELF']), ['buscar_alumnos.php', 'alumnos.php'])) ? 'class="active"' : ''; ?>>
+                <svg class="fp-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                Alumnos
+            </a>
+            <ul class="fp-submenu">
+                <li>
+                    <a href="buscar_alumnos.php">
+                        <svg class="submenu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        Buscar Alumno
+                    </a>
+                </li>
+                <li>
+                    <a href="alumnos.php">
+                        <svg class="submenu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        Nuevo Alumno
+                    </a>
+                </li>
+            </ul>
+        </li>
     </ul>
 </aside>
