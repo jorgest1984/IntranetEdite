@@ -46,9 +46,9 @@
 }
 
 .tile-icon {
-    width: 32px;
-    height: 32px;
-    margin-bottom: 0.75rem;
+    width: 44px;
+    height: 44px;
+    margin-bottom: 1rem;
     fill: currentColor;
     display: flex;
     align-items: center;
