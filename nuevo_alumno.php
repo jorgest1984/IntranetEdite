@@ -235,7 +235,15 @@ $empresas = $pdo->query("SELECT id, nombre FROM empresas ORDER BY nombre ASC LIM
                                     <option value="Ctra">Carretera</option>
                                 </select>
                             </div>
-                            <div class="field-group"><label>Nombre de vía:</label> <input type="text" name="nombre_via" class="w-250"></div>
+                            <div class="field-group"><label>Nombre de vía:</label> <input type="text" name="nombre_via" class="w-200"></div>
+                            <div class="field-group">
+                                <label>Tipo de num.:</label>
+                                <select name="tipo_num">
+                                    <option value="Numérico">Numérico</option>
+                                    <option value="Kilómetro">Kilómetro</option>
+                                    <option value="Sin número">Sin número</option>
+                                </select>
+                            </div>
                             <div class="field-group"><label>Nº domicilio:</label> <input type="text" name="num_domicilio" class="w-60"></div>
                             <div class="field-group">
                                 <label>Calificador:</label>
