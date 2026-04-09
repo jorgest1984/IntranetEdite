@@ -53,11 +53,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                 $error = "Usuario o contraseña incorrectos.";
                 // Registrar intento fallido
                 if ($user) {
-                    audit_log($pdo, 'LOGIN_FAILED', 'sesion', $user['id'], null, ['ip' => $_SERVER['REMOTE_ADDR'], 'username' => $username]);
+                    audit_log($pdo, 'LOGIN_FAILED', 'sesion', $user['id'], null, ['ip' => $_SERVER['REMOTE_ADDR'], 'username' => $username], $user['id']);
                 } else {
-                    // Log fail para usuario inexistente
-                    $stmt_log = $pdo->prepare("INSERT INTO audit_log (usuario_id, accion, entidad, ip_address) VALUES (0, 'LOGIN_FAILED_UNKNOWN', 'sesion', ?)");
-                    $stmt_log->execute([$_SERVER['REMOTE_ADDR']]);
+                    // Log fail para usuario inexistente - Usar NULL para evitar error de FK
+                    audit_log($pdo, 'LOGIN_FAILED_UNKNOWN', 'sesion', null, null, ['ip' => $_SERVER['REMOTE_ADDR'], 'username' => $username], null);
                 }
             }
         } catch (PDOException $e) {

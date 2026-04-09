@@ -137,19 +137,22 @@ if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > 
 $_SESSION['LAST_ACTIVITY'] = time();
 
 // Función para registrar logs de auditoría (ISO 27001)
-function audit_log($pdo, $accion, $entidad, $entidad_id = null, $datos_antiguos = null, $datos_nuevos = null) {
-    if (!isset($_SESSION['user_id'])) return false;
+function audit_log($pdo, $accion, $entidad, $entidad_id = null, $datos_antiguos = null, $datos_nuevos = null, $usuario_id = null) {
+    $uid = $usuario_id;
+    if ($uid === null && isset($_SESSION['user_id'])) {
+        $uid = $_SESSION['user_id'];
+    }
     
     $stmt = $pdo->prepare("INSERT INTO audit_log (usuario_id, accion, entidad, entidad_id, datos_antiguos, datos_nuevos, ip_address, user_agent) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
     
-    $ip = $_SERVER['REMOTE_ADDR'];
-    $agent = $_SERVER['HTTP_USER_AGENT'];
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+    $agent = $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown';
     
     $old_json = $datos_antiguos ? json_encode($datos_antiguos) : null;
     $new_json = $datos_nuevos ? json_encode($datos_nuevos) : null;
     
     return $stmt->execute([
-        $_SESSION['user_id'],
+        $uid,
         $accion,
         $entidad,
         $entidad_id,
