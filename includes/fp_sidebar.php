@@ -83,8 +83,18 @@
                 </li>
             </ul>
         </li>
-        <li><a href="grupos.php">Grupos</a></li>
-        <li><a href="inscripciones.php">Inscripciones</a></li>
+        <li>
+            <a href="grupos.php" <?php echo (basename($_SERVER['PHP_SELF']) == 'grupos.php') ? 'class="active"' : ''; ?>>
+                <svg class="fp-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                Grupos
+            </a>
+        </li>
+        <li>
+            <a href="inscripciones.php" <?php echo (basename($_SERVER['PHP_SELF']) == 'inscripciones.php') ? 'class="active"' : ''; ?>>
+                <svg class="fp-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+                Inscripciones
+            </a>
+        </li>
         <li>
             <a href="buscar_alumnos.php" <?php echo (in_array(basename($_SERVER['PHP_SELF']), ['buscar_alumnos.php', 'alumnos.php'])) ? 'class="active"' : ''; ?>>
                 <svg class="fp-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>

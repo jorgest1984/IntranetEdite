@@ -512,9 +512,9 @@ body.is-resizing .main-content {
 }
 
 .fp-menu-icon {
-    width: 18px;
-    height: 18px;
-    opacity: 0.7;
+    width: 20px;
+    height: 20px;
+    opacity: 0.8;
 }
 
 /* Submenú (Flyout) */
@@ -578,9 +578,9 @@ body.is-resizing .main-content {
 }
 
 .submenu-icon {
-    width: 14px;
-    height: 14px;
-    opacity: 0.5;
+    width: 16px;
+    height: 16px;
+    opacity: 0.6;
 }
 
 /* Layout específico para FP */
