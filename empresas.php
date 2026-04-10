@@ -37,9 +37,18 @@ if ($active_tab == 'search') {
         $search_results = $st->fetchAll();
     } catch (Exception $e) { $error = "Error en la búsqueda: " . $e->getMessage(); }
 }
-
-include 'includes/header.php';
 ?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="icon" type="image/png" href="/img/logo_efp.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Empresas / Centros - <?= APP_NAME ?></title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
 
 <div class="container-fluid">
     <div class="row">
@@ -250,4 +259,5 @@ include 'includes/header.php';
 .link-action.delete { color: #dc2626; }
 </style>
 
-<?php include 'includes/footer.php'; ?>
+</body>
+</html>
