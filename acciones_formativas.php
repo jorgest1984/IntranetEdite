@@ -114,28 +114,40 @@ try {
     $stmt = $pdo->query("SELECT DISTINCT entidad FROM planes WHERE entidad IS NOT NULL AND entidad != ''");
     if ($stmt) { 
         $db_proveedores = $stmt->fetchAll(PDO::FETCH_COLUMN); 
-        $proveedores = array_unique(array_merge($proveedores, $db_proveedores));
+        foreach ($db_proveedores as $val) {
+            if ($val && is_string($val)) { $proveedores[] = $val; }
+        }
+        $proveedores = array_unique($proveedores);
     }
 
     // Sectores dinámicos
     $stmt = $pdo->query("SELECT DISTINCT sector FROM planes WHERE sector IS NOT NULL AND sector != ''");
     if ($stmt) { 
         $db_sectores = $stmt->fetchAll(PDO::FETCH_COLUMN); 
-        $sectores = array_unique(array_merge($sectores, $db_sectores));
+        foreach ($db_sectores as $val) {
+            if ($val && is_string($val)) { $sectores[] = $val; }
+        }
+        $sectores = array_unique($sectores);
     }
 
     // Solicitantes dinámicos
     $stmt = $pdo->query("SELECT DISTINCT solicitante FROM planes WHERE solicitante IS NOT NULL AND solicitante != ''");
     if ($stmt) { 
         $db_solicitantes = $stmt->fetchAll(PDO::FETCH_COLUMN); 
-        $solicitantes = array_unique(array_merge($solicitantes, $db_solicitantes));
+        foreach ($db_solicitantes as $val) {
+            if ($val && is_string($val)) { $solicitantes[] = $val; }
+        }
+        $solicitantes = array_unique($solicitantes);
     }
 
     // Catálogos dinámicos
     $stmt = $pdo->query("SELECT DISTINCT nombre_corto FROM cursos WHERE nombre_corto IS NOT NULL AND nombre_corto != ''");
     if ($stmt) { 
         $db_catalogos = $stmt->fetchAll(PDO::FETCH_COLUMN); 
-        $catalogos = array_unique(array_merge($catalogos, $db_catalogos));
+        foreach ($db_catalogos as $val) {
+            if ($val && is_string($val)) { $catalogos[] = $val; }
+        }
+        $catalogos = array_unique($catalogos);
     }
 
 } catch (Throwable $e) { }
