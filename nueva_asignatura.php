@@ -142,6 +142,15 @@ sort($familias);
             text-align: center;
             font-weight: 600;
             outline: none;
+            background: transparent;
+            /* Forzar visibilidad de flechitas */
+            -moz-appearance: number-input;
+        }
+
+        .input-hora::-webkit-inner-spin-button,
+        .input-hora::-webkit-outer-spin-button {
+            opacity: 1;
+            margin-right: 5px;
         }
 
         /* Áreas temáticas */
