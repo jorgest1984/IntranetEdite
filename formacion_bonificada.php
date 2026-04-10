@@ -6,7 +6,7 @@ require_once 'includes/auth.php';
 $sections = [
     [
         'title' => 'Empresas',
-        'url' => 'empresas.php',
+        'url' => 'buscar_empresas.php',
         'icon' => '<svg viewBox="0 0 24 24"><path d="M2 22h20V10L12 2 2 10v12zm2-2v-9l8-6.4L20 11v9H4zM7 15h2v2H7v-2zm0-4h2v2H7v-2zm4 0h2v2h-2v-2zm4 0h2v2h-2v-2zm-4 4h2v2h-2v-2zm4 0h2v2h-2v-2z" fill="white"/></svg>'
     ],
     [

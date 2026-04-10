@@ -100,7 +100,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             </a>
         </li>
         <li>
-            <a href="empresas.php" class="<?= $current_page == 'empresas.php' ? 'active' : '' ?>">
+            <a href="buscar_empresas.php" class="<?= $current_page == 'buscar_empresas.php' ? 'active' : '' ?>">
                 <svg viewBox="0 0 24 24"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-8h8v8zm-2-6h-4v4h4v-4z"/></svg>
                 Empresas / Centros
             </a>
