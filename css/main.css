@@ -380,7 +380,13 @@ body.is-resizing .main-content {
     align-items: center;
     gap: 1rem;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+a.stat-card {
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
 }
 
 .stat-card:hover {
