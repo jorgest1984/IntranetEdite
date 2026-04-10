@@ -102,6 +102,12 @@ if ($is_local) {
 
         public function fetchAll() { return $this->data; }
         public function fetch() { return array_shift($this->data); }
+        public function fetchColumn($column_number = 0) {
+            $row = $this->fetch();
+            if (!$row) return false;
+            $values = array_values($row);
+            return $values[$column_number] ?? false;
+        }
         public function rowCount() { return count($this->data); }
     }
 
