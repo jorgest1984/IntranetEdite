@@ -157,6 +157,8 @@ body.is-resizing .main-content {
     transition: all 0.2s;
     gap: 0.75rem;
     font-weight: 500;
+    overflow: hidden; /* Evita que el texto rompa el layout */
+    white-space: nowrap; /* Mantiene el texto en una línea */
 }
 
 .sidebar-menu a:hover,
@@ -173,6 +175,7 @@ body.is-resizing .main-content {
     width: 20px;
     height: 20px;
     fill: currentColor;
+    flex-shrink: 0; /* IMPRESCINDIBLE: Evita que el icono desaparezca al reducir ancho */
 }
 
 .sidebar-footer {
