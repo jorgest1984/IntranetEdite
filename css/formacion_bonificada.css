@@ -1,29 +1,29 @@
 /* css/formacion_bonificada.css */
 
 .bonificada-dashboard {
-    background-color: #f1f5f9;
-    border: 1px solid #cbd5e1;
-    border-radius: 4px;
-    margin-top: 1rem;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin-top: 2rem;
     overflow: hidden;
     max-width: 900px;
     margin-left: auto;
     margin-right: auto;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
 .bonificada-header-ribbon {
-    height: 8px;
-    background-color: #2d5a27; /* Verde oscuro estilo retro */
+    height: 4px;
+    background-color: #3b82f6; /* Azul brillante sutil */
     width: 100%;
 }
 
 .bonificada-grid {
     display: flex;
     justify-content: space-around;
-    padding: 2rem 1rem;
-    gap: 1.5rem;
-    background-color: #f0f0f0; /* Fondo gris claro */
+    padding: 3rem 2rem;
+    gap: 2rem;
+    background-color: #ffffff;
 }
 
 .bonificada-item {
@@ -31,41 +31,46 @@
     flex-direction: column;
     align-items: center;
     text-decoration: none;
-    transition: transform 0.2s;
-    width: 200px;
+    transition: all 0.3s ease;
+    width: 220px;
 }
 
 .bonificada-item:hover {
-    transform: scale(1.05);
+    transform: translateY(-5px);
 }
 
 .bonificada-icon-box {
-    width: 140px;
-    height: 140px;
-    background-color: #3b5998; /* Azul corporativo clásico */
+    width: 90px;
+    height: 90px;
+    background-color: #f8fafc; /* Integrado con el fondo */
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid #283e6b;
-    margin-bottom: 0.75rem;
-    padding: 15px;
+    border: 2px solid #e2e8f0;
+    border-radius: 50%; /* Iconos circulares más modernos */
+    margin-bottom: 1.25rem;
+    padding: 20px;
+    transition: all 0.3s ease;
+}
+
+.bonificada-item:hover .bonificada-icon-box {
+    border-color: #3b82f6;
+    background-color: #eff6ff;
 }
 
 .bonificada-icon-box svg {
-    width: 100px;
-    height: 100px;
-    fill: none;
-    stroke: white;
-    stroke-width: 1.5;
+    width: 45px;
+    height: 45px;
+    fill: #1e3a8a; /* Azul corporativo */
 }
 
 .bonificada-text {
-    color: #1e3a8a; /* Azul oscuro */
-    font-weight: 800;
-    font-size: 1.1rem;
+    color: #1e3a8a;
+    font-weight: 700;
+    font-size: 1rem;
     text-align: center;
-    text-transform: capitalize;
-    line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 /* Responsividad */
