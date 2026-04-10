@@ -1,0 +1,80 @@
+/* css/formacion_bonificada.css */
+
+.bonificada-dashboard {
+    background-color: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    margin-top: 1rem;
+    overflow: hidden;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.bonificada-header-ribbon {
+    height: 8px;
+    background-color: #2d5a27; /* Verde oscuro estilo retro */
+    width: 100%;
+}
+
+.bonificada-grid {
+    display: flex;
+    justify-content: space-around;
+    padding: 2rem 1rem;
+    gap: 1.5rem;
+    background-color: #f0f0f0; /* Fondo gris claro */
+}
+
+.bonificada-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    transition: transform 0.2s;
+    width: 200px;
+}
+
+.bonificada-item:hover {
+    transform: scale(1.05);
+}
+
+.bonificada-icon-box {
+    width: 140px;
+    height: 140px;
+    background-color: #3b5998; /* Azul corporativo clásico */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #283e6b;
+    margin-bottom: 0.75rem;
+    padding: 15px;
+}
+
+.bonificada-icon-box svg {
+    width: 100px;
+    height: 100px;
+    fill: none;
+    stroke: white;
+    stroke-width: 1.5;
+}
+
+.bonificada-text {
+    color: #1e3a8a; /* Azul oscuro */
+    font-weight: 800;
+    font-size: 1.1rem;
+    text-align: center;
+    text-transform: capitalize;
+    line-height: 1.2;
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+    .bonificada-grid {
+        flex-direction: column;
+        align-items: center;
+    }
+    .bonificada-item {
+        margin-bottom: 2rem;
+    }
+}
