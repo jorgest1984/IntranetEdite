@@ -123,20 +123,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     }
 }
 
-// Acción: Crear/Actualizar en Moodle
-if (isset($_GET['action']) && $_GET['action'] == 'moodle_sync') {
+
+
+// Acción: Actualizar datos en Moodle (Update)
+// Acción: Actualizar/Crear en Moodle (Sincronización Inteligente)
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'moodle_update') {
     try {
         if (!$moodle->isConfigured()) throw new Exception("Moodle no está configurado.");
-
-        // Buscar si ya existe por email
-        $mUsers = $moodle->getUsersByField('email', [$alumno['email']]);
-        $muid = null;
-
-        if (!empty($mUsers['users'])) {
-            $muid = $mUsers['users'][0]['id'];
-            // Opcional: Podríamos actualizar datos aquí si fuera necesario
+        
+        $muid = $alumno['moodle_user_id'];
+        $was_created = false;
+        
+        // 1. Intentar encontrar al usuario en Moodle si no tenemos ID o si queremos asegurar consistencia
+        $mResult = $moodle->getUsersByField('email', [$alumno['email']]);
+        
+        if (!empty($mResult['users'])) {
+            $muid = $mResult['users'][0]['id'];
         } else {
-            // Generar password básico
+            // 2. Si no existe, lo creamos
             $pass = "T" . substr(md5(time()), 0, 8) . "!";
             $newUsers = $moodle->createUser(
                 strtolower(explode('@', $alumno['email'])[0]),
@@ -146,52 +150,27 @@ if (isset($_GET['action']) && $_GET['action'] == 'moodle_sync') {
                 $alumno['email']
             );
             $muid = $newUsers[0]['id'];
+            $was_created = true;
         }
-
-        // Guardar ID en local si no estaba
+        
+        // 3. Guardar ID localmente si ha cambiado o es nuevo
         if ($muid && $alumno['moodle_user_id'] != $muid) {
-            $stU = $pdo->prepare("UPDATE alumnos SET moodle_user_id = ? WHERE id = ?");
-            $stU->execute([$muid, $id]);
+            $pdo->prepare("UPDATE alumnos SET moodle_user_id = ? WHERE id = ?")->execute([$muid, $id]);
             $alumno['moodle_user_id'] = $muid;
         }
-
-        header("Location: ficha_alumno.php?id=$id&tab=profesorado&moodle_ok=1");
-        exit();
-    } catch (Exception $e) {
-        $error = "Moodle Sync Error: " . $e->getMessage();
-    }
-}
-
-// Acción: Actualizar datos en Moodle (Update)
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'moodle_update') {
-    try {
-        if (!$moodle->isConfigured()) throw new Exception("Moodle no está configurado.");
         
-        $muid = $alumno['moodle_user_id'];
-        
-        // Si no tenemos ID, intentamos buscar por email
-        if (!$muid) {
-            $existing = $moodle->getUsersByField('email', [$alumno['email']]);
-            if (!empty($existing['users'])) {
-                $muid = $existing['users'][0]['id'];
-                // Guardar ID localmente para futuras syncs
-                $pdo->prepare("UPDATE alumnos SET moodle_user_id = ? WHERE id = ?")->execute([$muid, $id]);
-            } else {
-                throw new Exception("El usuario no existe en Moodle. Usa el botón de creación primero.");
-            }
-        }
-        
-        // Actualizar datos básicos
+        // 4. Actualizar datos (por si han cambiado en la intranet)
         $moodle->updateUser($muid, [
             'firstname' => $alumno['nombre'],
             'lastname'  => $alumno['primer_apellido'] . ' ' . $alumno['segundo_apellido'],
             'email'     => $alumno['email']
         ]);
         
-        header("Location: ficha_alumno.php?id=$id&moodle_ok=1");
+        $msg = $was_created ? "&moodle_ok=1&created=1" : "&moodle_ok=1";
+        header("Location: ficha_alumno.php?id=$id$msg");
         exit();
     } catch (Exception $e) {
-        $error = "Moodle Update Error: " . $e->getMessage();
+        $error = "Moodle Sync Error: " . $e->getMessage();
     }
 }
 
