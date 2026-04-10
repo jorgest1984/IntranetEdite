@@ -29,6 +29,60 @@ $convocatorias = [];
 $planes = [];
 $centros_db = [];
 
+// LÓGICA DE BÚSQUEDA
+$alumnos = [];
+$searchPerformed = false;
+
+try {
+    $sql = "SELECT a.* FROM alumnos a WHERE 1=1";
+    $params = [];
+
+    // Filtro rápido desde Dashboard
+    if (isset($_GET['filter']) && $_GET['filter'] == 'activos') {
+        $sql .= " AND a.baja = 0";
+        $searchPerformed = true;
+    }
+
+    // Filtros del Formulario
+    if (isset($_GET['nombre']) && $_GET['nombre'] !== '') {
+        $sql .= " AND a.nombre LIKE ?";
+        $params[] = "%" . $_GET['nombre'] . "%";
+        $searchPerformed = true;
+    }
+    if (isset($_GET['apellidos']) && $_GET['apellidos'] !== '') {
+        $sql .= " AND (a.primer_apellido LIKE ? OR a.segundo_apellido LIKE ?)";
+        $params[] = "%" . $_GET['apellidos'] . "%";
+        $params[] = "%" . $_GET['apellidos'] . "%";
+        $searchPerformed = true;
+    }
+    if (isset($_GET['dni']) && $_GET['dni'] !== '') {
+        $sql .= " AND a.dni LIKE ?";
+        $params[] = "%" . $_GET['dni'] . "%";
+        $searchPerformed = true;
+    }
+    if (isset($_GET['email']) && $_GET['email'] !== '') {
+        $sql .= " AND (a.email LIKE ? OR a.email_2 LIKE ?)";
+        $params[] = "%" . $_GET['email'] . "%";
+        $params[] = "%" . $_GET['email'] . "%";
+        $searchPerformed = true;
+    }
+    if (isset($_GET['id']) && $_GET['id'] !== '') {
+        $sql .= " AND a.id = ?";
+        $params[] = $_GET['id'];
+        $searchPerformed = true;
+    }
+
+    if ($searchPerformed) {
+        $sql .= " ORDER BY a.primer_apellido ASC, a.nombre ASC LIMIT 100";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        $alumnos = $stmt->fetchAll();
+    }
+
+} catch (Exception $e) {
+    $error = "Error en la búsqueda: " . $e->getMessage();
+}
+
 try {
     $convocatorias = $pdo->query("SELECT id, nombre FROM convocatorias ORDER BY nombre ASC LIMIT 50")->fetchAll();
     $planes = $pdo->query("SELECT id, nombre FROM planes ORDER BY nombre ASC LIMIT 50")->fetchAll();
@@ -200,6 +254,30 @@ $current_page = 'buscar_alumnos.php';
             background: #f1f5f9;
             border: 1px solid var(--border-gray);
         }
+
+        /* Moodle Status Badges */
+        .badge-moodle {
+            padding: 4px 8px;
+            border-radius: 999px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            text-transform: uppercase;
+        }
+
+        .badge-moodle-on {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        .badge-moodle-off {
+            background: #f1f5f9;
+            color: #64748b;
+            border: 1px solid var(--border-gray);
+        }
     </style>
 </head>
 <body>
@@ -343,15 +421,57 @@ $current_page = 'buscar_alumnos.php';
                                 <th>Provincia</th>
                                 <th>Empresa</th>
                                 <th>E-mail</th>
+                                <th>Moodle</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td colspan="7" style="text-align: center; padding: 2rem; color: #64748b;">
-                                    Utilice los filtros para realizar una búsqueda.
-                                </td>
-                            </tr>
+                            <?php if (!$searchPerformed): ?>
+                                <tr>
+                                    <td colspan="7" style="text-align: center; padding: 2rem; color: #64748b;">
+                                        Utilice los filtros para realizar una búsqueda.
+                                    </td>
+                                </tr>
+                            <?php elseif (empty($alumnos)): ?>
+                                <tr>
+                                    <td colspan="7" style="text-align: center; padding: 2rem; color: #b91c1c; font-weight: 600;">
+                                        No se encontraron alumnos con los criterios seleccionados.
+                                    </td>
+                                </tr>
+                            <?php else: ?>
+                                <?php foreach ($alumnos as $al): ?>
+                                    <tr>
+                                        <td>
+                                            <a href="ficha_alumno.php?id=<?= $al['id'] ?>" style="color: var(--label-blue); text-decoration: none; font-weight: 700;">
+                                                <?= htmlspecialchars($al['nombre']) ?>
+                                            </a>
+                                        </td>
+                                        <td><?= htmlspecialchars($al['primer_apellido'] . ' ' . $al['segundo_apellido']) ?></td>
+                                        <td><?= htmlspecialchars($al['dni']) ?></td>
+                                        <td><?= htmlspecialchars($al['provincia']) ?></td>
+                                        <td><?= htmlspecialchars($al['centro_trabajo'] ?: '---') ?></td>
+                                        <td><?= htmlspecialchars($al['email']) ?></td>
+                                        <td style="text-align: center;">
+                                            <?php if (!empty($al['moodle_user_id'])): ?>
+                                                <span class="badge badge-moodle badge-moodle-on">
+                                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+                                                    Sincronizado
+                                                </span>
+                                            <?php else: ?>
+                                                <span class="badge badge-moodle badge-moodle-off">
+                                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+                                                    Pendiente
+                                                </span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <a href="ficha_alumno.php?id=<?= $al['id'] ?>" class="btn-print" style="text-decoration: none; padding: 2px 8px; font-weight: 700;">
+                                                VER FICHA
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
