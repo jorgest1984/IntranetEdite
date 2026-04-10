@@ -50,6 +50,7 @@ if ($info && in_array('core_course_get_courses', $allowed_functions)) {
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <link rel="icon" type="image/png" href="/img/logo_efp.png">
     <meta charset="UTF-8">
     <title>Diagnóstico Moodle - <?= APP_NAME ?></title>
     <link rel="stylesheet" href="css/main.css">

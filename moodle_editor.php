@@ -14,6 +14,7 @@ $current_page = 'moodle_editor.php';
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <link rel="icon" type="image/png" href="/img/logo_efp.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editor de Evaluaciones de Moodle - <?= APP_NAME ?></title>

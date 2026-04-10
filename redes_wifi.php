@@ -11,6 +11,7 @@ $qr_url = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data={$qr_da
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <link rel="icon" type="image/png" href="/img/logo_efp.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Redes Wi-Fi - <?= APP_NAME ?></title>
