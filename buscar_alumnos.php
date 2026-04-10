@@ -220,10 +220,16 @@ $current_page = 'buscar_alumnos.php';
             text-transform: uppercase;
         }
 
-        .table-responsive { overflow-x: auto; }
+        .table-responsive { 
+            overflow-x: auto; 
+            width: 100%;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border-gray);
+        }
         
         .table-custom {
             width: 100%;
+            min-width: 1000px; /* Asegura scroll lateral si hay muchos datos */
             border-collapse: collapse;
             font-size: 0.75rem;
         }
@@ -443,14 +449,14 @@ $current_page = 'buscar_alumnos.php';
                                     <tr>
                                         <td>
                                             <a href="ficha_alumno.php?id=<?= $al['id'] ?>" style="color: var(--label-blue); text-decoration: none; font-weight: 700;">
-                                                <?= htmlspecialchars($al['nombre']) ?>
+                                                <?= htmlspecialchars($al['nombre'] ?? '') ?>
                                             </a>
                                         </td>
-                                        <td><?= htmlspecialchars($al['primer_apellido'] . ' ' . $al['segundo_apellido']) ?></td>
-                                        <td><?= htmlspecialchars($al['dni']) ?></td>
-                                        <td><?= htmlspecialchars($al['provincia']) ?></td>
+                                        <td><?= htmlspecialchars(($al['primer_apellido'] ?? '') . ' ' . ($al['segundo_apellido'] ?? '')) ?></td>
+                                        <td><?= htmlspecialchars($al['dni'] ?? '') ?></td>
+                                        <td><?= htmlspecialchars($al['provincia'] ?? '') ?></td>
                                         <td><?= htmlspecialchars($al['centro_trabajo'] ?: '---') ?></td>
-                                        <td><?= htmlspecialchars($al['email']) ?></td>
+                                        <td><?= htmlspecialchars($al['email'] ?? '') ?></td>
                                         <td style="text-align: center;">
                                             <?php if (!empty($al['moodle_user_id'])): ?>
                                                 <span class="badge badge-moodle badge-moodle-on">
