@@ -72,6 +72,16 @@ try {
         $searchPerformed = true;
     }
 
+    // Filtros de contacto y estado (NUEVO)
+    if (isset($_GET['incluir_1'])) {
+        $sql .= " AND a.email_personal IS NOT NULL AND a.email_personal <> ''";
+        $searchPerformed = true;
+    }
+    if (isset($_GET['incluir_2'])) {
+        $sql .= " AND a.baja = 1";
+        $searchPerformed = true;
+    }
+
     if ($searchPerformed) {
         $sql .= " ORDER BY a.primer_apellido ASC, a.nombre ASC LIMIT 100";
         $stmt = $pdo->prepare($sql);
@@ -391,10 +401,15 @@ $current_page = 'buscar_alumnos.php';
                                 <?php foreach($planes as $p): ?><option value="<?= $p['id'] ?>"><?= htmlspecialchars($p['nombre']) ?></option><?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Incluir contactos:</label>
-                            <input type="checkbox" name="incluir_1">
-                            <input type="checkbox" name="incluir_2">
+                        <div class="form-group" style="gap: 15px; margin-left: 10px;">
+                            <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                                <input type="checkbox" name="incluir_1" <?= isset($_GET['incluir_1']) ? 'checked' : '' ?>>
+                                Email personal
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                                <input type="checkbox" name="incluir_2" <?= isset($_GET['incluir_2']) ? 'checked' : '' ?>>
+                                Solo bajas
+                            </label>
                         </div>
                     </div>
 
