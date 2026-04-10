@@ -348,13 +348,16 @@ $roles = $pdo->query("SELECT * FROM roles")->fetchAll();
                                 </span>
                             </div>
                         </td>
-                        <td style="text-align: right;">
+                        <td style="text-align: right; display: flex; gap: 5px; justify-content: flex-end;">
+                            <a href="ficha_trabajador.php?id=<?= $u['id'] ?>" class="btn" style="padding: 0.4rem 0.8rem; border: 1px solid var(--label-blue); border-radius: 6px; font-size: 0.8rem; background: #eff6ff; color: var(--label-blue); text-decoration: none; font-weight: 600;">
+                                Ver Perfil
+                            </a>
                             <form method="POST" style="display:inline;">
                                 <input type="hidden" name="action" value="toggle_status">
                                 <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
                                 <input type="hidden" name="status" value="<?= $u['activo'] ? '0' : '1' ?>">
-                                <button type="submit" class="btn" style="padding: 0.4rem 0.8rem; border: 1px solid var(--border-color); font-size: 0.8rem; background: #fff;">
-                                    <?= $u['activo'] ? 'Revocar Acceso' : 'Rehabilitar' ?>
+                                <button type="submit" class="btn" style="padding: 0.4rem 0.8rem; border: 1px solid var(--border-gray); font-size: 0.8rem; background: #fff; border-radius: 6px; cursor: pointer;">
+                                    <?= $u['activo'] ? 'Suspender' : 'Activar' ?>
                                 </button>
                             </form>
                         </td>
