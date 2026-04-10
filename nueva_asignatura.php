@@ -137,20 +137,29 @@ sort($familias);
 
         .input-hora {
             width: 100%;
+            height: 100%;
+            display: block;
             border: none;
-            padding: 10px;
+            padding: 8px 5px;
             text-align: center;
             font-weight: 600;
+            font-size: 0.9rem;
             outline: none;
-            background: transparent;
-            /* Forzar visibilidad de flechitas */
-            -moz-appearance: number-input;
+            background: #fff;
+            box-sizing: border-box;
+            transition: background 0.2s;
         }
 
+        .input-hora:focus {
+            background: #fef2f2;
+        }
+
+        /* Estilo para las flechas integradas */
         .input-hora::-webkit-inner-spin-button,
         .input-hora::-webkit-outer-spin-button {
             opacity: 1;
-            margin-right: 5px;
+            cursor: pointer;
+            height: 24px;
         }
 
         /* Áreas temáticas */
