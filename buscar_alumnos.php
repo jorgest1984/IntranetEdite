@@ -24,60 +24,99 @@ $colectivos = [
     "Cuidadores no profesionales de las personas en situación de dependencia", "Empleado hogar", "ERE (Art. 51 y 52 del Estatuto de los Trabajadores)", "ERTE (Art. 47 del Estatuto de los Trabajadores)", "Fijos discontinuos en periodo de no ocupación", "Mutualistas de Colegios Profesionales no incluidos como autónomos", "Persona actualmente desempleada que anteriormente ha estado en situación de ERTE.", "Persona que actualmente está trabajando pero que anteriormente ha estado en situación de ERTE.", "Régimen especial agrario por cuenta ajena", "Régimen especial agrario por cuenta propia", "Régimen especial autónomos", "Régimen general", "Regulación de empleo en periodos de no ocupación", "Trabajador con contrato a tiempo parcial", "Trabajador con contrato temporal", "Trabajadores a tiempo parcial de carácter indefinido con trabajos discontinuos en sus periodos de no ocupación", "Trabajadores con convenio especial con la Seguridad Social", "Trabajadores con relaciones laborales de carácter especial que se recogen en el art.2 del Estatuto de los Trabajadores", "Trabajadores incluidos en el Régimen especial del mar", "Trabajadores no ocupados inscritos como demandantes de empleo en los servicios públicos de empleo", "administración pública"
 ];
 
-$comerciales = [];
-$convocatorias = [];
-$planes = [];
-$centros_db = [];
-
 // LÓGICA DE BÚSQUEDA
 $alumnos = [];
 $searchPerformed = false;
 
 try {
-    $sql = "SELECT a.* FROM alumnos a WHERE 1=1";
+    $sql = "SELECT DISTINCT a.* FROM alumnos a 
+            LEFT JOIN matriculas m ON a.id = m.alumno_id
+            WHERE 1=1";
     $params = [];
 
-    // Filtro rápido desde Dashboard
-    if (isset($_GET['filter']) && $_GET['filter'] == 'activos') {
-        $sql .= " AND a.baja = 0";
+    // Filtros del Formulario
+    if (!empty($_GET['id'])) {
+        $sql .= " AND a.id = ?";
+        $params[] = $_GET['id'];
         $searchPerformed = true;
     }
-
-    // Filtros del Formulario
-    if (isset($_GET['nombre']) && $_GET['nombre'] !== '') {
+    if (!empty($_GET['nombre'])) {
         $sql .= " AND a.nombre LIKE ?";
         $params[] = "%" . $_GET['nombre'] . "%";
         $searchPerformed = true;
     }
-    if (isset($_GET['apellidos']) && $_GET['apellidos'] !== '') {
+    if (!empty($_GET['apellidos'])) {
         $sql .= " AND (a.primer_apellido LIKE ? OR a.segundo_apellido LIKE ?)";
         $params[] = "%" . $_GET['apellidos'] . "%";
         $params[] = "%" . $_GET['apellidos'] . "%";
         $searchPerformed = true;
     }
-    if (isset($_GET['dni']) && $_GET['dni'] !== '') {
+    if (!empty($_GET['cod_grupo'])) {
+        $sql .= " AND a.cod_grupo LIKE ?";
+        $params[] = "%" . $_GET['cod_grupo'] . "%";
+        $searchPerformed = true;
+    }
+    if (!empty($_GET['estado'])) {
+        $sql .= " AND a.estado = ?";
+        $params[] = $_GET['estado'];
+        $searchPerformed = true;
+    }
+    if (!empty($_GET['comercial_id'])) {
+        $sql .= " AND a.comercial_id = ?";
+        $params[] = $_GET['comercial_id'];
+        $searchPerformed = true;
+    }
+    if (!empty($_GET['empresa'])) {
+        $sql .= " AND a.centro_trabajo LIKE ?";
+        $params[] = "%" . $_GET['empresa'] . "%";
+        $searchPerformed = true;
+    }
+    if (!empty($_GET['colectivo'])) {
+        $sql .= " AND a.colectivo = ?";
+        $params[] = $_GET['colectivo'];
+        $searchPerformed = true;
+    }
+    if (!empty($_GET['dni'])) {
         $sql .= " AND a.dni LIKE ?";
         $params[] = "%" . $_GET['dni'] . "%";
         $searchPerformed = true;
     }
-    if (isset($_GET['email']) && $_GET['email'] !== '') {
-        $sql .= " AND (a.email LIKE ? OR a.email_2 LIKE ?)";
+    if (!empty($_GET['telefono'])) {
+        $sql .= " AND (a.telefono LIKE ? OR a.telefono_empresa LIKE ?)";
+        $params[] = "%" . $_GET['telefono'] . "%";
+        $params[] = "%" . $_GET['telefono'] . "%";
+        $searchPerformed = true;
+    }
+    if (!empty($_GET['provincia'])) {
+        $sql .= " AND a.provincia = ?";
+        $params[] = $_GET['provincia'];
+        $searchPerformed = true;
+    }
+    if (!empty($_GET['email'])) {
+        $sql .= " AND (a.email LIKE ? OR a.email_personal LIKE ?)";
         $params[] = "%" . $_GET['email'] . "%";
         $params[] = "%" . $_GET['email'] . "%";
         $searchPerformed = true;
     }
-    if (isset($_GET['id']) && $_GET['id'] !== '') {
-        $sql .= " AND a.id = ?";
-        $params[] = $_GET['id'];
+    
+    // Filtros de Convocatoria y Plan (a través de matrículas)
+    if (!empty($_GET['convocatoria_id']) && $_GET['convocatoria_id'] !== 'Todas') {
+        $sql .= " AND m.convocatoria_id = ?";
+        $params[] = $_GET['convocatoria_id'];
+        $searchPerformed = true;
+    }
+    if (!empty($_GET['plan_id']) && $_GET['plan_id'] !== '') {
+        // Asumiendo que matrículas tiene plan_id o se llega a través de convocatoria
+        // Por consistencia con la UI actual de buscar_alumnos.php
         $searchPerformed = true;
     }
 
-    // Filtros de contacto y estado (NUEVO)
-    if (isset($_GET['incluir_1'])) {
+    // Checkboxes especiales
+    if (!empty($_GET['incluir_email_personal'])) {
         $sql .= " AND a.email_personal IS NOT NULL AND a.email_personal <> ''";
         $searchPerformed = true;
     }
-    if (isset($_GET['incluir_2'])) {
+    if (!empty($_GET['solo_bajas'])) {
         $sql .= " AND a.baja = 1";
         $searchPerformed = true;
     }
@@ -93,21 +132,14 @@ try {
     $error = "Error en la búsqueda: " . $e->getMessage();
 }
 
+// Cargar listas dinámicas para filtros
 try {
     $convocatorias = $pdo->query("SELECT id, nombre FROM convocatorias ORDER BY nombre ASC LIMIT 50")->fetchAll();
     $planes = $pdo->query("SELECT id, nombre FROM planes ORDER BY nombre ASC LIMIT 50")->fetchAll();
-    
-    // Obtener Comerciales (Rol 'Comercial')
-    $stmtComerciales = $pdo->query("SELECT u.id, u.nombre, u.apellidos FROM usuarios u JOIN roles r ON u.rol_id = r.id WHERE r.nombre LIKE '%Comercial%' AND u.activo = 1 ORDER BY u.nombre ASC");
-    $comerciales = $stmtComerciales->fetchAll();
-
-    // Obtener Centros (Tabla empresas para el datalist)
-    $stmtEmpresas = $pdo->query("SELECT id, nombre FROM empresas ORDER BY nombre ASC LIMIT 100");
-    $centros_db = $stmtEmpresas->fetchAll();
-
+    $comerciales = $pdo->query("SELECT u.id, u.nombre, u.apellidos FROM usuarios u JOIN roles r ON u.rol_id = r.id WHERE r.nombre LIKE '%Comercial%' AND u.activo = 1 ORDER BY u.nombre ASC")->fetchAll();
+    $centros_db = $pdo->query("SELECT DISTINCT centro_trabajo FROM alumnos WHERE centro_trabajo IS NOT NULL AND centro_trabajo != '' ORDER BY centro_trabajo ASC LIMIT 100")->fetchAll(PDO::FETCH_COLUMN);
 } catch (Exception $e) {}
 
-$current_page = 'buscar_alumnos.php';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -115,15 +147,14 @@ $current_page = 'buscar_alumnos.php';
     <link rel="icon" type="image/png" href="/img/logo_efp.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buscar Alumno - <?= APP_NAME ?></title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Buscador de Alumnos - <?= APP_NAME ?></title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/main.css">
     <style>
         :root {
             --title-red: #b91c1c;
             --label-blue: #1e40af;
             --border-gray: #cbd5e1;
-            --bg-light: #f8fafc;
         }
 
         body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
@@ -157,8 +188,8 @@ $current_page = 'buscar_alumnos.php';
         .search-row {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 8px;
+            gap: 15px;
+            margin-bottom: 10px;
             align-items: center;
         }
 
@@ -177,14 +208,14 @@ $current_page = 'buscar_alumnos.php';
 
         .form-control {
             font-size: 0.8rem;
-            padding: 2px 5px;
+            padding: 3px 6px;
             border: 1px solid var(--border-gray);
             border-radius: 2px;
             background: #fff;
         }
 
-        select.form-control { height: 24px; padding: 0 5px; }
-        input[type="text"].form-control, input[type="date"].form-control { height: 22px; }
+        select.form-control { height: 26px; padding: 0 6px; }
+        input[type="text"].form-control { height: 24px; }
 
         .btn-buscar {
             background: #f1f5f9;
@@ -201,12 +232,12 @@ $current_page = 'buscar_alumnos.php';
         .btn-print {
             background: #fff;
             border: 1px solid var(--border-gray);
-            padding: 2px 10px;
+            padding: 3px 12px;
             font-size: 0.8rem;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
         }
 
         /* Results Table */
@@ -218,7 +249,7 @@ $current_page = 'buscar_alumnos.php';
         }
 
         .results-header {
-            padding: 0.5rem;
+            padding: 0.6rem;
             text-align: center;
             border-bottom: 1px solid var(--border-gray);
         }
@@ -240,7 +271,7 @@ $current_page = 'buscar_alumnos.php';
         
         .table-custom {
             width: 100%;
-            min-width: 1000px; /* Asegura scroll lateral si hay muchos datos */
+            min-width: 1100px;
             border-collapse: collapse;
             font-size: 0.75rem;
         }
@@ -248,15 +279,23 @@ $current_page = 'buscar_alumnos.php';
         .table-custom th {
             background: #f8fafc;
             border: 1px solid var(--border-gray);
-            padding: 6px;
+            padding: 8px;
             text-align: left;
             color: var(--label-blue);
             font-weight: 700;
         }
 
+        .table-custom th svg {
+            width: 10px;
+            height: 10px;
+            vertical-align: middle;
+            margin-right: 5px;
+            color: #64748b;
+        }
+
         .table-custom td {
             border: 1px solid #f1f5f9;
-            padding: 6px;
+            padding: 8px;
             white-space: nowrap;
         }
 
@@ -264,36 +303,13 @@ $current_page = 'buscar_alumnos.php';
         .table-custom tr:hover { background: #f1f5f9; }
 
         .btn-volver {
-            margin-top: 10px;
-            padding: 4px 15px;
+            margin-top: 15px;
+            padding: 5px 20px;
             font-size: 0.75rem;
             cursor: pointer;
             background: #f1f5f9;
             border: 1px solid var(--border-gray);
-        }
-
-        /* Moodle Status Badges */
-        .badge-moodle {
-            padding: 4px 8px;
-            border-radius: 999px;
-            font-size: 0.65rem;
-            font-weight: 700;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            text-transform: uppercase;
-        }
-
-        .badge-moodle-on {
-            background: #dcfce7;
-            color: #166534;
-            border: 1px solid #bbf7d0;
-        }
-
-        .badge-moodle-off {
-            background: #f1f5f9;
-            color: #64748b;
-            border: 1px solid var(--border-gray);
+            border-radius: 3px;
         }
     </style>
 </head>
@@ -313,25 +329,27 @@ $current_page = 'buscar_alumnos.php';
                     <div class="search-row">
                         <div class="form-group">
                             <label>Cod. Alumno:</label>
-                            <input type="text" name="id" class="form-control" style="width: 60px;">
+                            <input type="text" name="id" value="<?= htmlspecialchars($_GET['id'] ?? '') ?>" class="form-control" style="width: 80px;">
                         </div>
                         <div class="form-group">
                             <label>Nombre:</label>
-                            <input type="text" name="nombre" class="form-control" style="width: 150px;">
+                            <input type="text" name="nombre" value="<?= htmlspecialchars($_GET['nombre'] ?? '') ?>" class="form-control" style="width: 200px;">
                         </div>
                         <div class="form-group">
                             <label>Apellidos:</label>
-                            <input type="text" name="apellidos" class="form-control" style="width: 250px;">
+                            <input type="text" name="apellidos" value="<?= htmlspecialchars($_GET['apellidos'] ?? '') ?>" class="form-control" style="width: 300px;">
                         </div>
                         <div class="form-group">
                             <label>Cod. Grupo:</label>
-                            <input type="text" name="cod_grupo" class="form-control" style="width: 80px;">
+                            <input type="text" name="cod_grupo" value="<?= htmlspecialchars($_GET['cod_grupo'] ?? '') ?>" class="form-control" style="width: 100px;">
                         </div>
                         <div class="form-group">
                             <label>Estado:</label>
-                            <select name="estado" class="form-control" style="width: 150px;">
+                            <select name="estado" class="form-control" style="width: 160px;">
                                 <option value="">---</option>
-                                <?php foreach($estados as $est): ?><option value="<?= $est ?>"><?= $est ?></option><?php endforeach; ?>
+                                <?php foreach($estados as $est): ?>
+                                    <option value="<?= $est ?>" <?= ($_GET['estado'] ?? '') == $est ? 'selected' : '' ?>><?= $est ?></option>
+                                <?php endforeach; ?>
                             </select>
                         </div>
                     </div>
@@ -340,25 +358,29 @@ $current_page = 'buscar_alumnos.php';
                     <div class="search-row">
                         <div class="form-group">
                             <label>Comercial:</label>
-                            <select name="comercial" class="form-control" style="width: 250px;">
+                            <select name="comercial_id" class="form-control" style="width: 280px;">
                                 <option value="">---</option>
                                 <?php foreach($comerciales as $c): ?>
-                                    <option value="<?= $c['id'] ?>"><?= htmlspecialchars($c['nombre'] . ' ' . $c['apellidos']) ?></option>
+                                    <option value="<?= $c['id'] ?>" <?= ($_GET['comercial_id'] ?? '') == $c['id'] ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($c['nombre'] . ' ' . $c['apellidos']) ?>
+                                    </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
                         <div class="form-group">
                             <label>Empresa:</label>
-                            <input type="text" name="empresa" class="form-control" list="centros_list" placeholder="Escriba empresa..." style="width: 250px;">
+                            <input type="text" name="empresa" value="<?= htmlspecialchars($_GET['empresa'] ?? '') ?>" class="form-control" list="centros_list" style="width: 250px;">
                             <datalist id="centros_list">
-                                <?php foreach($centros_db as $cent): ?><option value="<?= htmlspecialchars($cent['nombre']) ?>"><?php endforeach; ?>
+                                <?php foreach($centros_db as $cent): ?><option value="<?= htmlspecialchars($cent) ?>"><?php endforeach; ?>
                             </datalist>
                         </div>
                         <div class="form-group">
                             <label>Colectivo:</label>
-                            <select name="colectivo" class="form-control" style="width: 180px;">
+                            <select name="colectivo" class="form-control" style="width: 220px;">
                                 <option value="">---</option>
-                                <?php foreach($colectivos as $col): ?><option value="<?= $col ?>"><?= $col ?></option><?php endforeach; ?>
+                                <?php foreach($colectivos as $col): ?>
+                                    <option value="<?= $col ?>" <?= ($_GET['colectivo'] ?? '') == $col ? 'selected' : '' ?>><?= $col ?></option>
+                                <?php endforeach; ?>
                             </select>
                         </div>
                     </div>
@@ -367,22 +389,26 @@ $current_page = 'buscar_alumnos.php';
                     <div class="search-row">
                         <div class="form-group">
                             <label>NIF:</label>
-                            <input type="text" name="dni" class="form-control" style="width: 100px;">
+                            <input type="text" name="dni" value="<?= htmlspecialchars($_GET['dni'] ?? '') ?>" class="form-control" style="width: 120px;">
                         </div>
                         <div class="form-group">
                             <label>Tlfno/móvil:</label>
-                            <input type="text" name="telefono" class="form-control" style="width: 100px;">
+                            <input type="text" name="telefono" value="<?= htmlspecialchars($_GET['telefono'] ?? '') ?>" class="form-control" style="width: 120px;">
                         </div>
                         <div class="form-group">
                             <label>Provincia:</label>
-                            <input type="text" name="provincia" class="form-control" list="provincias_list" style="width: 150px;">
-                            <datalist id="provincias_list">
-                                <?php foreach($provincias as $prov): ?><option value="<?= mb_strtoupper($prov, 'UTF-8') ?>"><?php endforeach; ?>
-                            </datalist>
+                            <select name="provincia" class="form-control" style="width: 180px;">
+                                <option value="">---</option>
+                                <?php foreach($provincias as $prov): ?>
+                                    <option value="<?= mb_strtoupper($prov, 'UTF-8') ?>" <?= ($_GET['provincia'] ?? '') == mb_strtoupper($prov, 'UTF-8') ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($prov) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>E-mail:</label>
-                            <input type="text" name="email" class="form-control" style="width: 150px;">
+                            <input type="text" name="email" value="<?= htmlspecialchars($_GET['email'] ?? '') ?>" class="form-control" style="width: 200px;">
                         </div>
                     </div>
 
@@ -390,25 +416,33 @@ $current_page = 'buscar_alumnos.php';
                     <div class="search-row">
                         <div class="form-group">
                             <label>Convocatoria:</label>
-                            <select name="convocatoria" class="form-control" style="width: 80px;">
+                            <select name="convocatoria_id" class="form-control" style="width: 100px;">
                                 <option value="Todas">Todas</option>
-                                <?php foreach($convocatorias as $conv): ?><option value="<?= $conv['id'] ?>"><?= htmlspecialchars($conv['nombre']) ?></option><?php endforeach; ?>
+                                <?php foreach($convocatorias as $conv): ?>
+                                    <option value="<?= $conv['id'] ?>" <?= ($_GET['convocatoria_id'] ?? '') == $conv['id'] ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($conv['nombre']) ?>
+                                    </option>
+                                <?php endforeach; ?>
                             </select>
                         </div>
                         <div class="form-group">
                             <label>Plan:</label>
-                            <select name="plan" class="form-control" style="width: 450px;">
+                            <select name="plan_id" class="form-control" style="width: 500px;">
                                 <option value="">------------ Todos los planes ------------</option>
-                                <?php foreach($planes as $p): ?><option value="<?= $p['id'] ?>"><?= htmlspecialchars($p['nombre']) ?></option><?php endforeach; ?>
+                                <?php foreach($planes as $p): ?>
+                                    <option value="<?= $p['id'] ?>" <?= ($_GET['plan_id'] ?? '') == $p['id'] ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($p['nombre']) ?>
+                                    </option>
+                                <?php endforeach; ?>
                             </select>
                         </div>
                         <div class="form-group" style="gap: 15px; margin-left: 10px;">
-                            <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                                <input type="checkbox" name="incluir_1" <?= isset($_GET['incluir_1']) ? 'checked' : '' ?>>
-                                Email personal
+                            <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; color: var(--label-blue); font-weight: 700; font-size: 0.75rem;">
+                                <input type="checkbox" name="incluir_email_personal" <?= isset($_GET['incluir_email_personal']) ? 'checked' : '' ?>>
+                                Incluir contactos
                             </label>
-                            <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                                <input type="checkbox" name="incluir_2" <?= isset($_GET['incluir_2']) ? 'checked' : '' ?>>
+                            <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; color: var(--label-blue); font-weight: 700; font-size: 0.75rem;">
+                                <input type="checkbox" name="solo_bajas" <?= isset($_GET['solo_bajas']) ? 'checked' : '' ?>>
                                 Solo bajas
                             </label>
                         </div>
@@ -416,7 +450,7 @@ $current_page = 'buscar_alumnos.php';
 
                     <div style="text-align: center; margin-top: 15px;">
                         <button type="submit" class="btn-buscar">Buscar</button>
-                        <button type="button" class="btn-print">
+                        <button type="button" class="btn-print" onclick="window.print()">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg" width="16" alt="PDF">
                             Imprimir
                         </button>
@@ -427,8 +461,8 @@ $current_page = 'buscar_alumnos.php';
             <!-- RESULTADOS -->
             <div class="results-section">
                 <div class="results-header">
-                    <div style="font-size: 0.65rem; display: flex; align-items: center; gap: 5px; margin-bottom: 5px;">
-                        <input type="checkbox"> Ordenar múltiple
+                    <div style="font-size: 0.65rem; display: flex; align-items: center; gap: 5px; margin-bottom: 5px; color: var(--label-blue); font-weight: 700;">
+                        <input type="checkbox" name="multiple_sort"> Ordenar múltiple
                     </div>
                     <h2>RESULTADO DE LA BÚSQUEDA</h2>
                 </div>
@@ -437,14 +471,13 @@ $current_page = 'buscar_alumnos.php';
                     <table class="table-custom">
                         <thead>
                             <tr>
-                                <th>Nombre</th>
-                                <th>Apellidos</th>
-                                <th>NIF</th>
-                                <th>Provincia</th>
-                                <th>Empresa</th>
-                                <th>E-mail</th>
-                                <th>Moodle</th>
-                                <th>Acciones</th>
+                                <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Nombre</th>
+                                <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Apellidos</th>
+                                <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>NIF</th>
+                                <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Provincia</th>
+                                <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Empresa</th>
+                                <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>E-mail</th>
+                                <th style="text-align: center;">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -473,19 +506,6 @@ $current_page = 'buscar_alumnos.php';
                                         <td><?= htmlspecialchars($al['provincia'] ?? '') ?></td>
                                         <td><?= htmlspecialchars($al['centro_trabajo'] ?: '---') ?></td>
                                         <td><?= htmlspecialchars($al['email'] ?? '') ?></td>
-                                        <td style="text-align: center;">
-                                            <?php if (!empty($al['moodle_user_id'])): ?>
-                                                <span class="badge badge-moodle badge-moodle-on">
-                                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
-                                                    Sincronizado
-                                                </span>
-                                            <?php else: ?>
-                                                <span class="badge badge-moodle badge-moodle-off">
-                                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
-                                                    Pendiente
-                                                </span>
-                                            <?php endif; ?>
-                                        </td>
                                         <td style="text-align: center;">
                                             <a href="ficha_alumno.php?id=<?= $al['id'] ?>" class="btn-print" style="text-decoration: none; padding: 2px 8px; font-weight: 700;">
                                                 VER FICHA
