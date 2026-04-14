@@ -72,12 +72,12 @@ $next_id = 1564;
                         <input type="text" name="emisor_search_cif" class="form-input-invoice provider-input-cif" placeholder="Nombre o CIF">
                         <input type="text" name="emisor_search_name" class="form-input-invoice provider-input-name" placeholder="" readonly>
                         
-                        <a href="ficha_proveedor.php" class="btn-action-invoice" id="btnAddProvider" title="Añadir proveedor">
+                        <button type="button" class="btn-action-invoice" id="btnAddProvider" title="Añadir proveedor" onclick="location.href='nuevo_proveedor.php?from=factura'">
                             <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-                        </a>
-                        <a href="ficha_proveedor.php" class="btn-action-invoice" id="btnEditProvider" title="Ver/Editar proveedor">
+                        </button>
+                        <button type="button" class="btn-action-invoice" id="btnEditProvider" title="Ver/Editar proveedor">
                             <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-                        </a>
+                        </button>
                     </div>
                 </div>
 
@@ -115,17 +115,18 @@ $next_id = 1564;
 </div>
 
 <script>
+    // Alerta para el botón editar (placeholder por ahora)
+    document.getElementById('btnEditProvider').onclick = () => {
+        alert('Funcionalidad de edición de proveedor: Se abrirá la ficha del emisor seleccionado.');
+    };
+
     // Cambio de tipo de emisor (Placeholder visual)
     document.querySelectorAll('input[name="tipo_emisor"]').forEach(radio => {
         radio.addEventListener('change', (e) => {
             console.log("Cambiando búsqueda a: " + e.target.value);
-            // Aquí se implementaría la lógica para cambiar datalists o fuentes AJAX
         });
     });
 </script>
-
-</body>
-</html>
 
 </body>
 </html>
