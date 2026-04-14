@@ -72,12 +72,12 @@ $next_id = 1564;
                         <input type="text" name="emisor_search_cif" class="form-input-invoice provider-input-cif" placeholder="Nombre o CIF">
                         <input type="text" name="emisor_search_name" class="form-input-invoice provider-input-name" placeholder="" readonly>
                         
-                        <button type="button" class="btn-action-invoice" id="btnAddProvider" title="Añadir proveedor">
+                        <a href="ficha_proveedor.php" class="btn-action-invoice" id="btnAddProvider" title="Añadir proveedor">
                             <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-                        </button>
-                        <button type="button" class="btn-action-invoice" id="btnEditProvider" title="Ver/Editar proveedor">
+                        </a>
+                        <a href="ficha_proveedor.php" class="btn-action-invoice" id="btnEditProvider" title="Ver/Editar proveedor">
                             <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-                        </button>
+                        </a>
                     </div>
                 </div>
 
@@ -114,59 +114,18 @@ $next_id = 1564;
     </main>
 </div>
 
-<!-- MODAL AÑADIR PROVEEDOR -->
-<div id="modalAddProvider" class="modal-invoice">
-    <div class="modal-content-invoice">
-        <div class="modal-header">
-            <h3>Añadir Nuevo Proveedor</h3>
-            <button class="close-modal">&times;</button>
-        </div>
-        <form id="formAddProvider">
-            <div style="margin-bottom: 1rem;">
-                <label style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.5rem;">CIF / NIF</label>
-                <input type="text" class="form-input-invoice" style="max-width: 100%;" required>
-            </div>
-            <div style="margin-bottom: 1rem;">
-                <label style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.5rem;">Razón Social / Nombre</label>
-                <input type="text" class="form-input-invoice" style="max-width: 100%;" required>
-            </div>
-            <div style="margin-bottom: 1.5rem;">
-                <label style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.5rem;">Dirección</label>
-                <input type="text" class="form-input-invoice" style="max-width: 100%;">
-            </div>
-            <div style="text-align: right;">
-                <button type="submit" class="btn btn-primary">Guardar Proveedor</button>
-            </div>
-        </form>
-    </div>
-</div>
-
 <script>
-    // Gestión de Modales
-    const modalAdd = document.getElementById('modalAddProvider');
-    const btnAdd = document.getElementById('btnAddProvider');
-    const closeBtn = document.querySelector('.close-modal');
-
-    btnAdd.onclick = () => modalAdd.style.display = "block";
-    closeBtn.onclick = () => modalAdd.style.display = "none";
-    
-    window.onclick = (event) => {
-        if (event.target == modalAdd) modalAdd.style.display = "none";
-    }
-
-    // Alerta para el botón editar (placeholder por ahora)
-    document.getElementById('btnEditProvider').onclick = () => {
-        alert('Funcionalidad de edición de proveedor: Se abrirá la ficha del emisor seleccionado.');
-    };
-
     // Cambio de tipo de emisor (Placeholder visual)
     document.querySelectorAll('input[name="tipo_emisor"]').forEach(radio => {
         radio.addEventListener('change', (e) => {
-            const label = document.querySelector('label[for="emisor_search_cif"]') || { innerText: ''};
             console.log("Cambiando búsqueda a: " + e.target.value);
+            // Aquí se implementaría la lógica para cambiar datalists o fuentes AJAX
         });
     });
 </script>
+
+</body>
+</html>
 
 </body>
 </html>
