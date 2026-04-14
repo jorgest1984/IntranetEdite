@@ -1,0 +1,222 @@
+/* css/facturas.css */
+
+:root {
+    --invoice-red: #b91c1c;
+    --invoice-blue: #1e40af;
+    --invoice-border: #cbd5e1;
+    --invoice-bg-light: #f8fafc;
+}
+
+.invoice-actions-top {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+}
+
+.invoice-search-card {
+    background: #fff;
+    border: 1px solid var(--invoice-border);
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.invoice-card-header {
+    background: #fff;
+    padding: 0.6rem;
+    border-bottom: 2px solid var(--invoice-border);
+    text-align: center;
+}
+
+.invoice-card-header h2 {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--invoice-red);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.invoice-form {
+    padding: 1.25rem 1.5rem;
+}
+
+.invoice-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    align-items: center;
+}
+
+.form-group-compact {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-group-compact label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--invoice-blue);
+    white-space: nowrap;
+}
+
+.invoice-input {
+    font-size: 0.8rem;
+    padding: 3px 8px;
+    border: 1px solid var(--invoice-border);
+    border-radius: 2px;
+    height: 26px;
+    color: #334155;
+}
+
+.invoice-input:focus {
+    outline: none;
+    border-color: var(--invoice-blue);
+    box-shadow: 0 0 0 2px rgba(30, 64, 175, 0.1);
+}
+
+.invoice-form-actions {
+    text-align: center;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.btn-invoice {
+    padding: 6px 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid var(--invoice-border);
+    transition: all 0.2s;
+}
+
+.btn-invoice-primary {
+    background: var(--invoice-blue);
+    color: white;
+    border-color: var(--invoice-blue);
+}
+
+.btn-invoice-primary:hover {
+    background: #1e3a8a;
+}
+
+.btn-invoice-secondary {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.btn-invoice-secondary:hover {
+    background: #e2e8f0;
+}
+
+/* Results Table */
+.invoice-results {
+    background: #fff;
+    border: 1px solid var(--invoice-border);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.results-info {
+    padding: 0.75rem 1rem;
+    font-size: 0.75rem;
+    color: #64748b;
+    border-top: 1px solid var(--invoice-border);
+}
+
+.table-invoices {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.75rem;
+}
+
+.table-invoices th {
+    background: #1e293b; /* Encabezado oscuro según captura */
+    color: white;
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 600;
+    border-right: 1px solid rgba(255,255,255,0.1);
+    white-space: nowrap;
+}
+
+.table-invoices th:last-child {
+    border-right: none;
+}
+
+.table-invoices th svg {
+    width: 12px;
+    height: 12px;
+    margin-right: 6px;
+    vertical-align: middle;
+    opacity: 0.7;
+}
+
+.table-invoices td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    white-space: nowrap;
+}
+
+.table-invoices tr:hover td {
+    background-color: #f8fafc;
+}
+
+.invoice-id-link {
+    color: var(--invoice-blue);
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.invoice-id-link:hover {
+    text-decoration: underline;
+}
+
+/* Pagination */
+.invoice-pagination {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    padding: 1.5rem 0;
+}
+
+.page-btn {
+    min-width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 8px;
+    border: 1px solid var(--invoice-border);
+    background: #fff;
+    font-size: 0.8rem;
+    color: var(--invoice-blue);
+    text-decoration: none;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.page-btn:hover {
+    background: #f1f5f9;
+}
+
+.page-btn.active {
+    background: var(--invoice-blue);
+    color: white;
+    border-color: var(--invoice-blue);
+}
+
+.page-btn.disabled {
+    color: #cbd5e1;
+    pointer-events: none;
+}
