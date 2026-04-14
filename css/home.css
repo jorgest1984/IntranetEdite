@@ -77,12 +77,14 @@
 }
 
 .tile-blue {
-    background-color: #006ce4; /* Azul vibrante */
+    background: linear-gradient(135deg, #006ce4 0%, #0056b3 100%);
     color: white;
+    border: 1px solid rgba(255,255,255,0.1);
 }
 
 .tile-blue:hover {
-    background-color: #0056b3; 
+    background: linear-gradient(135deg, #007aff 0%, #0060c9 100%);
+    box-shadow: 0 15px 25px -5px rgba(0, 108, 228, 0.4);
 }
 
 .tile-purple {
@@ -152,8 +154,8 @@
 }
 
 .search-input-wrapper:focus-within {
-    border-color: var(--primary-color);
-    box-shadow: 0 10px 15px -3px rgba(220, 38, 38, 0.1);
+    border-color: #006ce4;
+    box-shadow: 0 10px 15px -3px rgba(0, 108, 228, 0.15);
     transform: translateY(-1px);
 }
 
