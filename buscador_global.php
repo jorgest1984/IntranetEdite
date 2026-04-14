@@ -83,10 +83,10 @@ if (!empty($term)) {
 
     // --- BÚSQUEDA CONTACTOS (En Empresas) ---
     if (in_array('contactos', $searchIn)) {
-        $sql = "SELECT id, nombre as empresa, contacto_nombre, contacto_email, contacto_telefono 
+        $sql = "SELECT id, nombre as empresa, contacto_nombre, contacto_telefono 
                 FROM empresas 
-                WHERE (contacto_nombre LIKE ? OR contacto_email LIKE ? OR contacto_telefono LIKE ?)";
-        $params = [$searchLike, $searchLike, $searchLike];
+                WHERE (contacto_nombre LIKE ? OR contacto_telefono LIKE ?)";
+        $params = [$searchLike, $searchLike];
         if (!empty($provincia)) { $sql .= " AND provincia = ?"; $params[] = $provincia; }
         $sql .= " LIMIT $limit";
         $results['contactos'] = $pdo->prepare($sql);
@@ -256,7 +256,7 @@ $allAreas = [
                                             case 'contactos':
                                                 $url = "ficha_empresa.php?id=" . $row['id'];
                                                 $main = $row['contacto_nombre'];
-                                                $sub = "Empresa: " . $row['empresa'];
+                                                $sub = "Empresa: " . $row['empresa'] . ($row['contacto_telefono'] ? " · " . $row['contacto_telefono'] : "");
                                                 break;
                                             case 'usuarios':
                                                 $url = "ficha_usuario.php?id=" . $row['id'];
