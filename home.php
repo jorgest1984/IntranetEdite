@@ -31,7 +31,7 @@ $sections = [
         ['title' => 'Plan FIP Madrid', 'icon' => '<svg viewBox="0 0 24 24"><path d="M5 21V3h14v18l-7-3-7 3zm2-14.99V18l5-2.15L17 18V6.01H7z"/></svg>', 'url' => '#', 'color' => 'red'], 
         ['title' => 'Centros', 'icon' => '<svg viewBox="0 0 24 24"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-8h8v8zm-2-6h-4v4h4v-4z"/></svg>', 'url' => 'buscar_empresas.php', 'color' => 'red'],
         ['title' => 'Tutorías', 'icon' => '<svg viewBox="0 0 24 24"><path d="M15 8c0-1.42-.5-2.73-1.33-3.76.42-.14.86-.24 1.33-.24 2.21 0 4 1.79 4 4s-1.79 4-4 4c-.43 0-.84-.09-1.23-.21-.03-.01-.06-.02-.1-.03A5.98 5.98 0 0 0 15 8zm1.66 5.11C18.1 13.88 21 15.6 21 17v2h2v-2c0-2.12-3.32-3.6-5.34-3.89zM9 4c2.21 0 4 1.79 4 4s-1.79 4-4 4-4-1.79-4-4 1.79-4 4-4zm6 13c0-2.67-5.33-4-8-4s-8 1.33-8 4v2h16v-2z"/></svg>', 'url' => 'tutorias.php', 'color' => 'red'],
-        ['title' => 'Buscador', 'icon' => '<svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>', 'url' => '#', 'color' => 'red'],
+        ['title' => 'Buscador', 'icon' => '<svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>', 'url' => 'buscador_global.php', 'color' => 'red'],
         ['title' => 'Envío de claves', 'icon' => '<svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>', 'url' => 'envio_claves.php', 'color' => 'black'],
         ['title' => 'Usuarios', 'icon' => '<svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>', 'url' => 'usuarios.php', 'color' => 'black'],
     ],
@@ -74,6 +74,15 @@ $sections = [
             <div class="page-title">
                 <h1>Panel Principal</h1>
                 <p>Navegación y resumen general de actividad</p>
+            </div>
+            <div class="header-search">
+                <form action="buscador_global.php" method="GET" class="search-form">
+                    <div class="search-input-wrapper">
+                        <svg viewBox="0 0 24 24" class="search-icon"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                        <input type="text" name="q" placeholder="Búsqueda global (alumnos, empresas, cursos...)" aria-label="Buscador global">
+                        <button type="submit" class="btn-search-submit">Buscar</button>
+                    </div>
+                </form>
             </div>
         </header>
 
