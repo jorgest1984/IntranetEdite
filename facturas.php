@@ -108,10 +108,10 @@ try {
                 <p>Relación de facturas emitidas y estado de cobro</p>
             </div>
             <div class="invoice-actions-top">
-                <button class="btn btn-primary">
+                <a href="nueva_factura.php" class="btn btn-primary">
                     <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
                     Nueva factura
-                </button>
+                </a>
                 <button class="btn btn-invoice-secondary" style="background: #475569; color: white; border: none;">
                     <svg style="fill: currentColor;" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
                     Importar facturas
