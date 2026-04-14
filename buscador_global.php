@@ -123,17 +123,17 @@ if (!empty($term)) {
     // --- BÚSQUEDA GRUPOS ---
     if (in_array('grupos', $searchIn)) {
         if ($patternMatch) {
-            $sql = "SELECT g.id, g.codigo_grupo, af.titulo as curso_nombre 
+            $sql = "SELECT g.id, g.numero_grupo, af.titulo as curso_nombre 
                     FROM grupos g 
-                    JOIN acciones_formativas af ON g.accion_formativa_id = af.id 
+                    JOIN acciones_formativas af ON g.accion_id = af.id 
                     WHERE af.num_accion = ?";
             $params = [$accNum];
-            if ($grpCode) { $sql .= " AND g.codigo_grupo LIKE ?"; $params[] = "%$grpCode%"; }
+            if ($grpCode) { $sql .= " AND g.numero_grupo LIKE ?"; $params[] = "%$grpCode%"; }
         } else {
-            $sql = "SELECT g.id, g.codigo_grupo, af.titulo as curso_nombre 
+            $sql = "SELECT g.id, g.numero_grupo, af.titulo as curso_nombre 
                     FROM grupos g 
-                    LEFT JOIN acciones_formativas af ON g.accion_formativa_id = af.id 
-                    WHERE g.codigo_grupo LIKE ? LIMIT $limit";
+                    LEFT JOIN acciones_formativas af ON g.accion_id = af.id 
+                    WHERE g.numero_grupo LIKE ? LIMIT $limit";
             $params = [$searchLike];
         }
         $results['grupos'] = $pdo->prepare($sql);
@@ -270,7 +270,7 @@ $allAreas = [
                                                 break;
                                             case 'grupos':
                                                 $url = "grupos.php?id=" . $row['id'];
-                                                $main = "Grupo " . $row['codigo_grupo'];
+                                                $main = "Grupo " . $row['numero_grupo'];
                                                 $sub = $row['curso_nombre'];
                                                 break;
                                         }
