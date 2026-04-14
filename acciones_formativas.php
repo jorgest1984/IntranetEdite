@@ -15,11 +15,21 @@ $convocatorias = $pdo->query("SELECT id, nombre FROM convocatorias ORDER BY nomb
 $planes = $pdo->query("SELECT id, nombre FROM planes ORDER BY nombre ASC")->fetchAll();
 
 // Dynamic lists from acciones_formativas table
-$solicitantes = $pdo->query("SELECT DISTINCT solicitante FROM acciones_formativas WHERE solicitante IS NOT NULL AND solicitante != '' ORDER BY solicitante ASC")->fetchAll(PDO::FETCH_COLUMN);
-$sectores = $pdo->query("SELECT DISTINCT sector FROM acciones_formativas WHERE sector IS NOT NULL AND sector != '' ORDER BY sector ASC")->fetchAll(PDO::FETCH_COLUMN);
-$proveedores = $pdo->query("SELECT DISTINCT proveedor FROM acciones_formativas WHERE proveedor IS NOT NULL AND proveedor != '' ORDER BY proveedor ASC")->fetchAll(PDO::FETCH_COLUMN);
-$catalogos = $pdo->query("SELECT DISTINCT catalogo FROM acciones_formativas WHERE catalogo IS NOT NULL AND catalogo != '' ORDER BY catalogo ASC")->fetchAll(PDO::FETCH_COLUMN);
-$consultoras = $pdo->query("SELECT DISTINCT consultora FROM acciones_formativas WHERE consultora IS NOT NULL AND consultora != '' ORDER BY consultora ASC")->fetchAll(PDO::FETCH_COLUMN);
+// Helper function for safe filter queries
+function getSafeDistinctValues($pdo, $column, $table = 'acciones_formativas') {
+    try {
+        return $pdo->query("SELECT DISTINCT $column FROM $table WHERE $column IS NOT NULL AND $column != '' ORDER BY $column ASC")->fetchAll(PDO::FETCH_COLUMN);
+    } catch (Exception $e) {
+        return [];
+    }
+}
+
+$solicitantes = getSafeDistinctValues($pdo, 'solicitante');
+$sectores = getSafeDistinctValues($pdo, 'sector');
+$proveedores = getSafeDistinctValues($pdo, 'proveedor');
+$catalogos = getSafeDistinctValues($pdo, 'catalogo');
+$consultoras = getSafeDistinctValues($pdo, 'consultora');
+
 
 $modalidades = ['TELEFORMACIÓN', 'PRESENCIAL', 'MIXTA', 'AULA VIRTUAL'];
 $prioridades = ['Alta', 'Media', 'Baja'];
