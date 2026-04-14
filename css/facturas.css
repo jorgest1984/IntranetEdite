@@ -1,8 +1,8 @@
 /* css/facturas.css */
 
 :root {
-    --invoice-red: #b91c1c;
-    --invoice-blue: #1e40af;
+    --invoice-blue-dark: #0056b3;
+    --invoice-blue: #006ce4;
     --invoice-border: #cbd5e1;
     --invoice-bg-light: #f8fafc;
 }
@@ -34,7 +34,7 @@
     margin: 0;
     font-size: 0.85rem;
     font-weight: 800;
-    color: var(--invoice-red);
+    color: var(--invoice-blue-dark);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }

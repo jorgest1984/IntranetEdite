@@ -142,7 +142,7 @@ $current_page = 'buscar_empresas.php';
     <link rel="stylesheet" href="css/main.css">
     <style>
         :root {
-            --title-red: #b91c1c;
+            --title-blue: #006ce4;
             --label-blue: #1e40af;
             --border-gray: #cbd5e1;
             --bg-light: #f8fafc;
@@ -170,7 +170,7 @@ $current_page = 'buscar_empresas.php';
             margin: 0;
             font-size: 0.85rem;
             font-weight: 800;
-            color: var(--title-red);
+            color: var(--title-blue);
             text-transform: uppercase;
         }
 
@@ -249,7 +249,7 @@ $current_page = 'buscar_empresas.php';
             margin: 0;
             font-size: 0.85rem;
             font-weight: 800;
-            color: var(--title-red);
+            color: var(--title-blue);
             text-transform: uppercase;
         }
 

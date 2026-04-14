@@ -4,14 +4,14 @@
     --bg-color: #f8fafc;
     --card-bg: #ffffff;
     --input-bg: #ffffff;
-    --input-focus-bg: #fef2f2;
+    --input-focus-bg: #eff6ff;
     --border-color: #e2e8f0;
 
-    --primary-color: #dc2626;
-    /* Edite Formacion Red */
-    --primary-hover: #b91c1c;
-    --accent-red: #ef4444;
-    /* Brighter red for accents */
+    --primary-color: #006ce4;
+    /* Edite Premium Blue */
+    --primary-hover: #0056b3;
+    --accent-blue: #0ea5e9;
+    /* Brighter blue for accents */
 
     --text-color: #0f172a;
     --text-muted: #64748b;
@@ -163,7 +163,7 @@ body.is-resizing .main-content {
 
 .sidebar-menu a:hover,
 .sidebar-menu a.active {
-    background-color: #fef2f2;
+    background-color: #eff6ff;
     color: var(--primary-color);
 }
 
@@ -195,7 +195,7 @@ body.is-resizing .main-content {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background-color: #fee2e2;
+    background-color: #eff6ff;
     color: var(--primary-hover);
     display: flex;
     align-items: center;
@@ -240,9 +240,9 @@ body.is-resizing .main-content {
 }
 
 .btn-logout:hover {
-    background-color: #fee2e2;
+    background-color: #eff6ff;
     color: var(--primary-color);
-    border-color: #fca5a5;
+    border-color: #bfdbfe;
 }
 
 /* Main Content */
@@ -270,7 +270,7 @@ body.is-resizing .main-content {
     padding: 0.6rem;
     border-radius: 8px;
     cursor: pointer;
-    box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.4);
+    box-shadow: 0 4px 6px -1px rgba(0, 108, 228, 0.4);
 }
 
 .mobile-close {
@@ -352,13 +352,13 @@ body.is-resizing .main-content {
 .btn-primary {
     background-color: var(--primary-color);
     color: white;
-    box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.2);
+    box-shadow: 0 4px 6px -1px rgba(0, 108, 228, 0.2);
 }
 
 .btn-primary:hover {
     background-color: var(--primary-hover);
     transform: translateY(-1px);
-    box-shadow: 0 6px 8px -1px rgba(220, 38, 38, 0.3);
+    box-shadow: 0 6px 8px -1px rgba(0, 108, 228, 0.3);
 }
 
 .btn-primary svg {
@@ -413,7 +413,7 @@ a.stat-card {
 }
 
 .stat-icon.primary {
-    background: #fee2e2;
+    background: #eff6ff;
     color: var(--primary-color);
 }
 
