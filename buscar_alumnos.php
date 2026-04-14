@@ -11,6 +11,10 @@ $active_tab = 'search';
 $error = '';
 $success = '';
 
+$is_subvencionada = (isset($_GET['context']) && $_GET['context'] === 'subvencionada');
+$page_title_prefix = $is_subvencionada ? 'FORMACIÓN SUBVENCIONADA' : 'ALUMNOS';
+$back_url = $is_subvencionada ? 'formacion_subvencionada.php' : 'formacion_bonificada.php';
+
 // Listas para dropdowns
 $provincias = [
     "Álava", "Albacete", "Alicante", "Almería", "Asturias", "Ávila", "Badajoz", "Baleares", "Barcelona", "Burgos", "Cáceres", "Cádiz", "Cantabria", "Castellón", "Ciudad Real", "Córdoba", "Coruña (La)", "Cuenca", "Gerona", "Granada", "Guadalajara", "Guipúzcoa", "Huelva", "Huesca", "Jaén", "León", "Lérida", "Lugo", "Madrid", "Málaga", "Murcia", "Navarra", "Orense", "Palencia", "Las Palmas", "Pontevedra", "La Rioja", "Salamanca", "Santa Cruz de Tenerife", "Segovia", "Sevilla", "Soria", "Tarragona", "Teruel", "Toledo", "Valencia", "Valladolid", "Vizcaya", "Zamora", "Zaragoza", "Ceuta", "Melilla"
@@ -147,7 +151,7 @@ try {
     <link rel="icon" type="image/png" href="/img/logo_efp.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buscador de Alumnos - <?= APP_NAME ?></title>
+    <title><?= $is_subvencionada ? 'Formación Subvencionada' : 'Buscador de Alumnos' ?> - <?= APP_NAME ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/main.css">
     <style>
@@ -321,7 +325,7 @@ try {
             
             <div class="search-card">
                 <div class="card-header-custom">
-                    <h2>ALUMNOS - CAMPOS DE BÚSQUEDA</h2>
+                    <h2><?= $page_title_prefix ?> - CAMPOS DE BÚSQUEDA</h2>
                 </div>
                 <form class="search-form" method="GET">
                     
@@ -520,7 +524,7 @@ try {
             </div>
 
             <div style="text-align: center;">
-                <button class="btn-volver" onclick="window.history.back()">Volver</button>
+                <a href="<?= $back_url ?>" class="btn-volver" style="text-decoration: none; display: inline-block;">Volver</a>
             </div>
 
         </main>
