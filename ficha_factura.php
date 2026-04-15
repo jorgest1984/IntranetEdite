@@ -110,6 +110,12 @@ try {
     $proveedores_list = $pdo->query("SELECT id, cif, nombre FROM proveedores ORDER BY nombre ASC")->fetchAll();
 } catch (Exception $e) {}
 
+// Cargar lista de usuarios/tutores para emisor tipo Usuario
+$usuarios_list = [];
+try {
+    $usuarios_list = $pdo->query("SELECT id, nombre, apellidos, email FROM usuarios WHERE activo = 1 ORDER BY nombre ASC")->fetchAll();
+} catch (Exception $e) {}
+
 // Cargar planes para links
 $planes_map = [];
 try {
@@ -190,8 +196,8 @@ try {
                     </div>
                 </div>
 
-                <!-- Proveedor -->
-                <div class="form-row-invoice">
+                <!-- Proveedor (visible cuando tipo_emisor = Proveedor) -->
+                <div class="form-row-invoice" id="seccionProveedor">
                     <label class="form-label-invoice">Proveedor</label>
                     <div class="provider-search-group">
                         <input type="text" id="emisor_search_cif" class="form-input-invoice provider-input-cif" 
@@ -215,6 +221,26 @@ try {
                         </button>
                         <button type="button" class="btn-action-invoice" id="btnEditProvider" title="Ver/Editar proveedor">
                             <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Usuario / Profesor (visible cuando tipo_emisor = Usuario / Profesor) -->
+                <div class="form-row-invoice" id="seccionUsuario" style="display: none;">
+                    <label class="form-label-invoice">Usuario / Profesor</label>
+                    <div class="provider-search-group">
+                        <select id="usuarioSelect" class="form-input-invoice" style="flex: 1; max-width: 450px;">
+                            <option value="">-- Seleccione usuario / tutor --</option>
+                            <?php foreach ($usuarios_list as $usr): ?>
+                                <option value="<?= $usr['id'] ?>" 
+                                        <?= (($factura['tipo_emisor'] ?? '') === 'Usuario / Profesor' && ($factura['emisor_id'] ?? '') == $usr['id']) ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($usr['nombre'] . ' ' . $usr['apellidos']) ?> – <?= htmlspecialchars($usr['email']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+
+                        <button type="button" class="btn-action-invoice" id="btnViewUser" title="Ver ficha de trabajador">
+                            <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                         </button>
                     </div>
                 </div>
@@ -326,13 +352,46 @@ try {
 </div>
 
 <script>
-    // Sincronizar selector de proveedor con campo de código
+    // === ELEMENTOS ===
     const proveedorSelect = document.getElementById('proveedorSelect');
     const emisorCif = document.getElementById('emisor_search_cif');
     const emisorId = document.getElementById('emisor_id');
+    const usuarioSelect = document.getElementById('usuarioSelect');
+    const seccionProveedor = document.getElementById('seccionProveedor');
+    const seccionUsuario = document.getElementById('seccionUsuario');
+    const radiosEmisor = document.querySelectorAll('input[name="tipo_emisor"]');
 
+    // === TOGGLE PROVEEDOR / USUARIO ===
+    function toggleEmisorSections() {
+        const tipoSeleccionado = document.querySelector('input[name="tipo_emisor"]:checked').value;
+        
+        if (tipoSeleccionado === 'Proveedor') {
+            seccionProveedor.style.display = '';
+            seccionUsuario.style.display = 'none';
+        } else {
+            seccionProveedor.style.display = 'none';
+            seccionUsuario.style.display = '';
+        }
+    }
+
+    // Ejecutar al cargar
+    toggleEmisorSections();
+
+    // Ejecutar al cambiar radio
+    radiosEmisor.forEach(radio => {
+        radio.addEventListener('change', function() {
+            toggleEmisorSections();
+            // Al cambiar de tipo, sincronizar el emisor_id
+            if (this.value === 'Usuario / Profesor') {
+                emisorId.value = usuarioSelect.value || '';
+            } else {
+                emisorId.value = proveedorSelect.value || '';
+            }
+        });
+    });
+
+    // === PROVEEDOR: Sincronizar selector con campo de código ===
     proveedorSelect.addEventListener('change', function() {
-        const option = this.options[this.selectedIndex];
         if (this.value) {
             emisorCif.value = this.value;
             emisorId.value = this.value;
@@ -358,17 +417,32 @@ try {
         emisorId.value = '';
     });
 
-    // Botón editar proveedor
+    // === USUARIO: Sincronizar selector ===
+    usuarioSelect.addEventListener('change', function() {
+        emisorId.value = this.value || '';
+    });
+
+    // === BOTÓN EDITAR PROVEEDOR (lápiz) → editar_proveedor.php ===
     document.getElementById('btnEditProvider').onclick = () => {
-        const id = emisorId.value;
+        const id = proveedorSelect.value || emisorId.value;
         if (id) {
-            window.location.href = 'nuevo_proveedor.php?id=' + id + '&from=ficha_factura&factura_id=<?= $factura_id ?>';
+            window.location.href = 'editar_proveedor.php?id=' + id + '&from=ficha_factura&factura_id=<?= $factura_id ?>';
         } else {
             alert('Seleccione un proveedor para editarlo.');
         }
     };
 
-    // Eliminar imputación (placeholder)
+    // === BOTÓN VER FICHA USUARIO → ficha_trabajador.php ===
+    document.getElementById('btnViewUser').onclick = () => {
+        const id = usuarioSelect.value;
+        if (id) {
+            window.location.href = 'ficha_trabajador.php?id=' + id;
+        } else {
+            alert('Seleccione un usuario/profesor para ver su ficha.');
+        }
+    };
+
+    // === ELIMINAR IMPUTACIÓN ===
     function eliminarImputacion(id) {
         if (confirm('¿Está seguro de que desea eliminar esta imputación?')) {
             // TODO: Implementar API de eliminación
