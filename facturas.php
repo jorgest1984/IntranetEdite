@@ -116,10 +116,10 @@ try {
                     <svg style="fill: currentColor;" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
                     Importar facturas
                 </a>
-                <button class="btn btn-invoice-secondary" style="background: #475569; color: white; border: none;">
+                <a href="exportar_facturas.php<?= !empty($_SERVER['QUERY_STRING']) ? '?' . htmlspecialchars($_SERVER['QUERY_STRING']) : '?full=1' ?>" class="btn btn-invoice-secondary" style="background: #475569; color: white; border: none; text-decoration: none;">
                     <svg style="fill: currentColor;" viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z" transform="rotate(180 12 12)"/></svg>
                     Exportar facturas
-                </button>
+                </a>
             </div>
         </header>
 
