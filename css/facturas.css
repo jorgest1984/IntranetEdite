@@ -398,3 +398,137 @@
     cursor: pointer;
     color: #94a3b8;
 }
+
+/* === Ficha Factura Alerts === */
+.ficha-alert {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    animation: alertSlideIn 0.3s ease-out;
+}
+
+.ficha-alert svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.ficha-alert-error {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
+}
+
+.ficha-alert-error svg {
+    fill: #b91c1c;
+}
+
+.ficha-alert-success {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #86efac;
+}
+
+.ficha-alert-success svg {
+    fill: #15803d;
+}
+
+@keyframes alertSlideIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* === Imputaciones Section === */
+.imputaciones-section {
+    margin-top: 2.5rem;
+}
+
+.imputaciones-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.table-imputaciones {
+    font-size: 0.8rem;
+}
+
+.table-imputaciones th {
+    background: #1e293b;
+    color: white;
+    padding: 10px 14px;
+    font-weight: 600;
+    text-align: left;
+    border-right: 1px solid rgba(255,255,255,0.1);
+}
+
+.table-imputaciones th:last-child {
+    border-right: none;
+}
+
+.table-imputaciones td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+}
+
+.table-imputaciones tr:hover td {
+    background-color: #f8fafc;
+}
+
+.imputaciones-total-row td {
+    background: #1e293b !important;
+    color: white !important;
+    font-weight: 700;
+    border-bottom: none;
+}
+
+.imputaciones-total-row td:nth-child(3) {
+    color: #60a5fa !important;
+}
+
+.plan-link {
+    color: var(--invoice-blue);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.plan-link:hover {
+    color: var(--invoice-blue-dark);
+    text-decoration: underline;
+}
+
+.btn-imp-delete {
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    background: #fee2e2;
+    color: #b91c1c;
+    transition: all 0.2s;
+}
+
+.btn-imp-delete:hover {
+    background: #fca5a5;
+    color: #7f1d1d;
+}
+
+.btn-imp-delete svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+}
+

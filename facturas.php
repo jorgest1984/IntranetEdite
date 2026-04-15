@@ -218,7 +218,11 @@ try {
                                             <?= $f['id'] ?>
                                         </a>
                                     </td>
-                                    <td><?= htmlspecialchars($f['numero_factura']) ?></td>
+                                    <td>
+                                        <a href="ficha_factura.php?id=<?= $f['id'] ?>" class="invoice-id-link">
+                                            <?= htmlspecialchars($f['numero_factura']) ?>
+                                        </a>
+                                    </td>
                                     <td><?= htmlspecialchars($f['cif']) ?></td>
                                     <td><?= htmlspecialchars($f['razon_social']) ?></td>
                                     <td style="font-weight: 600; text-align: right;">
