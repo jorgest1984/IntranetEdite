@@ -112,10 +112,10 @@ try {
                     <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
                     Nueva factura
                 </a>
-                <button class="btn btn-invoice-secondary" style="background: #475569; color: white; border: none;">
+                <a href="importar_facturas.php" class="btn btn-invoice-secondary" style="background: #475569; color: white; border: none; text-decoration: none;">
                     <svg style="fill: currentColor;" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
                     Importar facturas
-                </button>
+                </a>
                 <button class="btn btn-invoice-secondary" style="background: #475569; color: white; border: none;">
                     <svg style="fill: currentColor;" viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z" transform="rotate(180 12 12)"/></svg>
                     Exportar facturas
