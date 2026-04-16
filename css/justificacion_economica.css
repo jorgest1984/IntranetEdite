@@ -1,0 +1,103 @@
+/* css/justificacion_economica.css */
+
+.justificacion-container {
+    max-width: 1000px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+}
+
+.justificacion-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 3rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.filter-grid {
+    display: grid;
+    grid-template-columns: 140px 1fr auto;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.filter-row {
+    display: contents; /* Allows grid items to be children of this container without creating their own grid */
+}
+
+.filter-label {
+    text-align: right;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #475569;
+}
+
+.filter-control {
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    color: #1e293b;
+    background: #fff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.filter-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(0, 108, 228, 0.1);
+}
+
+.filter-control:disabled {
+    background-color: #f1f5f9;
+    cursor: not-allowed;
+}
+
+.multiple-selection-option {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-left: 1rem;
+    white-space: nowrap;
+}
+
+.multiple-selection-option label {
+    font-size: 0.9rem;
+    color: #64748b;
+    cursor: pointer;
+}
+
+.multiple-selection-option input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+/* Specific positioning for Plan row to keep alignment */
+.plan-row {
+    grid-column: 1 / span 2;
+    display: grid;
+    grid-template-columns: inherit;
+    grid-template-columns: 140px 1fr;
+    gap: inherit;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+/* Results section (hidden initially) */
+.results-section {
+    margin-top: 2rem;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1.5rem;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.3s, transform 0.3s;
+}
+
+.results-section.show {
+    opacity: 1;
+    transform: translateY(0);
+}
