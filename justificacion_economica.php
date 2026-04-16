@@ -82,10 +82,65 @@ try {
                 </form>
             </div>
 
-            <!-- This section will be populated via AJAX after selection -->
-            <div id="justificacion_results" class="results-section">
-                <!-- Data will appear here -->
-            </div>
+            <!-- Informes Excel Section -->
+            <section class="reports-section">
+                <h2 class="section-title">Informes Excel</h2>
+                <div class="info-alert">
+                    Selecciona una convocatoria para que se puedan generar los archivos Excel correspondientes.
+                </div>
+
+                <div class="reports-grid">
+                    <!-- Card 1 -->
+                    <a href="#" class="report-card" data-report="imparticion">
+                        <div class="report-card-icon">
+                            <svg viewBox="0 0 24 24"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg>
+                        </div>
+                        <div class="report-card-title">Informe impartición</div>
+                    </a>
+                    <!-- Card 2 -->
+                    <a href="#" class="report-card" data-report="imparticion_detallado">
+                        <div class="report-card-icon">
+                            <svg viewBox="0 0 24 24"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg>
+                        </div>
+                        <div class="report-card-title">Informe impartición detallado</div>
+                    </a>
+                    <!-- Card 3 -->
+                    <a href="#" class="report-card" data-report="horas_imputadas">
+                        <div class="report-card-icon">
+                            <svg viewBox="0 0 24 24"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg>
+                        </div>
+                        <div class="report-card-title">Informe de horas imputadas</div>
+                    </a>
+                    <!-- Card 4 -->
+                    <a href="#" class="report-card" data-report="facturas_plan">
+                        <div class="report-card-icon">
+                            <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2z"/></svg>
+                        </div>
+                        <div class="report-card-title">Informe facturas por plan</div>
+                    </a>
+                    <!-- Card 5 -->
+                    <a href="#" class="report-card" data-report="facturas_grupo">
+                        <div class="report-card-icon">
+                            <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2z"/></svg>
+                        </div>
+                        <div class="report-card-title">Informe facturas por grupo</div>
+                    </a>
+                    <!-- Card 6 -->
+                    <a href="#" class="report-card" data-report="costes_personal">
+                        <div class="report-card-icon">
+                            <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2z" opacity=".2"/></svg>
+                        </div>
+                        <div class="report-card-title">Informe de costes de personal por plan</div>
+                    </a>
+                    <!-- Card 7 -->
+                    <a href="#" class="report-card" data-report="resumen_justificacion">
+                        <div class="report-card-icon">
+                            <svg viewBox="0 0 24 24"><path d="M15 18.5c-2.5 0-4.7-1.4-5.8-3.5H13v-2H8.3c-.2-.6-.3-1.2-.3-2s.1-1.4.3-2H13V7H9.2C10.3 4.9 12.5 3.5 15 3.5c1.4 0 2.7.4 3.7 1.1L20 3.3C18.6 2.5 16.9 2 15 2c-3.6 0-6.7 2.2-8.1 5.3L4.6 6.1 3.2 7.5 5.8 10.1C5.4 11.3 5.2 12.6 5.2 14c0 1.4.2 2.7.6 3.9l-2.6 2.6 1.4 1.4L6 19.3c1.4 3.1 4.5 5.3 8.1 5.3 1.9 0 3.6-.5 5-1.3l-1.3-1.3c-1 0.7-2.3 1.1-3.7 1.1z"/></svg>
+                        </div>
+                        <div class="report-card-title">Informe resumen de justificación</div>
+                    </a>
+                </div>
+            </section>
         </div>
     </main>
 </div>
@@ -96,6 +151,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const planSelect = document.getElementById('plan_select');
     const multipleCheckbox = document.getElementById('multiple_selection');
     const resultsSection = document.getElementById('justificacion_results');
+    const reportCards = document.querySelectorAll('.report-card');
+
+    function updateReportCardsState() {
+        const hasSelection = convocatoriaSelect.value !== "";
+        reportCards.forEach(card => {
+            if (hasSelection) {
+                card.classList.add('active');
+            } else {
+                card.classList.remove('active');
+            }
+        });
+    }
 
     // Handle Multiple Selection Toggle
     multipleCheckbox.addEventListener('change', function() {
@@ -117,10 +184,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 planSelect.innerHTML = '<option value="">Seleccione primero una convocatoria...</option>';
             }
         }
+        updateReportCardsState();
     });
 
     // Handle Convocatoria Change
     convocatoriaSelect.addEventListener('change', function() {
+        updateReportCardsState();
         if (multipleCheckbox.checked) return; // Logic for multiple selection handled differently
 
         const convocatoriaId = this.value;
@@ -141,6 +210,22 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             resultsSection.classList.remove('show');
         }
+    });
+
+    // Handle Report Card Clicks
+    reportCards.forEach(card => {
+        card.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (!this.classList.contains('active')) return;
+            
+            const reportType = this.getAttribute('data-report');
+            const convocatoriaId = convocatoriaSelect.value;
+            const planId = planSelect.value;
+            
+            // Redirect to report generation script (placeholder for now)
+            alert(`Generando reporte: ${reportType}\nConvocatoria: ${convocatoriaId}\nPlan: ${planId || 'Múltiples/Todos'}`);
+            // window.location.href = `generar_reporte.php?tipo=${reportType}&convocatoria_id=${convocatoriaId}&plan_id=${planId}`;
+        });
     });
 
     function loadPlanes(convocatoriaId) {
