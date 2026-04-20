@@ -11,15 +11,77 @@ if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA])) {
 
 $current_page = 'informe_ds15_ampliado.php';
 
-// Dummy data
-$convocatorias = [
-    ['id' => 1, 'nombre' => 'Convocatoria Estatal 2024'],
-    ['id' => 2, 'nombre' => 'Convocatoria Autonómica Madrid']
-];
-$planes = [
-    ['id' => 1, 'nombre' => 'Plan de Transformación Digital'],
-    ['id' => 2, 'nombre' => 'Plan Transversal de Idiomas']
-];
+// Obtener datos para los filtros
+try {
+    $convocatorias = $pdo->query("SELECT id, nombre, codigo_expediente FROM convocatorias ORDER BY nombre ASC")->fetchAll(PDO::FETCH_ASSOC);
+    $planes = $pdo->query("SELECT id, nombre, expediente FROM planes ORDER BY nombre ASC")->fetchAll(PDO::FETCH_ASSOC);
+} catch (Exception $e) {
+    $convocatorias = [];
+    $planes = [];
+}
+
+// Lógica de búsqueda
+$resultados = [];
+$buscando = false;
+$filtro_convocatoria = $_GET['convocatoria'] ?? '';
+$filtro_plan = $_GET['plan'] ?? '';
+
+if ($filtro_convocatoria || $filtro_plan) {
+    $buscando = true;
+    $where = ["1=1"];
+    $params = [];
+
+    if ($filtro_convocatoria) {
+        $where[] = "m.convocatoria_id = ?";
+        $params[] = $filtro_convocatoria;
+    }
+    if ($filtro_plan) {
+        // Asumiendo que el plan se vincula a través de la convocatoria o directamente en matriculas
+        // Según inscripciones.php: LEFT JOIN planes p ON c.id = p.convocatoria_id
+        $where[] = "p.id = ?";
+        $params[] = $filtro_plan;
+    }
+
+    $sql = "SELECT 
+                COALESCE(p.expediente, c.codigo_expediente) as exp_report,
+                '1' as nA, -- Placeholder para Num Acción
+                '1' as nG, -- Placeholder para Num Grupo
+                c.nombre as curso_nombre,
+                CONCAT(a.primer_apellido, ' ', a.segundo_apellido, ', ', a.nombre) as alumno_nombre,
+                a.dni as nif,
+                a.seguridad_social as nss,
+                a.provincia,
+                a.fecha_nacimiento,
+                TIMESTAMPDIFF(YEAR, a.fecha_nacimiento, COALESCE(c.fecha_inicio_prevista, CURDATE())) as edad,
+                a.sexo,
+                'RG' as colectivo, -- Placeholder
+                '' as dsp_ld,
+                'Indefinido' as contrato, -- Placeholder
+                '7' as grupo_cotizacion, -- Placeholder
+                'Grado Medio' as estudios, -- Placeholder
+                'No' as dis,
+                e.nombre as empresa_nombre,
+                e.cif as empresa_cif,
+                e.sector as empresa_sector,
+                'Sí' as pyme,
+                m.estado,
+                'Sí' as certifica
+            FROM matriculas m
+            INNER JOIN alumnos a ON m.alumno_id = a.id
+            LEFT JOIN convocatorias c ON m.convocatoria_id = c.id
+            LEFT JOIN planes p ON c.id = p.convocatoria_id
+            LEFT JOIN empresas e ON a.id = e.id -- Placeholder: Ajustar vínculo Alumno-Empresa si existe tabla intermedia
+            WHERE " . implode(" AND ", $where) . "
+            ORDER BY a.primer_apellido ASC";
+
+    try {
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+        $error = "Error al obtener datos: " . $e->getMessage();
+    }
+}
 
 ?>
 <!DOCTYPE html>
@@ -37,20 +99,12 @@ $planes = [
             --label-blue: #1e40af;
             --border-gray: #cbd5e1;
             --bg-light: #f8fafc;
+            --header-dark: #2d2d2d;
+            --btn-blue: #2563eb;
         }
 
-        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: #1e293b; }
         .main-content { padding: 2rem; }
-
-        .page-title {
-            font-size: 1.25rem;
-            font-weight: 800;
-            color: var(--title-red);
-            text-transform: uppercase;
-            margin-bottom: 2rem;
-            border-bottom: 2px solid var(--border-gray);
-            padding-bottom: 10px;
-        }
 
         .search-card {
             background: #fff;
@@ -63,24 +117,31 @@ $planes = [
         .card-header-custom {
             background: #f8fafc;
             padding: 1rem 1.5rem;
-            border-bottom: 1px solid var(--border-gray);
+            border-bottom: 2px solid var(--border-gray);
+            text-align: left;
         }
 
-        .search-form {
-            padding: 1.5rem;
+        .card-header-custom h2 {
+            margin: 0;
+            color: var(--title-red);
+            font-size: 1rem;
+            font-weight: 800;
+            text-transform: uppercase;
         }
+
+        .search-form { padding: 1.5rem; }
 
         .search-row {
             display: flex;
             align-items: center;
             gap: 20px;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
         }
 
         .form-group {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 15px;
         }
 
         .form-group label {
@@ -93,82 +154,107 @@ $planes = [
 
         .form-control {
             font-size: 0.9rem;
-            padding: 6px 10px;
+            padding: 6px 12px;
             border: 1px solid var(--border-gray);
             border-radius: 4px;
             background: #fff;
-            min-width: 300px;
+            min-width: 350px;
         }
         
         .form-actions {
             display: flex;
             gap: 15px;
-            padding-left: 110px; /* Aligned with inputs */
+            margin-top: 1.5rem;
+            padding-left: 115px;
         }
 
         .btn-buscar {
-            background: #2563eb;
+            background: var(--btn-blue);
             color: white;
-            border: 1px solid #1d4ed8;
+            border: none;
             padding: 8px 24px;
             font-size: 0.9rem;
             font-weight: 600;
             border-radius: 4px;
             cursor: pointer;
+            transition: background 0.2s;
         }
         .btn-buscar:hover { background: #1d4ed8; }
 
         .btn-limpiar {
             background: #fff;
-            color: #ef4444;
-            border: 1px solid #ef4444;
+            color: #dc2626;
+            border: 1px solid #dc2626;
             padding: 8px 24px;
             font-size: 0.9rem;
             font-weight: 600;
             border-radius: 4px;
-            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
         }
         .btn-limpiar:hover { background: #fef2f2; }
 
-        /* Contenedor de tabla con scroll horizontal */
-        .table-responsive {
+        /* Report Table Styling */
+        .report-section {
+            margin-top: 2rem;
+        }
+
+        .report-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .table-container {
             width: 100%;
             overflow-x: auto;
-            margin-bottom: 1.5rem;
             background: #fff;
             border: 1px solid var(--border-gray);
             border-radius: 4px;
+            margin-bottom: 1.5rem;
         }
 
         .table-custom {
             width: max-content;
             min-width: 100%;
             border-collapse: collapse;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
         }
 
         .table-custom th {
-            border-bottom: 2px solid var(--border-gray);
-            padding: 10px 8px;
+            background: var(--header-dark);
+            color: #fff;
+            padding: 12px 10px;
             text-align: left;
-            color: var(--label-blue);
+            text-transform: uppercase;
             font-weight: 700;
-            background: #f8fafc;
+            border-right: 1px solid rgba(255,255,255,0.1);
             white-space: nowrap;
         }
 
         .table-custom td {
+            padding: 10px;
             border-bottom: 1px solid #e2e8f0;
-            padding: 8px;
-            white-space: nowrap;
+            border-right: 1px solid #f1f5f9;
             color: #334155;
+            white-space: nowrap;
         }
 
         .table-custom tr.total-row {
             background: #f8fafc;
-            font-weight: 700;
+            font-weight: 800;
         }
 
+        .table-custom tr.total-row td {
+            color: #000;
+            border-bottom: 2px solid var(--border-gray);
+        }
+
+        /* Export Buttons */
         .export-actions {
             display: flex;
             gap: 10px;
@@ -176,40 +262,47 @@ $planes = [
         }
 
         .btn-export {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            color: #fff;
+            background: var(--btn-blue);
+            color: white;
             border: none;
-            padding: 6px 14px;
+            padding: 8px 16px;
             font-size: 0.85rem;
             font-weight: 600;
             border-radius: 4px;
             cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
         }
-        .btn-export.excel { background: #16a34a; }
-        .btn-export.excel:hover { background: #15803d; }
-        
-        .btn-export.csv { background: #0284c7; }
-        .btn-export.csv:hover { background: #0369a1; }
-        
-        .btn-export.json { background: #4f46e5; }
-        .btn-export.json:hover { background: #4338ca; }
+        .btn-export:hover { filter: brightness(0.9); }
 
-        .legend-section {
-            background: #fff;
-            border-left: 4px solid var(--label-blue);
-            padding: 1rem 1.5rem;
-            margin-bottom: 2rem;
+        .btn-export svg { width: 16px; height: 16px; }
+
+        /* Legend Section */
+        .legend-box {
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-gray);
+        }
+
+        .legend-box h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .legend-box p {
             font-size: 0.85rem;
-            color: #475569;
-        }
-        .legend-section h3 {
-            margin: 0 0 5px 0;
-            font-size: 1rem;
-            color: var(--label-blue);
+            color: #64748b;
+            margin: 0;
         }
 
+        .footnote {
+            vertical-align: super;
+            font-size: 0.6rem;
+            font-weight: 700;
+        }
     </style>
 </head>
 <body>
@@ -220,105 +313,150 @@ $planes = [
             
             <div class="search-card">
                 <div class="card-header-custom">
-                    <h2 style="color:var(--title-red); margin:0; font-size:1.1rem; font-weight:800;">LISTADO DE DS15 AMPLIADO DEL PLAN</h2>
+                    <h2>LISTADO DE DS15 AMPLIADO DEL PLAN</h2>
                 </div>
                 <form class="search-form" method="GET">
-                    
                     <div class="search-row">
                         <div class="form-group">
                             <label>Convocatoria</label>
                             <select name="convocatoria" class="form-control">
                                 <option value="">-</option>
-                                <?php foreach($convocatorias as $c): ?>
-                                    <option value="<?= $c['id'] ?>"><?= htmlspecialchars($c['nombre']) ?></option>
+                                <?php foreach ($convocatorias as $c): ?>
+                                    <option value="<?= $c['id'] ?>" <?= $filtro_convocatoria == $c['id'] ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($c['nombre']) ?>
+                                    </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
                     </div>
-
                     <div class="search-row">
                         <div class="form-group">
                             <label>Plan</label>
                             <select name="plan" class="form-control">
                                 <option value="">-</option>
-                                <?php foreach($planes as $p): ?>
-                                    <option value="<?= $p['id'] ?>"><?= htmlspecialchars($p['nombre']) ?></option>
+                                <?php foreach ($planes as $p): ?>
+                                    <option value="<?= $p['id'] ?>" <?= $filtro_plan == $p['id'] ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($p['nombre']) ?>
+                                    </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
                     </div>
-
                     <div class="form-actions">
                         <button type="submit" class="btn-buscar">Enviar</button>
-                        <a href="informe_ds15_ampliado.php" class="btn-limpiar" style="text-decoration: none; display: inline-flex; align-items: center;">Eliminar filtros</a>
+                        <a href="informe_ds15_ampliado.php" class="btn-limpiar">Eliminar filtros</a>
                     </div>
                 </form>
             </div>
 
-            <?php if (isset($_GET['convocatoria']) || isset($_GET['plan'])): ?>
-            <h3 style="margin-bottom: 15px; color: #1e293b; font-size: 1.1rem;">- Plan</h3>
-            <div class="table-responsive">
-                <table class="table-custom">
-                    <thead>
-                        <tr>
-                            <th>Expediente</th>
-                            <th>nA</th>
-                            <th>nG</th>
-                            <th>Curso</th>
-                            <th>Alumno/a</th>
-                            <th>NIF</th>
-                            <th>NSS</th>
-                            <th>Provincia</th>
-                            <th>Fecha nac.</th>
-                            <th>Edad¹</th>
-                            <th>Sexo</th>
-                            <th>Col.</th>
-                            <th>DSP LD</th>
-                            <th>Contrato</th>
-                            <th>Grupo cotización</th>
-                            <th>Estudios</th>
-                            <th>Dis.</th>
-                            <th>Empresa</th>
-                            <th>CIF</th>
-                            <th>Sector</th>
-                            <th>PYME</th>
-                            <th>Estado</th>
-                            <th>Certifica</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td colspan="24" style="text-align: center; padding: 2rem; color: #64748b;">
-                                Sin resultados para los filtros seleccionados.
-                            </td>
-                        </tr>
-                        <tr class="total-row">
-                            <td>TOTAL</td>
-                            <td colspan="23"></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+            <?php if ($buscando): ?>
+            <div class="report-section">
+                <h1 class="report-title">- Plan</h1>
 
-            <div class="export-actions">
-                <button class="btn-export excel">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg> 
-                    Exportar a Excel
-                </button>
-                <button class="btn-export csv">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2h12c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/></svg> 
-                    Exportar a CSV
-                </button>
-                <button class="btn-export json">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg> 
-                    Exportar a JSON
-                </button>
-            </div>
+                <div class="table-container">
+                    <table class="table-custom">
+                        <thead>
+                            <tr>
+                                <th>Expediente</th>
+                                <th>nA</th>
+                                <th>nG</th>
+                                <th>Curso</th>
+                                <th>Alumno/a</th>
+                                <th>NIF</th>
+                                <th>NSS</th>
+                                <th>Provincia</th>
+                                <th>Fecha nac.</th>
+                                <th>Edad<span class="footnote">1</span></th>
+                                <th>Sexo</th>
+                                <th>Col.</th>
+                                <th>DSP LD</th>
+                                <th>Contrato</th>
+                                <th>Grupo cotización</th>
+                                <th>Estudios</th>
+                                <th>Dis.</th>
+                                <th>Empresa</th>
+                                <th>CIF</th>
+                                <th>Sector</th>
+                                <th>PYME</th>
+                                <th>Estado</th>
+                                <th>Certifica</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- TOTAL ROW AS IN IMAGE -->
+                            <tr class="total-row">
+                                <td>TOTAL</td>
+                                <td></td>
+                                <td></td>
+                                <td colspan="21"><?= count($resultados) ?> resultados encontrados.</td>
+                            </tr>
 
-            <div class="legend-section">
-                <h3>Leyenda</h3>
-                <p style="margin:0;">¹ Edad en la fecha de inicio del curso.</p>
+                            <?php if (empty($resultados)): ?>
+                                <tr>
+                                    <td colspan="24" style="text-align: center; padding: 3rem; color: #64748b; font-style: italic;">
+                                        No se han encontrado registros para los filtros seleccionados.
+                                    </td>
+                                </tr>
+                            <?php else: ?>
+                                <?php foreach ($resultados as $row): ?>
+                                    <tr>
+                                        <td><?= htmlspecialchars($row['exp_report'] ?? 'N/A') ?></td>
+                                        <td><?= htmlspecialchars($row['nA']) ?></td>
+                                        <td><?= htmlspecialchars($row['nG']) ?></td>
+                                        <td><?= htmlspecialchars($row['curso_nombre']) ?></td>
+                                        <td><strong><?= htmlspecialchars($row['alumno_nombre']) ?></strong></td>
+                                        <td><?= htmlspecialchars($row['nif']) ?></td>
+                                        <td><?= htmlspecialchars($row['nss'] ?? '-') ?></td>
+                                        <td><?= htmlspecialchars($row['provincia'] ?? '-') ?></td>
+                                        <td><?= $row['fecha_nacimiento'] ? date('d/m/Y', strtotime($row['fecha_nacimiento'])) : '-' ?></td>
+                                        <td><?= $row['edad'] ?? '-' ?></td>
+                                        <td><?= htmlspecialchars($row['sexo'] ?? '-') ?></td>
+                                        <td><?= htmlspecialchars($row['colectivo']) ?></td>
+                                        <td><?= htmlspecialchars($row['dsp_ld']) ?></td>
+                                        <td><?= htmlspecialchars($row['contrato']) ?></td>
+                                        <td><?= htmlspecialchars($row['grupo_cotizacion']) ?></td>
+                                        <td><?= htmlspecialchars($row['estudios']) ?></td>
+                                        <td><?= htmlspecialchars($row['dis']) ?></td>
+                                        <td><?= htmlspecialchars($row['empresa_nombre'] ?? '-') ?></td>
+                                        <td><?= htmlspecialchars($row['empresa_cif'] ?? '-') ?></td>
+                                        <td><?= htmlspecialchars($row['empresa_sector'] ?? '-') ?></td>
+                                        <td><?= htmlspecialchars($row['pyme']) ?></td>
+                                        <td>
+                                            <span style="padding: 2px 6px; background: #e2e8f0; border-radius: 4px; font-weight: 700; font-size: 0.65rem;">
+                                                <?= htmlspecialchars($row['estado']) ?>
+                                            </span>
+                                        </td>
+                                        <td><?= htmlspecialchars($row['certifica']) ?></td>
+                                        <td>
+                                            <a href="ficha_alumno.php?dni=<?= $row['nif'] ?>" style="color: var(--btn-blue); font-weight: 600;">Ver Ficha</a>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="export-actions">
+                    <a href="#" class="btn-export">
+                        <svg fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                        Exportar a Excel
+                    </a>
+                    <a href="#" class="btn-export">
+                        <svg fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2h12c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/></svg>
+                        Exportar a CSV
+                    </a>
+                    <a href="#" class="btn-export">
+                        <svg fill="currentColor" viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>
+                        Exportar a JSON
+                    </a>
+                </div>
+
+                <div class="legend-box">
+                    <h3>Leyenda</h3>
+                    <p><span class="footnote">1</span> Edad en la fecha de inicio del curso.</p>
+                </div>
             </div>
             <?php endif; ?>
 
