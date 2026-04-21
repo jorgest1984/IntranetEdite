@@ -212,15 +212,24 @@ $sections = [
                     </a>
                     <!-- Inspectores -->
                     <a href="#" class="tile tile-blue">
-                        <div class="tile-title" style="margin-top: auto; margin-bottom: auto;">Conexión de Inspectores</div>
+                        <div class="tile-icon">
+                            <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                        </div>
+                        <div class="tile-title">Conexión de Inspectores</div>
                     </a>
                     <!-- SCORM -->
                     <a href="#" class="tile tile-blue">
-                        <div class="tile-title" style="margin-top: auto; margin-bottom: auto;">Control de licencias SCORM</div>
+                        <div class="tile-icon">
+                            <svg viewBox="0 0 24 24"><path d="M21 16.5C21 16.88 20.79 17.21 20.47 17.38L12.57 21.82C12.41 21.94 12.21 22 12 22C11.79 22 11.59 21.94 11.43 21.82L3.53 17.38C3.21 17.21 3 16.88 3 16.5V7.5C3 7.12 3.21 6.79 3.53 6.62L11.43 2.18C11.59 2.06 11.79 2 12 2C12.21 2 12.41 2.06 12.57 2.18L20.47 6.62C20.79 6.79 21 7.12 21 7.5V16.5Z" stroke="white" stroke-width="2" fill="none"/></svg>
+                        </div>
+                        <div class="tile-title">Control de licencias SCORM</div>
                     </a>
                     <!-- Sincronizar -->
                     <a href="#" class="tile tile-blue">
-                        <div class="tile-title" style="margin-top: auto; margin-bottom: auto;">Sincronizar datos de los alumnos</div>
+                        <div class="tile-icon">
+                            <svg viewBox="0 0 24 24"><path d="M12 6v3l4-4-4-4v3c-4.42 0-8 3.58-8 8 0 1.57.46 3.03 1.24 4.26L6.7 14.8c-.45-.83-.7-1.79-.7-2.8 0-3.31 2.69-6 6-6zm6.76 1.74L17.3 9.2c.44.84.7 1.79.7 2.8 0 3.31-2.69 6-6 6v-3l-4 4 4 4v-3c4.42 0 8-3.58 8-8 0-1.57-.46-3.03-1.24-4.26z"/></svg>
+                        </div>
+                        <div class="tile-title">Sincronizar datos de los alumnos</div>
                     </a>
                 </div>
             </div>
@@ -238,11 +247,17 @@ $sections = [
                     </a>
                     <!-- Emails Admision -->
                     <a href="#" class="tile tile-blue">
-                        <div class="tile-title" style="margin-top: auto; margin-bottom: auto;">Enviar emails de admisión</div>
+                        <div class="tile-icon">
+                            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm4.59-12.42L10 14.17l-2.59-2.58L6 13l4 4 8-8z"/></svg>
+                        </div>
+                        <div class="tile-title">Enviar emails de admisión</div>
                     </a>
                     <!-- Envío de claves -->
                     <a href="envio_claves.php" class="tile tile-blue">
-                        <div class="tile-title" style="margin-top: auto; margin-bottom: auto;">Envío de claves</div>
+                        <div class="tile-icon">
+                            <svg viewBox="0 0 24 24"><path d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>
+                        </div>
+                        <div class="tile-title">Envío de claves</div>
                     </a>
                 </div>
             </div>
