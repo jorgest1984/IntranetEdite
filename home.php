@@ -13,8 +13,8 @@ $stats = [
 
 // Obtener últimos logs de auditoría si es Admin
 $logs = [];
-if (has_permission([ROLE_ADMIN, ROLE_LECTURA])) {
-    $stmt = $pdo->query("SELECT al.*, u.username FROM audit_log al LEFT JOIN usuarios u ON al.usuario_id = u.id ORDER BY al.fecha DESC LIMIT 5");
+if (has_permission([ROLE_ADMIN, ROLE_LECTURA, ROLE_COORD])) {
+    $stmt = $pdo->query("SELECT al.*, u.username FROM audit_log al LEFT JOIN usuarios u ON al.usuario_id = u.id ORDER BY al.fecha DESC LIMIT 10");
     $logs = $stmt->fetchAll();
 }
 // --------------------------------
@@ -85,13 +85,33 @@ $sections = [
             </div>
         </header>
 
-        <!-- SECCIÓN 1: BALDOSAS (HOME) -->
-        <div class="home-container" style="padding: 0;">
-            <?php foreach ($sections as $sectionTitle => $tiles): ?>
+        <!-- TABS NAVIGATION -->
+        <nav class="tabs-header">
+            <button class="tab-btn active" onclick="switchTab('inicio')">
+                <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                Inicio
+            </button>
+            <button class="tab-btn" onclick="switchTab('panel')">
+                <svg viewBox="0 0 24 24"><path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm-1-5h2v2h-2v-2zm0-8h2v6h-2V7z"/></svg>
+                Panel de Control
+            </button>
+            <button class="tab-btn" onclick="switchTab('areas')">
+                <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+                Áreas
+            </button>
+            <button class="tab-btn" onclick="switchTab('apps')">
+                <svg viewBox="0 0 24 24"><path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/></svg>
+                Aplicaciones
+            </button>
+        </nav>
+
+        <!-- TAB: INICIO -->
+        <div id="tab-inicio" class="tab-pane active">
+            <div class="home-container" style="padding: 0;">
                 <div class="home-section">
-                    <h2 class="home-section-title"><?= htmlspecialchars($sectionTitle) ?></h2>
+                    <h2 class="home-section-title">Accesos Directos</h2>
                     <div class="tiles-grid">
-                        <?php foreach ($tiles as $tile): ?>
+                        <?php foreach ($sections['Inicio'] as $tile): ?>
                             <?php 
                                 $isExternal = !empty($tile['external']) && $tile['external'] === true;
                                 $target = $isExternal ? '_blank' : '_self';
@@ -114,106 +134,174 @@ $sections = [
                         <?php endforeach; ?>
                     </div>
                 </div>
-            <?php endforeach; ?>
+            </div>
         </div>
 
-        <div class="section-separator"></div>
+        <!-- TAB: PANEL DE CONTROL -->
+        <div id="tab-panel" class="tab-pane">
+            <!-- SECCIÓN ESTADÍSTICAS -->
+            <section class="stats-grid">
+                <a href="buscar_alumnos.php?filter=activos" class="stat-card">
+                    <div class="stat-icon primary">
+                        <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value"><?= number_format($stats['alumnos_activos'], 0, ',', '.') ?></div>
+                        <div class="stat-label">Alumnos Activos</div>
+                    </div>
+                </a>
+                
+                <a href="cursos.php" class="stat-card">
+                    <div class="stat-icon success">
+                        <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/></svg>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value"><?= $stats['cursos_moodle'] ?></div>
+                        <div class="stat-label">Cursos Moodle</div>
+                    </div>
+                </a>
+                
+                <div class="stat-card">
+                    <div class="stat-icon warning">
+                        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value"><?= $stats['certificados_pendientes'] ?></div>
+                        <div class="stat-label">Pendientes</div>
+                    </div>
+                </div>
+            </section>
 
-        <!-- SECCIÓN 2: ESTADÍSTICAS (DASHBOARD) -->
-        <section class="stats-grid">
-            <a href="buscar_alumnos.php?filter=activos" class="stat-card">
-                <div class="stat-icon primary">
-                    <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-                </div>
-                <div class="stat-info">
-                    <div class="stat-value"><?= number_format($stats['alumnos_activos'], 0, ',', '.') ?></div>
-                    <div class="stat-label">Alumnos Activos</div>
-                </div>
-            </a>
-            
-            <a href="cursos.php" class="stat-card">
-                <div class="stat-icon success">
-                    <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/></svg>
-                </div>
-                <div class="stat-info">
-                    <div class="stat-value"><?= $stats['cursos_moodle'] ?></div>
-                    <div class="stat-label">Cursos Moodle</div>
-                </div>
-            </a>
-            
-            <div class="stat-card">
-                <div class="stat-icon warning">
-                    <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
-                </div>
-                <div class="stat-info">
-                    <div class="stat-value"><?= $stats['certificados_pendientes'] ?></div>
-                    <div class="stat-label">Pendientes</div>
-                </div>
-            </div>
-        </section>
-
-        <!-- SECCIÓN 3: WIDGETS (DASHBOARD) -->
-        <section class="dashboard-widgets">
-            <div class="widget">
-                <div class="widget-header">
-                    <h2 class="widget-title">Convocatorias Activas</h2>
-                </div>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Expediente</th>
-                            <th>Tipo</th>
-                            <th>Estado</th>
-                            <th>%</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>SEPE-2023-01</td>
-                            <td>Desempleados</td>
-                            <td><span class="badge badge-success">Activo</span></td>
-                            <td>45%</td>
-                        </tr>
-                        <tr>
-                            <td>FUN-2024-B1</td>
-                            <td>Empresas</td>
-                            <td><span class="badge badge-warning">Aprobada</span></td>
-                            <td>0%</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <?php if (has_permission([ROLE_ADMIN, ROLE_LECTURA])): ?>
-            <div class="widget">
-                <div class="widget-header">
-                    <h2 class="widget-title">Auditoría (ISO)</h2>
-                </div>
-                <?php if (empty($logs)): ?>
-                    <p style="text-align: center; color: var(--text-muted); padding: 1rem; font-size: 0.8rem;">Sin registros.</p>
-                <?php else: ?>
-                    <table class="data-table" style="font-size: 0.75rem;">
+            <!-- WIDGETS -->
+            <section class="dashboard-widgets">
+                <div class="widget">
+                    <div class="widget-header">
+                        <h2 class="widget-title">Convocatorias Activas</h2>
+                    </div>
+                    <table class="data-table">
                         <thead>
                             <tr>
-                                <th>Usuario</th>
-                                <th>Acción</th>
+                                <th>Expediente</th>
+                                <th>Tipo</th>
+                                <th>Estado</th>
+                                <th>%</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($logs as $log): ?>
                             <tr>
-                                <td><?= htmlspecialchars($log['username'] ?: 'Sis') ?></td>
-                                <td><?= htmlspecialchars($log['accion']) ?></td>
+                                <td>SEPE-2023-01</td>
+                                <td>Desempleados</td>
+                                <td><span class="badge badge-success">Activo</span></td>
+                                <td>45%</td>
                             </tr>
-                            <?php endforeach; ?>
+                            <tr>
+                                <td>FUN-2024-B1</td>
+                                <td>Empresas</td>
+                                <td><span class="badge badge-warning">Aprobada</span></td>
+                                <td>0%</td>
+                            </tr>
                         </tbody>
                     </table>
-                <?php endif; ?>
+                </div>
+
+                <div class="widget">
+                    <div class="widget-header">
+                        <h2 class="widget-title">Auditoría Reciente (ISO)</h2>
+                    </div>
+                    <?php if (empty($logs)): ?>
+                        <p style="text-align: center; color: var(--text-muted); padding: 1rem; font-size: 0.8rem;">Sin registros recientes.</p>
+                    <?php else: ?>
+                        <table class="data-table" style="font-size: 0.75rem;">
+                            <thead>
+                                <tr>
+                                    <th>Usuario</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($logs as $log): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($log['username'] ?: 'Sis') ?></td>
+                                    <td><?= htmlspecialchars($log['accion']) ?></td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    <?php endif; ?>
+                </div>
+            </section>
+        </div>
+
+        <!-- TAB: ÁREAS -->
+        <div id="tab-areas" class="tab-pane">
+            <div class="home-container" style="padding: 0;">
+                <div class="home-section">
+                    <h2 class="home-section-title">Gestión por Departamentos</h2>
+                    <div class="tiles-grid">
+                        <?php foreach ($sections['Áreas'] as $tile): ?>
+                            <a href="<?= htmlspecialchars($tile['url']) ?>" class="tile tile-<?= htmlspecialchars($tile['color']) ?>">
+                                <div class="tile-icon"><?= $tile['icon'] ?></div>
+                                <div class="tile-title"><?= htmlspecialchars($tile['title']) ?></div>
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
             </div>
-            <?php endif; ?>
-        </section>
+        </div>
+
+        <!-- TAB: APLICACIONES -->
+        <div id="tab-apps" class="tab-pane">
+            <div class="home-container" style="padding: 0;">
+                <div class="home-section">
+                    <h2 class="home-section-title">Enlaces Externos y Apps</h2>
+                    <div class="tiles-grid">
+                        <?php foreach ($sections['Sitios y aplicaciones'] as $tile): ?>
+                            <a href="<?= htmlspecialchars($tile['url']) ?>" class="tile tile-<?= htmlspecialchars($tile['color']) ?>" target="_blank">
+                                <div class="tile-icon"><?= $tile['icon'] ?></div>
+                                <div class="tile-title"><?= htmlspecialchars($tile['title']) ?></div>
+                                <svg class="tile-external-icon" viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
 </div>
+
+<script>
+function switchTab(tabId) {
+    // Romover clase active de todos los botones
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    // Romover clase active de todos los paneles
+    document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+    
+    // Activar el seleccionado
+    const clickedBtn = event.currentTarget;
+    clickedBtn.classList.add('active');
+    document.getElementById('tab-' + tabId).classList.add('active');
+    
+    // Guardar preferencia en localStorage (opcional)
+    localStorage.setItem('activeHomeTab', tabId);
+}
+
+// Cargar pestaña guardada al iniciar
+document.addEventListener('DOMContentLoaded', () => {
+    const savedTab = localStorage.getItem('activeHomeTab');
+    if (savedTab && document.getElementById('tab-' + savedTab)) {
+        // En lugar de llamar a switchTab que necesita event, lo hacemos manual
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            if (btn.getAttribute('onclick').includes(savedTab)) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+        document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+        document.getElementById('tab-' + savedTab).classList.add('active');
+    }
+});
+</script>
 
 </body>
 </html>
