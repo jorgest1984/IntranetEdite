@@ -7,7 +7,7 @@ if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA, ROLE_FORMADOR])) {
     exit();
 }
 
-$active_tab = 'search';
+$active_view = $_GET['view'] ?? 'dashboard';
 $error = '';
 $success = '';
 
@@ -34,6 +34,32 @@ try {
     // Obtener Centros (Tabla empresas)
     $stmtEmpresas = $pdo->query("SELECT id, nombre FROM empresas ORDER BY nombre ASC");
     $centros_db = $stmtEmpresas->fetchAll();
+
+    // Lógica de búsqueda para Llamadas de Seguimiento
+    $llamadas = [];
+    if ($active_view === 'llamadas' && isset($_GET['fecha_desde'])) {
+        $where = ["1=1"];
+        $params = [];
+        
+        if (!empty($_GET['fecha_desde'])) { $where[] = "fecha >= ?"; $params[] = $_GET['fecha_desde']; }
+        if (!empty($_GET['fecha_hasta'])) { $where[] = "fecha <= ?"; $params[] = $_GET['fecha_hasta']; }
+        if (!empty($_GET['nombre'])) { $where[] = "a.nombre LIKE ?"; $params[] = "%".$_GET['nombre']."%"; }
+        if (!empty($_GET['apellidos'])) { $where[] = "a.primer_apellido LIKE ?"; $params[] = "%".$_GET['apellidos']."%"; }
+        if (!empty($_GET['empresa'])) { $where[] = "(ts.empresa LIKE ? OR e.nombre LIKE ?)"; $params[] = "%".$_GET['empresa']."%"; $params[] = "%".$_GET['empresa']."%"; }
+        if (!empty($_GET['usuario_id'])) { $where[] = "ts.usuario_id = ?"; $params[] = $_GET['usuario_id']; }
+        if (!empty($_GET['motivo'])) { $where[] = "ts.motivo = ?"; $params[] = $_GET['motivo']; }
+        if (!empty($_GET['forma'])) { $where[] = "ts.forma = ?"; $params[] = $_GET['forma']; }
+
+        $sql = "SELECT ts.*, a.nombre as alumno_nombre, a.primer_apellido as alumno_apellido, e.nombre as empresa_nombre, c.nombre as curso_nombre
+                FROM tutorias_seguimiento ts
+                LEFT JOIN alumnos a ON ts.alumno_id = a.id
+                LEFT JOIN empresas e ON ts.empresa_id = e.id
+                LEFT JOIN cursos c ON ts.curso_id = c.id
+                WHERE " . implode(" AND ", $where) . " ORDER BY ts.fecha DESC, ts.hora DESC LIMIT 100";
+        $stmtS = $pdo->prepare($sql);
+        $stmtS->execute($params);
+        $llamadas = $stmtS->fetchAll();
+    }
 
 } catch (Exception $e) {}
 
@@ -234,6 +260,12 @@ $current_page = 'tutorias.php';
             color: #1e40af;
             font-weight: 600;
         }
+
+        .active-btn {
+            background: #e2e8f0 !!important;
+            border-color: var(--title-red) !!important;
+            color: var(--title-red) !!important;
+        }
     </style>
 </head>
 <body>
@@ -252,10 +284,147 @@ $current_page = 'tutorias.php';
                 <button type="button" class="btn-action">Documentación ()</button>
                 <button type="button" class="btn-action">Subir evals</button>
                 <button type="button" class="btn-action">Imprimir evals</button>
-                <button type="button" class="btn-action">Llamadas seguimiento</button>
+                <a href="tutorias.php?view=llamadas" class="btn-action <?= $active_view == 'llamadas' ? 'active-btn' : '' ?>">Llamadas seguimiento</a>
                 <a href="calendario_tutorias.php" class="btn-action">Calendario de tutorias</a>
             </div>
 
+            <?php if ($active_view === 'llamadas'): ?>
+            <!-- VISTA: LLAMADAS DE SEGUIMIENTO -->
+            <div class="search-card">
+                <div class="card-header-custom">
+                    <h2>LLAMADAS REALIZADAS - CAMPOS DE BÚSQUEDA</h2>
+                </div>
+                <form class="search-form" method="GET">
+                    <input type="hidden" name="view" value="llamadas">
+                    
+                    <!-- Fila 1: Desde, Hasta, Nombre, Apellidos -->
+                    <div class="search-row">
+                        <div class="form-group">
+                            <label>Desde:</label>
+                            <input type="date" name="fecha_desde" class="form-control" value="<?= date('Y-m-d', strtotime('-7 days')) ?>">
+                        </div>
+                        <div class="form-group">
+                            <label>»</label>
+                        </div>
+                        <div class="form-group">
+                            <label>Hasta:</label>
+                            <input type="date" name="fecha_hasta" class="form-control" value="<?= date('Y-m-d') ?>">
+                        </div>
+                        <div class="form-group">
+                            <label>»</label>
+                        </div>
+                        <div class="form-group">
+                            <label>Nombre:</label>
+                            <input type="text" name="nombre" class="form-control" style="width: 150px;">
+                        </div>
+                        <div class="form-group">
+                            <label>Apellidos:</label>
+                            <input type="text" name="apellidos" class="form-control" style="width: 200px;">
+                        </div>
+                    </div>
+
+                    <!-- Fila 2: Empresa, Usuario, Motivo, Forma -->
+                    <div class="search-row">
+                        <div class="form-group">
+                            <label>Empresa:</label>
+                            <input type="text" name="empresa" class="form-control" style="width: 250px;" list="centros_list">
+                        </div>
+                        <div class="form-group">
+                            <label>Usuario:</label>
+                            <select name="usuario_id" class="form-control" style="width: 200px;">
+                                <option value="">---</option>
+                                <?php foreach ($tutores as $t): ?>
+                                    <option value="<?= $t['id'] ?>"><?= htmlspecialchars($t['nombre'] . ' ' . $t['apellidos']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Motivo:</label>
+                            <select name="motivo" class="form-control" style="width: 200px;">
+                                <option value="">---</option>
+                                <option value="Seguimiento">Seguimiento</option>
+                                <option value="Bienvenida">Bienvenida</option>
+                                <option value="Incidencia">Incidencia</option>
+                                <option value="Encuesta">Encuesta</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Forma:</label>
+                            <select name="forma" class="form-control" style="width: 100px;">
+                                <option value="">---</option>
+                                <option value="Teléfono">Teléfono</option>
+                                <option value="Email">Email</option>
+                                <option value="WhatsApp">WhatsApp</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 15px;">
+                        <button type="submit" class="btn-buscar">Buscar</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- RESULTADOS LLAMADAS -->
+            <div class="results-section">
+                <div class="results-header">
+                    <div style="font-size: 0.65rem; display: flex; align-items: center; gap: 5px; margin-bottom: 5px;">
+                        <input type="checkbox"> Ordenar múltiple
+                    </div>
+                    <h2>RESULTADO DE LA BÚSQUEDA</h2>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table-custom">
+                        <thead>
+                            <tr>
+                                <th><span class="sort-icon">⬇</span>Empresa</th>
+                                <th><span class="sort-icon">⬇</span>Alumno</th>
+                                <th><span class="sort-icon">⬇</span>Curso</th>
+                                <th><span class="sort-icon">⬇</span>Motivo</th>
+                                <th><span class="sort-icon">⬇</span>Forma</th>
+                                <th><span class="sort-icon">⬇</span>Fecha</th>
+                                <th><span class="sort-icon">⬇</span>Hora</th>
+                                <th><span class="sort-icon">⬇</span>Asunto</th>
+                                <th><span class="sort-icon">⬇</span>Notas</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (empty($llamadas)): ?>
+                                <tr>
+                                    <td colspan="9" style="text-align: center; padding: 1rem; color: var(--label-blue); font-weight: bold;">
+                                        0 registros.
+                                    </td>
+                                </tr>
+                            <?php else: ?>
+                                <?php foreach ($llamadas as $ll): ?>
+                                    <tr>
+                                        <td><?= htmlspecialchars($ll['empresa_nombre'] ?: $ll['empresa']) ?></td>
+                                        <td><?= htmlspecialchars($ll['alumno_nombre'] . ' ' . $ll['alumno_apellido']) ?></td>
+                                        <td><?= htmlspecialchars($ll['curso_nombre']) ?></td>
+                                        <td><?= htmlspecialchars($ll['motivo']) ?></td>
+                                        <td><?= htmlspecialchars($ll['forma']) ?></td>
+                                        <td><?= date('d/m/Y', strtotime($ll['fecha'])) ?></td>
+                                        <td><?= date('H:i', strtotime($ll['hora'])) ?></td>
+                                        <td><?= htmlspecialchars($ll['asunto']) ?></td>
+                                        <td>
+                                            <span title="<?= htmlspecialchars($ll['notas']) ?>">
+                                                <?= htmlspecialchars(mb_strimwidth($ll['notas'], 0, 30, "...")) ?>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="tutorias.php" class="btn-buscar" style="text-decoration: none; display: inline-block;">Volver</a>
+            </div>
+
+            <?php else: ?>
             <!-- BUSCADOR -->
             <div class="search-card">
                 <div class="card-header-custom">
@@ -802,6 +971,8 @@ $current_page = 'tutorias.php';
                     </table>
                 </div>
             </div>
+
+            <?php endif; // End view check ?>
 
         </main>
     </div>
