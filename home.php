@@ -198,6 +198,55 @@ $sections = [
                 </div>
             </div>
 
+            <!-- SECCIÓN AULA VIRTUAL -->
+            <div class="home-section" style="margin-bottom: 2rem;">
+                <h2 class="home-section-title">Aula Virtual</h2>
+                <div class="tiles-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
+                    <!-- Actualizar -->
+                    <a href="#" class="tile tile-blue">
+                        <div class="tile-icon">
+                            <svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
+                        </div>
+                        <div class="tile-title">Actualizar datos desde Aula Virtual</div>
+                        <svg class="tile-external-icon" viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+                    </a>
+                    <!-- Inspectores -->
+                    <a href="#" class="tile tile-blue">
+                        <div class="tile-title" style="margin-top: auto; margin-bottom: auto;">Conexión de Inspectores</div>
+                    </a>
+                    <!-- SCORM -->
+                    <a href="#" class="tile tile-blue">
+                        <div class="tile-title" style="margin-top: auto; margin-bottom: auto;">Control de licencias SCORM</div>
+                    </a>
+                    <!-- Sincronizar -->
+                    <a href="#" class="tile tile-blue">
+                        <div class="tile-title" style="margin-top: auto; margin-bottom: auto;">Sincronizar datos de los alumnos</div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- SECCIÓN E-MAIL -->
+            <div class="home-section" style="margin-bottom: 2.5rem;">
+                <h2 class="home-section-title">E-mail</h2>
+                <div class="tiles-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
+                    <!-- Plantillas -->
+                    <a href="email_masivo.php" class="tile tile-blue">
+                        <div class="tile-icon">
+                            <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                        </div>
+                        <div class="tile-title">Ver plantillas de emails</div>
+                    </a>
+                    <!-- Emails Admision -->
+                    <a href="#" class="tile tile-blue">
+                        <div class="tile-title" style="margin-top: auto; margin-bottom: auto;">Enviar emails de admisión</div>
+                    </a>
+                    <!-- Envío de claves -->
+                    <a href="envio_claves.php" class="tile tile-blue">
+                        <div class="tile-title" style="margin-top: auto; margin-bottom: auto;">Envío de claves</div>
+                    </a>
+                </div>
+            </div>
+
             <!-- SECCIÓN ESTADÍSTICAS -->
             <section class="stats-grid">
                 <a href="buscar_alumnos.php?filter=activos" class="stat-card">
