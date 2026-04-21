@@ -276,7 +276,7 @@ $current_page = 'tutorias.php';
             
             <!-- ACTION BAR -->
             <div class="action-bar">
-                <button type="button" class="btn-action">Calcular llamadas</button>
+                <a href="tutorias.php?view=calcular" class="btn-action <?= $active_view == 'calcular' ? 'active-btn' : '' ?>">Calcular llamadas</a>
                 <a href="email_masivo.php" class="btn-action">E-mails masivos</a>
                 <button type="button" class="btn-action">Inicio curso ()</button>
                 <button type="button" class="btn-action">Mitad de curso ()</button>
@@ -288,7 +288,196 @@ $current_page = 'tutorias.php';
                 <a href="calendario_tutorias.php" class="btn-action">Calendario de tutorias</a>
             </div>
 
-            <?php if ($active_view === 'llamadas'): ?>
+            <?php if ($active_view === 'calcular'): ?>
+            <!-- VISTA: CALCULAR LLAMADAS (BUSCADOR AVANZADO v1.5) -->
+            <div class="search-card">
+                <div class="card-header-custom" style="display:flex; justify-content: space-between; align-items: center; padding: 2px 10px; border-bottom: 3px solid #1e40af;">
+                    <div class="form-group" style="gap: 10px;">
+                        <label style="color: #000; font-weight: 700;">TUTOR:</label>
+                        <select class="form-control" style="width: 200px;">
+                            <option value="">---</option>
+                            <?php foreach ($tutores as $t): ?><option value="<?= $t['id'] ?>"><?= htmlspecialchars($t['nombre'].' '.$t['apellidos']) ?></option><?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group" style="gap: 10px;">
+                        <label style="color: #000; font-weight: 700;">Solicitante:</label>
+                        <select class="form-control" style="width: 250px;">
+                            <option value="">---</option>
+                            <option value="COMFIA">COMFIA</option>
+                            <option value="FED. COM. Y TTE. CCOO MADRID">FED. COM. Y TTE. CCOO MADRID</option>
+                            <!-- ... resto de opciones ... -->
+                        </select>
+                    </div>
+                    <div class="form-group" style="gap: 10px;">
+                        <label style="color: #000; font-weight: 700;">Comercial:</label>
+                        <select class="form-control" style="width: 200px;">
+                            <option value="">---</option>
+                            <?php foreach ($comerciales as $c): ?><option value="<?= $c['id'] ?>"><?= htmlspecialchars($c['nombre'].' '.$c['apellidos']) ?></option><?php endforeach; ?>
+                        </select>
+                    </div>
+                    <button type="button" class="btn-action" style="padding: 2px 8px; font-size: 0.7rem;">Quitar autofiltro</button>
+                </div>
+                
+                <form class="search-form" method="GET" style="padding: 10px;">
+                    <input type="hidden" name="view" value="calcular">
+                    
+                    <!-- Fila 2: Datos Personales -->
+                    <div class="search-row" style="justify-content: center; background: #f8fafc; padding: 5px; border-radius: 4px; border: 1px solid #e2e8f0; margin-bottom: 10px;">
+                        <div class="form-group"><label>Nombre:</label><input type="text" name="nombre" class="form-control" style="width: 150px;"></div>
+                        <div class="form-group"><label>Apellidos:</label><input type="text" name="apellidos" class="form-control" style="width: 200px;"></div>
+                        <div class="form-group"><label>NIF:</label><input type="text" name="nif" class="form-control" style="width: 100px;"></div>
+                        <div class="form-group"><label>E-mail:</label><input type="text" name="email" class="form-control" style="width: 180px;"></div>
+                        <div class="form-group">
+                            <label><svg viewBox="0 0 24 24" width="16" height="16" style="vertical-align: middle;"><path fill="#ca8a04" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg></label>
+                            <label>Teléfono:</label><input type="text" name="telefono" class="form-control" style="width: 100px;">
+                        </div>
+                    </div>
+
+                    <!-- Fila 3: Ubicación y Empresa -->
+                    <div class="search-row" style="justify-content: center; margin-bottom: 10px;">
+                        <div class="form-group">
+                            <label>Provincia:</label>
+                            <select name="provincia" class="form-control" style="width: 150px;">
+                                <option value="">---</option>
+                                <?php foreach($provincias as $p): ?><option value="<?= $p ?>"><?= $p ?></option><?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="form-group"><label>Empresa:</label><input type="text" name="empresa" class="form-control" style="width: 180px;"></div>
+                        <div class="form-group">
+                            <label>Colectivo:</label>
+                            <select name="colectivo" class="form-control" style="width: 300px;">
+                                <option value="">---</option>
+                                <option value="Régimen general">Régimen general</option>
+                                <option value="Autónomo">Autónomo</option>
+                                <option value="Desempleado">Desempleado</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Fila 4: Académico -->
+                    <div class="search-row" style="justify-content: center; margin-bottom: 10px;">
+                        <div class="form-group"><label>Acción:</label><input type="text" name="accion" class="form-control" style="width: 60px;"></div>
+                        <div class="form-group"><label>Grupo:</label><input type="text" name="grupo" class="form-control" style="width: 60px;"></div>
+                        <div class="form-group"><label>Curso:</label><input type="text" name="curso" class="form-control" style="width: 150px;"></div>
+                        <div class="form-group">
+                            <label>Grupos en curso:</label>
+                            <select name="grupos_en_curso" class="form-control" style="width: 60px;"><option value=""></option></select>
+                        </div>
+                        <div class="form-group"><label>Cod grupo:</label><input type="text" name="cod_grupo" class="form-control" style="width: 100px;"></div>
+                    </div>
+
+                    <!-- Fila 5: Plan y Estado -->
+                    <div class="search-row" style="justify-content: center; background: #eff6ff; padding: 5px; border-radius: 4px; border: 1px solid #dbeafe; margin-bottom: 10px;">
+                        <div class="form-group"><label>Convocatoria:</label><select class="form-control" style="width: 250px;"><option value="Todas">Todas</option></select></div>
+                        <div class="form-group"><label>Plan:</label><select class="form-control" style="width: 400px;"><option value="">Todos los planes</option></select></div>
+                        <div class="form-group"><label>Estado:</label><select class="form-control" style="width: 150px;"><option value=""></option></select></div>
+                    </div>
+                    <div class="search-row" style="justify-content: center; margin-bottom: 10px;">
+                        <div class="form-group"><label>Modalidad:</label><select class="form-control" style="width: 150px;"><option value=""></option></select></div>
+                    </div>
+
+                    <!-- Fila 6: Estados Documentales -->
+                    <div class="search-row" style="justify-content: center; font-size: 0.7rem; gap: 15px;">
+                        <div class="form-group"><label>Entregado mat:</label><select class="form-control" style="width: 50px;"><option value=""></option></select></div>
+                        <div class="form-group"><label>Horario:</label><input type="text" class="form-control" style="width: 80px;"></div>
+                        <div class="form-group"><label>Conectados:</label><select class="form-control" style="width: 60px;"><option value=""></option></select></div>
+                        <div class="form-group"><label>Realizó encuesta:</label><select class="form-control" style="width: 60px;"><option value=""></option></select></div>
+                        <div class="form-group"><label>Docu alumno pte:</label><select class="form-control" style="width: 60px;"><option value=""></option></select></div>
+                        <div class="form-group"><label>Docu curso pte:</label><select class="form-control" style="width: 60px;"><option value=""></option></select></div>
+                        <div class="form-group"><label>Evaluaciones hechas sin subir:</label><input type="checkbox"></div>
+                    </div>
+
+                    <!-- Fila 7: Fechas v2 -->
+                    <div class="search-row" style="justify-content: center; margin-top: 10px; font-size: 0.7rem;">
+                        <div class="form-group"><label>Inicio desde:</label><input type="text" class="form-control" placeholder="dd/mm/aaaa" style="width: 80px;"> <label>hasta:</label><input type="text" class="form-control" style="width: 80px;"></div>
+                        <div class="form-group" style="margin-left: 10px;"><label>25% desde:</label><input type="text" class="form-control" style="width: 80px;"> <label>hasta:</label><input type="text" class="form-control" style="width: 80px;"></div>
+                        <div class="form-group" style="margin-left: 10px;"><label>Mitad desde:</label><input type="text" class="form-control" style="width: 80px;"> <label>hasta:</label><input type="text" class="form-control" style="width: 80px;"></div>
+                        <div class="form-group" style="margin-left: 10px;"><label>Fin desde:</label><input type="text" class="form-control" style="width: 80px;"> <label>hasta:</label><input type="text" class="form-control" style="width: 80px;"></div>
+                    </div>
+
+                    <!-- Fila 8: No conectados -->
+                    <div class="search-row" style="justify-content: center; margin-top: 10px;">
+                        <div class="form-group" style="color: var(--title-red); font-weight: 700;"><label>Alumnos NO conectados antes del 15%</label><input type="checkbox"></div>
+                        <div class="form-group" style="color: var(--title-red); font-weight: 700; margin-left: 20px;"><label>Alumnos NO conectados antes del 25%</label><input type="checkbox"></div>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
+                        <button type="submit" class="btn-buscar" style="background: #1e40af; color: #fff; padding: 4px 30px;">Buscar</button>
+                        <button type="reset" class="btn-buscar">Limpiar filtros de búsqueda</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- RESULTADOS: RELACION DE CURSOS (27 COLUMNAS) -->
+            <div class="results-section" style="margin-top: 20px;">
+                <div class="results-header" style="background: #fff; padding: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                        <div style="font-size: 0.75rem; font-weight: 700;"><input type="checkbox"> Ordenar múltiple</div>
+                        <div style="color: var(--title-red); font-size: 1rem; font-weight: 900;">RELACIÓN DE CURSOS</div>
+                        <div style="font-size: 0.7rem; color: #64748b;">(registros)</div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table-custom" style="min-width: 2500px;">
+                        <thead>
+                            <tr style="background: #eff6ff;">
+                                <th><span class="sort-icon">⬇</span>Plan</th>
+                                <th><span class="sort-icon">⬇</span>Ac/Gr</th>
+                                <th><span class="sort-icon">⬇</span>Curso</th>
+                                <th><span class="sort-icon">⬇</span>Alumno</th>
+                                <th><span class="sort-icon">⬇</span>NIF</th>
+                                <th><span class="sort-icon">⬇</span>Empresa</th>
+                                <th><span class="sort-icon">⬇</span>Fecha ins</th>
+                                <th><span class="sort-icon">⬇</span>Inicio</th>
+                                <th><span class="sort-icon">⬇</span>25%</th>
+                                <th><span class="sort-icon">⬇</span>Mitad</th>
+                                <th><span class="sort-icon">⬇</span>Fin</th>
+                                <th><span class="sort-icon">⬇</span>Estado</th>
+                                <th><span class="sort-icon">⬇</span>Ult Fecha Mat.</th>
+                                <th><span class="sort-icon">⬇</span>Ultima conex</th>
+                                <th style="color: var(--title-red); background: #fee2e2;"><span class="sort-icon">⬇</span>Fecha ult. llam.</th>
+                                <th><span class="sort-icon">⬇</span>Eval N</th>
+                                <th><span class="sort-icon">⬇</span>Eval I</th>
+                                <th><span class="sort-icon">⬇</span>Eval F</th>
+                                <th><span class="sort-icon">⬇</span>Fecha final. alumno</th>
+                                <th><span class="sort-icon">⬇</span>Doc conexión</th>
+                                <th><span class="sort-icon">⬇</span>Encu</th>
+                                <th><span class="sort-icon">⬇</span>Dipl</th>
+                                <th><span class="sort-icon">⬇</span>Fecha Dipl.</th>
+                                <th><span class="sort-icon">⬇</span>Doc inic. pte</th>
+                                <th><span class="sort-icon">⬇</span>Datos ptes</th>
+                                <th><span class="sort-icon">⬇</span>Docu alumno pte</th>
+                                <th><span class="sort-icon">⬇</span>Docu curso pte</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="27" style="text-align: center; padding: 3rem; color: #94a3b8; font-style: italic;">
+                                    Realice una búsqueda para generar resultados.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- LEYENDAS Y EXPORTACIÓN -->
+            <div style="margin-top: 15px; display: flex; flex-wrap: wrap; gap: 15px; font-size: 0.8rem; font-weight: 600; padding: 10px; background: #fff; border-radius: 4px; border: 1px solid var(--border-gray);">
+                <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 15px; height: 15px; background: #ffedd5; border: 1px solid #fb923c;"></div> Autónom@</div>
+                <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 15px; height: 15px; background: #dcfce7; border: 1px solid #4ade80;"></div> Desemplead@</div>
+                <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 15px; height: 15px; background: #fef9c3; border: 1px solid #facc15;"></div> Suspendid@</div>
+                <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 15px; height: 15px; background: #7e22ce;"></div> Restringid@</div>
+                <div style="display: flex; align-items: center; gap: 5px;"><span style="font-size: 1rem;">⚙️</span> Incid. pendientes < 4 días</div>
+                <div style="display: flex; align-items: center; gap: 5px;"><span style="font-size: 1rem; color: red;">💥</span> Incid. pendientes más de 4 días</div>
+            </div>
+
+            <div style="text-align: center; margin-top: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                <button type="button" class="btn-action" style="background: #f1f5f9; color: var(--label-blue);">Listado en Excel</button>
+                <a href="tutorias.php" class="btn-buscar" style="text-decoration: none;">Volver</a>
+            </div>
+
+            <?php elseif ($active_view === 'llamadas'): ?>
             <!-- VISTA: LLAMADAS DE SEGUIMIENTO -->
             <div class="search-card">
                 <div class="card-header-custom">
