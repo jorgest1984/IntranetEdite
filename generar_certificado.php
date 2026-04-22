@@ -53,7 +53,7 @@ $fecha_hoy = date('j') . " de " . $meses[date('n')-1] . " de " . date('Y');
         body { 
             font-family: 'Inter', Arial, sans-serif; 
             color: #1a1a1a; 
-            line-height: 1.7; 
+            line-height: 1.5; 
             margin: 0; 
             padding: 0; 
             background: #f0f2f5; 
@@ -62,8 +62,8 @@ $fecha_hoy = date('j') . " de " . $meses[date('n')-1] . " de " . date('Y');
         
         .page {
             width: 210mm;
-            height: 296mm; /* Ajuste para evitar salto de página extra */
-            padding: 25mm 25mm 20mm 25mm;
+            height: 297mm;
+            padding: 20mm 20mm 15mm 20mm;
             margin: 10mm auto;
             background: white;
             box-shadow: 0 0 15px rgba(0,0,0,0.1);
@@ -71,6 +71,7 @@ $fecha_hoy = date('j') . " de " . $meses[date('n')-1] . " de " . date('Y');
             flex-direction: column;
             box-sizing: border-box;
             position: relative;
+            overflow: hidden;
         }
         
         /* Cabecera */
@@ -78,14 +79,14 @@ $fecha_hoy = date('j') . " de " . $meses[date('n')-1] . " de " . date('Y');
             display: flex; 
             justify-content: space-between; 
             align-items: flex-end; 
-            margin-bottom: 50px; 
+            margin-bottom: 30px; 
         }
-        .logo { width: 200px; height: auto; }
+        .logo { width: 180px; height: auto; }
         .web-link { 
             color: #0077b6; 
             text-decoration: none; 
             font-weight: 700; 
-            font-size: 0.85rem; 
+            font-size: 0.8rem; 
             margin-bottom: 5px;
         }
         
@@ -94,36 +95,38 @@ $fecha_hoy = date('j') . " de " . $meses[date('n')-1] . " de " . date('Y');
             background: #1e70b3;
             color: white;
             text-align: center;
-            padding: 14px;
-            border-radius: 50px;
+            padding: 10px;
+            border-radius: 40px;
             font-family: 'Montserrat', sans-serif;
-            font-size: 1.3rem;
-            letter-spacing: 3px;
-            margin-bottom: 60px;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            margin-bottom: 35px;
             text-transform: uppercase;
         }
         
         /* Contenido Principal */
         .content { 
-            flex-grow: 1; /* Empuja la firma hacia abajo si hay poco texto */
+            flex-grow: 1;
             text-align: justify;
-            font-size: 1.05rem;
+            font-size: 0.95rem;
         }
-        .content p { margin-bottom: 30px; }
+        .content p { margin-bottom: 20px; }
         .content strong { color: #000; }
         
         .acciones-container {
-            margin: 20px 0 40px 30px;
+            margin: 10px 0 25px 25px;
         }
         .acciones-list { 
             list-style: none; 
             padding: 0; 
+            margin: 0;
         }
         .acciones-list li { 
-            margin-bottom: 10px; 
+            margin-bottom: 5px; 
             font-weight: 600;
             position: relative;
-            padding-left: 20px;
+            padding-left: 15px;
+            font-size: 0.9rem;
         }
         .acciones-list li::before {
             content: "•";
@@ -134,35 +137,35 @@ $fecha_hoy = date('j') . " de " . $meses[date('n')-1] . " de " . date('Y');
 
         /* Sección Firma */
         .signature-section {
-            margin-top: 40px;
-            margin-bottom: 100px; /* Espacio para que no toque el footer */
+            margin-top: 20px;
+            margin-bottom: 60px;
             text-align: center;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
         .signature-space {
-            height: 90px;
+            height: 70px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
         .signature-name { 
             font-weight: 700; 
-            font-size: 1.1rem;
+            font-size: 1rem;
             border-top: 1px solid #eee;
-            padding-top: 10px;
-            min-width: 300px;
+            padding-top: 8px;
+            min-width: 250px;
         }
         
         /* Footer Legal */
         .footer-legal {
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             color: #666;
             text-align: justify;
             border-top: 1px solid #f0f0f0;
-            padding-top: 15px;
-            line-height: 1.4;
+            padding-top: 10px;
+            line-height: 1.3;
         }
 
         /* Utilidades */
