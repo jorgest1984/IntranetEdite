@@ -402,7 +402,7 @@ $tutorias = $stmtTut->fetchAll();
                 
                 <!-- Botones de Acción Superiores -->
                 <div style="display: flex; gap: 0.5rem; margin-bottom: 2rem; flex-wrap: wrap;">
-                    <button class="btn-yellow-icon" style="padding: 0.6rem 1.2rem; font-size: 0.8rem; font-weight: 600; color: #854d0e;">Certificado</button>
+                    <button class="btn-yellow-icon" onclick="window.open('generar_certificado.php?id=<?= $id ?>', '_blank')" style="padding: 0.6rem 1.2rem; font-size: 0.8rem; font-weight: 600; color: #854d0e;">Certificado</button>
                     <button class="btn-yellow-icon" style="padding: 0.6rem 1.2rem; font-size: 0.8rem; font-weight: 600; color: #854d0e;">Crear/actualizar profesor en Aula Virtual</button>
                     <button class="btn-yellow-icon" style="padding: 0.6rem 1.2rem; font-size: 0.8rem; font-weight: 600; color: #854d0e;">Subir documento</button>
                     <button class="btn-yellow-icon" style="padding: 0.6rem 1.2rem; font-size: 0.8rem; font-weight: 600; color: #854d0e;">Archivo doc</button>
