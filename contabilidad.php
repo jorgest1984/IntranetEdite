@@ -2,6 +2,11 @@
 // contabilidad.php
 require_once 'includes/auth.php';
 
+if (!has_permission([ROLE_ADMIN, ROLE_ADMINISTRATIVO])) {
+    header("Location: home.php");
+    exit();
+}
+
 // Definición de las secciones de contabilidad según la imagen solicitada
 $sections = [
     [

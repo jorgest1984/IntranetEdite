@@ -1,6 +1,12 @@
 <?php
 // informes.php
-require_once 'includes/auth.php'; // Verifica login y permisos
+require_once 'includes/auth.php';
+
+// Solo administradores y tutores pueden ver informes generales
+if (!has_permission([ROLE_ADMIN, ROLE_TUTOR])) {
+    header("Location: home.php");
+    exit();
+}
 
 // Define los módulos de la página de Informes basados en la captura
 $informes = [

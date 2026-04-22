@@ -2,7 +2,7 @@
 // exportar_facturas.php - Exportar facturas a Excel
 require_once 'includes/auth.php';
 
-if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA])) {
+if (!has_permission([ROLE_ADMIN, ROLE_ADMINISTRATIVO])) {
     header("Location: home.php");
     exit();
 }

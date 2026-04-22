@@ -1,6 +1,12 @@
 <?php
 // formacion_profesional.php
-require_once 'includes/auth.php'; // Verifica login y permisos
+require_once 'includes/auth.php';
+
+// Solo administradores y tutores pueden acceder a formación profesional
+if (!has_permission([ROLE_ADMIN, ROLE_TUTOR])) {
+    header("Location: home.php");
+    exit();
+}
 
 // Títulos formativos de ejemplo (basados en la imagen)
 $titulos = [

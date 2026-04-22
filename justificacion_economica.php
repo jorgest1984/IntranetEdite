@@ -2,8 +2,8 @@
 // justificacion_economica.php
 require_once 'includes/auth.php';
 
-if (!has_permission([ROLE_ADMIN, ROLE_COORD])) {
-    header("Location: dashboard.php");
+if (!has_permission([ROLE_ADMIN, ROLE_ADMINISTRATIVO])) {
+    header("Location: home.php");
     exit();
 }
 
@@ -222,9 +222,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const convocatoriaId = convocatoriaSelect.value;
             const planId = planSelect.value;
             
-            // Redirect to report generation script (placeholder for now)
-            alert(`Generando reporte: ${reportType}\nConvocatoria: ${convocatoriaId}\nPlan: ${planId || 'Múltiples/Todos'}`);
-            // window.location.href = `generar_reporte.php?tipo=${reportType}&convocatoria_id=${convocatoriaId}&plan_id=${planId}`;
+            if (reportType === 'imparticion') {
+                window.location.href = `exportar_informe_imparticion.php?convocatoria_id=${convocatoriaId}&plan_id=${planId}`;
+            } else {
+                // Redirect to report generation script (placeholder for now)
+                alert(`Generando reporte: ${reportType}\nConvocatoria: ${convocatoriaId}\nPlan: ${planId || 'Múltiples/Todos'}`);
+                // window.location.href = `generar_reporte.php?tipo=${reportType}&convocatoria_id=${convocatoriaId}&plan_id=${planId}`;
+            }
         });
     });
 

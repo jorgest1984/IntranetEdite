@@ -2,8 +2,9 @@
 // inscripciones.php
 require_once 'includes/auth.php';
 
-if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA, ROLE_FORMADOR])) {
-    header("Location: dashboard.php");
+// Solo administradores y tutores pueden realizar envíos masivos
+if (!has_permission([ROLE_ADMIN, ROLE_TUTOR])) {
+    header("Location: home.php");
     exit();
 }
 

@@ -28,13 +28,12 @@ function has_permission($required_roles) {
     return $_SESSION['rol_id'] == $required_roles;
 }
 
-// Roles ID:
-// 1 = Administrador
-// 2 = Coordinador
-// 3 = Formador
-// 4 = Solo Lectura
+// Roles ID (NUEVA ESTRUCTURA):
+// 1 = Administrador (Acceso total)
+// 2 = Administrativo (Solo Económico)
+// 3 = Tutor (Solo Académico)
 define('ROLE_ADMIN', 1);
-define('ROLE_COORD', 2);
-define('ROLE_FORMADOR', 3);
-define('ROLE_LECTURA', 4);
+define('ROLE_ADMINISTRATIVO', 2);
+define('ROLE_TUTOR', 3);
+define('ROLE_LECTURA', 4); // Legacy / Mantenimiento
 ?>

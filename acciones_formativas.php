@@ -2,8 +2,9 @@
 // acciones_formativas.php
 require_once 'includes/auth.php';
 
-if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA, ROLE_FORMADOR])) {
-    die("No tiene permisos suficientes para acceder a Acciones Formativas.");
+if (!has_permission([ROLE_ADMIN, ROLE_TUTOR])) {
+    header("Location: home.php");
+    exit();
 }
 
 $is_subvencionada = (isset($_GET['context']) && $_GET['context'] === 'subvencionada');

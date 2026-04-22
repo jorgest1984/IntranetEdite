@@ -1,18 +1,16 @@
 <?php
-// usuarios.php
-require_once 'includes/config.php';
+// comerciales.php
 require_once 'includes/auth.php';
 
-// Solo administradores y coordinadores pueden gestionar comerciales
-if (!has_permission([ROLE_ADMIN, ROLE_COORD])) {
-    header("Location: dashboard.php");
+// Solo administradores y administrativos pueden gestionar comerciales
+if (!has_permission([ROLE_ADMIN, ROLE_ADMINISTRATIVO])) {
+    header("Location: home.php");
     exit();
 }
 
 $success = '';
 $error = '';
 
-// Procesar formularios
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['action'])) {
         // Crear Usuario

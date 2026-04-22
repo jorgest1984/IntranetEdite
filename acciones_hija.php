@@ -2,6 +2,12 @@
 // acciones_hija.php
 require_once 'includes/auth.php';
 
+// Solo administradores y tutores (formadores) pueden gestionar acciones formativas
+if (!has_permission([ROLE_ADMIN, ROLE_TUTOR])) {
+    header("Location: home.php");
+    exit();
+}
+
 // Datos de ejemplo para el buscador (en una app real vendrían de DB)
 $convocatorias = [
     ['id' => 1, 'nombre' => 'CONTRATOS PROGRAMA 2024'],

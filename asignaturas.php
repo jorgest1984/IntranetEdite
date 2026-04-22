@@ -1,6 +1,12 @@
 <?php
 // asignaturas.php (Layout Sync 2024)
-require_once 'includes/auth.php'; // Verifica login y permisos
+require_once 'includes/auth.php';
+
+// Solo administradores y tutores pueden ver asignaturas
+if (!has_permission([ROLE_ADMIN, ROLE_TUTOR])) {
+    header("Location: home.php");
+    exit();
+}
 
 // Fetch from database
 try {

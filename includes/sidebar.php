@@ -40,27 +40,24 @@ $current_page = basename($_SERVER['PHP_SELF']);
             </a>
         </li>
         <li>
+            <a href="buscador_global.php" class="<?= ($current_page == 'buscador_global.php') ? 'active' : '' ?>">
+                <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                Buscador Global
+            </a>
+        </li>
+
+        <?php if (has_permission([ROLE_ADMIN, ROLE_TUTOR])): ?>
+        <li class="menu-divider">Área Académica</li>
+        <li>
             <a href="formacion.php" class="<?= $current_page == 'formacion.php' ? 'active' : '' ?>">
                 <svg viewBox="0 0 24 24"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72l5 2.73 5-2.73v3.72z"/></svg>
                 Formación
             </a>
         </li>
         <li>
-            <a href="formacion_profesional.php" class="<?= $current_page == 'formacion_profesional.php' ? 'active' : '' ?>">
-                <svg viewBox="0 0 24 24"><path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z"/></svg>
-                Formación Profesional
-            </a>
-        </li>
-        <li>
             <a href="convocatorias.php" class="<?= $current_page == 'convocatorias.php' ? 'active' : '' ?>">
                 <svg viewBox="0 0 24 24"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
                 Convocatorias (SEPE)
-            </a>
-        </li>
-        <li>
-            <a href="acciones_formativas.php" class="<?= $current_page == 'acciones_formativas.php' ? 'active' : '' ?>">
-                <svg viewBox="0 0 24 24"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9z"/></svg>
-                Acciones Formativas
             </a>
         </li>
         <li>
@@ -76,33 +73,9 @@ $current_page = basename($_SERVER['PHP_SELF']);
             </a>
         </li>
         <li>
-            <a href="grupos.php" class="<?= $current_page == 'grupos.php' ? 'active' : '' ?>">
-                <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-                Grupos
-            </a>
-        </li>
-        <li>
-            <a href="comerciales.php" class="<?= $current_page == 'comerciales.php' ? 'active' : '' ?>">
-                <svg viewBox="0 0 24 24"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6.18-6.18 4 4L20.83 8.59 23 10.76V6z"/></svg>
-                Comerciales
-            </a>
-        </li>
-        <li>
-            <a href="buscador_global.php" class="<?= ($current_page == 'buscador_global.php') ? 'active' : '' ?>">
-                <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-                Buscador Global
-            </a>
-        </li>
-        <li>
             <a href="alumnos.php" class="<?= $current_page == 'alumnos.php' ? 'active' : '' ?>">
                 <svg viewBox="0 0 24 24"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                Nuevo Alumno
-            </a>
-        </li>
-        <li>
-            <a href="buscar_empresas.php" class="<?= $current_page == 'buscar_empresas.php' ? 'active' : '' ?>">
-                <svg viewBox="0 0 24 24"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-8h8v8zm-2-6h-4v4h4v-4z"/></svg>
-                Empresas / Centros
+                Alumnos
             </a>
         </li>
         <li>
@@ -112,31 +85,51 @@ $current_page = basename($_SERVER['PHP_SELF']);
             </a>
         </li>
         <li>
-            <a href="asistencia.php" class="<?= $current_page == 'asistencia.php' ? 'active' : '' ?>">
-                <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
-                Asistencia
-            </a>
-        </li>
-        <li>
             <a href="informes.php" class="<?= $current_page == 'informes.php' ? 'active' : '' ?>">
                 <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
                 Informes SEPE/FUNDAE
             </a>
         </li>
+        <?php endif; ?>
+
+        <?php if (has_permission([ROLE_ADMIN, ROLE_ADMINISTRATIVO])): ?>
+        <li class="menu-divider">Área Económica</li>
+        <li>
+            <a href="contabilidad.php" class="<?= $current_page == 'contabilidad.php' ? 'active' : '' ?>">
+                <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-6 2h4v4h-4V5zm-2 4H7V5h4v4zm-4 2h4v4H7v-4zm6 0h4v4h-4v-4zm-6 6h4v4H7v-4zm6 0h4v4h-4v-4z"/></svg>
+                Contabilidad
+            </a>
+        </li>
+        <li>
+            <a href="facturas.php" class="<?= $current_page == 'facturas.php' ? 'active' : '' ?>">
+                <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                Facturas
+            </a>
+        </li>
+        <li>
+            <a href="proveedores.php" class="<?= $current_page == 'proveedores.php' ? 'active' : '' ?>">
+                <svg viewBox="0 0 24 24"><path d="M7 18h2V6H7v12zm4 4h2V6h-2v16zm-8-8h2V6H3v8zM15 6v16h2V6h-2zm4 16h2V6h-2v16zM1 2v2h22V2H1z"/></svg>
+                Proveedores
+            </a>
+        </li>
+        <?php endif; ?>
+
+        <li class="menu-divider">Seguridad e ISO</li>
         <li>
             <a href="incidencias.php" class="<?= $current_page == 'incidencias.php' ? 'active' : '' ?>">
                 <svg viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2zm1 14h-2v-2h2v2zm0-4h-2V8h2v4z"/></svg>
-                Incidencias Seguridad
+                Incidencias
             </a>
         </li>
         <li>
             <a href="seguridad.php" class="<?= $current_page == 'seguridad.php' ? 'active' : '' ?>">
                 <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-                Manual de Seguridad ISO
+                Manual de Seguridad
             </a>
         </li>
         
         <?php if (has_permission([ROLE_ADMIN])): ?>
+        <li class="menu-divider">Mantenimiento</li>
         <li>
             <a href="usuarios.php" class="<?= $current_page == 'usuarios.php' ? 'active' : '' ?>">
                 <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
@@ -146,7 +139,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
         <li>
             <a href="auditoria.php" class="<?= $current_page == 'auditoria.php' ? 'active' : '' ?>">
                 <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
-                Auditoría ISO 27001
+                Auditoría ISO
             </a>
         </li>
         <li>

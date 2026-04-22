@@ -3,9 +3,9 @@
 require_once 'includes/config.php';
 require_once 'includes/auth.php';
 
-// Validar accesos
-if (!has_permission([ROLE_ADMIN, ROLE_COORD])) {
-    header("Location: dashboard.php");
+// Solo administradores y tutores pueden gestionar el envío de claves
+if (!has_permission([ROLE_ADMIN, ROLE_TUTOR])) {
+    header("Location: home.php");
     exit();
 }
 

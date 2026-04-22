@@ -5,7 +5,7 @@ require_once 'includes/auth.php';
 
 // Solo administradores pueden gestionar usuarios (ISO 27001 - A.9)
 if (!has_permission([ROLE_ADMIN])) {
-    header("Location: dashboard.php");
+    header("Location: home.php");
     exit();
 }
 

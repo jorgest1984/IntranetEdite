@@ -2,9 +2,9 @@
 // asistencia.php
 require_once 'includes/auth.php';
 
-// Formadores pueden entrar para pasar lista
-if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_FORMADOR])) {
-    header("Location: dashboard.php");
+// Formadores (Tutores) pueden entrar para pasar lista
+if (!has_permission([ROLE_ADMIN, ROLE_TUTOR])) {
+    header("Location: home.php");
     exit();
 }
 
@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         $fecha_filtro = $fecha;
         
     } catch (Exception $e) {
-        $pdo->rollBack();
+        if ($pdo->inTransaction()) $pdo->rollBack();
         $error = "Error al guardar la asistencia: " . $e->getMessage();
     }
 }

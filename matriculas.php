@@ -2,8 +2,8 @@
 // matriculas.php (Expediente Interno de Convocatoria)
 require_once 'includes/auth.php';
 
-if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA])) {
-    header("Location: dashboard.php");
+if (!has_permission([ROLE_ADMIN, ROLE_TUTOR])) {
+    header("Location: home.php");
     exit();
 }
 
@@ -27,7 +27,7 @@ $error = '';
 $success = '';
 
 // Procesar Matriculación (Añadir alumno al expediente)
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'matricular' && has_permission([ROLE_ADMIN, ROLE_COORD])) {
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'matricular' && has_permission([ROLE_ADMIN, ROLE_TUTOR])) {
     $alumnoId = intval($_POST['alumno_id']);
     $estadoInicial = trim($_POST['estado']);
     $fecha = trim($_POST['fecha']);
@@ -56,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 }
 
 // Cambiar estado de matrícula
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'cambiar_estado' && has_permission([ROLE_ADMIN, ROLE_COORD])) {
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'cambiar_estado' && has_permission([ROLE_ADMIN, ROLE_TUTOR])) {
     $matriculaId = intval($_POST['matricula_id']);
     $nuevoEstado = trim($_POST['nuevo_estado']);
     
@@ -214,7 +214,7 @@ function getMatriculaBadge($estado) {
                                         </div>
                                     </td>
                                     <td>
-                                        <?php if (has_permission([ROLE_ADMIN, ROLE_COORD])): ?>
+                                        <?php if (has_permission([ROLE_ADMIN, ROLE_TUTOR])): ?>
                                         <form method="POST" action="" class="status-form">
                                             <input type="hidden" name="action" value="cambiar_estado">
                                             <input type="hidden" name="matricula_id" value="<?= $mat['matricula_id'] ?>">
@@ -237,7 +237,7 @@ function getMatriculaBadge($estado) {
             </section>
 
             <!-- Formulario Añadir Matrícula -->
-            <?php if (has_permission([ROLE_ADMIN, ROLE_COORD])): ?>
+            <?php if (has_permission([ROLE_ADMIN, ROLE_TUTOR])): ?>
             <section class="form-section">
                 <h2 style="margin-top: 0; font-size: 1.1rem; color: var(--primary-color); border-bottom: 1px solid var(--border-color); padding-bottom: 0.8rem;">
                     Nueva Matrícula

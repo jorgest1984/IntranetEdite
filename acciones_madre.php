@@ -2,6 +2,12 @@
 // acciones_madre.php (Layout Sync 2024)
 require_once 'includes/auth.php';
 
+// Solo administradores y tutores pueden gestionar contenidos (nivel madre)
+if (!has_permission([ROLE_ADMIN, ROLE_TUTOR])) {
+    header("Location: home.php");
+    exit();
+}
+
 $sectores = [
     'Abogados', 'Acción e Intervención Social', 'Administracion y gestion', 'Agencias de Viaje',
     'Alimentación', 'Ambulancias', 'Arquitectura', 'Artes Gráficas', 'Asesorías',

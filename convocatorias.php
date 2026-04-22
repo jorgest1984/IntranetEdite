@@ -2,8 +2,8 @@
 // convocatorias.php
 require_once 'includes/auth.php';
 
-if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA])) {
-    header("Location: dashboard.php");
+if (!has_permission([ROLE_ADMIN, ROLE_TUTOR])) {
+    header("Location: home.php");
     exit();
 }
 
@@ -11,7 +11,7 @@ $error = '';
 $success = '';
 
 // Procesar formulario de nueva convocatoria
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && has_permission([ROLE_ADMIN, ROLE_COORD])) {
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && has_permission([ROLE_ADMIN, ROLE_TUTOR])) {
     if ($_POST['action'] == 'create') {
         $codigo = trim($_POST['codigo_expediente'] ?? '');
         $nombre = trim($_POST['nombre'] ?? '');
@@ -85,96 +85,6 @@ function getBadgeClass($estado) {
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <link rel="icon" type="image/png" href="/img/logo_efp.png">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Convocatorias SEPE/FUNDAE - <?= APP_NAME ?></title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/main.css">
-    <style>
-        .page-header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: flex-end; 
-            margin-bottom: 2rem; 
-        }
-        .page-title h1 { font-size: 1.8rem; margin: 0; color: #333; }
-        .page-title h2 { font-size: 1.4rem; margin: 0.5rem 0 0 0; color: #444; font-weight: 500; }
-        
-        /* Breadcrumb style */
-        .breadcrumb { 
-            background: #f1f5f9; 
-            padding: 0.75rem 1.5rem; 
-            border-radius: 8px; 
-            margin-bottom: 2rem; 
-            font-size: 0.9rem; 
-            color: #64748b; 
-        }
-        .breadcrumb a { color: #006ce4; text-decoration: none; }
-        .breadcrumb a:hover { text-decoration: underline; }
-        .breadcrumb span { margin: 0 0.5rem; color: #94a3b8; }
-
-        .btn-nova {
-            background-color: #006ce4;
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 0.95rem;
-            transition: background 0.2s;
-        }
-        .btn-nova:hover { background-color: #0056b3; }
-
-        /* Modified Table */
-        .convocatorias-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        .convocatorias-table thead th { 
-            background-color: #1e293b; 
-            color: white; 
-            text-align: left; 
-            padding: 0.75rem 1.5rem; 
-            font-weight: 600; 
-            text-transform: none; 
-        }
-        .convocatorias-table tbody td { padding: 1.25rem 1.5rem; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
-        .convocatorias-table tbody tr:nth-child(even) { background-color: #f8fafc; }
-        
-        .entry-title { color: #006ce4; font-weight: 500; text-decoration: none; font-size: 1rem; display: block; margin-bottom: 0.25rem; }
-        .entry-title:hover { text-decoration: underline; }
-        .entry-subtitle { color: #64748b; font-size: 0.85rem; }
-
-        .actions-cell { display: flex; align-items: center; justify-content: flex-end; gap: 2rem; }
-        .actas-link { color: #006ce4; text-decoration: none; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; }
-        .actas-link:hover { text-decoration: underline; }
-        .action-icons { display: flex; gap: 0.75rem; align-items: center; }
-        
-        .icon-btn { cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .icon-edit { color: #006ce4; }
-        .icon-delete { color: #ef4444; font-weight: bold; font-size: 1.2rem; line-height: 1; }
-
-        .alert { padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; font-size: 0.9rem; }
-        .alert-success { background: #d1fae5; color: #059669; border-left: 4px solid #059669; }
-        .alert-error { background: #fee2e2; color: #dc2626; border-left: 4px solid #dc2626; }
-    </style>
-</head>
-<body>
-
-<div class="app-container">
-    <?php include 'includes/sidebar.php'; ?>
-
-    <main class="main-content">
-        <header class="page-header">
-            <div class="page-title">
-                <h1>Formación</h1>
-                <h2>Convocatorias</h2>
-            </div>
-            <?php if (has_permission([ROLE_ADMIN, ROLE_COORD])): ?>
-                <a href="#" class="btn-nova" onclick="document.getElementById('form-nueva').style.display='block'; return false;">
-                    Nueva convocatoria
-                </a>
-            <?php endif; ?>
-        </header>
-
         <div class="breadcrumb">
             <a href="home.php">Inicio</a><span>/</span><a href="formacion_profesional.php">Formación</a><span>/</span>Convocatorias
         </div>

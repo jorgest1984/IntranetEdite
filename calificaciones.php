@@ -3,9 +3,9 @@
 require_once 'includes/auth.php';
 require_once 'includes/moodle_api.php';
 
-// Formadores pueden entrar para consultar las notas
-if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_FORMADOR, ROLE_LECTURA])) {
-    header("Location: dashboard.php");
+// Solo administradores y tutores pueden consultar las notas
+if (!has_permission([ROLE_ADMIN, ROLE_TUTOR])) {
+    header("Location: home.php");
     exit();
 }
 

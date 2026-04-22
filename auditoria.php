@@ -1,11 +1,10 @@
 <?php
 // auditoria.php
-require_once 'includes/config.php';
 require_once 'includes/auth.php';
 
 // Solo administradores pueden ver los logs de auditoría (ISO 27001 - A.5.33)
 if (!has_permission([ROLE_ADMIN])) {
-    header("Location: dashboard.php");
+    header("Location: home.php");
     exit();
 }
 
