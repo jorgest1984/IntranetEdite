@@ -119,14 +119,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                 'activo_hasta', 'nuestro', 'observaciones_personales'
             ];
             
-            $set_part = implode(' = ?, ', $fields) . ' = ?';
+            $fields_escaped = array_map(function($f) { return "`$f`"; }, $fields);
+            $set_part = implode(' = ?, ', $fields_escaped) . ' = ?';
             $sql = "UPDATE profesorado_detalles SET $set_part WHERE usuario_id = ?";
             
             $params = [];
             foreach ($fields as $f) {
                 $val = $_POST[$f] ?? null;
-                if ($f == 'nuestro') $val = ($val == 'SI' ? 1 : 0);
-                if ($f == 'activo_hasta' && !empty($val) && strlen($val) == 4) $val = $val . "-12-31"; // Convertir año a fecha
+                if ($f == 'nuestro') {
+                    $val = (isset($_POST['nuestro']) && $_POST['nuestro'] == 'SI') ? 1 : 0;
+                }
+                if ($f == 'activo_hasta' && !empty($val) && strlen($val) == 4) $val = $val . "-12-31"; 
                 if ($val === '') $val = null;
                 $params[] = $val;
             }
@@ -378,7 +381,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
 
             <!-- TAB: Personales (Estética idéntica a imagen) -->
             <div id="tab-personales" style="<?= $active_tab == 'personales' ? '' : 'display:none;' ?>">
-                <form method="POST">
+                <form method="POST" action="ficha_trabajador.php?id=<?= $id ?>&tab=personales">
                     <input type="hidden" name="action" value="update_personales">
                     <div class="form-premium-grid">
                         
