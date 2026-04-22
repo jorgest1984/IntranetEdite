@@ -1,5 +1,5 @@
 <?php
-// home.php
+// home.php - VERSION 2.0 BRACE_SYNTAX
 require_once 'includes/auth.php'; // Verifica login y permisos
 
 // --- LÓGICA DASHBOARD (NUEVO) ---
