@@ -98,14 +98,12 @@ $sections = [
             </button>
         </nav>
 
-        <!-- TAB: INICIO -->
         <div id="tab-inicio" class="tab-pane active">
             <div class="home-container" style="padding: 0;">
                 <div class="home-section">
                     <h2 class="home-section-title">Accesos Directos</h2>
                     <div class="tiles-grid">
-                        <?php foreach ($sections['Inicio'] as $tile): ?>
-                            <?php 
+                        <?php foreach ($sections['Inicio'] as $tile) { 
                                 $isExternal = !empty($tile['external']) && $tile['external'] === true;
                                 $target = $isExternal ? '_blank' : '_self';
                             ?>
@@ -118,13 +116,13 @@ $sections = [
                                 <div class="tile-title">
                                     <?= htmlspecialchars($tile['title']) ?>
                                 </div>
-                                <?php if ($isExternal): ?>
+                                <?php if ($isExternal) { ?>
                                     <svg class="tile-external-icon" viewBox="0 0 24 24">
                                         <path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/>
                                     </svg>
-                                <?php endif; ?>
+                                <?php } ?>
                             </a>
-                        <?php endforeach; ?>
+                        <?php } ?>
                     </div>
                 </div>
             </div>
@@ -133,7 +131,7 @@ $sections = [
         <!-- TAB: PANEL DE CONTROL -->
         <div id="tab-panel" class="tab-pane">
             <!-- SECCIÓN INTRANET (UTLLIDADES) -->
-            <?php if (has_permission([ROLE_ADMIN])): ?>
+            <?php if (has_permission([ROLE_ADMIN])) { ?>
             <div class="home-section" style="margin-bottom: 2rem;">
                 <h2 class="home-section-title">Intranet</h2>
                 <div class="tiles-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
@@ -191,10 +189,10 @@ $sections = [
                     </a>
                 </div>
             </div>
-            <?php endif; ?>
+            <?php } ?>
 
             <!-- SECCIÓN AULA VIRTUAL -->
-            <?php if (has_permission([ROLE_ADMIN, ROLE_TUTOR])): ?>
+            <?php if (has_permission([ROLE_ADMIN, ROLE_TUTOR])) { ?>
             <div class="home-section" style="margin-bottom: 2rem;">
                 <h2 class="home-section-title">Aula Virtual</h2>
                 <div class="tiles-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
@@ -229,10 +227,10 @@ $sections = [
                     </a>
                 </div>
             </div>
-            <?php endif; ?>
+            <?php } ?>
 
             <!-- SECCIÓN E-MAIL -->
-            <?php if (has_permission([ROLE_ADMIN, ROLE_TUTOR])): ?>
+            <?php if (has_permission([ROLE_ADMIN, ROLE_TUTOR])) { ?>
             <div class="home-section" style="margin-bottom: 2.5rem;">
                 <h2 class="home-section-title">E-mail</h2>
                 <div class="tiles-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
@@ -259,10 +257,10 @@ $sections = [
                     </a>
                 </div>
             </div>
-            <?php endif; ?>
+            <?php } ?>
 
             <!-- SECCIÓN ARQUITECTURA -->
-            <?php if (has_permission([ROLE_ADMIN])): ?>
+            <?php if (has_permission([ROLE_ADMIN])) { ?>
             <div class="home-section" style="margin-bottom: 2rem;">
                 <h2 class="home-section-title">Arquitectura de la intranet</h2>
                 <div class="tiles-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
@@ -292,11 +290,11 @@ $sections = [
                     (*) Estos procesos pueden tardar en ejecutarse. Se recomienda usarlos con precaución.
                 </p>
             </div>
-            <?php endif; ?>
+            <?php } ?>
 
             <!-- SECCIÓN ESTADÍSTICAS -->
             <section class="stats-grid">
-                <?php if (has_permission([ROLE_ADMIN, ROLE_TUTOR])): ?>
+                <?php if (has_permission([ROLE_ADMIN, ROLE_TUTOR])) { ?>
                 <a href="buscar_alumnos.php?filter=activos" class="stat-card">
                     <div class="stat-icon primary">
                         <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
@@ -326,6 +324,7 @@ $sections = [
                         <div class="stat-label">Pendientes</div>
                     </div>
                 </div>
+                <?php } ?>
             </section>
 
             <!-- WIDGETS -->
@@ -338,23 +337,20 @@ $sections = [
                         <thead>
                             <tr>
                                 <th>Expediente</th>
-                                <th>Tipo</th>
+                                <th>Denominación</th>
                                 <th>Estado</th>
-                                <th>%</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td>SEPE-2023-01</td>
-                                <td>Desempleados</td>
-                                <td><span class="badge badge-success">Activo</span></td>
-                                <td>45%</td>
+                                <td style="font-weight: 600;">2024/001</td>
+                                <td>Competencias Digitales</td>
+                                <td><span class="badge" style="background: #dcfce7; color: #166534;">En curso</span></td>
                             </tr>
                             <tr>
-                                <td>FUN-2024-B1</td>
-                                <td>Empresas</td>
-                                <td><span class="badge badge-warning">Aprobada</span></td>
-                                <td>0%</td>
+                                <td style="font-weight: 600;">2024/002</td>
+                                <td>Gestión Administrativa</td>
+                                <td><span class="badge" style="background: #fef9c3; color: #854d0e;">Próximo</span></td>
                             </tr>
                         </tbody>
                     </table>
@@ -364,9 +360,9 @@ $sections = [
                     <div class="widget-header">
                         <h2 class="widget-title">Auditoría Reciente (ISO)</h2>
                     </div>
-                    <?php if (empty($logs)): ?>
+                    <?php if (empty($logs)) { ?>
                         <p style="text-align: center; color: var(--text-muted); padding: 1rem; font-size: 0.8rem;">Sin registros recientes.</p>
-                    <?php else: ?>
+                    <?php } else { ?>
                         <table class="data-table" style="font-size: 0.75rem;">
                             <thead>
                                 <tr>
@@ -375,15 +371,15 @@ $sections = [
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($logs as $log): ?>
+                                <?php foreach ($logs as $log) { ?>
                                 <tr>
                                     <td><?= htmlspecialchars($log['username'] ?: 'Sis') ?></td>
                                     <td><?= htmlspecialchars($log['accion']) ?></td>
                                 </tr>
-                                <?php endforeach; ?>
+                                <?php } ?>
                             </tbody>
                         </table>
-                    <?php endif; ?>
+                    <?php } ?>
                 </div>
             </section>
         </div>
@@ -394,12 +390,12 @@ $sections = [
                 <div class="home-section">
                     <h2 class="home-section-title">Gestión por Departamentos</h2>
                     <div class="tiles-grid">
-                        <?php foreach ($sections['Áreas'] as $tile): ?>
+                        <?php foreach ($sections['Áreas'] as $tile) { ?>
                             <a href="<?= htmlspecialchars($tile['url']) ?>" class="tile tile-<?= htmlspecialchars($tile['color']) ?>">
                                 <div class="tile-icon"><?= $tile['icon'] ?></div>
                                 <div class="tile-title"><?= htmlspecialchars($tile['title']) ?></div>
                             </a>
-                        <?php endforeach; ?>
+                        <?php } ?>
                     </div>
                 </div>
             </div>
@@ -411,13 +407,13 @@ $sections = [
                 <div class="home-section">
                     <h2 class="home-section-title">Enlaces Externos y Apps</h2>
                     <div class="tiles-grid">
-                        <?php foreach ($sections['Sitios y aplicaciones'] as $tile): ?>
+                        <?php foreach ($sections['Sitios y aplicaciones'] as $tile) { ?>
                             <a href="<?= htmlspecialchars($tile['url']) ?>" class="tile tile-<?= htmlspecialchars($tile['color']) ?>" target="_blank">
                                 <div class="tile-icon"><?= $tile['icon'] ?></div>
                                 <div class="tile-title"><?= htmlspecialchars($tile['title']) ?></div>
                                 <svg class="tile-external-icon" viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
                             </a>
-                        <?php endforeach; ?>
+                        <?php } ?>
                     </div>
                 </div>
             </div>
@@ -427,25 +423,28 @@ $sections = [
 
 <script>
 function switchTab(tabId) {
-    // Romover clase active de todos los botones
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    // Romover clase active de todos los paneles
-    document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+    // Ocultar todas las pestañas
+    document.querySelectorAll('.tab-pane').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    // Desactivar botones
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
     
-    // Activar el seleccionado
-    const clickedBtn = event.currentTarget;
-    clickedBtn.classList.add('active');
+    // Mostrar la seleccionada
     document.getElementById('tab-' + tabId).classList.add('active');
+    // Activar botón
+    event.currentTarget.classList.add('active');
     
-    // Guardar preferencia en localStorage (opcional)
+    // Guardar preferencia
     localStorage.setItem('activeHomeTab', tabId);
 }
 
-// Cargar pestaña guardada al iniciar
+// Recuperar pestaña activa
 document.addEventListener('DOMContentLoaded', () => {
     const savedTab = localStorage.getItem('activeHomeTab');
     if (savedTab && document.getElementById('tab-' + savedTab)) {
-        // En lugar de llamar a switchTab que necesita event, lo hacemos manual
         document.querySelectorAll('.tab-btn').forEach(btn => {
             if (btn.getAttribute('onclick').includes(savedTab)) {
                 btn.classList.add('active');

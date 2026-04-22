@@ -268,7 +268,72 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         .btn-actualizar:hover { background: #f1f5f9; }
 
         .info-section { margin-bottom: 2rem; }
-        .info-section h3 { color: var(--label-blue); border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; margin-bottom: 1.5rem; }
+        .info-section h3 { color: #1e40af; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; margin-bottom: 1.5rem; font-size: 1.1rem; }
+
+        /* Iconos amarillos emails */
+        .email-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            width: 100%;
+        }
+        .btn-yellow-icon {
+            background: #fde047;
+            border: none;
+            border-radius: 4px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: background 0.2s;
+        }
+        .btn-yellow-icon:hover { background: #facc15; }
+        .btn-yellow-icon svg { width: 14px; height: 14px; fill: #854d0e; }
+
+        /* Radio Buttons Polish */
+        .radio-group-premium {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            font-size: 0.85rem;
+            color: #0f172a;
+        }
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .radio-item input[type="radio"] {
+            accent-color: #1e40af;
+            cursor: pointer;
+        }
+
+        /* Tutorias Table */
+        .table-premium {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+        }
+        .table-premium th {
+            text-align: left;
+            background: #f8fafc;
+            padding: 0.75rem 1rem;
+            border-bottom: 2px solid #e2e8f0;
+            color: #475569;
+            font-weight: 600;
+        }
+        .table-premium td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #f1f5f9;
+            color: #1e293b;
+        }
+        .table-premium tr:hover { background: #f8fafc; }
     </style>
 </head>
 <body>
@@ -382,11 +447,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                         <!-- FILA 7 -->
                         <div class="form-group" style="grid-column: span 5;">
                             <label>E-mail:</label>
-                            <input type="email" name="email_fake" value="<?= htmlspecialchars($trabajador['email']) ?>" readonly style="color: #64748b;">
+                            <div class="email-wrapper">
+                                <input type="email" name="email_fake" value="<?= htmlspecialchars($trabajador['email']) ?>" readonly style="color: #64748b;">
+                                <button type="button" class="btn-yellow-icon" title="Enviar email">
+                                    <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                                </button>
+                            </div>
                         </div>
                         <div class="form-group" style="grid-column: span 4;">
                             <label>E-mail personal:</label>
-                            <input type="email" name="email2" value="<?= htmlspecialchars($prof['email2'] ?? '') ?>">
+                            <div class="email-wrapper">
+                                <input type="email" name="email2" value="<?= htmlspecialchars($prof['email2'] ?? '') ?>">
+                                <button type="button" class="btn-yellow-icon" title="Enviar email personal">
+                                    <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                                </button>
+                            </div>
                         </div>
                         <div class="form-group" style="grid-column: span 3;">
                             <label>Skype:</label>
@@ -410,9 +485,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                         </div>
                         <div class="form-group" style="grid-column: span 8;">
                             <label>Nuestro:</label>
-                            <div style="font-size: 0.85rem; display: flex; gap: 10px; align-items: center;">
-                                <label style="font-weight: 500;"><input type="radio" name="nuestro" value="SI" <?= ($prof['nuestro'] ?? 0) ? 'checked' : '' ?>> Sí</label>
-                                <label style="font-weight: 500;"><input type="radio" name="nuestro" value="NO" <?= !($prof['nuestro'] ?? 0) ? 'checked' : '' ?>> No</label>
+                            <div class="radio-group-premium">
+                                <label class="radio-item"><input type="radio" name="nuestro" value="SI" <?= ($prof['nuestro'] ?? 0) ? 'checked' : '' ?>> Sí</label>
+                                <label class="radio-item"><input type="radio" name="nuestro" value="NO" <?= !($prof['nuestro'] ?? 0) ? 'checked' : '' ?>> No</label>
                             </div>
                         </div>
 
@@ -490,8 +565,56 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             <!-- PLACEHOLDERS PARA OTRAS PESTAÑAS (En desarrollo) -->
             <div id="tab-profesorado" style="<?= $active_tab == 'profesorado' ? '' : 'display:none;' ?>">
                 <div class="info-section">
-                    <h3>Gestión de Profesorado</h3>
-                    <p>Módulo en desarrollo...</p>
+                    <h3>Gestión Académica y Tutorías</h3>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <p style="color: #64748b; font-size: 0.9rem;">Historial de tutorías y cargos académicos del trabajador.</p>
+                        <button type="button" class="btn btn-primary" style="font-size: 0.75rem; padding: 5px 12px;">+ Nueva Tutoría</button>
+                    </div>
+
+                    <table class="table-premium">
+                        <thead>
+                            <tr>
+                                <th>Año</th>
+                                <th>Curso / Denominación</th>
+                                <th>Modalidad</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            $stmtTut = $pdo->prepare("SELECT * FROM prof_tutorias WHERE usuario_id = ? ORDER BY anio DESC");
+                            $stmtTut->execute([$id]);
+                            $tutorias = $stmtTut->fetchAll();
+                            
+                            foreach ($tutorias as $tut): ?>
+                            <tr>
+                                <td style="font-weight: 600;"><?= htmlspecialchars($tut['anio']) ?></td>
+                                <td><?= htmlspecialchars($tut['curso']) ?></td>
+                                <td>
+                                    <span class="badge" style="background: #f1f5f9; color: #475569;"><?= htmlspecialchars($tut['modalidad']) ?></span>
+                                </td>
+                                <td>
+                                    <button class="btn-icon" title="Editar"><svg viewBox="0 0 24 24" width="14"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                            
+                            <?php if (empty($tutorias)): ?>
+                            <tr>
+                                <td colspan="4" style="text-align: center; color: #94a3b8; padding: 2rem;">No hay tutorías registradas para este trabajador.</td>
+                            </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="info-section" style="margin-top: 3rem;">
+                    <h3>Acreditaciones Académicas</h3>
+                    <p style="color: #64748b; font-size: 0.9rem;">Documentación y títulos habilitantes para la docencia.</p>
+                    <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 2rem; text-align: center; color: #94a3b8;">
+                        Espacio para gestión de títulos (CAP, Máster, etc.) - Próximamente
+                    </div>
                 </div>
             </div>
 

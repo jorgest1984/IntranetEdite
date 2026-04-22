@@ -46,7 +46,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             </a>
         </li>
 
-        <?php if (has_permission([ROLE_ADMIN, ROLE_TUTOR])): ?>
+        <?php if (has_permission([ROLE_ADMIN, ROLE_TUTOR])) { ?>
         <li class="menu-divider">Área Académica</li>
         <li>
             <a href="formacion.php" class="<?= $current_page == 'formacion.php' ? 'active' : '' ?>">
@@ -90,9 +90,9 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 Informes SEPE/FUNDAE
             </a>
         </li>
-        <?php endif; ?>
+        <?php } ?>
 
-        <?php if (has_permission([ROLE_ADMIN, ROLE_ADMINISTRATIVO])): ?>
+        <?php if (has_permission([ROLE_ADMIN, ROLE_ADMINISTRATIVO])) { ?>
         <li class="menu-divider">Área Económica</li>
         <li>
             <a href="contabilidad.php" class="<?= $current_page == 'contabilidad.php' ? 'active' : '' ?>">
@@ -112,7 +112,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 Proveedores
             </a>
         </li>
-        <?php endif; ?>
+        <?php } ?>
 
         <li class="menu-divider">Seguridad e ISO</li>
         <li>
@@ -128,7 +128,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             </a>
         </li>
         
-        <?php if (has_permission([ROLE_ADMIN])): ?>
+        <?php if (has_permission([ROLE_ADMIN])) { ?>
         <li class="menu-divider">Mantenimiento</li>
         <li>
             <a href="usuarios.php" class="<?= $current_page == 'usuarios.php' ? 'active' : '' ?>">
@@ -148,7 +148,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 Configuración
             </a>
         </li>
-        <?php endif; ?>
+        <?php } ?>
     </ul>
     
     <div class="sidebar-footer">

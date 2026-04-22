@@ -275,23 +275,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
             <p>Grupo EFP - Gestión Académica</p>
         </div>
         
-        <?php if (!empty($error)): ?>
+        <?php if (!empty($error)) { ?>
             <div class="alert alert-error">
                 <?= htmlspecialchars($error) ?>
             </div>
-        <?php endif; ?>
+        <?php } ?>
         
-        <?php if (isset($_GET['timeout'])): ?>
+        <?php if (isset($_GET['timeout'])) { ?>
             <div class="alert alert-info">
                 La sesión ha expirado por inactividad. Por favor, vuelva a identificarse.
             </div>
-        <?php endif; ?>
+        <?php } ?>
         
-        <?php if (isset($_GET['logout'])): ?>
+        <?php if (isset($_GET['logout'])) { ?>
             <div class="alert alert-info">
                 Sesión cerrada correctamente.
             </div>
-        <?php endif; ?>
+        <?php } ?>
 
         <form method="POST" action="">
             <div class="form-group">
