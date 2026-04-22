@@ -48,6 +48,7 @@ if ($is_local) {
         public function beginTransaction() {}
         public function commit() {}
         public function rollBack() {}
+        public function inTransaction() { return false; }
     }
 
     class BridgeStatement {
