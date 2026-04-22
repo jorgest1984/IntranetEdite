@@ -13,7 +13,7 @@ $stats = [
 
 // Obtener últimos logs de auditoría si es Admin
 $logs = [];
-if (has_permission([ROLE_ADMIN, ROLE_LECTURA, ROLE_COORD])) {
+if (has_permission([ROLE_ADMIN, ROLE_LECTURA])) {
     $stmt = $pdo->query("SELECT al.*, u.username FROM audit_log al LEFT JOIN usuarios u ON al.usuario_id = u.id ORDER BY al.fecha DESC LIMIT 10");
     $logs = $stmt->fetchAll();
 }
