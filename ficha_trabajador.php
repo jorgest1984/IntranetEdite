@@ -128,6 +128,36 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             header("Location: ficha_trabajador.php?id=$id&tab=personales&success=1");
             exit();
         }
+        if ($action == 'update_profesorado') {
+            $fields = [
+                'titulacion', 'es_tutor', 'es_teleformador', 'es_presencial', 'hace_seguimiento',
+                'tope_alumnos_turno', 'aplicar_viernes',
+                'tramo1_de', 'tramo1_a', 'tramo1_v2_de', 'tramo1_v2_a',
+                'tramo2_de', 'tramo2_a', 'tramo2_v2_de', 'tramo2_v2_a'
+            ];
+            
+            $fields_escaped = array_map(function($f) { return "`$f`"; }, $fields);
+            $set_part = implode(' = ?, ', $fields_escaped) . ' = ?';
+            $sql = "UPDATE profesorado_detalles SET $set_part WHERE usuario_id = ?";
+            
+            $params = [];
+            foreach ($fields as $f) {
+                $val = $_POST[$f] ?? null;
+                // Convertir SI/NO de radios a 1/0
+                if (in_array($f, ['es_tutor', 'es_teleformador', 'es_presencial', 'hace_seguimiento', 'aplicar_viernes'])) {
+                    $val = ($val == 'SI') ? 1 : 0;
+                }
+                if ($val === '') $val = null;
+                $params[] = $val;
+            }
+            $params[] = $id;
+
+            $stP = $pdo->prepare($sql);
+            $stP->execute($params);
+
+            header("Location: ficha_trabajador.php?id=$id&tab=profesorado&success=1");
+            exit();
+        }
     } catch (Exception $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();
         $error = "Error: " . $e->getMessage();
@@ -369,10 +399,113 @@ $tutorias = $stmtTut->fetchAll();
 
             <!-- TAB: Profesorado -->
             <div id="tab-profesorado" style="<?= $active_tab == 'profesorado' ? '' : 'display:none;' ?>">
-                <div class="info-section">
+                
+                <!-- Botones de Acción Superiores -->
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 2rem; flex-wrap: wrap;">
+                    <button class="btn-yellow-icon" style="padding: 0.6rem 1.2rem; font-size: 0.8rem; font-weight: 600; color: #854d0e;">Certificado</button>
+                    <button class="btn-yellow-icon" style="padding: 0.6rem 1.2rem; font-size: 0.8rem; font-weight: 600; color: #854d0e;">Crear/actualizar profesor en Aula Virtual</button>
+                    <button class="btn-yellow-icon" style="padding: 0.6rem 1.2rem; font-size: 0.8rem; font-weight: 600; color: #854d0e;">Subir documento</button>
+                    <button class="btn-yellow-icon" style="padding: 0.6rem 1.2rem; font-size: 0.8rem; font-weight: 600; color: #854d0e;">Archivo doc</button>
+                </div>
+
+                <form method="POST" action="ficha_trabajador.php?id=<?= $id ?>&tab=profesorado">
+                    <input type="hidden" name="action" value="update_profesorado">
+                    
+                    <div class="form-premium-grid">
+                        <!-- Titulación -->
+                        <div class="form-group" style="grid-column: span 12;">
+                            <label>Titulación:</label>
+                            <input type="text" name="titulacion" value="<?= htmlspecialchars($prof['titulacion'] ?? '') ?>" style="width: 100%;">
+                        </div>
+
+                        <!-- Checks Radios -->
+                        <div class="form-group" style="grid-column: span 3;">
+                            <label>Tutor:</label>
+                            <div class="radio-group-premium">
+                                <label class="radio-item"><input type="radio" name="es_tutor" value="SI" <?= ($prof['es_tutor'] ?? 0) ? 'checked' : '' ?>> Sí</label>
+                                <label class="radio-item"><input type="radio" name="es_tutor" value="NO" <?= !($prof['es_tutor'] ?? 0) ? 'checked' : '' ?>> No</label>
+                            </div>
+                        </div>
+                        <div class="form-group" style="grid-column: span 3;">
+                            <label>Teleformador:</label>
+                            <div class="radio-group-premium">
+                                <label class="radio-item"><input type="radio" name="es_teleformador" value="SI" <?= ($prof['es_teleformador'] ?? 0) ? 'checked' : '' ?>> Sí</label>
+                                <label class="radio-item"><input type="radio" name="es_teleformador" value="NO" <?= !($prof['es_teleformador'] ?? 0) ? 'checked' : '' ?>> No</label>
+                            </div>
+                        </div>
+                        <div class="form-group" style="grid-column: span 3;">
+                            <label>Presencial:</label>
+                            <div class="radio-group-premium">
+                                <label class="radio-item"><input type="radio" name="es_presencial" value="SI" <?= ($prof['es_presencial'] ?? 0) ? 'checked' : '' ?>> Sí</label>
+                                <label class="radio-item"><input type="radio" name="es_presencial" value="NO" <?= !($prof['es_presencial'] ?? 0) ? 'checked' : '' ?>> No</label>
+                            </div>
+                        </div>
+                        <div class="form-group" style="grid-column: span 3;">
+                            <label>Seguimiento:</label>
+                            <div class="radio-group-premium">
+                                <label class="radio-item"><input type="radio" name="hace_seguimiento" value="SI" <?= ($prof['hace_seguimiento'] ?? 0) ? 'checked' : '' ?>> Sí</label>
+                                <label class="radio-item"><input type="radio" name="hace_seguimiento" value="NO" <?= !($prof['hace_seguimiento'] ?? 0) ? 'checked' : '' ?>> No</label>
+                            </div>
+                        </div>
+
+                        <!-- Tope Alumnos -->
+                        <div class="form-group" style="grid-column: span 12; margin-top: 1rem;">
+                            <label>Tope de alumnos por turno:</label>
+                            <input type="number" name="tope_alumnos_turno" value="<?= htmlspecialchars($prof['tope_alumnos_turno'] ?? 0) ?>" style="max-width: 100px;">
+                        </div>
+
+                        <!-- HORARIOS (TRAMOS) -->
+                        <div style="grid-column: span 12; margin-top: 2rem;">
+                            <h4 style="color: #1e3a8a; margin-bottom: 1rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem; font-size: 0.9rem;">Tramos de tutorías (horarios)</h4>
+                            
+                            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                <!-- Tramo 1 -->
+                                <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.85rem; color: #475569;">
+                                    <span style="font-weight: 600; min-width: 80px;">Tramo 1, de</span>
+                                    <input type="time" name="tramo1_de" value="<?= $prof['tramo1_de'] ?? '' ?>" style="padding: 0.3rem;">
+                                    <span>a</span>
+                                    <input type="time" name="tramo1_a" value="<?= $prof['tramo1_a'] ?? '' ?>" style="padding: 0.3rem;">
+                                    <span>y de</span>
+                                    <input type="time" name="tramo1_v2_de" value="<?= $prof['tramo1_v2_de'] ?? '' ?>" style="padding: 0.3rem;">
+                                    <span>a</span>
+                                    <input type="time" name="tramo1_v2_a" value="<?= $prof['tramo1_v2_a'] ?? '' ?>" style="padding: 0.3rem;">
+                                </div>
+
+                                <!-- Tramo 2 -->
+                                <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.85rem; color: #475569;">
+                                    <span style="font-weight: 600; min-width: 80px;">Tramo 2, de</span>
+                                    <input type="time" name="tramo2_de" value="<?= $prof['tramo2_de'] ?? '' ?>" style="padding: 0.3rem;">
+                                    <span>a</span>
+                                    <input type="time" name="tramo2_a" value="<?= $prof['tramo2_a'] ?? '' ?>" style="padding: 0.3rem;">
+                                    <span>y de</span>
+                                    <input type="time" name="tramo2_v2_de" value="<?= $prof['tramo2_v2_de'] ?? '' ?>" style="padding: 0.3rem;">
+                                    <span>a</span>
+                                    <input type="time" name="tramo2_v2_a" value="<?= $prof['tramo2_v2_a'] ?? '' ?>" style="padding: 0.3rem;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Aplicar Viernes -->
+                        <div class="form-group" style="grid-column: span 12; margin-top: 1.5rem;">
+                            <label>Aplicar horario de tutorías también los viernes:</label>
+                            <div class="radio-group-premium">
+                                <label class="radio-item"><input type="radio" name="aplicar_viernes" value="SI" <?= ($prof['aplicar_viernes'] ?? 0) ? 'checked' : '' ?>> Sí</label>
+                                <label class="radio-item"><input type="radio" name="aplicar_viernes" value="NO" <?= !($prof['aplicar_viernes'] ?? 0) ? 'checked' : '' ?>> No</label>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div style="text-align: center; margin-top: 2rem;">
+                        <button type="submit" class="btn-actualizar">Actualizar Profesorado</button>
+                    </div>
+                </form>
+
+                <!-- Tabla de Tutorías Existente (se mantiene abajo como historial) -->
+                <div class="info-section" style="margin-top: 4rem; border-top: 2px dashed #e2e8f0; padding-top: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h3>Tutorías y Cargos Académicos</h3>
-                        <button class="btn-actualizar" style="margin:0; padding: 0.5rem 1rem; font-size:0.8rem;">+ Nueva Tutoría</button>
+                        <h3 style="font-size: 1rem;">Historial de Tutorías y Cargos</h3>
+                        <button class="btn-actualizar" style="margin:0; padding: 0.5rem 1rem; font-size:0.75rem; background: #64748b;">+ Nueva Asignación</button>
                     </div>
                     <table class="table-premium">
                         <thead>
@@ -396,7 +529,7 @@ $tutorias = $stmtTut->fetchAll();
                             <?php } ?>
                             <?php if (empty($tutorias)) { ?>
                             <tr>
-                                <td colspan="4" style="text-align: center; color: #94a3b8; padding: 2rem;">No hay tutorías registradas.</td>
+                                <td colspan="4" style="text-align: center; color: #94a3b8; padding: 2rem;">No hay tutorías registradas en el historial.</td>
                             </tr>
                             <?php } ?>
                         </tbody>
