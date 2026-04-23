@@ -741,7 +741,7 @@ $tutorias = $stmtTut->fetchAll();
                 <div>
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #fee2e2; padding-bottom: 0.5rem;">
                         <h3 style="color: #b91c1c; font-size: 0.9rem; text-transform: uppercase; margin: 0;">Formación</h3>
-                        <button class="btn-yellow-icon" style="padding: 0.4rem 1rem; font-size: 0.75rem; color: #854d0e; font-weight: 700;">+ Añadir Formación</button>
+                        <button class="btn-yellow-icon" onclick="openModalFormacion()" style="padding: 0.4rem 1rem; font-size: 0.75rem; color: #854d0e; font-weight: 700;">+ Añadir Formación</button>
                     </div>
                     
                     <table class="table-premium">
@@ -1034,6 +1034,14 @@ $tutorias = $stmtTut->fetchAll();
             docIdToDelete = null;
         }
 
+        // MODAL FORMACION
+        function openModalFormacion() {
+            document.getElementById('modalFormacion').style.display = 'flex';
+        }
+        function closeModalFormacion() {
+            document.getElementById('modalFormacion').style.display = 'none';
+        }
+
         function ejecutarBorrado() {
             if (docIdToDelete) {
                 location.href = 'api/eliminar_documento_profesor.php?id=' + docIdToDelete + '&usuario_id=<?= $id ?>';
@@ -1056,6 +1064,66 @@ $tutorias = $stmtTut->fetchAll();
                     <button onclick="closeConfirmDelete()" style="flex: 1; padding: 12px; border: 1px solid #e2e8f0; background: #fff; color: #475569; border-radius: 8px; font-weight: 700; cursor: pointer; text-transform: uppercase; font-size: 0.75rem;">Cancelar</button>
                     <button onclick="ejecutarBorrado()" style="flex: 1; padding: 12px; border: none; background: #ef4444; color: #fff; border-radius: 8px; font-weight: 700; cursor: pointer; text-transform: uppercase; font-size: 0.75rem; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);">Sí, eliminar</button>
                 </div>
+            </div>
+        </div>
+    </div>
+    <!-- MODAL: Añadir Formación -->
+    <div class="modal-overlay" id="modalFormacion">
+        <div class="modal-container" style="max-width: 650px;">
+            <div class="modal-header">
+                <h2 style="color: var(--label-blue);">INSERTAR FORMACIÓN</h2>
+                <button class="modal-close" onclick="closeModalFormacion()">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="ficha_trabajador.php?id=<?= $id ?>&tab=cv">
+                    <input type="hidden" name="action" value="add_formacion">
+                    
+                    <div class="form-premium-grid">
+                        <div class="form-group" style="grid-column: span 12;">
+                            <label>Denominación:</label>
+                            <input type="text" name="denominacion" required placeholder="Ej: Título de Bachiller">
+                        </div>
+                        
+                        <div class="form-group" style="grid-column: span 6;">
+                            <label>Organismo:</label>
+                            <input type="text" name="organismo" required placeholder="Ej: Ministerio de Educación">
+                        </div>
+                        
+                        <div class="form-group" style="grid-column: span 6;">
+                            <label>Centro:</label>
+                            <input type="text" name="centro" required placeholder="Ej: Regina Mundi">
+                        </div>
+
+                        <div class="form-group" style="grid-column: span 6;">
+                            <label>Tipo de Formación:</label>
+                            <div class="radio-group-premium">
+                                <label class="radio-item"><input type="radio" name="tipo_formacion" value="Académica" checked> Académica</label>
+                                <label class="radio-item"><input type="radio" name="tipo_formacion" value="Complementaria"> Complementaria</label>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="grid-column: span 3;">
+                            <label>Fecha desde:</label>
+                            <input type="date" name="desde" required>
+                        </div>
+                        
+                        <div class="form-group" style="grid-column: span 3;">
+                            <label>Fecha hasta:</label>
+                            <input type="date" name="hasta" required>
+                        </div>
+
+                        <div class="form-group" style="grid-column: span 12;">
+                            <label>Horas Totales:</label>
+                            <input type="number" name="horas" placeholder="Ej: 2000" style="max-width: 150px;">
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e2e8f0;">
+                        <button type="submit" class="btn-actualizar" style="margin: 0;">Añadir Formación</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
