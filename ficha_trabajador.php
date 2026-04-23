@@ -1104,19 +1104,19 @@ $tutorias = $stmtTut->fetchAll();
                             </div>
                         </div>
 
-                        <div class="form-group" style="grid-column: span 4;">
+                        <div class="form-group" style="grid-column: span 3;">
                             <label>Fecha desde:</label>
                             <input type="date" name="desde" required style="width: 100%;">
                         </div>
                         
-                        <div class="form-group" style="grid-column: span 4;">
+                        <div class="form-group" style="grid-column: span 3;">
                             <label>Fecha hasta:</label>
                             <input type="date" name="hasta" required style="width: 100%;">
                         </div>
 
-                        <div class="form-group" style="grid-column: span 4;">
-                            <label>Horas Totales:</label>
-                            <input type="number" name="horas" placeholder="Ej: 2000" style="width: 100%;">
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label>Horas:</label>
+                            <input type="number" name="horas" placeholder="0" style="width: 100%;">
                         </div>
                     </div>
 
