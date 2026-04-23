@@ -37,6 +37,18 @@ $stmt_formacion = $pdo->prepare("SELECT * FROM prof_formacion WHERE usuario_id =
 $stmt_formacion->execute([$id]);
 $formaciones = $stmt_formacion->fetchAll();
 
+$stmt_exp_prof = $pdo->prepare("SELECT * FROM prof_experiencia WHERE usuario_id = ? ORDER BY desde DESC");
+$stmt_exp_prof->execute([$id]);
+$experiencias_prof = $stmt_exp_prof->fetchAll();
+
+$stmt_idiomas = $pdo->prepare("SELECT * FROM prof_idiomas WHERE usuario_id = ?");
+$stmt_idiomas->execute([$id]);
+$idiomas = $stmt_idiomas->fetchAll();
+
+$stmt_informatica = $pdo->prepare("SELECT * FROM prof_informatica WHERE usuario_id = ?");
+$stmt_informatica->execute([$id]);
+$informatica = $stmt_informatica->fetchAll();
+
 $active_tab = $_GET['tab'] ?? 'personales';
 $error = null;
 
@@ -765,9 +777,146 @@ $tutorias = $stmtTut->fetchAll();
                                 </tr>
                                 <?php endforeach; ?>
                             <?php endif; ?>
+                    </table>
+                </div>
+
+                <!-- Experiencia Profesional -->
+                <div style="margin-bottom: 3rem; margin-top: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #fee2e2; padding-bottom: 0.5rem;">
+                        <h3 style="color: #b91c1c; font-size: 0.9rem; text-transform: uppercase; margin: 0;">Experiencia Profesional</h3>
+                        <button class="btn-yellow-icon" style="padding: 0.4rem 1rem; font-size: 0.75rem; color: #854d0e; font-weight: 700;">+ Nueva Experiencia</button>
+                    </div>
+                    
+                    <table class="table-premium">
+                        <thead>
+                            <tr style="background: #f8fafc;">
+                                <th style="width: 200px;">Empresa</th>
+                                <th style="width: 100px;">Desde</th>
+                                <th style="width: 100px;">Hasta</th>
+                                <th style="width: 180px;">Cargo</th>
+                                <th>Tareas</th>
+                                <th style="width: 120px; text-align: right;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (empty($experiencias_prof)): ?>
+                                <tr><td colspan="6" style="text-align: center; color: #94a3b8; padding: 2rem;">No hay registros de experiencia profesional.</td></tr>
+                            <?php else: ?>
+                                <?php foreach ($experiencias_prof as $ep): ?>
+                                <tr>
+                                    <td style="font-weight: 700; color: #1e3a8a; font-size: 0.75rem; text-transform: uppercase;"><?= htmlspecialchars($ep['empresa']) ?></td>
+                                    <td style="color: #1e40af; font-weight: 600; font-size: 0.75rem;"><?= $ep['desde'] ? date('d/m/Y', strtotime($ep['desde'])) : '-' ?></td>
+                                    <td style="color: #1e40af; font-weight: 600; font-size: 0.75rem;"><?= $ep['hasta'] ? date('d/m/Y', strtotime($ep['hasta'])) : '-' ?></td>
+                                    <td style="font-weight: 700; color: #475569; font-size: 0.75rem; text-transform: uppercase;"><?= htmlspecialchars($ep['cargo']) ?></td>
+                                    <td style="font-size: 0.75rem; color: #64748b; line-height: 1.4;"><?= nl2br(htmlspecialchars($ep['tareas'])) ?></td>
+                                    <td style="text-align: right; display: flex; gap: 5px; justify-content: flex-end;">
+                                        <button style="padding: 4px 8px; border: 1px solid #e2e8f0; border-radius: 4px; background: #fff; font-size: 0.7rem; font-weight: 600; color: #475569; cursor: pointer;">Editar</button>
+                                        <button style="padding: 4px 8px; border: 1px solid #fecaca; border-radius: 4px; background: #fff; font-size: 0.7rem; font-weight: 600; color: #b91c1c; cursor: pointer;">Borrar</button>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Idiomas e Informática (Grid 2 columnas) -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 3rem;">
+                    
+                    <!-- Idiomas -->
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #fee2e2; padding-bottom: 0.5rem;">
+                            <h3 style="color: #b91c1c; font-size: 0.9rem; text-transform: uppercase; margin: 0;">Idiomas</h3>
+                            <button class="btn-yellow-icon" style="padding: 0.4rem 1rem; font-size: 0.75rem; color: #854d0e; font-weight: 700;">+ Nuevo Idioma</button>
+                        </div>
+                        <table class="table-premium">
+                            <thead>
+                                <tr style="background: #f8fafc;">
+                                    <th>Idioma</th>
+                                    <th>Hablado</th>
+                                    <th>Oral</th>
+                                    <th>Escrito</th>
+                                    <th>Leído</th>
+                                    <th style="text-align: right;">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (empty($idiomas)): ?>
+                                    <tr><td colspan="6" style="text-align: center; color: #94a3b8; padding: 1.5rem;">No hay idiomas registrados.</td></tr>
+                                <?php else: ?>
+                                    <?php foreach ($idiomas as $idm): ?>
+                                    <tr>
+                                        <td style="font-weight: 700; color: #1e3a8a; font-size: 0.75rem; text-transform: uppercase;"><?= htmlspecialchars($idm['idioma']) ?></td>
+                                        <td style="font-size: 0.75rem; color: #64748b;"><?= htmlspecialchars($idm['nivel_hablado']) ?></td>
+                                        <td style="font-size: 0.75rem; color: #64748b;"><?= htmlspecialchars($idm['nivel_oral']) ?></td>
+                                        <td style="font-size: 0.75rem; color: #64748b;"><?= htmlspecialchars($idm['nivel_escrito']) ?></td>
+                                        <td style="font-size: 0.75rem; color: #64748b;"><?= htmlspecialchars($idm['nivel_leido']) ?></td>
+                                        <td style="text-align: right; display: flex; gap: 5px; justify-content: flex-end;">
+                                            <button style="padding: 4px 8px; border: 1px solid #e2e8f0; border-radius: 4px; background: #fff; font-size: 0.7rem; font-weight: 600; color: #475569; cursor: pointer;">Editar</button>
+                                            <button style="padding: 4px 8px; border: 1px solid #fecaca; border-radius: 4px; background: #fff; font-size: 0.7rem; font-weight: 600; color: #b91c1c; cursor: pointer;">Borrar</button>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Informática -->
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #fee2e2; padding-bottom: 0.5rem;">
+                            <h3 style="color: #b91c1c; font-size: 0.9rem; text-transform: uppercase; margin: 0;">Informática</h3>
+                            <button class="btn-yellow-icon" style="padding: 0.4rem 1rem; font-size: 0.75rem; color: #854d0e; font-weight: 700;">+ Nuevo Programa</button>
+                        </div>
+                        <table class="table-premium">
+                            <thead>
+                                <tr style="background: #f8fafc;">
+                                    <th>Programa</th>
+                                    <th>Dominio</th>
+                                    <th style="text-align: right;">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (empty($informatica)): ?>
+                                    <tr><td colspan="3" style="text-align: center; color: #94a3b8; padding: 1.5rem;">No hay programas registrados.</td></tr>
+                                <?php else: ?>
+                                    <?php foreach ($informatica as $inf): ?>
+                                    <tr>
+                                        <td style="font-weight: 700; color: #1e3a8a; font-size: 0.75rem; text-transform: uppercase;"><?= htmlspecialchars($inf['programa']) ?></td>
+                                        <td><span class="badge" style="background: #f1f5f9; color: #1e40af; font-size: 0.7rem; font-weight: 700;"><?= htmlspecialchars($inf['dominio']) ?></span></td>
+                                        <td style="text-align: right; display: flex; gap: 5px; justify-content: flex-end;">
+                                            <button style="padding: 4px 8px; border: 1px solid #e2e8f0; border-radius: 4px; background: #fff; font-size: 0.7rem; font-weight: 600; color: #475569; cursor: pointer;">Editar</button>
+                                            <button style="padding: 4px 8px; border: 1px solid #fecaca; border-radius: 4px; background: #fff; font-size: 0.7rem; font-weight: 600; color: #b91c1c; cursor: pointer;">Borrar</button>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+
+                <!-- Otros Datos de Interés -->
+                <div style="margin-top: 3rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.5rem;">
+                    <h3 style="color: #b91c1c; font-size: 0.9rem; text-transform: uppercase; margin-top: 0; margin-bottom: 1rem; border-bottom: 1px solid #fee2e2; padding-bottom: 0.5rem;">Otros Datos de Interés</h3>
+                    <form method="POST" action="ficha_trabajador.php?id=<?= $id ?>&tab=cv">
+                        <input type="hidden" name="action" value="update_personales">
+                        <textarea name="observaciones_personales" style="width: 100%; min-height: 120px; padding: 15px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 0.9rem; color: #1e293b; resize: vertical;" placeholder="Ingrese aquí congresos, publicaciones, méritos u otros datos relevantes..."><?= htmlspecialchars($prof['observaciones_personales'] ?? '') ?></textarea>
+                        <div style="text-align: right; margin-top: 1rem;">
+                            <button type="submit" class="btn-actualizar" style="margin: 0;">Actualizar Otros Datos</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Botón Curriculum PDF -->
+                <div style="text-align: center; margin-top: 4rem; padding-bottom: 2rem;">
+                    <button class="btn-actualizar" style="background: #fff; color: #1e3a8a; border: 2px solid #1e3a8a; padding: 1rem 3rem; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px;">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style="vertical-align: middle; margin-right: 10px;"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm10 5.5h1v-3h-1v3z"/></svg>
+                        Currículum en PDF
+                    </button>
+                </div>
+
             </div>
             <div id="tab-asistencia" style="<?= $active_tab == 'asistencia' ? '' : 'display:none;' ?>"><div class="info-section"><h3>Control de Asistencia</h3><p>Módulo en desarrollo...</p></div></div>
             <div id="tab-docs" style="<?= $active_tab == 'docs' ? '' : 'display:none;' ?>"><div class="info-section"><h3>Documentos</h3><p>Módulo en desarrollo...</p></div></div>
