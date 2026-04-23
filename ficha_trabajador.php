@@ -347,6 +347,7 @@ $tutorias = $stmtTut->fetchAll();
                 <div class="alert alert-success" style="background: #d1fae5; color: #065f46; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border-left: 4px solid #10b981; font-weight: 600;">
                     <?php 
                         if($_GET['success'] == 'upload') echo "Documento subido y registrado correctamente.";
+                        elseif($_GET['success'] == 'deleted') echo "Documento eliminado correctamente.";
                         else echo "Cambios guardados con éxito.";
                     ?>
                 </div>
@@ -520,8 +521,10 @@ $tutorias = $stmtTut->fetchAll();
                                 <td style="padding: 10px 15px; border-bottom: 1px solid #f1f5f9; font-weight: 600;"><?= htmlspecialchars($d['tipo_documento']) ?></td>
                                 <td style="padding: 10px 15px; border-bottom: 1px solid #f1f5f9;"><?= htmlspecialchars($d['nombre_archivo']) ?></td>
                                 <td style="padding: 10px 15px; border-bottom: 1px solid #f1f5f9; color: #64748b;"><?= date('d/m/Y H:i', strtotime($d['fecha_subida'])) ?></td>
-                                <td style="padding: 10px 15px; border-bottom: 1px solid #f1f5f9; text-align: right;">
-                                    <a href="api/ver_documento_profesor.php?id=<?= $d['id'] ?>" target="_blank" style="color: #1e3a8a; text-decoration: none; font-weight: 700;">Ver / Descargar</a>
+                                <td style="padding: 10px 15px; border-bottom: 1px solid #f1f5f9; text-align: right; display: flex; gap: 10px; justify-content: flex-end;">
+                                    <a href="api/ver_documento_profesor.php?id=<?= $d['id'] ?>" target="_blank" style="color: #1e3a8a; text-decoration: none; font-weight: 700;">Ver</a>
+                                    <span style="color: #cbd5e1;">|</span>
+                                    <a href="javascript:void(0)" onclick="eliminarDocumento(<?= $d['id'] ?>, '<?= htmlspecialchars($d['nombre_archivo']) ?>')" style="color: #b91c1c; text-decoration: none; font-weight: 700;">Eliminar</a>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
@@ -760,6 +763,10 @@ $tutorias = $stmtTut->fetchAll();
                     element.style.borderColor = '#e2e8f0';
                 }, 1000);
             });
+        function eliminarDocumento(id, nombre) {
+            if (confirm('¿Estás seguro de que deseas eliminar el documento "' + nombre + '"? Esta acción no se puede deshacer.')) {
+                location.href = 'api/eliminar_documento_profesor.php?id=' + id + '&usuario_id=<?= $id ?>';
+            }
         }
     </script>
 </body>
