@@ -1114,9 +1114,9 @@ $tutorias = $stmtTut->fetchAll();
                             <input type="date" name="hasta" required style="width: 100%;">
                         </div>
 
-                        <div class="form-group" style="grid-column: span 2;">
+                        <div class="form-group" style="grid-column: span 12; margin-top: 0.5rem;">
                             <label>Horas:</label>
-                            <input type="number" name="horas" placeholder="0" style="width: 100%;">
+                            <input type="number" name="horas" placeholder="0" style="max-width: 100px;">
                         </div>
                     </div>
 
