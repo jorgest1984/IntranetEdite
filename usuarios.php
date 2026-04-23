@@ -349,15 +349,15 @@ $roles = $pdo->query("SELECT * FROM roles")->fetchAll();
                                 </span>
                             </div>
                         </td>
-                        <td style="text-align: right; display: flex; gap: 5px; justify-content: flex-end;">
-                            <a href="ficha_trabajador.php?id=<?= $u['id'] ?>" class="btn" style="padding: 0.4rem 0.8rem; border: 1px solid var(--label-blue); border-radius: 6px; font-size: 0.8rem; background: #eff6ff; color: var(--label-blue); text-decoration: none; font-weight: 600;">
+                        <td style="text-align: right; display: flex; gap: 8px; justify-content: flex-end; align-items: center;">
+                            <a href="ficha_trabajador.php?id=<?= $u['id'] ?>" class="btn" style="display: inline-flex; align-items: center; justify-content: center; height: 32px; padding: 0 12px; border: 1px solid var(--label-blue); border-radius: 6px; font-size: 0.7rem; background: #eff6ff; color: var(--label-blue); text-decoration: none; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.2s;">
                                 Ver Perfil
                             </a>
-                            <form method="POST" style="display:inline;">
+                            <form method="POST" style="display:inline-flex;">
                                 <input type="hidden" name="action" value="toggle_status">
                                 <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
                                 <input type="hidden" name="status" value="<?= $u['activo'] ? '0' : '1' ?>">
-                                <button type="submit" class="btn" style="padding: 0.4rem 0.8rem; border: 1px solid var(--border-gray); font-size: 0.8rem; background: #fff; border-radius: 6px; cursor: pointer;">
+                                <button type="submit" class="btn" style="display: inline-flex; align-items: center; justify-content: center; height: 32px; padding: 0 12px; border: 1px solid var(--border-gray); font-size: 0.7rem; background: #fff; border-radius: 6px; cursor: pointer; color: #475569; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.2s;">
                                     <?= $u['activo'] ? 'Suspender' : 'Activar' ?>
                                 </button>
                             </form>
