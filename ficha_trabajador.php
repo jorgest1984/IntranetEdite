@@ -1096,27 +1096,27 @@ $tutorias = $stmtTut->fetchAll();
                             <input type="text" name="centro" required placeholder="Ej: Regina Mundi">
                         </div>
 
-                        <div class="form-group" style="grid-column: span 6;">
+                        <div class="form-group" style="grid-column: span 12; margin-top: 0.5rem; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
                             <label>Tipo de Formación:</label>
-                            <div class="radio-group-premium">
+                            <div class="radio-group-premium" style="margin-top: 5px;">
                                 <label class="radio-item"><input type="radio" name="tipo_formacion" value="Académica" checked> Académica</label>
                                 <label class="radio-item"><input type="radio" name="tipo_formacion" value="Complementaria"> Complementaria</label>
                             </div>
                         </div>
 
-                        <div class="form-group" style="grid-column: span 3;">
+                        <div class="form-group" style="grid-column: span 4;">
                             <label>Fecha desde:</label>
-                            <input type="date" name="desde" required>
+                            <input type="date" name="desde" required style="width: 100%;">
                         </div>
                         
-                        <div class="form-group" style="grid-column: span 3;">
+                        <div class="form-group" style="grid-column: span 4;">
                             <label>Fecha hasta:</label>
-                            <input type="date" name="hasta" required>
+                            <input type="date" name="hasta" required style="width: 100%;">
                         </div>
 
-                        <div class="form-group" style="grid-column: span 12;">
+                        <div class="form-group" style="grid-column: span 4;">
                             <label>Horas Totales:</label>
-                            <input type="number" name="horas" placeholder="Ej: 2000" style="max-width: 150px;">
+                            <input type="number" name="horas" placeholder="Ej: 2000" style="width: 100%;">
                         </div>
                     </div>
 
