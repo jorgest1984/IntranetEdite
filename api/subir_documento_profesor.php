@@ -46,19 +46,24 @@ if (!is_dir($base_dir . "/docs/profesorado")) {
     @mkdir($base_dir . "/docs/profesorado", 0777, true);
 }
 
-// Leer el contenido del archivo y convertirlo a Base64 para el puente
+// Leer el contenido del archivo y convertirlo a Base64
 $contenido = base64_encode(file_get_contents($file['tmp_name']));
 $mime_type = $file['type'];
 
 try {
-    $stmt = $pdo->prepare("INSERT INTO profesorado_documentos (usuario_id, nombre_archivo, archivo_contenido, mime_type, ruta_archivo, tipo_documento) VALUES (?, ?, ?, ?, ?, ?)");
+    // Usamos parámetros nombrados para mayor seguridad con el puente
+    $sql = "INSERT INTO profesorado_documentos 
+            (usuario_id, nombre_archivo, archivo_contenido, mime_type, ruta_archivo, tipo_documento) 
+            VALUES (:uid, :nom, :cont, :mime, :ruta, :tipo)";
+            
+    $stmt = $pdo->prepare($sql);
     $stmt->execute([
-        $usuario_id, 
-        $nuevo_nombre, 
-        $contenido, 
-        $mime_type,
-        $ruta_relativa, 
-        $tipo_doc
+        ':uid'  => $usuario_id,
+        ':nom'  => $nuevo_nombre,
+        ':cont' => $contenido,
+        ':mime' => $mime_type,
+        ':ruta' => $ruta_relativa,
+        ':tipo' => $tipo_doc
     ]);
     
     ob_end_clean();
