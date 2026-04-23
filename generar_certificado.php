@@ -251,7 +251,7 @@ $fecha_hoy = date('j') . " de " . $meses[date('n')-1] . " de " . date('Y');
 
     <div class="signature-section">
         <div class="signature-space">
-             <!-- Espacio para sello y firma física -->
+             <img src="/img/firma_mars.png" style="width: 130px; height: auto; opacity: 0.9;">
         </div>
         <div class="signature-name">Fdo.: <?= $admin_nombre ?></div>
     </div>
