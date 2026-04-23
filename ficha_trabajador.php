@@ -650,7 +650,7 @@ $tutorias = $stmtTut->fetchAll();
             <div class="modal-body">
                 <!-- Info Profesor -->
                 <div style="background: #f1f5f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
-                    <div style="color: #b91c1c; font-weight: 800; font-size: 1.1rem;"><?= htmlspecialchars($user['nombre'] . ' ' . $user['apellidos']) ?></div>
+                    <div style="color: #b91c1c; font-weight: 800; font-size: 1.1rem;"><?= htmlspecialchars(($trabajador['nombre'] ?? '') . ' ' . ($trabajador['apellidos'] ?? '')) ?></div>
                     <div style="color: #475569; font-weight: 600; font-size: 0.9rem;">NIF: <?= htmlspecialchars($prof['dni'] ?? 'No definido') ?></div>
                 </div>
 
