@@ -28,6 +28,15 @@ $stmtProf = $pdo->prepare("SELECT * FROM profesorado_detalles WHERE usuario_id =
 $stmtProf->execute([$id]);
 $prof = $stmtProf->fetch() ?: [];
 
+// Datos de la pestaña Currículum (NUEVO)
+$stmt_tutorias = $pdo->prepare("SELECT * FROM prof_tutorias WHERE usuario_id = ? ORDER BY anio DESC");
+$stmt_tutorias->execute([$id]);
+$tutorias = $stmt_tutorias->fetchAll();
+
+$stmt_formacion = $pdo->prepare("SELECT * FROM prof_formacion WHERE usuario_id = ? ORDER BY desde DESC");
+$stmt_formacion->execute([$id]);
+$formaciones = $stmt_formacion->fetchAll();
+
 $active_tab = $_GET['tab'] ?? 'personales';
 $error = null;
 
@@ -662,7 +671,104 @@ $tutorias = $stmtTut->fetchAll();
             </div>
             
             <!-- RESTO DE TABS (Placeholder) -->
-            <div id="tab-cv" style="<?= $active_tab == 'cv' ? '' : 'display:none;' ?>"><div class="info-section"><h3>Currículum Vitae</h3><p>Módulo en desarrollo...</p></div></div>
+            <!-- TAB: Currículum -->
+            <div id="tab-cv" style="<?= $active_tab == 'cv' ? '' : 'display:none;' ?>">
+                
+                <!-- Resumen Superior (Cabecera Ficha) -->
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 2px solid #1e3a8a; padding-bottom: 0.5rem;">
+                        <h2 style="margin: 0; color: #1e3a8a; font-size: 1.1rem; text-transform: uppercase; font-weight: 800;">Ficha del Currículum</h2>
+                        <span style="font-size: 0.75rem; color: #64748b; font-weight: 600;">Ult. actualización: <?= date('d/m/Y') ?></span>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; font-size: 0.85rem;">
+                        <div><strong style="color: #1e3a8a;">DNI:</strong> <?= htmlspecialchars($prof['dni'] ?? '-') ?></div>
+                        <div><strong style="color: #1e3a8a;">Nombre:</strong> <?= htmlspecialchars($trabajador['nombre'] ?? '-') ?></div>
+                        <div><strong style="color: #1e3a8a;">Primer Apellido:</strong> <?= htmlspecialchars($trabajador['apellidos'] ?? '-') ?></div>
+                        <div><strong style="color: #1e3a8a;">F. Nacimiento:</strong> <?= htmlspecialchars($prof['fecha_nacimiento'] ?? '-') ?></div>
+                        
+                        <div style="grid-column: span 2;"><strong style="color: #1e3a8a;">Email:</strong> <?= htmlspecialchars($trabajador['email'] ?? '-') ?></div>
+                        <div style="grid-column: span 2;"><strong style="color: #1e3a8a;">Teléfono:</strong> <?= htmlspecialchars($prof['telefono'] ?? '-') ?></div>
+                        
+                        <div style="grid-column: span 2;"><strong style="color: #1e3a8a;">Domicilio:</strong> <?= htmlspecialchars($prof['direccion'] ?? '-') ?></div>
+                        <div><strong style="color: #1e3a8a;">CP:</strong> <?= htmlspecialchars($prof['cp'] ?? '-') ?></div>
+                        <div><strong style="color: #1e3a8a;">Localidad:</strong> <?= htmlspecialchars($prof['poblacion'] ?? '-') ?></div>
+                    </div>
+                </div>
+
+                <!-- Experiencia como Tutor -->
+                <div style="margin-bottom: 3rem;">
+                    <h3 style="color: #b91c1c; font-size: 0.9rem; text-transform: uppercase; border-bottom: 1px solid #fee2e2; padding-bottom: 0.5rem; margin-bottom: 1rem;">Experiencia como Tutor</h3>
+                    <p style="font-size: 0.75rem; color: #64748b; font-style: italic; margin-bottom: 1rem;">*Haga click en el año para ver los cursos</p>
+                    
+                    <table class="table-premium" style="max-width: 600px;">
+                        <thead>
+                            <tr>
+                                <th style="width: 80px;">Año</th>
+                                <th>Curso</th>
+                                <th style="width: 120px;">Modalidad</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (empty($tutorias)): ?>
+                                <tr><td colspan="3" style="text-align: center; color: #94a3b8; padding: 1.5rem;">No hay registros de experiencia como tutor.</td></tr>
+                            <?php else: ?>
+                                <?php foreach ($tutorias as $t): ?>
+                                <tr>
+                                    <td style="font-weight: 700; color: #1e3a8a; cursor: pointer;"><?= htmlspecialchars($t['anio']) ?></td>
+                                    <td><?= htmlspecialchars($t['curso']) ?></td>
+                                    <td><span class="badge" style="background: #f1f5f9; color: #475569; font-size: 0.7rem;"><?= htmlspecialchars($t['modalidad']) ?></span></td>
+                                </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Formación -->
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #fee2e2; padding-bottom: 0.5rem;">
+                        <h3 style="color: #b91c1c; font-size: 0.9rem; text-transform: uppercase; margin: 0;">Formación</h3>
+                        <button class="btn-yellow-icon" style="padding: 0.4rem 1rem; font-size: 0.75rem; color: #854d0e; font-weight: 700;">+ Añadir Formación</button>
+                    </div>
+                    
+                    <table class="table-premium">
+                        <thead>
+                            <tr style="background: #f8fafc;">
+                                <th>Denominación</th>
+                                <th>Organismo</th>
+                                <th>Centro</th>
+                                <th style="width: 100px;">Desde</th>
+                                <th style="width: 100px;">Hasta</th>
+                                <th style="width: 70px;">Horas</th>
+                                <th style="width: 130px;">Tipo Formación</th>
+                                <th style="width: 120px; text-align: right;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (empty($formaciones)): ?>
+                                <tr><td colspan="8" style="text-align: center; color: #94a3b8; padding: 2rem;">No hay registros de formación.</td></tr>
+                            <?php else: ?>
+                                <?php foreach ($formaciones as $f): ?>
+                                <tr style="<?= $f['tipo_formacion'] == 'Académica' ? 'background: rgba(59, 130, 246, 0.05);' : '' ?>">
+                                    <td style="font-weight: 700; color: #1e3a8a; font-size: 0.75rem; text-transform: uppercase;"><?= htmlspecialchars($f['denominacion']) ?></td>
+                                    <td style="font-size: 0.75rem; text-transform: uppercase;"><?= htmlspecialchars($f['organismo']) ?></td>
+                                    <td style="font-size: 0.75rem; text-transform: uppercase;"><?= htmlspecialchars($f['centro']) ?></td>
+                                    <td style="color: #1e40af; font-weight: 600; font-size: 0.75rem;"><?= $f['desde'] ? date('d/m/Y', strtotime($f['desde'])) : '-' ?></td>
+                                    <td style="color: #1e40af; font-weight: 600; font-size: 0.75rem;"><?= $f['hasta'] ? date('d/m/Y', strtotime($f['hasta'])) : '-' ?></td>
+                                    <td style="font-weight: 700; color: #1e3a8a;"><?= htmlspecialchars($f['horas'] ?? '0') ?></td>
+                                    <td><span style="font-size: 0.7rem; font-weight: 700; color: <?= $f['tipo_formacion'] == 'Académica' ? '#1e40af' : '#64748b' ?>;"><?= htmlspecialchars($f['tipo_formacion']) ?></span></td>
+                                    <td style="text-align: right; display: flex; gap: 5px; justify-content: flex-end;">
+                                        <button style="padding: 4px 8px; border: 1px solid #e2e8f0; border-radius: 4px; background: #fff; font-size: 0.7rem; font-weight: 600; color: #475569; cursor: pointer;">Editar</button>
+                                        <button style="padding: 4px 8px; border: 1px solid #fecaca; border-radius: 4px; background: #fff; font-size: 0.7rem; font-weight: 600; color: #b91c1c; cursor: pointer;">Borrar</button>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
             <div id="tab-asistencia" style="<?= $active_tab == 'asistencia' ? '' : 'display:none;' ?>"><div class="info-section"><h3>Control de Asistencia</h3><p>Módulo en desarrollo...</p></div></div>
             <div id="tab-docs" style="<?= $active_tab == 'docs' ? '' : 'display:none;' ?>"><div class="info-section"><h3>Documentos</h3><p>Módulo en desarrollo...</p></div></div>
             <div id="tab-cuenta" style="<?= $active_tab == 'cuenta' ? '' : 'display:none;' ?>"><div class="info-section"><h3>Cuenta</h3><p>Módulo en desarrollo...</p></div></div>
