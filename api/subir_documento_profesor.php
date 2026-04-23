@@ -46,8 +46,8 @@ if (!is_dir($base_dir . "/docs/profesorado")) {
     @mkdir($base_dir . "/docs/profesorado", 0777, true);
 }
 
-// Leer el contenido del archivo
-$contenido = file_get_contents($file['tmp_name']);
+// Leer el contenido del archivo y convertirlo a Base64 para el puente
+$contenido = base64_encode(file_get_contents($file['tmp_name']));
 $mime_type = $file['type'];
 
 try {

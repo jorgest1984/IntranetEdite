@@ -21,12 +21,14 @@ try {
     // Limpiar cualquier salida previa
     if (ob_get_length()) ob_end_clean();
 
-    // Servir el archivo con el MIME type correcto
+    // Servir el archivo decodificando el Base64
+    $contenido_binario = base64_decode($doc['archivo_contenido']);
+    
     header("Content-Type: " . ($doc['mime_type'] ?: 'application/octet-stream'));
     header("Content-Disposition: inline; filename=\"" . $doc['nombre_archivo'] . "\"");
-    header("Content-Length: " . strlen($doc['archivo_contenido']));
+    header("Content-Length: " . strlen($contenido_binario));
     
-    echo $doc['archivo_contenido'];
+    echo $contenido_binario;
     exit();
 
 } catch (Exception $e) {
