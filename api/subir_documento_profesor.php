@@ -46,22 +46,26 @@ if (!is_dir($base_dir . "/docs/profesorado")) {
     @mkdir($base_dir . "/docs/profesorado", 0777, true);
 }
 
-if (move_uploaded_file($file['tmp_name'], $ruta_absoluta)) {
-    try {
-        $stmt = $pdo->prepare("INSERT INTO profesorado_documentos (usuario_id, nombre_archivo, ruta_archivo, tipo_documento) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$usuario_id, $nuevo_nombre, $ruta_relativa, $tipo_doc]);
-        
-        ob_end_clean();
-        header("Location: ../ficha_trabajador.php?id=$usuario_id&tab=profesorado&success=upload");
-        exit();
-    } catch (Exception $e) {
-        ob_end_clean();
-        die("Error en base de datos al registrar: " . $e->getMessage());
-    }
-} else {
+// Leer el contenido del archivo
+$contenido = file_get_contents($file['tmp_name']);
+$mime_type = $file['type'];
+
+try {
+    $stmt = $pdo->prepare("INSERT INTO profesorado_documentos (usuario_id, nombre_archivo, archivo_contenido, mime_type, ruta_archivo, tipo_documento) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt->execute([
+        $usuario_id, 
+        $nuevo_nombre, 
+        $contenido, 
+        $mime_type,
+        $ruta_relativa, 
+        $tipo_doc
+    ]);
+    
     ob_end_clean();
-    // En Vercel esto fallará porque el FS es de solo lectura.
-    // Mostramos un mensaje más técnico para confirmar.
-    die("Error: Vercel no permite escritura local. No se pudo mover a: " . $ruta_relativa);
+    header("Location: ../ficha_trabajador.php?id=$usuario_id&tab=profesorado&success=upload");
+    exit();
+} catch (Exception $e) {
+    ob_end_clean();
+    die("Error en base de datos al registrar: " . $e->getMessage());
 }
 ?>

@@ -488,12 +488,47 @@ $tutorias = $stmtTut->fetchAll();
             <div id="tab-profesorado" style="<?= $active_tab == 'profesorado' ? '' : 'display:none;' ?>">
                 
                 <!-- Botones de Acción Superiores -->
-                <div style="display: flex; gap: 0.5rem; margin-bottom: 2rem; flex-wrap: wrap;">
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap;">
                     <button class="btn-yellow-icon" onclick="window.open('generar_certificado.php?id=<?= $id ?>', '_blank')" style="padding: 0.6rem 1.2rem; font-size: 0.8rem; font-weight: 600; color: #854d0e;">Certificado</button>
                     <button class="btn-yellow-icon" style="padding: 0.6rem 1.2rem; font-size: 0.8rem; font-weight: 600; color: #854d0e;">Crear/actualizar profesor en Aula Virtual</button>
                     <button class="btn-yellow-icon" onclick="openModalDocumentos()" style="padding: 0.6rem 1.2rem; font-size: 0.8rem; font-weight: 600; color: #854d0e;">Subir documento</button>
                     <button class="btn-yellow-icon" style="padding: 0.6rem 1.2rem; font-size: 0.8rem; font-weight: 600; color: #854d0e;">Archivo doc</button>
                 </div>
+
+                <!-- Listado de Documentos Subidos -->
+                <?php
+                $stmt_docs = $pdo->prepare("SELECT id, nombre_archivo, tipo_documento, fecha_subida FROM profesorado_documentos WHERE usuario_id = ? ORDER BY fecha_subida DESC");
+                $stmt_docs->execute([$id]);
+                $docs_subidos = $stmt_docs->fetchAll();
+                
+                if (count($docs_subidos) > 0):
+                ?>
+                <div style="margin-top: 1.5rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+                    <div style="background: #f8fafc; padding: 10px 15px; border-bottom: 1px solid #e2e8f0; font-weight: 700; font-size: 0.8rem; color: #1e3a8a; text-transform: uppercase;">Documentación Registrada</div>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
+                        <thead>
+                            <tr style="background: #f1f5f9; text-align: left;">
+                                <th style="padding: 10px 15px; border-bottom: 1px solid #e2e8f0;">Tipo</th>
+                                <th style="padding: 10px 15px; border-bottom: 1px solid #e2e8f0;">Archivo</th>
+                                <th style="padding: 10px 15px; border-bottom: 1px solid #e2e8f0;">Fecha</th>
+                                <th style="padding: 10px 15px; border-bottom: 1px solid #e2e8f0; text-align: right;">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($docs_subidos as $d): ?>
+                            <tr>
+                                <td style="padding: 10px 15px; border-bottom: 1px solid #f1f5f9; font-weight: 600;"><?= htmlspecialchars($d['tipo_documento']) ?></td>
+                                <td style="padding: 10px 15px; border-bottom: 1px solid #f1f5f9;"><?= htmlspecialchars($d['nombre_archivo']) ?></td>
+                                <td style="padding: 10px 15px; border-bottom: 1px solid #f1f5f9; color: #64748b;"><?= date('d/m/Y H:i', strtotime($d['fecha_subida'])) ?></td>
+                                <td style="padding: 10px 15px; border-bottom: 1px solid #f1f5f9; text-align: right;">
+                                    <a href="api/ver_documento_profesor.php?id=<?= $d['id'] ?>" target="_blank" style="color: #1e3a8a; text-decoration: none; font-weight: 700;">Ver / Descargar</a>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+                <?php endif; ?>
 
                 <form method="POST" action="ficha_trabajador.php?id=<?= $id ?>&tab=profesorado">
                     <input type="hidden" name="action" value="update_profesorado">
