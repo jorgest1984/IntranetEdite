@@ -763,11 +763,47 @@ $tutorias = $stmtTut->fetchAll();
                     element.style.borderColor = '#e2e8f0';
                 }, 1000);
             });
+        }
+
+        let docIdToDelete = null;
+
         function eliminarDocumento(id, nombre) {
-            if (confirm('¿Estás seguro de que deseas eliminar el documento "' + nombre + '"? Esta acción no se puede deshacer.')) {
-                location.href = 'api/eliminar_documento_profesor.php?id=' + id + '&usuario_id=<?= $id ?>';
+            docIdToDelete = id;
+            document.getElementById('deleteDocName').innerText = nombre;
+            document.getElementById('modalConfirmDelete').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeConfirmDelete() {
+            document.getElementById('modalConfirmDelete').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            docIdToDelete = null;
+        }
+
+        function ejecutarBorrado() {
+            if (docIdToDelete) {
+                location.href = 'api/eliminar_documento_profesor.php?id=' + docIdToDelete + '&usuario_id=<?= $id ?>';
             }
         }
     </script>
+    <!-- MODAL: Confirmar Borrado -->
+    <div class="modal-overlay" id="modalConfirmDelete" style="z-index: 3000;">
+        <div class="modal-container" style="max-width: 400px; text-align: center;">
+            <div class="modal-body" style="padding: 40px 30px;">
+                <div style="width: 60px; height: 60px; background: #fee2e2; color: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                    <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                </div>
+                <h3 style="margin: 0 0 10px; color: #1e293b; font-weight: 800; font-size: 1.2rem; text-transform: uppercase;">¿Eliminar documento?</h3>
+                <p style="color: #64748b; font-size: 0.9rem; line-height: 1.5; margin-bottom: 30px;">
+                    Estás a punto de eliminar <strong id="deleteDocName" style="color: #1e293b;"></strong>.<br>
+                    Esta acción es <strong>permanente</strong> y no se puede deshacer.
+                </p>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="closeConfirmDelete()" style="flex: 1; padding: 12px; border: 1px solid #e2e8f0; background: #fff; color: #475569; border-radius: 8px; font-weight: 700; cursor: pointer; text-transform: uppercase; font-size: 0.75rem;">Cancelar</button>
+                    <button onclick="ejecutarBorrado()" style="flex: 1; padding: 12px; border: none; background: #ef4444; color: #fff; border-radius: 8px; font-weight: 700; cursor: pointer; text-transform: uppercase; font-size: 0.75rem; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);">Sí, eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
