@@ -262,11 +262,16 @@ $tutorias = $stmtTut->fetchAll();
 
         <div class="tab-panel">
             <?php if (isset($_GET['success'])) { ?>
-                <div class="alert alert-success">Cambios guardados con éxito en el perfil profesional.</div>
+                <div class="alert alert-success" style="background: #d1fae5; color: #065f46; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border-left: 4px solid #10b981; font-weight: 600;">
+                    <?php 
+                        if($_GET['success'] == 'upload') echo "Documento subido y registrado correctamente.";
+                        else echo "Cambios guardados con éxito.";
+                    ?>
+                </div>
             <?php } ?>
             
             <?php if ($error) { ?>
-                <div class="alert alert-error"><?= htmlspecialchars($error) ?></div>
+                <div class="alert alert-error" style="background: #fee2e2; color: #991b1b; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border-left: 4px solid #ef4444; font-weight: 600;"><?= htmlspecialchars($error) ?></div>
             <?php } ?>
 
             <!-- TAB: Personales -->
@@ -404,7 +409,7 @@ $tutorias = $stmtTut->fetchAll();
                 <div style="display: flex; gap: 0.5rem; margin-bottom: 2rem; flex-wrap: wrap;">
                     <button class="btn-yellow-icon" onclick="window.open('generar_certificado.php?id=<?= $id ?>', '_blank')" style="padding: 0.6rem 1.2rem; font-size: 0.8rem; font-weight: 600; color: #854d0e;">Certificado</button>
                     <button class="btn-yellow-icon" style="padding: 0.6rem 1.2rem; font-size: 0.8rem; font-weight: 600; color: #854d0e;">Crear/actualizar profesor en Aula Virtual</button>
-                    <button class="btn-yellow-icon" style="padding: 0.6rem 1.2rem; font-size: 0.8rem; font-weight: 600; color: #854d0e;">Subir documento</button>
+                    <button class="btn-yellow-icon" onclick="openModalDocumentos()" style="padding: 0.6rem 1.2rem; font-size: 0.8rem; font-weight: 600; color: #854d0e;">Subir documento</button>
                     <button class="btn-yellow-icon" style="padding: 0.6rem 1.2rem; font-size: 0.8rem; font-weight: 600; color: #854d0e;">Archivo doc</button>
                 </div>
 
@@ -551,5 +556,94 @@ $tutorias = $stmtTut->fetchAll();
     </main>
 </div>
 
+    <!-- MODAL: Subir Documentos Profesorado -->
+    <div class="modal-overlay" id="modalDocumentos">
+        <div class="modal-container" style="max-width: 700px;">
+            <div class="modal-header">
+                <h2 style="color: var(--label-blue);">Subir Documentación del Profesor</h2>
+                <button class="modal-close" onclick="closeModalDocumentos()">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Info Profesor -->
+                <div style="background: #f1f5f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
+                    <div style="color: #b91c1c; font-weight: 800; font-size: 1.1rem;"><?= htmlspecialchars($user['nombre'] . ' ' . $user['apellidos']) ?></div>
+                    <div style="color: #475569; font-weight: 600; font-size: 0.9rem;">NIF: <?= htmlspecialchars($prof['dni'] ?? 'No definido') ?></div>
+                </div>
+
+                <form action="api/subir_documento_profesor.php" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="usuario_id" value="<?= $id ?>">
+                    
+                    <label style="display: block; font-weight: 700; color: #1e3a8a; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 15px;">Seleccione el tipo de archivo a subir:</label>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px;">
+                        <?php 
+                        $doc_types = [
+                            'ACP' => 'Acreditación profesor',
+                            'CNP' => 'Contrato profesor',
+                            'CVP' => 'CV profesor',
+                            'FVP' => 'FV profesor',
+                            'MERP' => 'Méritos',
+                            'NIFP' => 'NIF profesor',
+                            'OTRO' => 'Otros documentos'
+                        ];
+                        foreach ($doc_types as $code => $label): ?>
+                        <label style="display: flex; align-items: center; gap: 10px; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+                            <input type="radio" name="tipo_doc" value="<?= $code ?>" required style="width: 18px; height: 18px; accent-color: #1e3a8a;">
+                            <span style="font-size: 0.85rem; font-weight: 600; color: #334155;"><?= $label ?></span>
+                        </label>
+                        <?php endforeach; ?>
+                    </div>
+
+                    <div class="premium-field">
+                        <label>Seleccionar Archivo</label>
+                        <input type="file" name="documento" required style="width:100%; padding: 20px; border: 2px dashed #cbd5e1; background: #f8fafc; cursor: pointer; box-sizing: border-box;">
+                    </div>
+
+                    <button type="submit" class="btn-create-full" style="background: #1e3a8a; margin-top: 1rem;">Aceptar y Subir Archivo</button>
+                </form>
+
+                <!-- Guía de Nomenclatura -->
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                    <div style="font-weight: 700; color: #1e3a8a; font-size: 0.85rem; margin-bottom: 12px;">Forma de nombrar los archivos (clic para copiar):</div>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <?php 
+                        $nif = $prof['dni'] ?? 'NIF';
+                        foreach ($doc_types as $code => $label): 
+                            $filename = $nif . "-" . $code;
+                        ?>
+                        <div onclick="copyToClipboard('<?= $filename ?>', this)" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 15px; background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer; transition: all 0.2s;" title="Clic para copiar nombre">
+                            <span style="font-size: 0.8rem; color: #64748b; font-weight: 500;"><?= $label ?>:</span>
+                            <span style="font-family: monospace; font-weight: 700; color: #1e3a8a;"><?= $filename ?></span>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openModalDocumentos() {
+            document.getElementById('modalDocumentos').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+        function closeModalDocumentos() {
+            document.getElementById('modalDocumentos').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+        function copyToClipboard(text, element) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalBg = element.style.background;
+                element.style.background = '#dcfce7';
+                element.style.borderColor = '#22c55e';
+                setTimeout(() => {
+                    element.style.background = originalBg;
+                    element.style.borderColor = '#e2e8f0';
+                }, 1000);
+            });
+        }
+    </script>
 </body>
 </html>
