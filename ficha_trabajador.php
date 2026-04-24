@@ -66,11 +66,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
     $action = $_POST['action'];
 
     try {
+        // Acciones CV automáticas (Insertar)
         if (isset($cv_actions[$action])) {
             $table = $cv_actions[$action]['table'];
             $fields = $cv_actions[$action]['fields'];
             
-            // Inyectar profesor_id automáticamente
             $fields[] = 'profesor_id';
             $fields_str = implode(', ', $fields);
             $placeholders = implode(', ', array_fill(0, count($fields), '?'));
@@ -78,10 +78,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             $sql = "INSERT INTO $table ($fields_str) VALUES ($placeholders)";
             $params = [];
             foreach ($cv_actions[$action]['fields'] as $f) {
-                // Si el campo no existe en $_POST, enviamos NULL (pero profesor_id siempre va después)
                 $params[] = $_POST[$f] ?? null;
             }
-            $params[] = $id; // El ID del profesor actual
+            $params[] = $id;
             
             $st = $pdo->prepare($sql);
             $st->execute($params);
@@ -90,21 +89,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             exit;
         }
 
+        // Otras acciones manuales
         if ($action == 'update_perfiles_dept') {
             $pdo->beginTransaction();
-            
             $pdo->prepare("DELETE FROM usuario_departamentos WHERE usuario_id = ?")->execute([$id]);
             if (isset($_POST['depts']) && is_array($_POST['depts'])) {
                 $stD = $pdo->prepare("INSERT INTO usuario_departamentos (usuario_id, departamento) VALUES (?, ?)");
                 foreach($_POST['depts'] as $d) $stD->execute([$id, $d]);
             }
-            
             $pdo->prepare("DELETE FROM usuario_perfiles WHERE usuario_id = ?")->execute([$id]);
             if (isset($_POST['perfiles']) && is_array($_POST['perfiles'])) {
                 $stP = $pdo->prepare("INSERT INTO usuario_perfiles (usuario_id, perfil) VALUES (?, ?)");
                 foreach($_POST['perfiles'] as $p) $stP->execute([$id, $p]);
             }
-            
             $pdo->commit();
             header("Location: ficha_trabajador.php?id=$id&tab=perfil&success=1");
             exit();
@@ -112,51 +109,47 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
 
         if ($action == 'update_personales') {
             // 1. Actualizar tabla usuarios
-            $stU = $pdo->prepare("UPDATE usuarios SET nombre = ?, apellidos = ? WHERE id = ?");
-            $apellidos_full = trim(($_POST['apellido1'] ?? '') . ' ' . ($_POST['apellido2'] ?? ''));
-            $stU->execute([$_POST['nombre'] ?? '', $apellidos_full, $id]);
+            $stmt = $pdo->prepare("UPDATE usuarios SET nombre = ?, apellidos = ?, email = ? WHERE id = ?");
+            $stmt->execute([$_POST['nombre'], $_POST['apellidos'], $_POST['email'], $id]);
 
-            // 2. Definir campos para profesorado_detalles
-            $fields = [
-                'dni', 'fecha_nacimiento', 'apellido1', 'apellido2',
-                'num_ss', 'cuenta_bancaria',
-                'nombre_via', 'cp_trabajador', 'localidad_trabajador', 'provincia_trabajador',
-                'telefono', 'telefono_empresa',
-                'email2', 'skype', 'sexo',
-                'activo_hasta', 'nuestro', 'observaciones_personales'
-            ];
-            
-            $fields_escaped = array_map(function($f) { return "`$f`"; }, $fields);
-            $set_part = implode(' = ?, ', $fields_escaped) . ' = ?';
-            $sql = "UPDATE profesorado_detalles SET $set_part WHERE usuario_id = ?";
-            
-            $params = [];
-            foreach ($fields as $f) {
-                $val = $_POST[$f] ?? null;
-                if ($f == 'nuestro') {
-                    $val = (isset($_POST['nuestro']) && $_POST['nuestro'] == 'SI') ? 1 : 0;
-                }
-                if ($f == 'activo_hasta' && !empty($val) && strlen($val) == 4) {
-                    $val = $val . "-12-31"; 
-                }
-                if ($val === '') $val = null;
-                $params[] = $val;
-            }
-            $params[] = $id;
+            // 2. Actualizar tabla profesorado_detalles (con observaciones)
+            $obs = $_POST['observaciones_personales'] ?? '';
+            $stmtDet = $pdo->prepare("UPDATE profesorado_detalles SET 
+                dni = ?, telefono = ?, fecha_nacimiento = ?, direccion = ?, cp = ?, poblacion = ?, observaciones_personales = ? 
+                WHERE profesor_id = ?");
+            $stmtDet->execute([
+                $_POST['dni'], $_POST['telefono'], $_POST['fecha_nacimiento'], 
+                $_POST['direccion'], $_POST['cp'], $_POST['poblacion'], $obs, $id
+            ]);
 
-            // Asegurar que el registro existe
-            $check = $pdo->prepare("SELECT 1 FROM profesorado_detalles WHERE usuario_id = ?");
-            $check->execute([$id]);
-            if (!$check->fetch()) {
-                $pdo->prepare("INSERT INTO profesorado_detalles (usuario_id) VALUES (?)")->execute([$id]);
-            }
-
-            $stP = $pdo->prepare($sql);
-            $stP->execute($params);
-
-            header("Location: ficha_trabajador.php?id=$id&tab=personales&success=1");
+            header("Location: ficha_trabajador.php?id=$id&tab=" . ($_GET['tab'] ?? 'personales') . "&success=1");
             exit();
         }
+    } catch (Exception $e) {
+        $error = "Error: " . $e->getMessage();
+    }
+}
+
+// PROCESAR BORRADO DE ENTRADAS CV (GET)
+if (isset($_GET['del_tab']) && isset($_GET['del_id'])) {
+    $del_tab = $_GET['del_tab'];
+    $del_id = $_GET['del_id'];
+    
+    $tables_map = [
+        'formacion' => 'prof_formacion',
+        'experiencia' => 'prof_experiencia',
+        'idioma' => 'prof_idiomas',
+        'informatica' => 'prof_informatica'
+    ];
+    
+    if (isset($tables_map[$del_tab])) {
+        $table_name = $tables_map[$del_tab];
+        $stmt = $pdo->prepare("DELETE FROM $table_name WHERE id = ? AND profesor_id = ?");
+        $stmt->execute([$del_id, $id]);
+        header("Location: ficha_trabajador.php?id=$id&tab=cv&deleted=1");
+        exit;
+    }
+}
         if ($action == 'update_profesorado') {
             $fields = [
                 'titulacion', 'es_tutor', 'es_teleformador', 'es_presencial', 'hace_seguimiento',
@@ -780,7 +773,7 @@ $tutorias = $stmtTut->fetchAll();
                                     <td><span style="font-size: 0.7rem; font-weight: 700; color: <?= $f['tipo_formacion'] == 'Académica' ? '#1e40af' : '#64748b' ?>;"><?= htmlspecialchars($f['tipo_formacion']) ?></span></td>
                                     <td style="text-align: right; display: flex; gap: 5px; justify-content: flex-end;">
                                         <button style="padding: 4px 8px; border: 1px solid #e2e8f0; border-radius: 4px; background: #fff; font-size: 0.7rem; font-weight: 600; color: #475569; cursor: pointer;">Editar</button>
-                                        <button style="padding: 4px 8px; border: 1px solid #fecaca; border-radius: 4px; background: #fff; font-size: 0.7rem; font-weight: 600; color: #b91c1c; cursor: pointer;">Borrar</button>
+                                        <button onclick="confirmDeleteEntry('formacion', <?= $f['id'] ?>, '<?= addslashes($f['denominacion']) ?>')" style="padding: 4px 8px; border: 1px solid #fecaca; border-radius: 4px; background: #fff; font-size: 0.7rem; font-weight: 600; color: #b91c1c; cursor: pointer;">Borrar</button>
                                     </td>
                                 </tr>
                                 <?php endforeach; ?>
@@ -819,7 +812,7 @@ $tutorias = $stmtTut->fetchAll();
                                     <td style="font-size: 0.75rem; color: #64748b; line-height: 1.4;"><?= nl2br(htmlspecialchars($ep['tareas'])) ?></td>
                                     <td style="text-align: right; display: flex; gap: 5px; justify-content: flex-end;">
                                         <button style="padding: 4px 8px; border: 1px solid #e2e8f0; border-radius: 4px; background: #fff; font-size: 0.7rem; font-weight: 600; color: #475569; cursor: pointer;">Editar</button>
-                                        <button style="padding: 4px 8px; border: 1px solid #fecaca; border-radius: 4px; background: #fff; font-size: 0.7rem; font-weight: 600; color: #b91c1c; cursor: pointer;">Borrar</button>
+                                        <button onclick="confirmDeleteEntry('experiencia', <?= $ep['id'] ?>, '<?= addslashes($ep['empresa']) ?>')" style="padding: 4px 8px; border: 1px solid #fecaca; border-radius: 4px; background: #fff; font-size: 0.7rem; font-weight: 600; color: #b91c1c; cursor: pointer;">Borrar</button>
                                     </td>
                                 </tr>
                                 <?php endforeach; ?>
@@ -861,7 +854,7 @@ $tutorias = $stmtTut->fetchAll();
                                         <td style="font-size: 0.75rem; color: #64748b;"><?= htmlspecialchars($idm['nivel_leido']) ?></td>
                                         <td style="text-align: right; display: flex; gap: 5px; justify-content: flex-end;">
                                             <button style="padding: 4px 8px; border: 1px solid #e2e8f0; border-radius: 4px; background: #fff; font-size: 0.7rem; font-weight: 600; color: #475569; cursor: pointer;">Editar</button>
-                                            <button style="padding: 4px 8px; border: 1px solid #fecaca; border-radius: 4px; background: #fff; font-size: 0.7rem; font-weight: 600; color: #b91c1c; cursor: pointer;">Borrar</button>
+                                            <button onclick="confirmDeleteEntry('idioma', <?= $idm['id'] ?>, '<?= addslashes($idm['idioma']) ?>')" style="padding: 4px 8px; border: 1px solid #fecaca; border-radius: 4px; background: #fff; font-size: 0.7rem; font-weight: 600; color: #b91c1c; cursor: pointer;">Borrar</button>
                                         </td>
                                     </tr>
                                     <?php endforeach; ?>
@@ -894,7 +887,7 @@ $tutorias = $stmtTut->fetchAll();
                                         <td><span class="badge" style="background: #f1f5f9; color: #1e40af; font-size: 0.7rem; font-weight: 700;"><?= htmlspecialchars($inf['dominio']) ?></span></td>
                                         <td style="text-align: right; display: flex; gap: 5px; justify-content: flex-end;">
                                             <button style="padding: 4px 8px; border: 1px solid #e2e8f0; border-radius: 4px; background: #fff; font-size: 0.7rem; font-weight: 600; color: #475569; cursor: pointer;">Editar</button>
-                                            <button style="padding: 4px 8px; border: 1px solid #fecaca; border-radius: 4px; background: #fff; font-size: 0.7rem; font-weight: 600; color: #b91c1c; cursor: pointer;">Borrar</button>
+                                            <button onclick="confirmDeleteEntry('informatica', <?= $inf['id'] ?>, '<?= addslashes($inf['programa']) ?>')" style="padding: 4px 8px; border: 1px solid #fecaca; border-radius: 4px; background: #fff; font-size: 0.7rem; font-weight: 600; color: #b91c1c; cursor: pointer;">Borrar</button>
                                         </td>
                                     </tr>
                                     <?php endforeach; ?>
@@ -1007,6 +1000,9 @@ $tutorias = $stmtTut->fetchAll();
     </div>
 
     <script>
+        let docIdToDelete = null;
+        let deleteTab = null;
+
         function openModalDocumentos() {
             document.getElementById('modalDocumentos').style.display = 'flex';
             document.body.style.overflow = 'hidden';
@@ -1027,11 +1023,18 @@ $tutorias = $stmtTut->fetchAll();
             });
         }
 
-        let docIdToDelete = null;
-
-        function eliminarDocumento(id, nombre) {
+        function confirmDelete(id, name) {
             docIdToDelete = id;
-            document.getElementById('deleteDocName').innerText = nombre;
+            deleteTab = null;
+            document.getElementById('deleteItemName').innerText = name;
+            document.getElementById('modalConfirmDelete').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function confirmDeleteEntry(tab, entryId, name) {
+            deleteTab = tab;
+            docIdToDelete = entryId;
+            document.getElementById('deleteItemName').innerText = name;
             document.getElementById('modalConfirmDelete').style.display = 'flex';
             document.body.style.overflow = 'hidden';
         }
@@ -1040,6 +1043,17 @@ $tutorias = $stmtTut->fetchAll();
             document.getElementById('modalConfirmDelete').style.display = 'none';
             document.body.style.overflow = 'auto';
             docIdToDelete = null;
+            deleteTab = null;
+        }
+
+        function ejecutarBorrado() {
+            if (docIdToDelete) {
+                if (deleteTab) {
+                    location.href = 'ficha_trabajador.php?id=<?= $id ?>&del_tab=' + deleteTab + '&del_id=' + docIdToDelete;
+                } else {
+                    location.href = 'api/eliminar_documento_profesor.php?id=' + docIdToDelete + '&usuario_id=<?= $id ?>';
+                }
+            }
         }
 
         // MODAL FORMACION
@@ -1057,12 +1071,6 @@ $tutorias = $stmtTut->fetchAll();
         function closeModalExperiencia() {
             document.getElementById('modalExperiencia').style.display = 'none';
         }
-
-        function ejecutarBorrado() {
-            if (docIdToDelete) {
-                location.href = 'api/eliminar_documento_profesor.php?id=' + docIdToDelete + '&usuario_id=<?= $id ?>';
-            }
-        }
     </script>
     <!-- MODAL: Confirmar Borrado -->
     <div class="modal-overlay" id="modalConfirmDelete" style="z-index: 3000;">
@@ -1071,9 +1079,9 @@ $tutorias = $stmtTut->fetchAll();
                 <div style="width: 60px; height: 60px; background: #fee2e2; color: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
                     <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
                 </div>
-                <h3 style="margin: 0 0 10px; color: #1e293b; font-weight: 800; font-size: 1.2rem; text-transform: uppercase;">¿Eliminar documento?</h3>
+                <h3 style="margin: 0 0 10px; color: #1e293b; font-weight: 800; font-size: 1.2rem; text-transform: uppercase;">¿Eliminar registro?</h3>
                 <p style="color: #64748b; font-size: 0.9rem; line-height: 1.5; margin-bottom: 30px;">
-                    Estás a punto de eliminar <strong id="deleteDocName" style="color: #1e293b;"></strong>.<br>
+                    Estás a punto de eliminar <strong id="deleteItemName" style="color: #1e3a8a;"></strong>.<br>
                     Esta acción es <strong>permanente</strong> y no se puede deshacer.
                 </p>
                 <div style="display: flex; gap: 10px;">
