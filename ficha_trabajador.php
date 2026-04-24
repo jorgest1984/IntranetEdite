@@ -29,23 +29,23 @@ $stmtProf->execute([$id]);
 $prof = $stmtProf->fetch() ?: [];
 
 // Datos de la pestaña Currículum (NUEVO)
-$stmt_tutorias = $pdo->prepare("SELECT * FROM prof_tutorias WHERE usuario_id = ? ORDER BY anio DESC");
+$stmt_tutorias = $pdo->prepare("SELECT * FROM prof_tutorias WHERE profesor_id = ? ORDER BY anio DESC");
 $stmt_tutorias->execute([$id]);
 $tutorias = $stmt_tutorias->fetchAll();
 
-$stmt_formacion = $pdo->prepare("SELECT * FROM prof_formacion WHERE usuario_id = ? ORDER BY desde DESC");
+$stmt_formacion = $pdo->prepare("SELECT * FROM prof_formacion WHERE profesor_id = ? ORDER BY desde DESC");
 $stmt_formacion->execute([$id]);
 $formaciones = $stmt_formacion->fetchAll();
 
-$stmt_exp_prof = $pdo->prepare("SELECT * FROM prof_experiencia WHERE usuario_id = ? ORDER BY desde DESC");
+$stmt_exp_prof = $pdo->prepare("SELECT * FROM prof_experiencia WHERE profesor_id = ? ORDER BY desde DESC");
 $stmt_exp_prof->execute([$id]);
 $experiencias_prof = $stmt_exp_prof->fetchAll();
 
-$stmt_idiomas = $pdo->prepare("SELECT * FROM prof_idiomas WHERE usuario_id = ?");
+$stmt_idiomas = $pdo->prepare("SELECT * FROM prof_idiomas WHERE profesor_id = ?");
 $stmt_idiomas->execute([$id]);
 $idiomas = $stmt_idiomas->fetchAll();
 
-$stmt_informatica = $pdo->prepare("SELECT * FROM prof_informatica WHERE usuario_id = ?");
+$stmt_informatica = $pdo->prepare("SELECT * FROM prof_informatica WHERE profesor_id = ?");
 $stmt_informatica->execute([$id]);
 $informatica = $stmt_informatica->fetchAll();
 
