@@ -1054,26 +1054,27 @@ $asistencias = $stmt_asist->fetchAll();
                         <form method="POST" action="ficha_trabajador.php?id=<?= $id ?>&tab=asistencia">
                             <input type="hidden" name="action" value="update_asistencia_resumen">
                             
-                            <div class="formacion-table-grid" style="grid-template-columns: 140px 1fr 140px 100px; border: 1px solid #cbd5e1;">
-                                <!-- Horario -->
-                                <div class="formacion-label" style="background: #fff; color: #1e3a8a; border-bottom: 1px solid #cbd5e1;">Horario:</div>
-                                <div class="formacion-input-cell" style="grid-column: span 3; background: #eef2f6; border-bottom: 1px solid #cbd5e1;">
-                                    <input type="text" name="horario_general" value="<?= htmlspecialchars($prof['horario_general'] ?? '') ?>" style="width: 100%; border: none; background: transparent; padding: 5px; color: #1e3a8a; font-weight: 500;">
-                                </div>
-
-                                <!-- Observaciones y Vacaciones -->
-                                <div class="formacion-label" style="background: #fff; color: #1e3a8a; height: auto; align-items: flex-start; padding-top: 10px;">Observaciones:</div>
-                                <div class="formacion-input-cell" style="background: #fff; border-right: 1px solid #cbd5e1;">
-                                    <textarea name="obs_asistencia" style="width: 100%; min-height: 80px; padding: 10px; border: none; background: transparent; font-family: inherit; color: #1e3a8a; font-weight: 500;"><?= htmlspecialchars($prof['obs_asistencia'] ?? '') ?></textarea>
-                                </div>
-                                <div class="formacion-label" style="background: #fff; color: #1e3a8a; border-left: 1px solid #cbd5e1;">Vac. días pendientes:</div>
-                                <div class="formacion-input-cell" style="background: #eef2f6;">
-                                    <input type="number" name="vac_dias_pendientes" value="<?= htmlspecialchars($prof['vac_dias_pendientes'] ?? 0) ?>" style="width: 100%; border: none; background: transparent; text-align: center; font-weight: 700; color: #1e3a8a; padding: 5px;">
-                                </div>
-                            </div>
+                            <table style="width: 100%; border-collapse: collapse; border: 1px solid #cbd5e1; table-layout: fixed; background: white;">
+                                <tr>
+                                    <td style="width: 140px; background: #fff; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; padding: 12px; border: 1px solid #cbd5e1; text-align: left;">Horario:</td>
+                                    <td colspan="3" style="background: #f1f5f9; border: 1px solid #cbd5e1; padding: 5px;">
+                                        <input type="text" name="horario_general" value="<?= htmlspecialchars($prof['horario_general'] ?? '') ?>" style="width: 100%; border: 1px solid #cbd5e1; background: #fff; padding: 8px; color: #1e3a8a; font-weight: 500; box-sizing: border-box;">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="width: 140px; background: #fff; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; padding: 12px; border: 1px solid #cbd5e1; vertical-align: top; padding-top: 15px;">Observaciones:</td>
+                                    <td style="background: #fff; border: 1px solid #cbd5e1; padding: 5px;">
+                                        <textarea name="obs_asistencia" style="width: 100%; min-height: 80px; padding: 10px; border: 1px solid #cbd5e1; background: #fff; font-family: inherit; color: #1e3a8a; font-weight: 500; box-sizing: border-box; display: block; resize: vertical;"><?= htmlspecialchars($prof['obs_asistencia'] ?? '') ?></textarea>
+                                    </td>
+                                    <td style="width: 160px; background: #fff; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; padding: 12px; border: 1px solid #cbd5e1; text-align: left;">Vac. días pendientes:</td>
+                                    <td style="width: 100px; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 5px;">
+                                        <input type="number" name="vac_dias_pendientes" value="<?= htmlspecialchars($prof['vac_dias_pendientes'] ?? 0) ?>" style="width: 100%; border: 1px solid #cbd5e1; background: #fff; text-align: center; font-weight: 700; color: #1e3a8a; padding: 8px; box-sizing: border-box;">
+                                    </td>
+                                </tr>
+                            </table>
 
                             <div style="text-align: center; margin-top: 2rem;">
-                                <button type="submit" class="btn-actualizar" style="background: #eef2f6; color: #1e3a8a; border: 1px solid #cbd5e1; padding: 8px 30px; font-weight: 700; font-size: 0.85rem; border-radius: 4px; cursor: pointer;">Actualizar</button>
+                                <button type="submit" class="btn-actualizar" style="margin: 0; background: #eef2f6; color: #1e3a8a; border: 1px solid #cbd5e1; padding: 10px 40px; font-weight: 700; font-size: 0.85rem; border-radius: 4px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">Actualizar</button>
                             </div>
                         </form>
                     </div>
