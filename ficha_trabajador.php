@@ -148,6 +148,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             exit();
         }
 
+        if ($action == 'update_cuenta') {
+            $username = trim($_POST['username']);
+            $password = $_POST['password'];
+            $codigo_profesor = $_POST['codigo_profesor'] ?? '0';
+            $centro = $_POST['centro'] ?? '';
+            $nivel_acceso = intval($_POST['nivel_acceso'] ?? 1);
+            $acceso_multicentro = isset($_POST['acceso_multicentro']) ? 1 : 0;
+            $activo = isset($_POST['activo']) ? 1 : 0;
+            $fuentes_grandes = isset($_POST['fuentes_grandes']) ? 1 : 0;
+            $comercial = isset($_POST['comercial']) ? 1 : 0;
+            $mensajeria_interna = isset($_POST['mensajeria_interna']) ? 1 : 0;
+
+            $params = [$username, $codigo_profesor, $centro, $nivel_acceso, $acceso_multicentro, $activo, $fuentes_grandes, $comercial, $mensajeria_interna];
+            $sql = "UPDATE usuarios SET username = ?, codigo_profesor = ?, centro = ?, nivel_acceso = ?, acceso_multicentro = ?, activo = ?, fuentes_grandes = ?, comercial = ?, mensajeria_interna = ?";
+            
+            if (!empty($password)) {
+                $sql .= ", password_hash = ?";
+                $params[] = password_hash($password, PASSWORD_BCRYPT);
+            }
+            
+            $sql .= " WHERE id = ?";
+            $params[] = $id;
+            
+            $pdo->prepare($sql)->execute($params);
+            header("Location: ficha_trabajador.php?id=$id&tab=cuenta&success=1");
+            exit();
+        }
+
         if ($action == 'update_asistencia_resumen') {
             $stmt = $pdo->prepare("UPDATE profesorado_detalles SET horario_general = ?, obs_asistencia = ?, vac_dias_pendientes = ? WHERE usuario_id = ?");
             $stmt->execute([
@@ -1162,7 +1190,82 @@ $documentos = $stmt_docs->fetchAll();
                     </div>
                 </div>
             </div>
-            <div id="tab-cuenta" style="<?= $active_tab == 'cuenta' ? '' : 'display:none;' ?>"><div class="info-section"><h3>Cuenta</h3><p>Módulo en desarrollo...</p></div></div>
+            <div id="tab-cuenta" style="<?= $active_tab == 'cuenta' ? '' : 'display:none;' ?>">
+                <div style="background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 1.5rem;">
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <h2 style="color: #b91c1c; font-weight: 800; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #b91c1c; display: inline-block; padding-bottom: 5px;">DATOS DE LA CUENTA</h2>
+                    </div>
+
+                    <form method="POST" action="ficha_trabajador.php?id=<?= $id ?>&tab=cuenta">
+                        <input type="hidden" name="action" value="update_cuenta">
+                        
+                        <table style="width: 100%; border-collapse: collapse; border: 1px solid #cbd5e1; background: white;">
+                            <!-- Usuario y Clave -->
+                            <tr>
+                                <td style="width: 120px; background: #fff; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; padding: 12px; border: 1px solid #cbd5e1; text-align: left;">Usuario:</td>
+                                <td style="background: #f1f5f9; border: 1px solid #cbd5e1; padding: 5px;">
+                                    <input type="text" name="username" value="<?= htmlspecialchars($trabajador['username'] ?? '') ?>" style="width: 100%; border: 1px solid #cbd5e1; background: #fff; padding: 8px; color: #1e3a8a; font-weight: 500; box-sizing: border-box;">
+                                </td>
+                                <td style="width: 100px; background: #fff; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; padding: 12px; border: 1px solid #cbd5e1; text-align: left;">Clave:</td>
+                                <td style="background: #f1f5f9; border: 1px solid #cbd5e1; padding: 5px;">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <input type="password" name="password" placeholder="**********" style="width: 200px; border: 1px solid #cbd5e1; background: #fff; padding: 8px; color: #1e3a8a; font-weight: 500; box-sizing: border-box;">
+                                        <span style="font-size: 0.75rem; color: #64748b;">(dejar en blanco para conservar la actual)</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <!-- Código profesor y Centro -->
+                            <tr>
+                                <td style="background: #fff; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; padding: 12px; border: 1px solid #cbd5e1; text-align: left;">Código profesor:</td>
+                                <td style="background: #fff; border: 1px solid #cbd5e1; padding: 5px;">
+                                    <select name="codigo_profesor" style="width: 100%; border: 1px solid #1e3a8a; background: #fff; padding: 8px; color: #1e3a8a; font-weight: 600; box-sizing: border-box; border-radius: 4px;">
+                                        <option value="0" <?= ($trabajador['codigo_profesor'] ?? '') == '0' ? 'selected' : '' ?>>0</option>
+                                        <!-- Otros códigos si existieran -->
+                                    </select>
+                                </td>
+                                <td style="background: #fff; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; padding: 12px; border: 1px solid #cbd5e1; text-align: left;">Centro:</td>
+                                <td style="background: #fff; border: 1px solid #cbd5e1; padding: 5px;">
+                                    <select name="centro" style="width: 100%; border: 1px solid #1e3a8a; background: #fff; padding: 8px; color: #1e3a8a; font-weight: 600; box-sizing: border-box; border-radius: 4px;">
+                                        <option value="Granada" <?= ($trabajador['centro'] ?? '') == 'Granada' ? 'selected' : '' ?>>Granada</option>
+                                        <option value="Madrid" <?= ($trabajador['centro'] ?? '') == 'Madrid' ? 'selected' : '' ?>>Madrid</option>
+                                        <option value="Almería" <?= ($trabajador['centro'] ?? '') == 'Almería' ? 'selected' : '' ?>>Almería</option>
+                                        <option value="Barcelona" <?= ($trabajador['centro'] ?? '') == 'Barcelona' ? 'selected' : '' ?>>Barcelona</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <!-- Nivel de Acceso y Checkboxes -->
+                            <tr>
+                                <td style="background: #fff; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; padding: 12px; border: 1px solid #cbd5e1; text-align: left;">Nivel de Acceso:</td>
+                                <td colspan="3" style="background: #fff; border: 1px solid #cbd5e1; padding: 15px;">
+                                    <div style="display: flex; align-items: center; gap: 25px; flex-wrap: wrap;">
+                                        <input type="number" name="nivel_acceso" value="<?= htmlspecialchars($trabajador['nivel_acceso'] ?? 1) ?>" style="width: 200px; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 8px; color: #1e3a8a; font-weight: 700; box-sizing: border-box;">
+                                        
+                                        <label style="display: flex; align-items: center; gap: 8px; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; cursor: pointer;">
+                                            Acceso multicentro: <input type="checkbox" name="acceso_multicentro" <?= ($trabajador['acceso_multicentro'] ?? 0) ? 'checked' : '' ?> style="width: 18px; height: 18px; accent-color: #1e3a8a;">
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 8px; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; cursor: pointer;">
+                                            Activo: <input type="checkbox" name="activo" <?= ($trabajador['activo'] ?? 0) ? 'checked' : '' ?> style="width: 18px; height: 18px; accent-color: #1e3a8a;">
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 8px; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; cursor: pointer;">
+                                            Fuentes grandes: <input type="checkbox" name="fuentes_grandes" <?= ($trabajador['fuentes_grandes'] ?? 0) ? 'checked' : '' ?> style="width: 18px; height: 18px; accent-color: #1e3a8a;">
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 8px; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; cursor: pointer;">
+                                            Comercial: <input type="checkbox" name="comercial" <?= ($trabajador['comercial'] ?? 0) ? 'checked' : '' ?> style="width: 18px; height: 18px; accent-color: #1e3a8a;">
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 8px; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; cursor: pointer;">
+                                            Mensajería interna: <input type="checkbox" name="mensajeria_interna" <?= ($trabajador['mensajeria_interna'] ?? 0) ? 'checked' : '' ?> style="width: 18px; height: 18px; accent-color: #1e3a8a;">
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <div style="text-align: center; margin-top: 2rem;">
+                            <button type="submit" class="btn-actualizar" style="margin: 0; background: #eef2f6; color: #1e3a8a; border: 1px solid #cbd5e1; padding: 10px 40px; font-weight: 700; font-size: 0.85rem; border-radius: 4px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">Actualizar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
             <div id="tab-formacion" style="<?= $active_tab == 'formacion' ? '' : 'display:none;' ?>"><div class="info-section"><h3>Formación</h3><p>Módulo en desarrollo...</p></div></div>
             <div id="tab-perfil" style="<?= $active_tab == 'perfil' ? '' : 'display:none;' ?>"><div class="info-section"><h3>Perfiles</h3><p>Módulo en desarrollo...</p></div></div>
             <div id="tab-comerciales" style="<?= $active_tab == 'comerciales' ? '' : 'display:none;' ?>"><div class="info-section"><h3>Comercial</h3><p>Módulo en desarrollo...</p></div></div>
