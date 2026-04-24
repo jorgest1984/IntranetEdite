@@ -40,6 +40,7 @@ $cv_actions = [
     'add_idioma' => ['table' => 'prof_idiomas', 'fields' => ['idioma', 'nivel_hablado', 'nivel_oral', 'nivel_escrito', 'nivel_leido']],
     'edit_idioma' => ['table' => 'prof_idiomas', 'fields' => ['idioma', 'nivel_hablado', 'nivel_oral', 'nivel_escrito', 'nivel_leido'], 'id_field' => 'id'],
     'add_informatica' => ['table' => 'prof_informatica', 'fields' => ['programa', 'dominio']],
+    'edit_informatica' => ['table' => 'prof_informatica', 'fields' => ['programa', 'dominio'], 'id_field' => 'id'],
     'add_asistencia' => ['table' => 'prof_asistencia', 'fields' => ['fecha_desde', 'fecha_hasta', 'tipo', 'duracion_dias', 'duracion_horas', 'observaciones']]
 ];
 
@@ -828,7 +829,7 @@ $informatica = $stmt_informatica->fetchAll();
                     <div>
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #fee2e2; padding-bottom: 0.5rem;">
                             <h3 style="color: #b91c1c; font-size: 0.9rem; text-transform: uppercase; margin: 0;">Informática</h3>
-                            <button class="btn-yellow-icon" style="padding: 0.4rem 1rem; font-size: 0.75rem; color: #854d0e; font-weight: 700;">+ Nuevo Programa</button>
+                            <button class="btn-yellow-icon" onclick="openModalInformatica()" style="padding: 0.4rem 1rem; font-size: 0.75rem; color: #854d0e; font-weight: 700;">+ Nuevo Programa</button>
                         </div>
                         <table class="table-premium">
                             <thead>
@@ -847,7 +848,7 @@ $informatica = $stmt_informatica->fetchAll();
                                         <td style="font-weight: 700; color: #1e3a8a; font-size: 0.75rem; text-transform: uppercase;"><?= htmlspecialchars($inf['programa']) ?></td>
                                         <td><span class="badge" style="background: #f1f5f9; color: #1e40af; font-size: 0.7rem; font-weight: 700;"><?= htmlspecialchars($inf['dominio']) ?></span></td>
                                         <td style="text-align: right; display: flex; gap: 5px; justify-content: flex-end;">
-                                            <button style="padding: 4px 8px; border: 1px solid #e2e8f0; border-radius: 4px; background: #fff; font-size: 0.7rem; font-weight: 600; color: #475569; cursor: pointer;">Editar</button>
+                                            <button onclick='openModalInformatica(<?= json_encode($inf) ?>)' style="padding: 4px 8px; border: 1px solid #e2e8f0; border-radius: 4px; background: #fff; font-size: 0.7rem; font-weight: 600; color: #475569; cursor: pointer;">Editar</button>
                                             <button onclick="confirmDeleteEntry('informatica', <?= $inf['id'] ?>, '<?= addslashes($inf['programa']) ?>')" style="padding: 4px 8px; border: 1px solid #fecaca; border-radius: 4px; background: #fff; font-size: 0.7rem; font-weight: 600; color: #b91c1c; cursor: pointer;">Borrar</button>
                                         </td>
                                     </tr>
@@ -1127,6 +1128,39 @@ $informatica = $stmt_informatica->fetchAll();
             document.getElementById('modalIdioma').style.display = 'none';
         }
 
+        // MODAL INFORMATICA
+        function openModalInformatica(editData = null) {
+            const modal = document.getElementById('modalInformatica');
+            const form = modal.querySelector('form');
+            const title = modal.querySelector('h2');
+            const btn = form.querySelector('button[type="submit"]');
+
+            if (editData) {
+                title.innerText = 'EDITAR PROGRAMA INFORMÁTICO';
+                btn.innerText = 'Guardar Cambios';
+                form.action.value = 'edit_informatica';
+                if (!form.entry_id) {
+                    const hidden = document.createElement('input');
+                    hidden.type = 'hidden';
+                    hidden.name = 'entry_id';
+                    form.appendChild(hidden);
+                }
+                form.entry_id.value = editData.id;
+                form.programa.value = editData.programa;
+                form.dominio.value = editData.dominio;
+            } else {
+                title.innerText = 'INSERTAR PROGRAMA INFORMÁTICO';
+                btn.innerText = 'Añadir Programa Informático';
+                form.action.value = 'add_informatica';
+                form.reset();
+                if (form.entry_id) form.entry_id.remove();
+            }
+            modal.style.display = 'flex';
+        }
+        function closeModalInformatica() {
+            document.getElementById('modalInformatica').style.display = 'none';
+        }
+
         function handleSubmitCV(form, modalId) {
             const btn = form.querySelector('button[type="submit"]');
             btn.disabled = true;
@@ -1336,6 +1370,50 @@ $informatica = $stmt_informatica->fetchAll();
 
                     <div style="text-align: center; padding: 20px; background: #fff;">
                         <button type="submit" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #1e3a8a; font-weight: 800; padding: 8px 25px; cursor: pointer; font-size: 1rem; border-radius: 4px;">Añadir Idioma</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- MODAL: Añadir Programa Informático -->
+    <div class="modal-overlay" id="modalInformatica">
+        <div class="modal-container" style="max-width: 600px;">
+            <div class="modal-header" style="border-bottom: 2px solid #e2e8f0; position: relative;">
+                <h2 style="color: #1e3a8a; font-size: 1.1rem; text-transform: uppercase; font-weight: 800; width: 100%; text-align: center; margin: 0;">INSERTAR PROGRAMA INFORMÁTICO</h2>
+                <button class="modal-close" onclick="closeModalInformatica()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%);">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 0;">
+                <form method="POST" action="ficha_trabajador.php?id=<?= $id ?>&tab=cv" onsubmit="return handleSubmitCV(this, 'modalInformatica')">
+                    <input type="hidden" name="action" value="add_informatica">
+                    
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 15px; border: 1px solid #cbd5e1; background: #fff; width: 30%;">
+                                <label style="color: #1e3a8a; font-weight: 800; font-size: 0.9rem;">Programa:</label>
+                            </td>
+                            <td style="padding: 15px; border: 1px solid #cbd5e1; background: #f8fafc;">
+                                <input type="text" name="programa" required style="width: 100%; border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px;">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 15px; border: 1px solid #cbd5e1; background: #fff;">
+                                <label style="color: #1e3a8a; font-weight: 800; font-size: 0.9rem;">Dominio:</label>
+                            </td>
+                            <td style="padding: 15px; border: 1px solid #cbd5e1; background: #fff;">
+                                <select name="dominio" style="width: 100%; border: 2px solid #1e3a8a; padding: 5px; border-radius: 4px; color: #1e3a8a; font-weight: 600; max-width: 150px;">
+                                    <option value="Básico">Básico</option>
+                                    <option value="Medio">Medio</option>
+                                    <option value="Avanzado">Avanzado</option>
+                                    <option value="Experto">Experto</option>
+                                </select>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <div style="text-align: center; padding: 20px; background: #fff;">
+                        <button type="submit" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #1e3a8a; font-weight: 800; padding: 8px 25px; cursor: pointer; font-size: 1rem; border-radius: 4px;">Añadir Programa Informático</button>
                     </div>
                 </form>
             </div>
