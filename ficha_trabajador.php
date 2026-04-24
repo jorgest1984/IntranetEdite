@@ -24,35 +24,14 @@ if (!$trabajador) {
 }
 
 // Cargar detalles de profesorado (vínculo a usuario)
-$stmtProf = $pdo->prepare("SELECT * FROM profesorado_detalles WHERE usuario_id = ?");
+$stmtProf = $pdo->prepare("SELECT * FROM profesorado_detalles WHERE profesor_id = ?");
 $stmtProf->execute([$id]);
 $prof = $stmtProf->fetch() ?: [];
-
-// Datos de la pestaña Currículum (NUEVO)
-$stmt_tutorias = $pdo->prepare("SELECT * FROM prof_tutorias WHERE profesor_id = ? ORDER BY anio DESC");
-$stmt_tutorias->execute([$id]);
-$tutorias = $stmt_tutorias->fetchAll();
-
-$stmt_formacion = $pdo->prepare("SELECT * FROM prof_formacion WHERE profesor_id = ? ORDER BY desde DESC");
-$stmt_formacion->execute([$id]);
-$formaciones = $stmt_formacion->fetchAll();
-
-$stmt_exp_prof = $pdo->prepare("SELECT * FROM prof_experiencia WHERE profesor_id = ? ORDER BY desde DESC");
-$stmt_exp_prof->execute([$id]);
-$experiencias_prof = $stmt_exp_prof->fetchAll();
-
-$stmt_idiomas = $pdo->prepare("SELECT * FROM prof_idiomas WHERE profesor_id = ?");
-$stmt_idiomas->execute([$id]);
-$idiomas = $stmt_idiomas->fetchAll();
-
-$stmt_informatica = $pdo->prepare("SELECT * FROM prof_informatica WHERE profesor_id = ?");
-$stmt_informatica->execute([$id]);
-$informatica = $stmt_informatica->fetchAll();
 
 $active_tab = $_GET['tab'] ?? 'personales';
 $error = null;
 
-// Acciones CV: Agregar Registros (Formación, Experiencia, Idiomas, Informática)
+// Acciones CV: Definición
 $cv_actions = [
     'add_formacion' => ['table' => 'prof_formacion', 'fields' => ['denominacion', 'organismo', 'centro', 'desde', 'hasta', 'horas', 'tipo_formacion']],
     'add_experiencia' => ['table' => 'prof_experiencia', 'fields' => ['empresa', 'desde', 'hasta', 'cargo', 'tareas']],
@@ -64,30 +43,25 @@ $cv_actions = [
 // PROCESAR POST
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
     $action = $_POST['action'];
-
     try {
-        // Acciones CV automáticas (Insertar)
         if (isset($cv_actions[$action])) {
             $table = $cv_actions[$action]['table'];
             $fields = $cv_actions[$action]['fields'];
             $fields[] = 'profesor_id';
             $fields_str = implode(', ', $fields);
             $placeholders = implode(', ', array_fill(0, count($fields), '?'));
-            
             $sql = "INSERT INTO $table ($fields_str) VALUES ($placeholders)";
             $params = [];
             foreach ($cv_actions[$action]['fields'] as $f) {
                 $params[] = $_POST[$f] ?? null;
             }
             $params[] = $id;
-            
             $st = $pdo->prepare($sql);
             $st->execute($params);
             header("Location: ficha_trabajador.php?id=$id&tab=cv&success=1");
             exit;
         }
 
-        // Otras acciones manuales
         if ($action == 'update_perfiles_dept') {
             $pdo->beginTransaction();
             $pdo->prepare("DELETE FROM usuario_departamentos WHERE usuario_id = ?")->execute([$id]);
@@ -108,42 +82,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         if ($action == 'update_personales') {
             $stmt = $pdo->prepare("UPDATE usuarios SET nombre = ?, apellidos = ?, email = ? WHERE id = ?");
             $stmt->execute([$_POST['nombre'], $_POST['apellidos'], $_POST['email'], $id]);
-
             $obs = $_POST['observaciones_personales'] ?? '';
-            $stmtDet = $pdo->prepare("UPDATE profesorado_detalles SET 
-                dni = ?, telefono = ?, fecha_nacimiento = ?, direccion = ?, cp = ?, poblacion = ?, observaciones_personales = ? 
-                WHERE profesor_id = ?");
-            $stmtDet->execute([
-                $_POST['dni'], $_POST['telefono'], $_POST['fecha_nacimiento'], 
-                $_POST['direccion'], $_POST['cp'], $_POST['poblacion'], $obs, $id
-            ]);
+            $stmtDet = $pdo->prepare("UPDATE profesorado_detalles SET dni = ?, telefono = ?, fecha_nacimiento = ?, direccion = ?, cp = ?, poblacion = ?, observaciones_personales = ? WHERE profesor_id = ?");
+            $stmtDet->execute([$_POST['dni'], $_POST['telefono'], $_POST['fecha_nacimiento'], $_POST['direccion'], $_POST['cp'], $_POST['poblacion'], $obs, $id]);
             header("Location: ficha_trabajador.php?id=$id&tab=" . ($_GET['tab'] ?? 'personales') . "&success=1");
             exit();
         }
 
         if ($action == 'update_profesorado') {
-            $fields = [
-                'titulacion', 'es_tutor', 'es_teleformador', 'es_presencial', 'hace_seguimiento',
-                'tope_alumnos_turno', 'aplicar_viernes',
-                'tramo1_de', 'tramo1_a', 'tramo1_v2_de', 'tramo1_v2_a',
-                'tramo2_de', 'tramo2_a', 'tramo2_v2_de', 'tramo2_v2_a'
-            ];
-            $fields_escaped = array_map(function($f) { return "`$f`"; }, $fields);
-            $set_part = implode(' = ?, ', $fields_escaped) . ' = ?';
-            $sql = "UPDATE profesorado_detalles SET $set_part WHERE profesor_id = ?";
-            
+            $fields = ['titulacion', 'es_tutor', 'es_teleformador', 'es_presencial', 'hace_seguimiento', 'tope_alumnos_turno', 'aplicar_viernes', 'tramo1_de', 'tramo1_a', 'tramo1_v2_de', 'tramo1_v2_a', 'tramo2_de', 'tramo2_a', 'tramo2_v2_de', 'tramo2_v2_a'];
+            $set_part = implode(' = ?, ', array_map(function($f) { return "`$f`"; }, $fields)) . ' = ?';
             $params = [];
             foreach ($fields as $f) {
                 $val = $_POST[$f] ?? null;
-                if (in_array($f, ['es_tutor', 'es_teleformador', 'es_presencial', 'hace_seguimiento', 'aplicar_viernes'])) {
-                    $val = ($val == 'SI') ? 1 : 0;
-                }
-                if ($val === '') $val = null;
-                $params[] = $val;
+                if (in_array($f, ['es_tutor', 'es_teleformador', 'es_presencial', 'hace_seguimiento', 'aplicar_viernes'])) $val = ($val == 'SI') ? 1 : 0;
+                $params[] = ($val === '') ? null : $val;
             }
             $params[] = $id;
-            $stP = $pdo->prepare($sql);
-            $stP->execute($params);
+            $pdo->prepare("UPDATE profesorado_detalles SET $set_part WHERE profesor_id = ?")->execute($params);
             header("Location: ficha_trabajador.php?id=$id&tab=profesorado&success=1");
             exit();
         }
@@ -153,28 +109,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
     }
 }
 
-// PROCESAR BORRADO DE ENTRADAS CV (GET)
+// PROCESAR BORRADO CV (GET)
 if (isset($_GET['del_tab']) && isset($_GET['del_id'])) {
-    $del_tab = $_GET['del_tab'];
-    $del_id = $_GET['del_id'];
-    
-    $tables_map = [
-        'formacion' => 'prof_formacion',
-        'experiencia' => 'prof_experiencia',
-        'idioma' => 'prof_idiomas',
-        'informatica' => 'prof_informatica'
-    ];
-    
-    if (isset($tables_map[$del_tab])) {
-        $table_name = $tables_map[$del_tab];
-        $stmt = $pdo->prepare("DELETE FROM $table_name WHERE id = ? AND profesor_id = ?");
-        $stmt->execute([$del_id, $id]);
+    $tables_map = ['formacion' => 'prof_formacion', 'experiencia' => 'prof_experiencia', 'idioma' => 'prof_idiomas', 'informatica' => 'prof_informatica'];
+    if (isset($tables_map[$_GET['del_tab']])) {
+        $stmt = $pdo->prepare("DELETE FROM {$tables_map[$_GET['del_tab']]} WHERE id = ? AND profesor_id = ?");
+        $stmt->execute([$_GET['del_id'], $id]);
         header("Location: ficha_trabajador.php?id=$id&tab=cv&deleted=1");
         exit;
     }
 }
 
-// Cargar datos para la vista
+// CARGAR DATOS VISTA
 $stmt_tutorias = $pdo->prepare("SELECT * FROM prof_tutorias WHERE profesor_id = ? ORDER BY anio DESC");
 $stmt_tutorias->execute([$id]);
 $tutorias = $stmt_tutorias->fetchAll();
@@ -194,7 +140,6 @@ $idiomas = $stmt_idiomas->fetchAll();
 $stmt_informatica = $pdo->prepare("SELECT * FROM prof_informatica WHERE profesor_id = ?");
 $stmt_informatica->execute([$id]);
 $informatica = $stmt_informatica->fetchAll();
-
 ?>
 <!DOCTYPE html>
 <html lang="es">
