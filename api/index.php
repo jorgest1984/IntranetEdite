@@ -1,5 +1,6 @@
 <?php
 // Enrutador Front Controller para Vercel
+// Trigger para forzar nuevo despliegue en Vercel - 2026-04-24 13:47
 // Forzando un nuevo despliegue en Vercel tras actualizar a Pro
 // Con el nuevo correo electronico
 // Esto permite a Vercel tener su archivo dentro de la carpeta obligatoria "api"
