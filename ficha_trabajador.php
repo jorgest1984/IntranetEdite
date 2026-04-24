@@ -888,8 +888,8 @@ $informatica = $stmt_informatica->fetchAll();
                     </table>
                 </div>
 
-                <!-- Idiomas e Informática (Grid 2 columnas) -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 3rem;">
+                <!-- Idiomas e Informática (Stack vertical) -->
+                <div style="display: flex; flex-direction: column; gap: 3rem; margin-bottom: 3rem;">
                     
                     <!-- Idiomas -->
                     <div>
