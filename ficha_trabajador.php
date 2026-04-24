@@ -784,7 +784,7 @@ $tutorias = $stmtTut->fetchAll();
                 <div style="margin-bottom: 3rem; margin-top: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #fee2e2; padding-bottom: 0.5rem;">
                         <h3 style="color: #b91c1c; font-size: 0.9rem; text-transform: uppercase; margin: 0;">Experiencia Profesional</h3>
-                        <button class="btn-yellow-icon" style="padding: 0.4rem 1rem; font-size: 0.75rem; color: #854d0e; font-weight: 700;">+ Nueva Experiencia</button>
+                        <button class="btn-yellow-icon" onclick="openModalExperiencia()" style="padding: 0.4rem 1rem; font-size: 0.75rem; color: #854d0e; font-weight: 700;">+ Nueva Experiencia</button>
                     </div>
                     
                     <table class="table-premium">
@@ -1042,6 +1042,14 @@ $tutorias = $stmtTut->fetchAll();
             document.getElementById('modalFormacion').style.display = 'none';
         }
 
+        // MODAL EXPERIENCIA
+        function openModalExperiencia() {
+            document.getElementById('modalExperiencia').style.display = 'flex';
+        }
+        function closeModalExperiencia() {
+            document.getElementById('modalExperiencia').style.display = 'none';
+        }
+
         function ejecutarBorrado() {
             if (docIdToDelete) {
                 location.href = 'api/eliminar_documento_profesor.php?id=' + docIdToDelete + '&usuario_id=<?= $id ?>';
@@ -1122,6 +1130,53 @@ $tutorias = $stmtTut->fetchAll();
 
                     <div style="text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e2e8f0;">
                         <button type="submit" class="btn-actualizar" style="margin: 0;">Añadir Formación</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- MODAL: Añadir Experiencia Profesional -->
+    <div class="modal-overlay" id="modalExperiencia">
+        <div class="modal-container" style="max-width: 650px;">
+            <div class="modal-header">
+                <h2 style="color: var(--label-blue);">INSERTAR EXPERIENCIA PROFESIONAL</h2>
+                <button class="modal-close" onclick="closeModalExperiencia()">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="ficha_trabajador.php?id=<?= $id ?>&tab=cv">
+                    <input type="hidden" name="action" value="add_experiencia">
+                    
+                    <div class="form-premium-grid">
+                        <div class="form-group" style="grid-column: span 12;">
+                            <label>Empresa:</label>
+                            <input type="text" name="empresa" required placeholder="Ej: Grupo EFP">
+                        </div>
+                        
+                        <div class="form-group" style="grid-column: span 12;">
+                            <label>Cargo:</label>
+                            <input type="text" name="cargo" required placeholder="Ej: Consultor de Formación">
+                        </div>
+
+                        <div class="form-group" style="grid-column: span 4;">
+                            <label>Fecha desde:</label>
+                            <input type="date" name="desde" required style="width: 100%;">
+                        </div>
+                        
+                        <div class="form-group" style="grid-column: span 4;">
+                            <label>Fecha hasta:</label>
+                            <input type="date" name="hasta" required style="width: 100%;">
+                        </div>
+
+                        <div class="form-group" style="grid-column: span 12;">
+                            <label>Tareas:</label>
+                            <textarea name="tareas" style="width: 100%; min-height: 100px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 0.9rem;" placeholder="Describa brevemente sus funciones..."></textarea>
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e2e8f0;">
+                        <button type="submit" class="btn-actualizar" style="margin: 0;">Añadir Experiencia</button>
                     </div>
                 </form>
             </div>
