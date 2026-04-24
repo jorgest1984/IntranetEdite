@@ -1126,6 +1126,15 @@ $informatica = $stmt_informatica->fetchAll();
         function closeModalIdioma() {
             document.getElementById('modalIdioma').style.display = 'none';
         }
+
+        function handleSubmitCV(form, modalId) {
+            const btn = form.querySelector('button[type="submit"]');
+            btn.disabled = true;
+            btn.innerText = 'Guardando...';
+            // Ocultar modal visualmente antes de que la página refresque
+            document.getElementById(modalId).style.display = 'none';
+            return true;
+        }
     </script>
     <!-- MODAL: Confirmar Borrado -->
     <div class="modal-overlay" id="modalConfirmDelete" style="z-index: 3000;">
@@ -1156,7 +1165,7 @@ $informatica = $stmt_informatica->fetchAll();
                 </button>
             </div>
             <div class="modal-body">
-                <form method="POST" action="ficha_trabajador.php?id=<?= $id ?>&tab=cv">
+                <form method="POST" action="ficha_trabajador.php?id=<?= $id ?>&tab=cv" onsubmit="return handleSubmitCV(this, 'modalFormacion')">
                     <input type="hidden" name="action" value="add_formacion">
                     
                     <div class="form-premium-grid">
@@ -1216,7 +1225,7 @@ $informatica = $stmt_informatica->fetchAll();
                 </button>
             </div>
             <div class="modal-body">
-                <form method="POST" action="ficha_trabajador.php?id=<?= $id ?>&tab=cv">
+                <form method="POST" action="ficha_trabajador.php?id=<?= $id ?>&tab=cv" onsubmit="return handleSubmitCV(this, 'modalExperiencia')">
                     <input type="hidden" name="action" value="add_experiencia">
                     
                     <div class="form-premium-grid">
@@ -1263,7 +1272,7 @@ $informatica = $stmt_informatica->fetchAll();
                 </button>
             </div>
             <div class="modal-body" style="padding: 0;">
-                <form method="POST" action="ficha_trabajador.php?id=<?= $id ?>&tab=cv">
+                <form method="POST" action="ficha_trabajador.php?id=<?= $id ?>&tab=cv" onsubmit="return handleSubmitCV(this, 'modalIdioma')">
                     <input type="hidden" name="action" value="add_idioma">
                     
                     <table style="width: 100%; border-collapse: collapse;">
