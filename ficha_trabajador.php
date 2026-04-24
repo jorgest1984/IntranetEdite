@@ -182,9 +182,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
 
 // PROCESAR BORRADO CV (GET)
 if (isset($_GET['del_tab']) && isset($_GET['del_id'])) {
-    $tables_map = ['formacion' => 'prof_formacion', 'experiencia' => 'prof_experiencia', 'idioma' => 'prof_idiomas', 'informatica' => 'prof_informatica', 'asistencia' => 'prof_asistencia'];
+    $tables_map = ['formacion' => 'prof_formacion', 'experiencia' => 'prof_experiencia', 'idioma' => 'prof_idiomas', 'informatica' => 'prof_informatica', 'asistencia' => 'prof_asistencia', 'documento' => 'profesorado_documentos'];
     if (isset($tables_map[$_GET['del_tab']])) {
-        $stmt = $pdo->prepare("DELETE FROM {$tables_map[$_GET['del_tab']]} WHERE id = ? AND profesor_id = ?");
+        $stmt = $pdo->prepare("DELETE FROM {$tables_map[$_GET['del_tab']]} WHERE id = ? AND " . ($_GET['del_tab'] == 'documento' ? 'usuario_id' : 'profesor_id') . " = ?");
         $stmt->execute([$_GET['del_id'], $id]);
         header("Location: ficha_trabajador.php?id=$id&tab=" . $_GET['del_tab'] . "&deleted=1");
         exit;
@@ -215,6 +215,10 @@ $informatica = $stmt_informatica->fetchAll();
 $stmt_asist = $pdo->prepare("SELECT * FROM prof_asistencia WHERE profesor_id = ? ORDER BY fecha_desde DESC");
 $stmt_asist->execute([$id]);
 $asistencias = $stmt_asist->fetchAll();
+
+$stmt_docs = $pdo->prepare("SELECT * FROM profesorado_documentos WHERE usuario_id = ? ORDER BY fecha_subida DESC");
+$stmt_docs->execute([$id]);
+$documentos = $stmt_docs->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -1080,7 +1084,84 @@ $asistencias = $stmt_asist->fetchAll();
                     </div>
                 </div>
             </div>
-            <div id="tab-docs" style="<?= $active_tab == 'docs' ? '' : 'display:none;' ?>"><div class="info-section"><h3>Documentos</h3><p>Módulo en desarrollo...</p></div></div>
+            <div id="tab-docs" style="<?= $active_tab == 'docs' ? '' : 'display:none;' ?>">
+                <div style="background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 1.5rem;">
+                    
+                    <!-- Subir Documento -->
+                    <div style="margin-bottom: 3rem;">
+                        <div style="text-align: center; margin-bottom: 2rem;">
+                            <h2 style="color: #b91c1c; font-weight: 800; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #b91c1c; display: inline-block; padding-bottom: 5px;">SUBIR DOCUMENTO</h2>
+                        </div>
+                        
+                        <div style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 2rem; border-radius: 8px;">
+                            <form action="api/subir_documento_profesor.php" method="POST" enctype="multipart/form-data">
+                                <input type="hidden" name="usuario_id" value="<?= $id ?>">
+                                <div style="display: flex; flex-wrap: wrap; gap: 2rem; align-items: center; justify-content: center;">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <label style="color: #1e3a8a; font-weight: 800; font-size: 0.9rem;">Tipo:</label>
+                                        <select name="tipo_doc" required style="padding: 8px; border: 2px solid #1e3a8a; border-radius: 4px; color: #1e3a8a; font-weight: 700; background: white; min-width: 200px;">
+                                            <option value="Contrato">Contrato</option>
+                                            <option value="DNI">DNI</option>
+                                            <option value="Curriculum">Curriculum</option>
+                                            <option value="Títulos Académicos">Títulos Académicos</option>
+                                            <option value="Seguridad Social">Seguridad Social</option>
+                                            <option value="Justificante">Justificante</option>
+                                            <option value="OTRO">otros</option>
+                                        </select>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <input type="file" name="documento" required style="padding: 5px; border: 1px solid #cbd5e1; background: white; border-radius: 4px; font-size: 0.85rem;">
+                                    </div>
+                                    <button type="submit" style="background: #eef2f6; color: #1e3a8a; border: 1px solid #cbd5e1; padding: 8px 30px; font-weight: 800; border-radius: 4px; cursor: pointer; text-transform: uppercase; font-size: 0.85rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">Subir</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Listado de Documentos -->
+                    <div>
+                        <div style="text-align: center; margin-bottom: 2rem;">
+                            <h2 style="color: #b91c1c; font-weight: 800; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #b91c1c; display: inline-block; padding-bottom: 5px;">LISTADO DE DOCUMENTOS</h2>
+                        </div>
+
+                        <table class="table-premium" style="border: 1px solid #cbd5e1;">
+                            <thead>
+                                <tr style="background: #f8fafc;">
+                                    <th style="color: #1e40af; font-weight: 800; border: 1px solid #cbd5e1;">Documento</th>
+                                    <th style="color: #1e40af; font-weight: 800; border: 1px solid #cbd5e1; width: 120px;">Fecha</th>
+                                    <th style="color: #1e40af; font-weight: 800; border: 1px solid #cbd5e1; width: 60px; text-align: center;">Ext</th>
+                                    <th style="color: #1e40af; font-weight: 800; border: 1px solid #cbd5e1;">Fichero</th>
+                                    <th style="width: 100px; text-align: center; border: 1px solid #cbd5e1;">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (empty($documentos)): ?>
+                                    <tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 3rem;">No hay documentos asociados.</td></tr>
+                                <?php else: ?>
+                                    <?php foreach ($documentos as $d): 
+                                        $ext = pathinfo($d['nombre_archivo'], PATHINFO_EXTENSION);
+                                    ?>
+                                    <tr style="background: #fff;">
+                                        <td style="font-weight: 700; color: #1e3a8a; border: 1px solid #cbd5e1; padding: 12px;"><?= htmlspecialchars($d['tipo_documento']) ?></td>
+                                        <td style="font-weight: 700; color: #1e3a8a; border: 1px solid #cbd5e1; padding: 12px;"><?= $d['fecha_subida'] ? date('d/m/Y', strtotime($d['fecha_subida'])) : '-' ?></td>
+                                        <td style="font-weight: 700; color: #1e3a8a; border: 1px solid #cbd5e1; padding: 12px; text-align: center;"><?= htmlspecialchars($ext) ?></td>
+                                        <td style="border: 1px solid #cbd5e1; padding: 12px;">
+                                            <a href="api/ver_documento_profesor.php?id=<?= $d['id'] ?>" target="_blank" style="color: #1e40af; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 8px;">
+                                                <svg viewBox="0 0 24 24" width="16" fill="currentColor"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                                                <?= htmlspecialchars($d['nombre_archivo']) ?>
+                                            </a>
+                                        </td>
+                                        <td style="text-align: center; border: 1px solid #cbd5e1; padding: 12px;">
+                                            <button onclick="confirmDeleteEntry('documento', <?= $d['id'] ?>, '<?= addslashes($d['tipo_documento']) ?>')" style="padding: 4px 15px; border: 1px solid #cbd5e1; border-radius: 4px; background: #eef2f6; color: #1e3a8a; font-weight: 800; font-size: 0.75rem; cursor: pointer;">Borrar</button>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
             <div id="tab-cuenta" style="<?= $active_tab == 'cuenta' ? '' : 'display:none;' ?>"><div class="info-section"><h3>Cuenta</h3><p>Módulo en desarrollo...</p></div></div>
             <div id="tab-formacion" style="<?= $active_tab == 'formacion' ? '' : 'display:none;' ?>"><div class="info-section"><h3>Formación</h3><p>Módulo en desarrollo...</p></div></div>
             <div id="tab-perfil" style="<?= $active_tab == 'perfil' ? '' : 'display:none;' ?>"><div class="info-section"><h3>Perfiles</h3><p>Módulo en desarrollo...</p></div></div>
