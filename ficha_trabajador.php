@@ -67,19 +67,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
 
     try {
         if (isset($cv_actions[$action])) {
-            $act = $cv_actions[$action];
-            $fields = $act['fields'];
-            $sql = "INSERT INTO " . $act['table'] . " (usuario_id, " . implode(', ', $fields) . ") VALUES (?, " . implode(', ', array_fill(0, count($fields), '?')) . ")";
-            $params = [$id];
-            foreach($fields as $f) {
-                $val = isset($_POST[$f]) ? trim($_POST[$f]) : null;
-                $params[] = ($val === '') ? null : $val;
+            $table = $cv_actions[$action]['table'];
+            $fields = $cv_actions[$action]['fields'];
+            
+            // Inyectar profesor_id automáticamente
+            $fields[] = 'profesor_id';
+            $fields_str = implode(', ', $fields);
+            $placeholders = implode(', ', array_fill(0, count($fields), '?'));
+            
+            $sql = "INSERT INTO $table ($fields_str) VALUES ($placeholders)";
+            $params = [];
+            foreach ($cv_actions[$action]['fields'] as $f) {
+                // Si el campo no existe en $_POST, enviamos NULL (pero profesor_id siempre va después)
+                $params[] = $_POST[$f] ?? null;
             }
+            $params[] = $id; // El ID del profesor actual
+            
             $st = $pdo->prepare($sql);
             $st->execute($params);
             
             header("Location: ficha_trabajador.php?id=$id&tab=cv&success=1");
-            exit();
+            exit;
         }
 
         if ($action == 'update_perfiles_dept') {
