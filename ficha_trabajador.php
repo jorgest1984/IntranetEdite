@@ -70,7 +70,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         if (isset($cv_actions[$action])) {
             $table = $cv_actions[$action]['table'];
             $fields = $cv_actions[$action]['fields'];
-            
             $fields[] = 'profesor_id';
             $fields_str = implode(', ', $fields);
             $placeholders = implode(', ', array_fill(0, count($fields), '?'));
@@ -84,7 +83,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             
             $st = $pdo->prepare($sql);
             $st->execute($params);
-            
             header("Location: ficha_trabajador.php?id=$id&tab=cv&success=1");
             exit;
         }
@@ -108,11 +106,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         }
 
         if ($action == 'update_personales') {
-            // 1. Actualizar tabla usuarios
             $stmt = $pdo->prepare("UPDATE usuarios SET nombre = ?, apellidos = ?, email = ? WHERE id = ?");
             $stmt->execute([$_POST['nombre'], $_POST['apellidos'], $_POST['email'], $id]);
 
-            // 2. Actualizar tabla profesorado_detalles (con observaciones)
             $obs = $_POST['observaciones_personales'] ?? '';
             $stmtDet = $pdo->prepare("UPDATE profesorado_detalles SET 
                 dni = ?, telefono = ?, fecha_nacimiento = ?, direccion = ?, cp = ?, poblacion = ?, observaciones_personales = ? 
@@ -121,11 +117,38 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                 $_POST['dni'], $_POST['telefono'], $_POST['fecha_nacimiento'], 
                 $_POST['direccion'], $_POST['cp'], $_POST['poblacion'], $obs, $id
             ]);
-
             header("Location: ficha_trabajador.php?id=$id&tab=" . ($_GET['tab'] ?? 'personales') . "&success=1");
             exit();
         }
+
+        if ($action == 'update_profesorado') {
+            $fields = [
+                'titulacion', 'es_tutor', 'es_teleformador', 'es_presencial', 'hace_seguimiento',
+                'tope_alumnos_turno', 'aplicar_viernes',
+                'tramo1_de', 'tramo1_a', 'tramo1_v2_de', 'tramo1_v2_a',
+                'tramo2_de', 'tramo2_a', 'tramo2_v2_de', 'tramo2_v2_a'
+            ];
+            $fields_escaped = array_map(function($f) { return "`$f`"; }, $fields);
+            $set_part = implode(' = ?, ', $fields_escaped) . ' = ?';
+            $sql = "UPDATE profesorado_detalles SET $set_part WHERE profesor_id = ?";
+            
+            $params = [];
+            foreach ($fields as $f) {
+                $val = $_POST[$f] ?? null;
+                if (in_array($f, ['es_tutor', 'es_teleformador', 'es_presencial', 'hace_seguimiento', 'aplicar_viernes'])) {
+                    $val = ($val == 'SI') ? 1 : 0;
+                }
+                if ($val === '') $val = null;
+                $params[] = $val;
+            }
+            $params[] = $id;
+            $stP = $pdo->prepare($sql);
+            $stP->execute($params);
+            header("Location: ficha_trabajador.php?id=$id&tab=profesorado&success=1");
+            exit();
+        }
     } catch (Exception $e) {
+        if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
         $error = "Error: " . $e->getMessage();
     }
 }
@@ -150,47 +173,27 @@ if (isset($_GET['del_tab']) && isset($_GET['del_id'])) {
         exit;
     }
 }
-        if ($action == 'update_profesorado') {
-            $fields = [
-                'titulacion', 'es_tutor', 'es_teleformador', 'es_presencial', 'hace_seguimiento',
-                'tope_alumnos_turno', 'aplicar_viernes',
-                'tramo1_de', 'tramo1_a', 'tramo1_v2_de', 'tramo1_v2_a',
-                'tramo2_de', 'tramo2_a', 'tramo2_v2_de', 'tramo2_v2_a'
-            ];
-            
-            $fields_escaped = array_map(function($f) { return "`$f`"; }, $fields);
-            $set_part = implode(' = ?, ', $fields_escaped) . ' = ?';
-            $sql = "UPDATE profesorado_detalles SET $set_part WHERE usuario_id = ?";
-            
-            $params = [];
-            foreach ($fields as $f) {
-                $val = $_POST[$f] ?? null;
-                // Convertir SI/NO de radios a 1/0
-                if (in_array($f, ['es_tutor', 'es_teleformador', 'es_presencial', 'hace_seguimiento', 'aplicar_viernes'])) {
-                    $val = ($val == 'SI') ? 1 : 0;
-                }
-                if ($val === '') $val = null;
-                $params[] = $val;
-            }
-            $params[] = $id;
-
-            $stP = $pdo->prepare($sql);
-            $stP->execute($params);
-
-            header("Location: ficha_trabajador.php?id=$id&tab=profesorado&success=1");
-            exit();
-        }
-    } catch (Exception $e) {
-        if ($pdo->inTransaction()) $pdo->rollBack();
-        $error = "Error: " . $e->getMessage();
-    }
-}
 
 // Cargar datos para la vista
-$tutorias = [];
-$stmtTut = $pdo->prepare("SELECT * FROM prof_tutorias WHERE usuario_id = ? ORDER BY anio DESC");
-$stmtTut->execute([$id]);
-$tutorias = $stmtTut->fetchAll();
+$stmt_tutorias = $pdo->prepare("SELECT * FROM prof_tutorias WHERE profesor_id = ? ORDER BY anio DESC");
+$stmt_tutorias->execute([$id]);
+$tutorias = $stmt_tutorias->fetchAll();
+
+$stmt_formacion = $pdo->prepare("SELECT * FROM prof_formacion WHERE profesor_id = ? ORDER BY desde DESC");
+$stmt_formacion->execute([$id]);
+$formaciones = $stmt_formacion->fetchAll();
+
+$stmt_exp_prof = $pdo->prepare("SELECT * FROM prof_experiencia WHERE profesor_id = ? ORDER BY desde DESC");
+$stmt_exp_prof->execute([$id]);
+$experiencias_prof = $stmt_exp_prof->fetchAll();
+
+$stmt_idiomas = $pdo->prepare("SELECT * FROM prof_idiomas WHERE profesor_id = ?");
+$stmt_idiomas->execute([$id]);
+$idiomas = $stmt_idiomas->fetchAll();
+
+$stmt_informatica = $pdo->prepare("SELECT * FROM prof_informatica WHERE profesor_id = ?");
+$stmt_informatica->execute([$id]);
+$informatica = $stmt_informatica->fetchAll();
 
 ?>
 <!DOCTYPE html>
