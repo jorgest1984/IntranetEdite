@@ -24,7 +24,7 @@ if (!$trabajador) {
 }
 
 // Cargar detalles de profesorado (vínculo a usuario)
-$stmtProf = $pdo->prepare("SELECT * FROM profesorado_detalles WHERE profesor_id = ?");
+$stmtProf = $pdo->prepare("SELECT * FROM profesorado_detalles WHERE usuario_id = ?");
 $stmtProf->execute([$id]);
 $prof = $stmtProf->fetch() ?: [];
 
@@ -34,7 +34,9 @@ $error = null;
 // Acciones CV: Definición
 $cv_actions = [
     'add_formacion' => ['table' => 'prof_formacion', 'fields' => ['denominacion', 'organismo', 'centro', 'desde', 'hasta', 'horas', 'tipo_formacion']],
+    'edit_formacion' => ['table' => 'prof_formacion', 'fields' => ['denominacion', 'organismo', 'centro', 'desde', 'hasta', 'horas', 'tipo_formacion'], 'id_field' => 'id'],
     'add_experiencia' => ['table' => 'prof_experiencia', 'fields' => ['empresa', 'desde', 'hasta', 'cargo', 'tareas']],
+    'edit_experiencia' => ['table' => 'prof_experiencia', 'fields' => ['empresa', 'desde', 'hasta', 'cargo', 'tareas'], 'id_field' => 'id'],
     'add_idioma' => ['table' => 'prof_idiomas', 'fields' => ['idioma', 'nivel_hablado', 'nivel_oral', 'nivel_escrito', 'nivel_leido']],
     'add_informatica' => ['table' => 'prof_informatica', 'fields' => ['programa', 'dominio']],
     'add_asistencia' => ['table' => 'prof_asistencia', 'fields' => ['fecha_desde', 'fecha_hasta', 'tipo', 'duracion_dias', 'duracion_horas', 'observaciones']]
@@ -47,15 +49,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         if (isset($cv_actions[$action])) {
             $table = $cv_actions[$action]['table'];
             $fields = $cv_actions[$action]['fields'];
-            $fields[] = 'profesor_id';
-            $fields_str = implode(', ', $fields);
-            $placeholders = implode(', ', array_fill(0, count($fields), '?'));
-            $sql = "INSERT INTO $table ($fields_str) VALUES ($placeholders)";
             $params = [];
-            foreach ($cv_actions[$action]['fields'] as $f) {
-                $params[] = $_POST[$f] ?? null;
+            
+            if (strpos($action, 'add_') === 0) {
+                // INSERTAR
+                $fields[] = 'profesor_id';
+                $fields_str = implode(', ', $fields);
+                $placeholders = implode(', ', array_fill(0, count($fields), '?'));
+                $sql = "INSERT INTO $table ($fields_str) VALUES ($placeholders)";
+                foreach ($cv_actions[$action]['fields'] as $f) $params[] = $_POST[$f] ?? null;
+                $params[] = $id;
+            } else {
+                // EDITAR
+                $set_part = implode(' = ?, ', $fields) . ' = ?';
+                $sql = "UPDATE $table SET $set_part WHERE id = ? AND profesor_id = ?";
+                foreach ($fields as $f) $params[] = $_POST[$f] ?? null;
+                $params[] = $_POST['entry_id']; // El ID del registro a editar
+                $params[] = $id; // Seguridad: validar que pertenece al profesor
             }
-            $params[] = $id;
+            
             $st = $pdo->prepare($sql);
             $st->execute($params);
             header("Location: ficha_trabajador.php?id=$id&tab=cv&success=1");
@@ -83,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             $stmt = $pdo->prepare("UPDATE usuarios SET nombre = ?, apellidos = ?, email = ? WHERE id = ?");
             $stmt->execute([$_POST['nombre'], $_POST['apellidos'], $_POST['email'], $id]);
             $obs = $_POST['observaciones_personales'] ?? '';
-            $stmtDet = $pdo->prepare("UPDATE profesorado_detalles SET dni = ?, telefono = ?, fecha_nacimiento = ?, direccion = ?, cp = ?, poblacion = ?, observaciones_personales = ? WHERE profesor_id = ?");
+            $stmtDet = $pdo->prepare("UPDATE profesorado_detalles SET dni = ?, telefono = ?, fecha_nacimiento = ?, direccion = ?, cp = ?, poblacion = ?, observaciones_personales = ? WHERE usuario_id = ?");
             $stmtDet->execute([$_POST['dni'], $_POST['telefono'], $_POST['fecha_nacimiento'], $_POST['direccion'], $_POST['cp'], $_POST['poblacion'], $obs, $id]);
             header("Location: ficha_trabajador.php?id=$id&tab=" . ($_GET['tab'] ?? 'personales') . "&success=1");
             exit();
@@ -99,7 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                 $params[] = ($val === '') ? null : $val;
             }
             $params[] = $id;
-            $pdo->prepare("UPDATE profesorado_detalles SET $set_part WHERE profesor_id = ?")->execute($params);
+            $pdo->prepare("UPDATE profesorado_detalles SET $set_part WHERE usuario_id = ?")->execute($params);
             header("Location: ficha_trabajador.php?id=$id&tab=profesorado&success=1");
             exit();
         }
@@ -720,7 +732,7 @@ $informatica = $stmt_informatica->fetchAll();
                                     <td style="font-weight: 700; color: #1e3a8a;"><?= htmlspecialchars($f['horas'] ?? '0') ?></td>
                                     <td><span style="font-size: 0.7rem; font-weight: 700; color: <?= $f['tipo_formacion'] == 'Académica' ? '#1e40af' : '#64748b' ?>;"><?= htmlspecialchars($f['tipo_formacion']) ?></span></td>
                                     <td style="text-align: right; display: flex; gap: 5px; justify-content: flex-end;">
-                                        <button style="padding: 4px 8px; border: 1px solid #e2e8f0; border-radius: 4px; background: #fff; font-size: 0.7rem; font-weight: 600; color: #475569; cursor: pointer;">Editar</button>
+                                        <button onclick='openModalFormacion(<?= json_encode($f) ?>)' style="padding: 4px 8px; border: 1px solid #e2e8f0; border-radius: 4px; background: #fff; font-size: 0.7rem; font-weight: 600; color: #475569; cursor: pointer;">Editar</button>
                                         <button onclick="confirmDeleteEntry('formacion', <?= $f['id'] ?>, '<?= addslashes($f['denominacion']) ?>')" style="padding: 4px 8px; border: 1px solid #fecaca; border-radius: 4px; background: #fff; font-size: 0.7rem; font-weight: 600; color: #b91c1c; cursor: pointer;">Borrar</button>
                                     </td>
                                 </tr>
@@ -759,7 +771,7 @@ $informatica = $stmt_informatica->fetchAll();
                                     <td style="font-weight: 700; color: #475569; font-size: 0.75rem; text-transform: uppercase;"><?= htmlspecialchars($ep['cargo']) ?></td>
                                     <td style="font-size: 0.75rem; color: #64748b; line-height: 1.4;"><?= nl2br(htmlspecialchars($ep['tareas'])) ?></td>
                                     <td style="text-align: right; display: flex; gap: 5px; justify-content: flex-end;">
-                                        <button style="padding: 4px 8px; border: 1px solid #e2e8f0; border-radius: 4px; background: #fff; font-size: 0.7rem; font-weight: 600; color: #475569; cursor: pointer;">Editar</button>
+                                        <button onclick='openModalExperiencia(<?= json_encode($ep) ?>)' style="padding: 4px 8px; border: 1px solid #e2e8f0; border-radius: 4px; background: #fff; font-size: 0.7rem; font-weight: 600; color: #475569; cursor: pointer;">Editar</button>
                                         <button onclick="confirmDeleteEntry('experiencia', <?= $ep['id'] ?>, '<?= addslashes($ep['empresa']) ?>')" style="padding: 4px 8px; border: 1px solid #fecaca; border-radius: 4px; background: #fff; font-size: 0.7rem; font-weight: 600; color: #b91c1c; cursor: pointer;">Borrar</button>
                                     </td>
                                 </tr>
@@ -1005,16 +1017,74 @@ $informatica = $stmt_informatica->fetchAll();
         }
 
         // MODAL FORMACION
-        function openModalFormacion() {
-            document.getElementById('modalFormacion').style.display = 'flex';
+        function openModalFormacion(editData = null) {
+            const modal = document.getElementById('modalFormacion');
+            const form = modal.querySelector('form');
+            const title = modal.querySelector('h2');
+            const btn = form.querySelector('button[type="submit"]');
+
+            if (editData) {
+                title.innerText = 'EDITAR FORMACIÓN';
+                btn.innerText = 'Guardar Cambios';
+                form.action.value = 'edit_formacion';
+                if (!form.entry_id) {
+                    const hidden = document.createElement('input');
+                    hidden.type = 'hidden';
+                    hidden.name = 'entry_id';
+                    form.appendChild(hidden);
+                }
+                form.entry_id.value = editData.id;
+                form.denominacion.value = editData.denominacion;
+                form.organismo.value = editData.organismo;
+                form.centro.value = editData.centro;
+                form.desde.value = editData.desde;
+                form.hasta.value = editData.hasta;
+                form.horas.value = editData.horas;
+                form.querySelector(`input[name="tipo_formacion"][value="${editData.tipo_formacion}"]`).checked = true;
+            } else {
+                title.innerText = 'INSERTAR FORMACIÓN';
+                btn.innerText = 'Añadir Formación';
+                form.action.value = 'add_formacion';
+                form.reset();
+                if (form.entry_id) form.entry_id.remove();
+            }
+            modal.style.display = 'flex';
         }
         function closeModalFormacion() {
             document.getElementById('modalFormacion').style.display = 'none';
         }
 
         // MODAL EXPERIENCIA
-        function openModalExperiencia() {
-            document.getElementById('modalExperiencia').style.display = 'flex';
+        function openModalExperiencia(editData = null) {
+            const modal = document.getElementById('modalExperiencia');
+            const form = modal.querySelector('form');
+            const title = modal.querySelector('h2');
+            const btn = form.querySelector('button[type="submit"]');
+
+            if (editData) {
+                title.innerText = 'EDITAR EXPERIENCIA';
+                btn.innerText = 'Guardar Cambios';
+                form.action.value = 'edit_experiencia';
+                if (!form.entry_id) {
+                    const hidden = document.createElement('input');
+                    hidden.type = 'hidden';
+                    hidden.name = 'entry_id';
+                    form.appendChild(hidden);
+                }
+                form.entry_id.value = editData.id;
+                form.empresa.value = editData.empresa;
+                form.cargo.value = editData.cargo;
+                form.desde.value = editData.desde;
+                form.hasta.value = editData.hasta;
+                form.tareas.value = editData.tareas;
+            } else {
+                title.innerText = 'INSERTAR EXPERIENCIA PROFESIONAL';
+                btn.innerText = 'Añadir Experiencia';
+                form.action.value = 'add_experiencia';
+                form.reset();
+                if (form.entry_id) form.entry_id.remove();
+            }
+            modal.style.display = 'flex';
         }
         function closeModalExperiencia() {
             document.getElementById('modalExperiencia').style.display = 'none';
