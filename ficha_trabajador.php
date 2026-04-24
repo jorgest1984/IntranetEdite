@@ -41,7 +41,8 @@ $cv_actions = [
     'edit_idioma' => ['table' => 'prof_idiomas', 'fields' => ['idioma', 'nivel_hablado', 'nivel_oral', 'nivel_escrito', 'nivel_leido'], 'id_field' => 'id'],
     'add_informatica' => ['table' => 'prof_informatica', 'fields' => ['programa', 'dominio']],
     'edit_informatica' => ['table' => 'prof_informatica', 'fields' => ['programa', 'dominio'], 'id_field' => 'id'],
-    'add_asistencia' => ['table' => 'prof_asistencia', 'fields' => ['fecha_desde', 'fecha_hasta', 'tipo', 'duracion_dias', 'duracion_horas', 'observaciones']]
+    'add_asistencia' => ['table' => 'prof_asistencia', 'fields' => ['fecha_desde', 'fecha_hasta', 'tipo', 'causa', 'duracion_dias', 'duracion_horas', 'observaciones']],
+    'edit_asistencia' => ['table' => 'prof_asistencia', 'fields' => ['fecha_desde', 'fecha_hasta', 'tipo', 'causa', 'duracion_dias', 'duracion_horas', 'observaciones'], 'id_field' => 'id']
 ];
 
 // PROCESAR POST
@@ -169,11 +170,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
 
 // PROCESAR BORRADO CV (GET)
 if (isset($_GET['del_tab']) && isset($_GET['del_id'])) {
-    $tables_map = ['formacion' => 'prof_formacion', 'experiencia' => 'prof_experiencia', 'idioma' => 'prof_idiomas', 'informatica' => 'prof_informatica'];
+    $tables_map = ['formacion' => 'prof_formacion', 'experiencia' => 'prof_experiencia', 'idioma' => 'prof_idiomas', 'informatica' => 'prof_informatica', 'asistencia' => 'prof_asistencia'];
     if (isset($tables_map[$_GET['del_tab']])) {
         $stmt = $pdo->prepare("DELETE FROM {$tables_map[$_GET['del_tab']]} WHERE id = ? AND profesor_id = ?");
         $stmt->execute([$_GET['del_id'], $id]);
-        header("Location: ficha_trabajador.php?id=$id&tab=cv&deleted=1");
+        header("Location: ficha_trabajador.php?id=$id&tab=" . $_GET['del_tab'] . "&deleted=1");
         exit;
     }
 }
@@ -198,6 +199,10 @@ $idiomas = $stmt_idiomas->fetchAll();
 $stmt_informatica = $pdo->prepare("SELECT * FROM prof_informatica WHERE profesor_id = ?");
 $stmt_informatica->execute([$id]);
 $informatica = $stmt_informatica->fetchAll();
+
+$stmt_asist = $pdo->prepare("SELECT * FROM prof_asistencia WHERE profesor_id = ? ORDER BY fecha_desde DESC");
+$stmt_asist->execute([$id]);
+$asistencias = $stmt_asist->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -986,7 +991,53 @@ $informatica = $stmt_informatica->fetchAll();
                 </div>
 
             </div>
-            <div id="tab-asistencia" style="<?= $active_tab == 'asistencia' ? '' : 'display:none;' ?>"><div class="info-section"><h3>Control de Asistencia</h3><p>Módulo en desarrollo...</p></div></div>
+            <div id="tab-asistencia" style="<?= $active_tab == 'asistencia' ? '' : 'display:none;' ?>">
+                <div style="background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 1.5rem;">
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <h2 style="color: #b91c1c; font-weight: 800; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #b91c1c; display: inline-block; padding-bottom: 5px;">ASISTENCIA</h2>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; margin-bottom: 1rem;">
+                        <button class="btn-yellow-icon" onclick="openModalAsistencia()" style="padding: 0.5rem 1.5rem; font-size: 0.8rem; font-weight: 700; color: #854d0e;">+ Añadir Registro</button>
+                    </div>
+
+                    <table class="table-premium" style="border: 1px solid #e2e8f0;">
+                        <thead>
+                            <tr style="background: #f8fafc;">
+                                <th style="color: #1e40af; font-weight: 800; text-transform: none;">Desde</th>
+                                <th style="color: #1e40af; font-weight: 800; text-transform: none;">Hasta</th>
+                                <th style="color: #1e40af; font-weight: 800; text-transform: none; text-align: center;">Días</th>
+                                <th style="color: #1e40af; font-weight: 800; text-transform: none; text-align: center;">Horas</th>
+                                <th style="color: #1e40af; font-weight: 800; text-transform: none;">Tipo</th>
+                                <th style="color: #1e40af; font-weight: 800; text-transform: none;">Causa</th>
+                                <th style="color: #1e40af; font-weight: 800; text-transform: none;">Observaciones</th>
+                                <th style="width: 150px; text-align: center;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (empty($asistencias)): ?>
+                                <tr><td colspan="8" style="text-align: center; color: #94a3b8; padding: 3rem;">No hay registros de asistencia.</td></tr>
+                            <?php else: ?>
+                                <?php foreach ($asistencias as $a): ?>
+                                <tr style="background: #fff; border-bottom: 1px solid #f1f5f9;">
+                                    <td style="font-weight: 700; color: #1e3a8a;"><?= $a['fecha_desde'] ? date('d/m/Y', strtotime($a['fecha_desde'])) : '-' ?></td>
+                                    <td style="font-weight: 700; color: #1e3a8a;"><?= $a['fecha_hasta'] ? date('d/m/Y', strtotime($a['fecha_hasta'])) : '-' ?></td>
+                                    <td style="text-align: center; font-weight: 700; color: #1e3a8a;"><?= htmlspecialchars($a['duracion_dias']) ?></td>
+                                    <td style="text-align: center; font-weight: 700; color: #1e3a8a;"><?= htmlspecialchars($a['duracion_horas']) ?></td>
+                                    <td style="font-weight: 700; color: #1e3a8a;"><?= htmlspecialchars($a['tipo']) ?></td>
+                                    <td style="color: #1e3a8a; font-weight: 500; font-size: 0.8rem;"><?= htmlspecialchars($a['causa']) ?></td>
+                                    <td style="color: #1e3a8a; font-weight: 500; font-size: 0.8rem;"><?= htmlspecialchars($a['observaciones']) ?></td>
+                                    <td style="text-align: center; display: flex; gap: 5px; justify-content: center;">
+                                        <button onclick='openModalAsistencia(<?= json_encode($a) ?>)' style="padding: 4px 10px; border: 1px solid #cbd5e1; border-radius: 4px; background: #eef2f6; color: #1e3a8a; font-weight: 700; font-size: 0.75rem; cursor: pointer;">Editar</button>
+                                        <button onclick="confirmDeleteEntry('asistencia', <?= $a['id'] ?>, 'Registro del <?= date('d/m/Y', strtotime($a['fecha_desde'])) ?>')" style="padding: 4px 10px; border: 1px solid #cbd5e1; border-radius: 4px; background: #eef2f6; color: #1e3a8a; font-weight: 700; font-size: 0.75rem; cursor: pointer;">Borrar</button>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
             <div id="tab-docs" style="<?= $active_tab == 'docs' ? '' : 'display:none;' ?>"><div class="info-section"><h3>Documentos</h3><p>Módulo en desarrollo...</p></div></div>
             <div id="tab-cuenta" style="<?= $active_tab == 'cuenta' ? '' : 'display:none;' ?>"><div class="info-section"><h3>Cuenta</h3><p>Módulo en desarrollo...</p></div></div>
             <div id="tab-formacion" style="<?= $active_tab == 'formacion' ? '' : 'display:none;' ?>"><div class="info-section"><h3>Formación</h3><p>Módulo en desarrollo...</p></div></div>
@@ -1274,6 +1325,44 @@ $informatica = $stmt_informatica->fetchAll();
             document.getElementById(modalId).style.display = 'none';
             return true;
         }
+
+        // MODAL ASISTENCIA
+        function openModalAsistencia(editData = null) {
+            const modal = document.getElementById('modalAsistencia');
+            const form = modal.querySelector('form');
+            const title = modal.querySelector('h2');
+            const btn = form.querySelector('button[type="submit"]');
+
+            if (editData) {
+                title.innerText = 'EDITAR REGISTRO DE ASISTENCIA';
+                btn.innerText = 'Guardar Cambios';
+                form.action.value = 'edit_asistencia';
+                if (!form.entry_id) {
+                    const hidden = document.createElement('input');
+                    hidden.type = 'hidden';
+                    hidden.name = 'entry_id';
+                    form.appendChild(hidden);
+                }
+                form.entry_id.value = editData.id;
+                form.fecha_desde.value = editData.fecha_desde;
+                form.fecha_hasta.value = editData.fecha_hasta;
+                form.tipo.value = editData.tipo;
+                form.causa.value = editData.causa;
+                form.duracion_dias.value = editData.duracion_dias;
+                form.duracion_horas.value = editData.duracion_horas;
+                form.observaciones.value = editData.observaciones;
+            } else {
+                title.innerText = 'INSERTAR REGISTRO DE ASISTENCIA';
+                btn.innerText = 'Añadir Registro';
+                form.action.value = 'add_asistencia';
+                form.reset();
+                if (form.entry_id) form.entry_id.remove();
+            }
+            modal.style.display = 'flex';
+        }
+        function closeModalAsistencia() {
+            document.getElementById('modalAsistencia').style.display = 'none';
+        }
     </script>
     <!-- MODAL: Confirmar Borrado -->
     <div class="modal-overlay" id="modalConfirmDelete" style="z-index: 3000;">
@@ -1521,6 +1610,60 @@ $informatica = $stmt_informatica->fetchAll();
 
                     <div style="text-align: center; padding: 20px; background: #fff;">
                         <button type="submit" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #1e3a8a; font-weight: 800; padding: 8px 25px; cursor: pointer; font-size: 1rem; border-radius: 4px;">Añadir Programa Informático</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- MODAL: Añadir Registro Asistencia -->
+    <div class="modal-overlay" id="modalAsistencia">
+        <div class="modal-container" style="max-width: 700px;">
+            <div class="modal-header" style="justify-content: center; position: relative; border-bottom: 2px solid #b91c1c;">
+                <h2 style="color: #b91c1c; font-weight: 900; letter-spacing: 1px;">INSERTAR ASISTENCIA</h2>
+                <button class="modal-close" onclick="closeModalAsistencia()" style="position: absolute; right: 20px;">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <form method="POST" action="ficha_trabajador.php?id=<?= $id ?>&tab=asistencia" onsubmit="return handleSubmitCV(this, 'modalAsistencia')">
+                    <input type="hidden" name="action" value="add_asistencia">
+                    
+                    <div class="formacion-table-grid" style="grid-template-columns: 120px 1fr 120px 1fr;">
+                        <div class="formacion-label">Desde:</div>
+                        <div class="formacion-input-cell"><input type="date" name="fecha_desde" required></div>
+                        <div class="formacion-label">Hasta:</div>
+                        <div class="formacion-input-cell"><input type="date" name="fecha_hasta" required></div>
+
+                        <div class="formacion-label">Días:</div>
+                        <div class="formacion-input-cell"><input type="number" name="duracion_dias" placeholder="0"></div>
+                        <div class="formacion-label">Horas:</div>
+                        <div class="formacion-input-cell"><input type="number" name="duracion_horas" placeholder="0"></div>
+
+                        <div class="formacion-label">Tipo:</div>
+                        <div class="formacion-input-cell" style="grid-column: span 3;">
+                            <select name="tipo" required style="width: 100%; border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px; background: #eef2f6;">
+                                <option value="Vacaciones">Vacaciones</option>
+                                <option value="Horas extra">Horas extra</option>
+                                <option value="Ausencia">Ausencia</option>
+                                <option value="Asuntos Propios">Asuntos Propios</option>
+                                <option value="Baja Médica">Baja Médica</option>
+                                <option value="Formación">Formación</option>
+                            </select>
+                        </div>
+
+                        <div class="formacion-label">Causa:</div>
+                        <div class="formacion-input-cell" style="grid-column: span 3;">
+                            <input type="text" name="causa" placeholder="Ej: Fallecimiento familiar, Auditoría...">
+                        </div>
+
+                        <div class="formacion-label">Observaciones:</div>
+                        <div class="formacion-input-cell" style="grid-column: span 3;">
+                            <textarea name="observaciones" style="width: 100%; min-height: 80px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; background: #eef2f6; font-family: inherit;"></textarea>
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 25px;">
+                        <button type="submit" class="btn-actualizar" style="margin: 0; background: #eef2f6; color: #1e3a8a; border: 1px solid #cbd5e1; padding: 10px 40px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">Añadir Registro</button>
                     </div>
                 </form>
             </div>
