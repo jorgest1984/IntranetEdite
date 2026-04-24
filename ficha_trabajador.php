@@ -148,6 +148,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             exit();
         }
 
+        if ($action == 'update_asistencia_resumen') {
+            $stmt = $pdo->prepare("UPDATE profesorado_detalles SET horario_general = ?, obs_asistencia = ?, vac_dias_pendientes = ? WHERE usuario_id = ?");
+            $stmt->execute([
+                $_POST['horario_general'] ?? '',
+                $_POST['obs_asistencia'] ?? '',
+                $_POST['vac_dias_pendientes'] ?: 0,
+                $id
+            ]);
+            header("Location: ficha_trabajador.php?id=$id&tab=asistencia&success=1");
+            exit();
+        }
+
         if ($action == 'update_profesorado') {
             $fields = ['titulacion', 'es_tutor', 'es_teleformador', 'es_presencial', 'hace_seguimiento', 'tope_alumnos_turno', 'aplicar_viernes', 'tramo1_de', 'tramo1_a', 'tramo1_v2_de', 'tramo1_v2_a', 'tramo2_de', 'tramo2_a', 'tramo2_v2_de', 'tramo2_v2_a'];
             $set_part = implode(' = ?, ', array_map(function($f) { return "`$f`"; }, $fields)) . ' = ?';
@@ -1036,6 +1048,35 @@ $asistencias = $stmt_asist->fetchAll();
                             <?php endif; ?>
                         </tbody>
                     </table>
+
+                    <!-- Resumen Inferior Asistencia -->
+                    <div style="margin-top: 3rem; border-top: 1px solid #e2e8f0; padding-top: 2rem;">
+                        <form method="POST" action="ficha_trabajador.php?id=<?= $id ?>&tab=asistencia">
+                            <input type="hidden" name="action" value="update_asistencia_resumen">
+                            
+                            <div class="formacion-table-grid" style="grid-template-columns: 140px 1fr 140px 100px; border: 1px solid #cbd5e1;">
+                                <!-- Horario -->
+                                <div class="formacion-label" style="background: #fff; color: #1e3a8a; border-bottom: 1px solid #cbd5e1;">Horario:</div>
+                                <div class="formacion-input-cell" style="grid-column: span 3; background: #eef2f6; border-bottom: 1px solid #cbd5e1;">
+                                    <input type="text" name="horario_general" value="<?= htmlspecialchars($prof['horario_general'] ?? '') ?>" style="width: 100%; border: none; background: transparent; padding: 5px; color: #1e3a8a; font-weight: 500;">
+                                </div>
+
+                                <!-- Observaciones y Vacaciones -->
+                                <div class="formacion-label" style="background: #fff; color: #1e3a8a; height: auto; align-items: flex-start; padding-top: 10px;">Observaciones:</div>
+                                <div class="formacion-input-cell" style="background: #fff; border-right: 1px solid #cbd5e1;">
+                                    <textarea name="obs_asistencia" style="width: 100%; min-height: 80px; padding: 10px; border: none; background: transparent; font-family: inherit; color: #1e3a8a; font-weight: 500;"><?= htmlspecialchars($prof['obs_asistencia'] ?? '') ?></textarea>
+                                </div>
+                                <div class="formacion-label" style="background: #fff; color: #1e3a8a; border-left: 1px solid #cbd5e1;">Vac. días pendientes:</div>
+                                <div class="formacion-input-cell" style="background: #eef2f6;">
+                                    <input type="number" name="vac_dias_pendientes" value="<?= htmlspecialchars($prof['vac_dias_pendientes'] ?? 0) ?>" style="width: 100%; border: none; background: transparent; text-align: center; font-weight: 700; color: #1e3a8a; padding: 5px;">
+                                </div>
+                            </div>
+
+                            <div style="text-align: center; margin-top: 2rem;">
+                                <button type="submit" class="btn-actualizar" style="background: #eef2f6; color: #1e3a8a; border: 1px solid #cbd5e1; padding: 8px 30px; font-weight: 700; font-size: 0.85rem; border-radius: 4px; cursor: pointer;">Actualizar</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
             <div id="tab-docs" style="<?= $active_tab == 'docs' ? '' : 'display:none;' ?>"><div class="info-section"><h3>Documentos</h3><p>Módulo en desarrollo...</p></div></div>
