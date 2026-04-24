@@ -38,6 +38,7 @@ $cv_actions = [
     'add_experiencia' => ['table' => 'prof_experiencia', 'fields' => ['empresa', 'desde', 'hasta', 'cargo', 'tareas']],
     'edit_experiencia' => ['table' => 'prof_experiencia', 'fields' => ['empresa', 'desde', 'hasta', 'cargo', 'tareas'], 'id_field' => 'id'],
     'add_idioma' => ['table' => 'prof_idiomas', 'fields' => ['idioma', 'nivel_hablado', 'nivel_oral', 'nivel_escrito', 'nivel_leido']],
+    'edit_idioma' => ['table' => 'prof_idiomas', 'fields' => ['idioma', 'nivel_hablado', 'nivel_oral', 'nivel_escrito', 'nivel_leido'], 'id_field' => 'id'],
     'add_informatica' => ['table' => 'prof_informatica', 'fields' => ['programa', 'dominio']],
     'add_asistencia' => ['table' => 'prof_asistencia', 'fields' => ['fecha_desde', 'fecha_hasta', 'tipo', 'duracion_dias', 'duracion_horas', 'observaciones']]
 ];
@@ -788,7 +789,7 @@ $informatica = $stmt_informatica->fetchAll();
                     <div>
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #fee2e2; padding-bottom: 0.5rem;">
                             <h3 style="color: #b91c1c; font-size: 0.9rem; text-transform: uppercase; margin: 0;">Idiomas</h3>
-                            <button class="btn-yellow-icon" style="padding: 0.4rem 1rem; font-size: 0.75rem; color: #854d0e; font-weight: 700;">+ Nuevo Idioma</button>
+                            <button class="btn-yellow-icon" onclick="openModalIdioma()" style="padding: 0.4rem 1rem; font-size: 0.75rem; color: #854d0e; font-weight: 700;">+ Nuevo Idioma</button>
                         </div>
                         <table class="table-premium">
                             <thead>
@@ -813,7 +814,7 @@ $informatica = $stmt_informatica->fetchAll();
                                         <td style="font-size: 0.75rem; color: #64748b;"><?= htmlspecialchars($idm['nivel_escrito']) ?></td>
                                         <td style="font-size: 0.75rem; color: #64748b;"><?= htmlspecialchars($idm['nivel_leido']) ?></td>
                                         <td style="text-align: right; display: flex; gap: 5px; justify-content: flex-end;">
-                                            <button style="padding: 4px 8px; border: 1px solid #e2e8f0; border-radius: 4px; background: #fff; font-size: 0.7rem; font-weight: 600; color: #475569; cursor: pointer;">Editar</button>
+                                            <button onclick='openModalIdioma(<?= json_encode($idm) ?>)' style="padding: 4px 8px; border: 1px solid #e2e8f0; border-radius: 4px; background: #fff; font-size: 0.7rem; font-weight: 600; color: #475569; cursor: pointer;">Editar</button>
                                             <button onclick="confirmDeleteEntry('idioma', <?= $idm['id'] ?>, '<?= addslashes($idm['idioma']) ?>')" style="padding: 4px 8px; border: 1px solid #fecaca; border-radius: 4px; background: #fff; font-size: 0.7rem; font-weight: 600; color: #b91c1c; cursor: pointer;">Borrar</button>
                                         </td>
                                     </tr>
@@ -1089,6 +1090,42 @@ $informatica = $stmt_informatica->fetchAll();
         function closeModalExperiencia() {
             document.getElementById('modalExperiencia').style.display = 'none';
         }
+
+        // MODAL IDIOMA
+        function openModalIdioma(editData = null) {
+            const modal = document.getElementById('modalIdioma');
+            const form = modal.querySelector('form');
+            const title = modal.querySelector('h2');
+            const btn = form.querySelector('button[type="submit"]');
+
+            if (editData) {
+                title.innerText = 'EDITAR IDIOMA';
+                btn.innerText = 'Guardar Cambios';
+                form.action.value = 'edit_idioma';
+                if (!form.entry_id) {
+                    const hidden = document.createElement('input');
+                    hidden.type = 'hidden';
+                    hidden.name = 'entry_id';
+                    form.appendChild(hidden);
+                }
+                form.entry_id.value = editData.id;
+                form.idioma.value = editData.idioma;
+                form.nivel_hablado.value = editData.nivel_hablado;
+                form.nivel_oral.value = editData.nivel_oral;
+                form.nivel_escrito.value = editData.nivel_escrito;
+                form.nivel_leido.value = editData.nivel_leido;
+            } else {
+                title.innerText = 'INSERTAR IDIOMA';
+                btn.innerText = 'Añadir Idioma';
+                form.action.value = 'add_idioma';
+                form.reset();
+                if (form.entry_id) form.entry_id.remove();
+            }
+            modal.style.display = 'flex';
+        }
+        function closeModalIdioma() {
+            document.getElementById('modalIdioma').style.display = 'none';
+        }
     </script>
     <!-- MODAL: Confirmar Borrado -->
     <div class="modal-overlay" id="modalConfirmDelete" style="z-index: 3000;">
@@ -1211,6 +1248,85 @@ $informatica = $stmt_informatica->fetchAll();
 
                     <div style="text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e2e8f0;">
                         <button type="submit" class="btn-actualizar" style="margin: 0;">Añadir Experiencia</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- MODAL: Añadir Idioma -->
+    <div class="modal-overlay" id="modalIdioma">
+        <div class="modal-container" style="max-width: 600px;">
+            <div class="modal-header" style="border-bottom: 2px solid #e2e8f0; position: relative;">
+                <h2 style="color: #1e3a8a; font-size: 1.1rem; text-transform: uppercase; font-weight: 800; width: 100%; text-align: center; margin: 0;">INSERTAR IDIOMA</h2>
+                <button class="modal-close" onclick="closeModalIdioma()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%);">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 0;">
+                <form method="POST" action="ficha_trabajador.php?id=<?= $id ?>&tab=cv">
+                    <input type="hidden" name="action" value="add_idioma">
+                    
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 15px; border: 1px solid #cbd5e1; background: #fff; width: 30%;">
+                                <label style="color: #1e3a8a; font-weight: 800; font-size: 0.9rem;">Idioma:</label>
+                            </td>
+                            <td colspan="3" style="padding: 15px; border: 1px solid #cbd5e1; background: #f8fafc;">
+                                <input type="text" name="idioma" required style="width: 100%; border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px;">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 15px; border: 1px solid #cbd5e1; background: #fff;">
+                                <label style="color: #1e3a8a; font-weight: 800; font-size: 0.9rem;">Nivel Hablado:</label>
+                            </td>
+                            <td style="padding: 15px; border: 1px solid #cbd5e1; background: #fff;">
+                                <select name="nivel_hablado" style="width: 100%; border: 2px solid #1e3a8a; padding: 5px; border-radius: 4px; color: #1e3a8a; font-weight: 600;">
+                                    <option value="Básico">Básico</option>
+                                    <option value="Medio">Medio</option>
+                                    <option value="Avanzado">Avanzado</option>
+                                    <option value="Nativo">Nativo</option>
+                                </select>
+                            </td>
+                            <td style="padding: 15px; border: 1px solid #cbd5e1; background: #fff; width: 25%;">
+                                <label style="color: #1e3a8a; font-weight: 800; font-size: 0.9rem;">Nivel Escrito:</label>
+                            </td>
+                            <td style="padding: 15px; border: 1px solid #cbd5e1; background: #fff;">
+                                <select name="nivel_escrito" style="width: 100%; border: 2px solid #1e3a8a; padding: 5px; border-radius: 4px; color: #1e3a8a; font-weight: 600;">
+                                    <option value="Básico">Básico</option>
+                                    <option value="Medio">Medio</option>
+                                    <option value="Avanzado">Avanzado</option>
+                                    <option value="Nativo">Nativo</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 15px; border: 1px solid #cbd5e1; background: #fff;">
+                                <label style="color: #1e3a8a; font-weight: 800; font-size: 0.9rem;">Nivel Oral:</label>
+                            </td>
+                            <td style="padding: 15px; border: 1px solid #cbd5e1; background: #fff;">
+                                <select name="nivel_oral" style="width: 100%; border: 2px solid #1e3a8a; padding: 5px; border-radius: 4px; color: #1e3a8a; font-weight: 600;">
+                                    <option value="Básico">Básico</option>
+                                    <option value="Medio">Medio</option>
+                                    <option value="Avanzado">Avanzado</option>
+                                    <option value="Nativo">Nativo</option>
+                                </select>
+                            </td>
+                            <td style="padding: 15px; border: 1px solid #cbd5e1; background: #fff;">
+                                <label style="color: #1e3a8a; font-weight: 800; font-size: 0.9rem;">Nivel Leido:</label>
+                            </td>
+                            <td style="padding: 15px; border: 1px solid #cbd5e1; background: #fff;">
+                                <select name="nivel_leido" style="width: 100%; border: 2px solid #1e3a8a; padding: 5px; border-radius: 4px; color: #1e3a8a; font-weight: 600;">
+                                    <option value="Básico">Básico</option>
+                                    <option value="Medio">Medio</option>
+                                    <option value="Avanzado">Avanzado</option>
+                                    <option value="Nativo">Nativo</option>
+                                </select>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <div style="text-align: center; padding: 20px; background: #fff;">
+                        <button type="submit" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #1e3a8a; font-weight: 800; padding: 8px 25px; cursor: pointer; font-size: 1rem; border-radius: 4px;">Añadir Idioma</button>
                     </div>
                 </form>
             </div>
