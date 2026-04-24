@@ -94,11 +94,55 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         }
 
         if ($action == 'update_personales') {
-            $stmt = $pdo->prepare("UPDATE usuarios SET nombre = ?, apellidos = ?, email = ? WHERE id = ?");
-            $stmt->execute([$_POST['nombre'], $_POST['apellidos'], $_POST['email'], $id]);
+            // Actualizar tabla usuarios (datos básicos)
+            $stmt = $pdo->prepare("UPDATE usuarios SET nombre = ?, apellidos = ? WHERE id = ?");
+            $apellidos_full = trim(($_POST['apellido1'] ?? '') . ' ' . ($_POST['apellido2'] ?? ''));
+            $stmt->execute([$_POST['nombre'] ?? '', $apellidos_full, $id]);
+
+            // Actualizar tabla profesorado_detalles (datos extendidos)
             $obs = $_POST['observaciones_personales'] ?? '';
-            $stmtDet = $pdo->prepare("UPDATE profesorado_detalles SET dni = ?, telefono = ?, fecha_nacimiento = ?, direccion = ?, cp = ?, poblacion = ?, observaciones_personales = ? WHERE usuario_id = ?");
-            $stmtDet->execute([$_POST['dni'], $_POST['telefono'], $_POST['fecha_nacimiento'], $_POST['direccion'], $_POST['cp'], $_POST['poblacion'], $obs, $id]);
+            $stmtDet = $pdo->prepare("UPDATE profesorado_detalles SET 
+                dni = ?, 
+                telefono = ?, 
+                telefono_empresa = ?,
+                email2 = ?,
+                skype = ?,
+                sexo = ?,
+                fecha_nacimiento = ?, 
+                nombre_via = ?, 
+                cp_trabajador = ?, 
+                localidad_trabajador = ?, 
+                provincia_trabajador = ?,
+                apellido1 = ?,
+                apellido2 = ?,
+                num_ss = ?,
+                cuenta_bancaria = ?,
+                activo_hasta = ?,
+                nuestro = ?,
+                observaciones_personales = ? 
+                WHERE usuario_id = ?");
+            
+            $stmtDet->execute([
+                $_POST['dni'] ?? null, 
+                $_POST['telefono'] ?? null, 
+                $_POST['telefono_empresa'] ?? null,
+                $_POST['email2'] ?? null,
+                $_POST['skype'] ?? null,
+                $_POST['sexo'] ?? null,
+                $_POST['fecha_nacimiento'] ?: null, 
+                $_POST['nombre_via'] ?? null, 
+                $_POST['cp_trabajador'] ?? null, 
+                $_POST['localidad_trabajador'] ?? null, 
+                $_POST['provincia_trabajador'] ?? null,
+                $_POST['apellido1'] ?? null,
+                $_POST['apellido2'] ?? null,
+                $_POST['num_ss'] ?? null,
+                $_POST['cuenta_bancaria'] ?? null,
+                $_POST['activo_hasta'] ?: null,
+                ($_POST['nuestro'] == 'SI' ? 1 : 0),
+                $obs, 
+                $id
+            ]);
             header("Location: ficha_trabajador.php?id=$id&tab=" . ($_GET['tab'] ?? 'personales') . "&success=1");
             exit();
         }
@@ -293,6 +337,67 @@ $informatica = $stmt_informatica->fetchAll();
             transition: all 0.2s;
         }
         .btn-create-full:hover { background: #1e40af; transform: translateY(-1px); }
+
+        /* Estilos específicos para el grid de formación (estilo tabla premium) */
+        .formacion-table-grid {
+            display: grid;
+            grid-template-columns: 140px 1fr 120px 1fr 100px 120px;
+            border: 1px solid #cbd5e1;
+            background: white;
+        }
+        .formacion-table-grid > div {
+            border: 1px solid #cbd5e1;
+            padding: 12px 15px;
+            display: flex;
+            align-items: center;
+        }
+        .formacion-label {
+            background: #fff;
+            color: #1e3a8a;
+            font-weight: 800;
+            font-size: 0.85rem;
+            justify-content: flex-end;
+            text-align: right;
+        }
+        .formacion-input-cell {
+            background: #f8fafc;
+        }
+        .formacion-input-cell input, .formacion-input-cell select {
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            padding: 8px;
+            border-radius: 4px;
+            background: #eef2f6;
+            font-size: 0.9rem;
+            color: #1e293b;
+        }
+        .formacion-input-cell input:focus {
+            border-color: #1e3a8a;
+            outline: none;
+            background: #fff;
+        }
+        .formacion-radio-group {
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 10px;
+        }
+        .formacion-radio-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            color: #1e3a8a;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+        .formacion-radio-item input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #1e3a8a;
+        }
+        .formacion-bottom-row {
+            grid-template-columns: 120px 1fr 120px 1fr 80px 100px;
+        }
 
     </style>
 </head>
@@ -665,9 +770,9 @@ $informatica = $stmt_informatica->fetchAll();
                         <div style="grid-column: span 2;"><strong style="color: #1e3a8a;">Email:</strong> <?= htmlspecialchars($trabajador['email'] ?? '-') ?></div>
                         <div style="grid-column: span 2;"><strong style="color: #1e3a8a;">Teléfono:</strong> <?= htmlspecialchars($prof['telefono'] ?? '-') ?></div>
                         
-                        <div style="grid-column: span 2;"><strong style="color: #1e3a8a;">Domicilio:</strong> <?= htmlspecialchars($prof['direccion'] ?? '-') ?></div>
-                        <div><strong style="color: #1e3a8a;">CP:</strong> <?= htmlspecialchars($prof['cp'] ?? '-') ?></div>
-                        <div><strong style="color: #1e3a8a;">Localidad:</strong> <?= htmlspecialchars($prof['poblacion'] ?? '-') ?></div>
+                        <div style="grid-column: span 2;"><strong style="color: #1e3a8a;">Domicilio:</strong> <?= htmlspecialchars($prof['nombre_via'] ?? '-') ?></div>
+                        <div><strong style="color: #1e3a8a;">CP:</strong> <?= htmlspecialchars($prof['cp_trabajador'] ?? '-') ?></div>
+                        <div><strong style="color: #1e3a8a;">Localidad:</strong> <?= htmlspecialchars($prof['localidad_trabajador'] ?? '-') ?></div>
                     </div>
                 </div>
 
@@ -1191,59 +1296,61 @@ $informatica = $stmt_informatica->fetchAll();
     </div>
     <!-- MODAL: Añadir Formación -->
     <div class="modal-overlay" id="modalFormacion">
-        <div class="modal-container" style="max-width: 650px;">
-            <div class="modal-header">
-                <h2 style="color: var(--label-blue);">INSERTAR FORMACIÓN</h2>
-                <button class="modal-close" onclick="closeModalFormacion()">
+        <div class="modal-container" style="max-width: 850px;">
+            <div class="modal-header" style="justify-content: center; position: relative;">
+                <h2 style="color: #1e3a8a; font-weight: 900; letter-spacing: 1px;">INSERTAR FORMACIÓN</h2>
+                <button class="modal-close" onclick="closeModalFormacion()" style="position: absolute; right: 20px;">
                     <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
                 </button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" style="padding: 20px;">
                 <form method="POST" action="ficha_trabajador.php?id=<?= $id ?>&tab=cv" onsubmit="return handleSubmitCV(this, 'modalFormacion')">
                     <input type="hidden" name="action" value="add_formacion">
                     
-                    <div class="form-premium-grid">
-                        <div class="form-group" style="grid-column: span 12;">
-                            <label>Denominación:</label>
-                            <input type="text" name="denominacion" required placeholder="Ej: Título de Bachiller">
-                        </div>
-                        
-                        <div class="form-group" style="grid-column: span 6;">
-                            <label>Organismo:</label>
-                            <input type="text" name="organismo" required placeholder="Ej: Ministerio de Educación">
-                        </div>
-                        
-                        <div class="form-group" style="grid-column: span 6;">
-                            <label>Centro:</label>
-                            <input type="text" name="centro" required placeholder="Ej: Regina Mundi">
+                    <div class="formacion-table-grid">
+                        <!-- Fila 1: Denominación -->
+                        <div class="formacion-label" style="grid-column: span 1;">Denominación:</div>
+                        <div class="formacion-input-cell" style="grid-column: span 5;">
+                            <input type="text" name="denominacion" required>
                         </div>
 
-                        <div class="form-group" style="grid-column: span 12; margin-top: 0.5rem; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                            <label>Tipo de Formación:</label>
-                            <div class="radio-group-premium" style="margin-top: 5px;">
-                                <label class="radio-item"><input type="radio" name="tipo_formacion" value="Académica" checked> Académica</label>
-                                <label class="radio-item"><input type="radio" name="tipo_formacion" value="Complementaria"> Complementaria</label>
-                            </div>
+                        <!-- Fila 2 y 3: Organismo, Centro y Tipo -->
+                        <div class="formacion-label">Organismo:</div>
+                        <div class="formacion-input-cell">
+                            <input type="text" name="organismo" required>
+                        </div>
+                        <div class="formacion-label" style="grid-row: span 2; border-left: 1px solid #cbd5e1;">Tipo:</div>
+                        <div class="formacion-input-cell formacion-radio-group" style="grid-row: span 2; grid-column: span 3;">
+                            <label class="formacion-radio-item">
+                                <input type="radio" name="tipo_formacion" value="Académica" checked> Académica
+                            </label>
+                            <label class="formacion-radio-item">
+                                <input type="radio" name="tipo_formacion" value="Complementaria"> Complementaria
+                            </label>
                         </div>
 
-                        <div class="form-group" style="grid-column: span 3;">
-                            <label>Fecha desde:</label>
-                            <input type="date" name="desde" required style="width: 100%;">
-                        </div>
-                        
-                        <div class="form-group" style="grid-column: span 3;">
-                            <label>Fecha hasta:</label>
-                            <input type="date" name="hasta" required style="width: 100%;">
+                        <div class="formacion-label">Centro:</div>
+                        <div class="formacion-input-cell">
+                            <input type="text" name="centro" required>
                         </div>
 
-                        <div class="form-group" style="grid-column: span 12; margin-top: 0.5rem;">
-                            <label>Horas:</label>
-                            <input type="number" name="horas" placeholder="0" style="max-width: 100px;">
+                        <!-- Fila 4: Fechas y Horas -->
+                        <div class="formacion-label">Fecha desde:</div>
+                        <div class="formacion-input-cell">
+                            <input type="date" name="desde" required>
+                        </div>
+                        <div class="formacion-label" style="justify-content: center; text-align: center; border-left: 1px solid #cbd5e1;">Fecha hasta:</div>
+                        <div class="formacion-input-cell">
+                            <input type="date" name="hasta" required>
+                        </div>
+                        <div class="formacion-label" style="justify-content: center; text-align: center; border-left: 1px solid #cbd5e1;">Horas:</div>
+                        <div class="formacion-input-cell">
+                            <input type="number" name="horas" style="width: 80px;">
                         </div>
                     </div>
 
-                    <div style="text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e2e8f0;">
-                        <button type="submit" class="btn-actualizar" style="margin: 0;">Añadir Formación</button>
+                    <div style="text-align: center; margin-top: 25px;">
+                        <button type="submit" class="btn-actualizar" style="margin: 0; background: #eef2f6; color: #1e3a8a; border: 1px solid #cbd5e1; padding: 10px 40px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">Añadir Formacion</button>
                     </div>
                 </form>
             </div>
