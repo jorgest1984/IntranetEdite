@@ -1670,39 +1670,53 @@ $asistencias = $stmt_asist->fetchAll();
                 <form method="POST" action="ficha_trabajador.php?id=<?= $id ?>&tab=asistencia" onsubmit="return handleSubmitCV(this, 'modalAsistencia')">
                     <input type="hidden" name="action" value="add_asistencia">
                     
-                    <div class="formacion-table-grid" style="grid-template-columns: 120px 1fr 120px 1fr;">
-                        <div class="formacion-label">Desde:</div>
-                        <div class="formacion-input-cell"><input type="date" name="fecha_desde" required></div>
-                        <div class="formacion-label">Hasta:</div>
-                        <div class="formacion-input-cell"><input type="date" name="fecha_hasta" required></div>
-
-                        <div class="formacion-label">Días:</div>
-                        <div class="formacion-input-cell"><input type="number" name="duracion_dias" placeholder="0"></div>
-                        <div class="formacion-label">Horas:</div>
-                        <div class="formacion-input-cell"><input type="number" name="duracion_horas" placeholder="0"></div>
-
-                        <div class="formacion-label">Tipo:</div>
-                        <div class="formacion-input-cell" style="grid-column: span 3;">
-                            <select name="tipo" required style="width: 100%; border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px; background: #eef2f6;">
-                                <option value="Vacaciones">Vacaciones</option>
-                                <option value="Horas extra">Horas extra</option>
-                                <option value="Ausencia">Ausencia</option>
-                                <option value="Asuntos Propios">Asuntos Propios</option>
-                                <option value="Baja Médica">Baja Médica</option>
-                                <option value="Formación">Formación</option>
-                            </select>
-                        </div>
-
-                        <div class="formacion-label">Causa:</div>
-                        <div class="formacion-input-cell" style="grid-column: span 3;">
-                            <input type="text" name="causa" placeholder="Ej: Fallecimiento familiar, Auditoría...">
-                        </div>
-
-                        <div class="formacion-label">Observaciones:</div>
-                        <div class="formacion-input-cell" style="grid-column: span 3;">
-                            <textarea name="observaciones" style="width: 100%; min-height: 80px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; background: #eef2f6; font-family: inherit;"></textarea>
-                        </div>
-                    </div>
+                    <table style="width: 100%; border-collapse: collapse; border: 1px solid #cbd5e1; table-layout: fixed; background: white;">
+                        <tr>
+                            <td style="width: 120px; background: #fff; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; padding: 12px; border: 1px solid #cbd5e1; text-align: right;">Desde:</td>
+                            <td style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 8px;">
+                                <input type="date" name="fecha_desde" required style="width: 100%; border: 1px solid #cbd5e1; padding: 6px; border-radius: 4px; background: #eef2f6; box-sizing: border-box;">
+                            </td>
+                            <td style="width: 120px; background: #fff; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; padding: 12px; border: 1px solid #cbd5e1; text-align: right;">Hasta:</td>
+                            <td style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 8px;">
+                                <input type="date" name="fecha_hasta" required style="width: 100%; border: 1px solid #cbd5e1; padding: 6px; border-radius: 4px; background: #eef2f6; box-sizing: border-box;">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="background: #fff; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; padding: 12px; border: 1px solid #cbd5e1; text-align: right;">Días:</td>
+                            <td style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 8px;">
+                                <input type="number" name="duracion_dias" placeholder="0" style="width: 100%; border: 1px solid #cbd5e1; padding: 6px; border-radius: 4px; background: #eef2f6; box-sizing: border-box;">
+                            </td>
+                            <td style="background: #fff; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; padding: 12px; border: 1px solid #cbd5e1; text-align: right;">Horas:</td>
+                            <td style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 8px;">
+                                <input type="number" name="duracion_horas" placeholder="0" style="width: 100%; border: 1px solid #cbd5e1; padding: 6px; border-radius: 4px; background: #eef2f6; box-sizing: border-box;">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="background: #fff; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; padding: 12px; border: 1px solid #cbd5e1; text-align: right;">Tipo:</td>
+                            <td colspan="3" style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 8px;">
+                                <select name="tipo" required style="width: 100%; border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px; background: #eef2f6; color: #1e3a8a; font-weight: 600; box-sizing: border-box;">
+                                    <option value="Vacaciones">Vacaciones</option>
+                                    <option value="Horas extra">Horas extra</option>
+                                    <option value="Ausencia">Ausencia</option>
+                                    <option value="Asuntos Propios">Asuntos Propios</option>
+                                    <option value="Baja Médica">Baja Médica</option>
+                                    <option value="Formación">Formación</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="background: #fff; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; padding: 12px; border: 1px solid #cbd5e1; text-align: right;">Causa:</td>
+                            <td colspan="3" style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 8px;">
+                                <input type="text" name="causa" placeholder="Ej: Fallecimiento familiar, Auditoría..." style="width: 100%; border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px; background: #eef2f6; box-sizing: border-box;">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="background: #fff; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; padding: 12px; border: 1px solid #cbd5e1; text-align: right; vertical-align: top; padding-top: 15px;">Observaciones:</td>
+                            <td colspan="3" style="background: #fff; border: 1px solid #cbd5e1; padding: 8px;">
+                                <textarea name="observaciones" style="width: 100%; min-height: 80px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; background: #fff; font-family: inherit; color: #1e3a8a; font-weight: 500; box-sizing: border-box; display: block; resize: vertical;"></textarea>
+                            </td>
+                        </tr>
+                    </table>
 
                     <div style="text-align: center; margin-top: 25px;">
                         <button type="submit" class="btn-actualizar" style="margin: 0; background: #eef2f6; color: #1e3a8a; border: 1px solid #cbd5e1; padding: 10px 40px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">Añadir Registro</button>
