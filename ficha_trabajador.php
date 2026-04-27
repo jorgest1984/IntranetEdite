@@ -189,7 +189,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         }
 
         if ($action == 'add_tarea') {
-            $stmt = $pdo->prepare("INSERT INTO prof_tareas (profesor_id, expediente, num_accion, anio, mes_1, mes_2, mes_3, mes_4, mes_5, mes_6, mes_7, mes_8, mes_9, mes_10, mes_11, mes_12, horas_impartidas, horas_tutorizadas) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO prof_tareas (profesor_id, expediente_id, num_accion, anio, mes_1, mes_2, mes_3, mes_4, mes_5, mes_6, mes_7, mes_8, mes_9, mes_10, mes_11, mes_12, horas_imparticion, horas_tutorizacion) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $id, $_POST['expediente'], $_POST['num_accion'], $_POST['anio'],
                 $_POST['mes_1'] ?: 0, $_POST['mes_2'] ?: 0, $_POST['mes_3'] ?: 0, $_POST['mes_4'] ?: 0, $_POST['mes_5'] ?: 0, $_POST['mes_6'] ?: 0,
@@ -201,7 +201,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         }
 
         if ($action == 'edit_tarea') {
-            $stmt = $pdo->prepare("UPDATE prof_tareas SET expediente = ?, num_accion = ?, anio = ?, mes_1 = ?, mes_2 = ?, mes_3 = ?, mes_4 = ?, mes_5 = ?, mes_6 = ?, mes_7 = ?, mes_8 = ?, mes_9 = ?, mes_10 = ?, mes_11 = ?, mes_12 = ?, horas_impartidas = ?, horas_tutorizadas = ? WHERE id = ? AND profesor_id = ?");
+            $stmt = $pdo->prepare("UPDATE prof_tareas SET expediente_id = ?, num_accion = ?, anio = ?, mes_1 = ?, mes_2 = ?, mes_3 = ?, mes_4 = ?, mes_5 = ?, mes_6 = ?, mes_7 = ?, mes_8 = ?, mes_9 = ?, mes_10 = ?, mes_11 = ?, mes_12 = ?, horas_imparticion = ?, horas_tutorizacion = ? WHERE id = ? AND profesor_id = ?");
             $stmt->execute([
                 $_POST['expediente'], $_POST['num_accion'], $_POST['anio'],
                 $_POST['mes_1'] ?: 0, $_POST['mes_2'] ?: 0, $_POST['mes_3'] ?: 0, $_POST['mes_4'] ?: 0, $_POST['mes_5'] ?: 0, $_POST['mes_6'] ?: 0,
@@ -329,7 +329,7 @@ $current_perfiles = [];
 foreach($raw_perfiles as $rp) $current_perfiles[] = is_array($rp) ? ($rp['perfil'] ?? '') : $rp;
 
 // Cargar tareas
-$stmt_tareas = $pdo->prepare("SELECT * FROM prof_tareas WHERE profesor_id = ? ORDER BY anio DESC, expediente ASC");
+$stmt_tareas = $pdo->prepare("SELECT * FROM prof_tareas WHERE profesor_id = ? ORDER BY anio DESC, expediente_id ASC");
 $stmt_tareas->execute([$id]);
 $tareas = $stmt_tareas->fetchAll();
 ?>
@@ -1557,7 +1557,7 @@ $tareas = $stmt_tareas->fetchAll();
                                 <?php else: ?>
                                     <?php foreach ($tareas as $t): ?>
                                     <tr style="border-bottom: 1px solid #e2e8f0; background: #fff;">
-                                        <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700; color: #1e3a8a;"><?= htmlspecialchars($t['expediente'] ?? '') ?></td>
+                                        <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700; color: #1e3a8a;"><?= htmlspecialchars($t['expediente_id'] ?? '') ?></td>
                                         <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700; color: #1e3a8a;"><?= htmlspecialchars($t['num_accion'] ?? '') ?></td>
                                         <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: center;"><?= htmlspecialchars($t['anio'] ?? '') ?></td>
                                         <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;"><?= number_format($t['mes_1'] ?? 0, 0) ?></td>
@@ -1572,12 +1572,12 @@ $tareas = $stmt_tareas->fetchAll();
                                         <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;"><?= number_format($t['mes_10'] ?? 0, 0) ?></td>
                                         <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;"><?= number_format($t['mes_11'] ?? 0, 0) ?></td>
                                         <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;"><?= number_format($t['mes_12'] ?? 0, 0) ?></td>
-                                        <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700; color: #1e3a8a;"><?= number_format($t['horas_impartidas'] ?? 0, 1) ?>h</td>
-                                        <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700; color: #1e3a8a;"><?= number_format($t['horas_tutorizadas'] ?? 0, 1) ?>h</td>
+                                        <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700; color: #1e3a8a;"><?= number_format($t['horas_imparticion'] ?? 0, 1) ?>h</td>
+                                        <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700; color: #1e3a8a;"><?= number_format($t['horas_tutorizacion'] ?? 0, 1) ?>h</td>
                                         <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: center;">
                                             <div style="display: flex; gap: 4px; justify-content: center;">
                                                 <button onclick='openModalTarea(<?= json_encode($t) ?>)' style="padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 4px; background: #fff; color: #475569; font-weight: 800; font-size: 0.7rem; cursor: pointer;">Editar</button>
-                                                <button onclick="confirmDeleteEntry('tareas', <?= $t['id'] ?>, 'Tarea <?= addslashes($t['expediente'] ?? '') ?>')" style="padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 4px; background: #fef2f2; color: #b91c1c; font-weight: 800; font-size: 0.7rem; cursor: pointer;">Borrar</button>
+                                                <button onclick="confirmDeleteEntry('tareas', <?= $t['id'] ?>, 'Tarea <?= addslashes($t['expediente_id'] ?? '') ?>')" style="padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 4px; background: #fef2f2; color: #b91c1c; font-weight: 800; font-size: 0.7rem; cursor: pointer;">Borrar</button>
                                             </div>
                                         </td>
                                     </tr>
@@ -2034,14 +2034,14 @@ $tareas = $stmt_tareas->fetchAll();
                     form.appendChild(hidden);
                 }
                 form.entry_id.value = editData.id;
-                form.expediente.value = editData.expediente || '';
+                form.expediente.value = editData.expediente_id || '';
                 form.num_accion.value = editData.num_accion || '';
                 form.anio.value = editData.anio || '';
                 for (let i = 1; i <= 12; i++) {
                     form['mes_' + i].value = editData['mes_' + i] || 0;
                 }
-                form.horas_impartidas.value = editData.horas_impartidas || 0;
-                form.horas_tutorizadas.value = editData.horas_tutorizadas || 0;
+                form.horas_impartidas.value = editData.horas_imparticion || 0;
+                form.horas_tutorizadas.value = editData.horas_tutorizacion || 0;
             } else {
                 title.innerText = 'INSERTAR TAREA';
                 btn.innerText = 'Guardar Tarea';
