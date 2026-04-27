@@ -189,16 +189,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         }
 
         if ($action == 'add_formacion') {
-            $stmt = $pdo->prepare("INSERT INTO prof_formacion (profesor_id, usuario_id, denominacion, desde, hasta, horas, calificacion, valoracion_usuario, observaciones) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO prof_formacion (profesor_id, usuario_id, denominacion, organismo, centro, desde, hasta, horas, tipo_formacion, calificacion, valoracion_usuario, observaciones) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $id, $id,
-                $_POST['accion_formativa'],
-                $_POST['fecha_desde'],
-                $_POST['fecha_hasta'],
-                $_POST['horas'],
-                $_POST['calificacion'],
-                $_POST['valoracion_usuario'],
-                $_POST['observaciones']
+                $_POST['denominacion'] ?? $_POST['accion_formativa'],
+                $_POST['organismo'] ?? '',
+                $_POST['centro'] ?? '',
+                $_POST['desde'] ?? $_POST['fecha_desde'],
+                $_POST['hasta'] ?? $_POST['fecha_hasta'],
+                $_POST['horas'] ?? 0,
+                $_POST['tipo_formacion'] ?? '',
+                $_POST['calificacion'] ?? '',
+                $_POST['valoracion_usuario'] ?? '',
+                $_POST['observaciones'] ?? ''
             ]);
             header("Location: ficha_trabajador.php?id=$id&tab=formacion&success=1");
             exit();
@@ -1360,17 +1363,17 @@ $formaciones = $stmt_form->fetchAll();
                                         <tr>
                                             <td style="width: 160px; background: #fff; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; padding: 12px; border: 1px solid #cbd5e1; text-align: left;">Acción formativa:</td>
                                             <td colspan="3" style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 8px;">
-                                                <input type="text" name="accion_formativa" required style="width: 100%; border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px; background: #eef2f6; box-sizing: border-box;">
+                                                <input type="text" name="denominacion" required style="width: 100%; border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px; background: #eef2f6; box-sizing: border-box;">
                                             </td>
                                         </tr>
                                         <tr>
                                             <td style="background: #fff; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; padding: 12px; border: 1px solid #cbd5e1; text-align: left;">Fecha desde:</td>
                                             <td style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 8px;">
-                                                <input type="date" name="fecha_desde" required style="width: 100%; border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px; background: #eef2f6; box-sizing: border-box;">
+                                                <input type="date" name="desde" required style="width: 100%; border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px; background: #eef2f6; box-sizing: border-box;">
                                             </td>
                                             <td style="width: 160px; background: #fff; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; padding: 12px; border: 1px solid #cbd5e1; text-align: left;">Fecha hasta:</td>
                                             <td style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 8px;">
-                                                <input type="date" name="fecha_hasta" required style="width: 100%; border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px; background: #eef2f6; box-sizing: border-box;">
+                                                <input type="date" name="hasta" required style="width: 100%; border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px; background: #eef2f6; box-sizing: border-box;">
                                             </td>
                                         </tr>
                                         <tr>
