@@ -290,6 +290,15 @@ $documentos = $stmt_docs->fetchAll();
 $stmt_form = $pdo->prepare("SELECT * FROM prof_formacion WHERE profesor_id = ? ORDER BY desde DESC");
 $stmt_form->execute([$id]);
 $formaciones = $stmt_form->fetchAll();
+
+// Cargar departamentos y perfiles
+$stmt_curr_depts = $pdo->prepare("SELECT departamento FROM usuario_departamentos WHERE usuario_id = ?");
+$stmt_curr_depts->execute([$id]);
+$current_depts = $stmt_curr_depts->fetchAll(PDO::FETCH_COLUMN);
+
+$stmt_curr_perfiles = $pdo->prepare("SELECT perfil FROM usuario_perfiles WHERE usuario_id = ?");
+$stmt_curr_perfiles->execute([$id]);
+$current_perfiles = $stmt_curr_perfiles->fetchAll(PDO::FETCH_COLUMN);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -1433,7 +1442,51 @@ $formaciones = $stmt_form->fetchAll();
 
                 </div>
             </div>
-            <div id="tab-perfil" style="<?= $active_tab == 'perfil' ? '' : 'display:none;' ?>"><div class="info-section"><h3>Perfiles</h3><p>Módulo en desarrollo...</p></div></div>
+            <div id="tab-perfil" style="<?= $active_tab == 'perfil' ? '' : 'display:none;' ?>">
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+                    <form method="POST" action="ficha_trabajador.php?id=<?= $id ?>&tab=perfil">
+                        <input type="hidden" name="action" value="update_perfiles_dept">
+                        
+                        <!-- DEPARTAMENTOS ASOCIADOS -->
+                        <div style="border-bottom: 1px solid #e2e8f0;">
+                            <div style="background: #fff; padding: 10px; border-bottom: 2px solid #b91c1c; text-align: center;">
+                                <h3 style="color: #b91c1c; margin: 0; font-size: 0.95rem; font-weight: 800; text-transform: uppercase;">DEPARTAMENTOS ASOCIADOS</h3>
+                            </div>
+                            <div style="padding: 2rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
+                                <?php 
+                                $depts = ['Tutorial', 'Gestión y Documentación', 'Informática', 'Comercial y Marketing', 'Administración', 'I+D'];
+                                foreach($depts as $d): ?>
+                                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; color: #1e3a8a; font-weight: 700; font-size: 0.9rem;">
+                                    <input type="checkbox" name="depts[]" value="<?= $d ?>" <?= in_array($d, $current_depts) ? 'checked' : '' ?> style="width: 18px; height: 18px; accent-color: #1e3a8a;">
+                                    <?= $d ?>
+                                </label>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+
+                        <!-- PERFILES -->
+                        <div>
+                            <div style="background: #fff; padding: 10px; border-bottom: 2px solid #b91c1c; border-top: 1px solid #e2e8f0; text-align: center;">
+                                <h3 style="color: #b91c1c; margin: 0; font-size: 0.95rem; font-weight: 800; text-transform: uppercase;">PERFILES</h3>
+                            </div>
+                            <div style="padding: 2rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
+                                <?php 
+                                $perfiles = ['ADMINISTRATIVO', 'COMERCIAL/TELEOPERADOR', 'INFORMÁTICO', 'TUTOR/FORMADOR', 'DIRECTOR', 'RESPONSABLE DE CALIDAD', 'COORDINADOR DE ÁREA'];
+                                foreach($perfiles as $p): ?>
+                                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; color: #1e3a8a; font-weight: 700; font-size: 0.9rem;">
+                                    <input type="checkbox" name="perfiles[]" value="<?= $p ?>" <?= in_array($p, $current_perfiles) ? 'checked' : '' ?> style="width: 18px; height: 18px; accent-color: #1e3a8a;">
+                                    <?= $p ?>
+                                </label>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+
+                        <div style="padding: 2rem; text-align: center; background: #f8fafc; border-top: 1px solid #e2e8f0;">
+                            <button type="submit" class="btn-actualizar" style="margin: 0; padding: 10px 40px; font-weight: 800; text-transform: uppercase;">Actualizar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
             <div id="tab-comerciales" style="<?= $active_tab == 'comerciales' ? '' : 'display:none;' ?>"><div class="info-section"><h3>Comercial</h3><p>Módulo en desarrollo...</p></div></div>
             <div id="tab-tareas" style="<?= $active_tab == 'tareas' ? '' : 'display:none;' ?>"><div class="info-section"><h3>Tareas</h3><p>Módulo en desarrollo...</p></div></div>
 
