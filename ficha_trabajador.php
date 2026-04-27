@@ -1344,13 +1344,15 @@ $formaciones = $stmt_form->fetchAll();
                     </div>
 
                     <!-- Modal Insertar Formación -->
-                    <div id="modalNuevaFormacion" class="modal-cv">
-                        <div class="modal-cv-content" style="max-width: 900px;">
-                            <div class="modal-cv-header">
-                                <h2>ACCIÓN FORMATIVA</h2>
-                                <span class="close-cv" onclick="closeModal('modalNuevaFormacion')">&times;</span>
+                    <div id="modalNuevaFormacion" class="modal-overlay">
+                        <div class="modal-container" style="max-width: 900px;">
+                            <div class="modal-header" style="justify-content: center; position: relative; border-bottom: 2px solid #b91c1c;">
+                                <h2 style="color: #b91c1c; font-weight: 900; letter-spacing: 1px;">ACCIÓN FORMATIVA</h2>
+                                <button class="modal-close" onclick="closeModal('modalNuevaFormacion')" style="position: absolute; right: 20px;">
+                                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                                </button>
                             </div>
-                            <div class="modal-cv-body">
+                            <div class="modal-body" style="padding: 20px;">
                                 <form method="POST" action="ficha_trabajador.php?id=<?= $id ?>&tab=formacion">
                                     <input type="hidden" name="action" value="add_formacion">
                                     
@@ -1536,6 +1538,15 @@ $formaciones = $stmt_form->fetchAll();
                     location.href = 'api/eliminar_documento_profesor.php?id=' + docIdToDelete + '&usuario_id=<?= $id ?>';
                 }
             }
+        }
+
+        function openModal(id) {
+            document.getElementById(id).style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+            document.body.style.overflow = 'auto';
         }
 
         // MODAL FORMACION
