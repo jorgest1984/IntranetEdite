@@ -284,15 +284,15 @@ $formaciones = $stmt_form->fetchAll();
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
         .tabs-header {
-            display: flex; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px 8px 0 0;
-            overflow-x: auto; scrollbar-width: none;
+            display: flex; flex-wrap: wrap; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px 8px 0 0;
         }
         .tab-btn {
             padding: 0.75rem 1.25rem; border: none; background: none; font-size: 0.8rem; font-weight: 500;
             color: #64748b; cursor: pointer; white-space: nowrap; border-right: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
             transition: all 0.2s;
         }
-        .tab-btn.active { background: white; color: #1e40af; font-weight: 700; box-shadow: inset 0 2px 0 #1e40af; }
+        .tab-btn.active { background: white; color: #1e40af; font-weight: 700; box-shadow: inset 0 2px 0 #1e40af; border-bottom-color: white; }
         .tab-panel { background: white; padding: 2rem; border: 1px solid var(--border-color); border-top: none; border-radius: 0 0 8px 8px; }
         .form-premium-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 1rem; }
         .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
