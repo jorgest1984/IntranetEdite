@@ -188,6 +188,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             exit();
         }
 
+        if ($action == 'add_formacion') {
+            $stmt = $pdo->prepare("INSERT INTO prof_formacion (profesor_id, usuario_id, denominacion, desde, hasta, horas, calificacion, valoracion_usuario, observaciones) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([
+                $id, $id,
+                $_POST['accion_formativa'],
+                $_POST['fecha_desde'],
+                $_POST['fecha_hasta'],
+                $_POST['horas'],
+                $_POST['calificacion'],
+                $_POST['valoracion_usuario'],
+                $_POST['observaciones']
+            ]);
+            header("Location: ficha_trabajador.php?id=$id&tab=formacion&success=1");
+            exit();
+        }
+
         if ($action == 'update_profesorado') {
             $fields = ['titulacion', 'es_tutor', 'es_teleformador', 'es_presencial', 'hace_seguimiento', 'tope_alumnos_turno', 'aplicar_viernes', 'tramo1_de', 'tramo1_a', 'tramo1_v2_de', 'tramo1_v2_a', 'tramo2_de', 'tramo2_a', 'tramo2_v2_de', 'tramo2_v2_a'];
             $set_part = implode(' = ?, ', array_map(function($f) { return "`$f`"; }, $fields)) . ' = ?';
@@ -247,6 +263,10 @@ $asistencias = $stmt_asist->fetchAll();
 $stmt_docs = $pdo->prepare("SELECT * FROM profesorado_documentos WHERE usuario_id = ? ORDER BY fecha_subida DESC");
 $stmt_docs->execute([$id]);
 $documentos = $stmt_docs->fetchAll();
+
+$stmt_form = $pdo->prepare("SELECT * FROM prof_formacion WHERE profesor_id = ? ORDER BY desde DESC");
+$stmt_form->execute([$id]);
+$formaciones = $stmt_form->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -1277,7 +1297,114 @@ $documentos = $stmt_docs->fetchAll();
                     </form>
                 </div>
             </div>
-            <div id="tab-formacion" style="<?= $active_tab == 'formacion' ? '' : 'display:none;' ?>"><div class="info-section"><h3>Formación</h3><p>Módulo en desarrollo...</p></div></div>
+            <div id="tab-formacion" style="<?= $active_tab == 'formacion' ? '' : 'display:none;' ?>">
+                <div style="background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 1.5rem;">
+                    
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <h2 style="color: #b91c1c; font-weight: 800; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #b91c1c; display: inline-block; padding-bottom: 5px;">FORMACIÓN</h2>
+                    </div>
+
+                    <table class="table-premium" style="border: 1px solid #cbd5e1; margin-bottom: 1.5rem;">
+                        <thead>
+                            <tr style="background: #f8fafc;">
+                                <th style="color: #1e40af; font-weight: 800; border: 1px solid #cbd5e1;">Acción formativa</th>
+                                <th style="color: #1e40af; font-weight: 800; border: 1px solid #cbd5e1; width: 110px;">Desde</th>
+                                <th style="color: #1e40af; font-weight: 800; border: 1px solid #cbd5e1; width: 110px;">Hasta</th>
+                                <th style="color: #1e40af; font-weight: 800; border: 1px solid #cbd5e1; width: 90px; text-align: center;">Duración</th>
+                                <th style="color: #1e40af; font-weight: 800; border: 1px solid #cbd5e1; width: 100px; text-align: center;">Calificación</th>
+                                <th style="color: #1e40af; font-weight: 800; border: 1px solid #cbd5e1;">Valoración del empleado</th>
+                                <th style="color: #1e40af; font-weight: 800; border: 1px solid #cbd5e1;">Observaciones</th>
+                                <th style="width: 80px; text-align: center; border: 1px solid #cbd5e1;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (empty($formaciones)): ?>
+                                <tr><td colspan="8" style="text-align: center; color: #94a3b8; padding: 2rem;">No hay registros de formación.</td></tr>
+                            <?php else: ?>
+                                <?php foreach ($formaciones as $f): ?>
+                                <tr style="background: #fff;">
+                                    <td style="font-weight: 700; color: #1e3a8a; border: 1px solid #cbd5e1; padding: 10px;"><?= htmlspecialchars($f['denominacion']) ?></td>
+                                    <td style="font-weight: 700; color: #1e3a8a; border: 1px solid #cbd5e1; padding: 10px;"><?= $f['desde'] ? date('d/m/Y', strtotime($f['desde'])) : '-' ?></td>
+                                    <td style="font-weight: 700; color: #1e3a8a; border: 1px solid #cbd5e1; padding: 10px;"><?= $f['hasta'] ? date('d/m/Y', strtotime($f['hasta'])) : '-' ?></td>
+                                    <td style="font-weight: 700; color: #1e3a8a; border: 1px solid #cbd5e1; padding: 10px; text-align: center;"><?= htmlspecialchars($f['horas']) ?>h</td>
+                                    <td style="font-weight: 700; color: #1e3a8a; border: 1px solid #cbd5e1; padding: 10px; text-align: center;"><?= htmlspecialchars($f['calificacion']) ?></td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 10px; font-size: 0.85rem;"><?= nl2br(htmlspecialchars($f['valoracion_usuario'])) ?></td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 10px; font-size: 0.85rem;"><?= nl2br(htmlspecialchars($f['observaciones'])) ?></td>
+                                    <td style="text-align: center; border: 1px solid #cbd5e1; padding: 10px;">
+                                        <button onclick="confirmDeleteEntry('formacion', <?= $f['id'] ?>, '<?= addslashes($f['denominacion']) ?>')" style="padding: 4px 10px; border: 1px solid #cbd5e1; border-radius: 4px; background: #eef2f6; color: #1e3a8a; font-weight: 800; font-size: 0.7rem; cursor: pointer;">Borrar</button>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+
+                    <div style="margin-bottom: 2rem;">
+                        <button onclick="openModal('modalNuevaFormacion')" class="btn-actualizar" style="margin: 0; background: #eef2f6; color: #1e3a8a; border: 1px solid #cbd5e1; padding: 8px 20px; font-weight: 700; font-size: 0.85rem;">Nueva Acción Formativa</button>
+                    </div>
+
+                    <!-- Modal Insertar Formación -->
+                    <div id="modalNuevaFormacion" class="modal-cv">
+                        <div class="modal-cv-content" style="max-width: 900px;">
+                            <div class="modal-cv-header">
+                                <h2>ACCIÓN FORMATIVA</h2>
+                                <span class="close-cv" onclick="closeModal('modalNuevaFormacion')">&times;</span>
+                            </div>
+                            <div class="modal-cv-body">
+                                <form method="POST" action="ficha_trabajador.php?id=<?= $id ?>&tab=formacion">
+                                    <input type="hidden" name="action" value="add_formacion">
+                                    
+                                    <table style="width: 100%; border-collapse: collapse; border: 1px solid #cbd5e1; table-layout: fixed; background: white;">
+                                        <tr>
+                                            <td style="width: 160px; background: #fff; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; padding: 12px; border: 1px solid #cbd5e1; text-align: left;">Acción formativa:</td>
+                                            <td colspan="3" style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 8px;">
+                                                <input type="text" name="accion_formativa" required style="width: 100%; border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px; background: #eef2f6; box-sizing: border-box;">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="background: #fff; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; padding: 12px; border: 1px solid #cbd5e1; text-align: left;">Fecha desde:</td>
+                                            <td style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 8px;">
+                                                <input type="date" name="fecha_desde" required style="width: 100%; border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px; background: #eef2f6; box-sizing: border-box;">
+                                            </td>
+                                            <td style="width: 160px; background: #fff; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; padding: 12px; border: 1px solid #cbd5e1; text-align: left;">Fecha hasta:</td>
+                                            <td style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 8px;">
+                                                <input type="date" name="fecha_hasta" required style="width: 100%; border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px; background: #eef2f6; box-sizing: border-box;">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="background: #fff; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; padding: 12px; border: 1px solid #cbd5e1; text-align: left;">Duración (horas):</td>
+                                            <td style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 8px;">
+                                                <input type="number" name="horas" placeholder="0" style="width: 100%; border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px; background: #eef2f6; box-sizing: border-box;">
+                                            </td>
+                                            <td style="background: #fff; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; padding: 12px; border: 1px solid #cbd5e1; text-align: left;">Calificación:</td>
+                                            <td style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 8px;">
+                                                <input type="text" name="calificacion" style="width: 100%; border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px; background: #eef2f6; box-sizing: border-box;">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="background: #fff; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; padding: 12px; border: 1px solid #cbd5e1; text-align: left; vertical-align: top; padding-top: 15px;">Valoración del usuario:</td>
+                                            <td colspan="3" style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 8px;">
+                                                <textarea name="valoracion_usuario" style="width: 100%; min-height: 80px; padding: 10px; border: 1px solid #1e3a8a; border-radius: 4px; background: #eef2f6; font-family: inherit; box-sizing: border-box; display: block; resize: vertical;"></textarea>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="background: #fff; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; padding: 12px; border: 1px solid #cbd5e1; text-align: left; vertical-align: top; padding-top: 15px;">Observaciones:</td>
+                                            <td colspan="3" style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 8px;">
+                                                <textarea name="observaciones" style="width: 100%; min-height: 80px; padding: 10px; border: 1px solid #1e3a8a; border-radius: 4px; background: #eef2f6; font-family: inherit; box-sizing: border-box; display: block; resize: vertical;"></textarea>
+                                            </td>
+                                        </tr>
+                                    </table>
+
+                                    <div style="text-align: center; margin-top: 25px;">
+                                        <button type="submit" class="btn-actualizar" style="margin: 0; background: #eef2f6; color: #1e3a8a; border: 1px solid #cbd5e1; padding: 10px 40px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">Añadir Acción Formativa</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
             <div id="tab-perfil" style="<?= $active_tab == 'perfil' ? '' : 'display:none;' ?>"><div class="info-section"><h3>Perfiles</h3><p>Módulo en desarrollo...</p></div></div>
             <div id="tab-comerciales" style="<?= $active_tab == 'comerciales' ? '' : 'display:none;' ?>"><div class="info-section"><h3>Comercial</h3><p>Módulo en desarrollo...</p></div></div>
             <div id="tab-tareas" style="<?= $active_tab == 'tareas' ? '' : 'display:none;' ?>"><div class="info-section"><h3>Tareas</h3><p>Módulo en desarrollo...</p></div></div>
