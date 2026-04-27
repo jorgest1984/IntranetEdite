@@ -192,16 +192,36 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             $stmt = $pdo->prepare("INSERT INTO prof_formacion (profesor_id, usuario_id, denominacion, organismo, centro, desde, hasta, horas, tipo_formacion, calificacion, valoracion_usuario, observaciones) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $id, $id,
-                $_POST['denominacion'] ?? $_POST['accion_formativa'],
+                $_POST['denominacion'] ?? $_POST['accion_formativa'] ?? '',
                 $_POST['organismo'] ?? '',
                 $_POST['centro'] ?? '',
-                $_POST['desde'] ?? $_POST['fecha_desde'],
-                $_POST['hasta'] ?? $_POST['fecha_hasta'],
+                $_POST['desde'] ?? $_POST['fecha_desde'] ?? null,
+                $_POST['hasta'] ?? $_POST['fecha_hasta'] ?? null,
                 $_POST['horas'] ?? 0,
                 $_POST['tipo_formacion'] ?? '',
                 $_POST['calificacion'] ?? '',
                 $_POST['valoracion_usuario'] ?? '',
                 $_POST['observaciones'] ?? ''
+            ]);
+            header("Location: ficha_trabajador.php?id=$id&tab=formacion&success=1");
+            exit();
+        }
+
+        if ($action == 'edit_formacion') {
+            $stmt = $pdo->prepare("UPDATE prof_formacion SET denominacion = ?, organismo = ?, centro = ?, desde = ?, hasta = ?, horas = ?, tipo_formacion = ?, calificacion = ?, valoracion_usuario = ?, observaciones = ? WHERE id = ? AND profesor_id = ?");
+            $stmt->execute([
+                $_POST['denominacion'] ?? $_POST['accion_formativa'] ?? '',
+                $_POST['organismo'] ?? '',
+                $_POST['centro'] ?? '',
+                $_POST['desde'] ?? $_POST['fecha_desde'] ?? null,
+                $_POST['hasta'] ?? $_POST['fecha_hasta'] ?? null,
+                $_POST['horas'] ?? 0,
+                $_POST['tipo_formacion'] ?? '',
+                $_POST['calificacion'] ?? '',
+                $_POST['valoracion_usuario'] ?? '',
+                $_POST['observaciones'] ?? '',
+                $_POST['entry_id'],
+                $id
             ]);
             header("Location: ficha_trabajador.php?id=$id&tab=formacion&success=1");
             exit();
@@ -1326,15 +1346,18 @@ $formaciones = $stmt_form->fetchAll();
                             <?php else: ?>
                                 <?php foreach ($formaciones as $f): ?>
                                 <tr style="background: #fff;">
-                                    <td style="font-weight: 700; color: #1e3a8a; border: 1px solid #cbd5e1; padding: 10px;"><?= htmlspecialchars($f['denominacion']) ?></td>
-                                    <td style="font-weight: 700; color: #1e3a8a; border: 1px solid #cbd5e1; padding: 10px;"><?= $f['desde'] ? date('d/m/Y', strtotime($f['desde'])) : '-' ?></td>
-                                    <td style="font-weight: 700; color: #1e3a8a; border: 1px solid #cbd5e1; padding: 10px;"><?= $f['hasta'] ? date('d/m/Y', strtotime($f['hasta'])) : '-' ?></td>
-                                    <td style="font-weight: 700; color: #1e3a8a; border: 1px solid #cbd5e1; padding: 10px; text-align: center;"><?= htmlspecialchars($f['horas']) ?>h</td>
-                                    <td style="font-weight: 700; color: #1e3a8a; border: 1px solid #cbd5e1; padding: 10px; text-align: center;"><?= htmlspecialchars($f['calificacion']) ?></td>
-                                    <td style="border: 1px solid #cbd5e1; padding: 10px; font-size: 0.85rem;"><?= nl2br(htmlspecialchars($f['valoracion_usuario'])) ?></td>
-                                    <td style="border: 1px solid #cbd5e1; padding: 10px; font-size: 0.85rem;"><?= nl2br(htmlspecialchars($f['observaciones'])) ?></td>
+                                    <td style="font-weight: 700; color: #1e3a8a; border: 1px solid #cbd5e1; padding: 10px;"><?= htmlspecialchars($f['denominacion'] ?? '') ?></td>
+                                    <td style="font-weight: 700; color: #1e3a8a; border: 1px solid #cbd5e1; padding: 10px;"><?= ($f['desde'] ?? false) ? date('d/m/Y', strtotime($f['desde'])) : '-' ?></td>
+                                    <td style="font-weight: 700; color: #1e3a8a; border: 1px solid #cbd5e1; padding: 10px;"><?= ($f['hasta'] ?? false) ? date('d/m/Y', strtotime($f['hasta'])) : '-' ?></td>
+                                    <td style="font-weight: 700; color: #1e3a8a; border: 1px solid #cbd5e1; padding: 10px; text-align: center;"><?= htmlspecialchars($f['horas'] ?? '0') ?>h</td>
+                                    <td style="font-weight: 700; color: #1e3a8a; border: 1px solid #cbd5e1; padding: 10px; text-align: center;"><?= htmlspecialchars($f['calificacion'] ?? '') ?></td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 10px; font-size: 0.85rem;"><?= nl2br(htmlspecialchars($f['valoracion_usuario'] ?? '')) ?></td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 10px; font-size: 0.85rem;"><?= nl2br(htmlspecialchars($f['observaciones'] ?? '')) ?></td>
                                     <td style="text-align: center; border: 1px solid #cbd5e1; padding: 10px;">
-                                        <button onclick="confirmDeleteEntry('formacion', <?= $f['id'] ?>, '<?= addslashes($f['denominacion']) ?>')" style="padding: 4px 10px; border: 1px solid #cbd5e1; border-radius: 4px; background: #eef2f6; color: #1e3a8a; font-weight: 800; font-size: 0.7rem; cursor: pointer;">Borrar</button>
+                                        <div style="display: flex; gap: 4px; justify-content: center;">
+                                            <button onclick='openModalFormacionTab(<?= json_encode($f) ?>)' style="padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 4px; background: #fff; color: #475569; font-weight: 800; font-size: 0.7rem; cursor: pointer;">Editar</button>
+                                            <button onclick="confirmDeleteEntry('formacion', <?= $f['id'] ?>, '<?= addslashes($f['denominacion'] ?? '') ?>')" style="padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 4px; background: #fef2f2; color: #b91c1c; font-weight: 800; font-size: 0.7rem; cursor: pointer;">Borrar</button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <?php endforeach; ?>
@@ -1343,7 +1366,7 @@ $formaciones = $stmt_form->fetchAll();
                     </table>
 
                     <div style="margin-bottom: 2rem;">
-                        <button onclick="openModal('modalNuevaFormacion')" class="btn-actualizar" style="margin: 0; background: #eef2f6; color: #1e3a8a; border: 1px solid #cbd5e1; padding: 8px 20px; font-weight: 700; font-size: 0.85rem;">Nueva Acción Formativa</button>
+                        <button onclick="openModalFormacionTab()" class="btn-actualizar" style="margin: 0; background: #eef2f6; color: #1e3a8a; border: 1px solid #cbd5e1; padding: 8px 20px; font-weight: 700; font-size: 0.85rem;">Nueva Acción Formativa</button>
                     </div>
 
                     <!-- Modal Insertar Formación -->
@@ -1740,6 +1763,41 @@ $formaciones = $stmt_form->fetchAll();
         }
         function closeModalAsistencia() {
             document.getElementById('modalAsistencia').style.display = 'none';
+        }
+
+        // MODAL FORMACION TAB (DEDICADA)
+        function openModalFormacionTab(editData = null) {
+            const modal = document.getElementById('modalNuevaFormacion');
+            const form = modal.querySelector('form');
+            const title = modal.querySelector('h2');
+            const btn = form.querySelector('button[type="submit"]');
+
+            if (editData) {
+                title.innerText = 'EDITAR ACCIÓN FORMATIVA';
+                btn.innerText = 'Guardar Cambios';
+                form.action.value = 'edit_formacion';
+                if (!form.entry_id) {
+                    const hidden = document.createElement('input');
+                    hidden.type = 'hidden';
+                    hidden.name = 'entry_id';
+                    form.appendChild(hidden);
+                }
+                form.entry_id.value = editData.id;
+                form.denominacion.value = editData.denominacion || '';
+                form.desde.value = editData.desde || '';
+                form.hasta.value = editData.hasta || '';
+                form.horas.value = editData.horas || '';
+                form.calificacion.value = editData.calificacion || '';
+                form.valoracion_usuario.value = editData.valoracion_usuario || '';
+                form.observaciones.value = editData.observaciones || '';
+            } else {
+                title.innerText = 'INSERTAR ACCIÓN FORMATIVA';
+                btn.innerText = 'Añadir Acción Formativa';
+                form.action.value = 'add_formacion';
+                form.reset();
+                if (form.entry_id) form.entry_id.remove();
+            }
+            openModal('modalNuevaFormacion');
         }
     </script>
     <!-- MODAL: Confirmar Borrado -->
