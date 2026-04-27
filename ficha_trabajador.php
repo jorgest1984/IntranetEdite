@@ -291,14 +291,18 @@ $stmt_form = $pdo->prepare("SELECT * FROM prof_formacion WHERE profesor_id = ? O
 $stmt_form->execute([$id]);
 $formaciones = $stmt_form->fetchAll();
 
-// Cargar departamentos y perfiles
+// Cargar departamentos y perfiles (Mapeo manual para compatibilidad con DBBridge)
 $stmt_curr_depts = $pdo->prepare("SELECT departamento FROM usuario_departamentos WHERE usuario_id = ?");
 $stmt_curr_depts->execute([$id]);
-$current_depts = $stmt_curr_depts->fetchAll(PDO::FETCH_COLUMN);
+$raw_depts = $stmt_curr_depts->fetchAll();
+$current_depts = [];
+foreach($raw_depts as $rd) $current_depts[] = is_array($rd) ? ($rd['departamento'] ?? '') : $rd;
 
 $stmt_curr_perfiles = $pdo->prepare("SELECT perfil FROM usuario_perfiles WHERE usuario_id = ?");
 $stmt_curr_perfiles->execute([$id]);
-$current_perfiles = $stmt_curr_perfiles->fetchAll(PDO::FETCH_COLUMN);
+$raw_perfiles = $stmt_curr_perfiles->fetchAll();
+$current_perfiles = [];
+foreach($raw_perfiles as $rp) $current_perfiles[] = is_array($rp) ? ($rp['perfil'] ?? '') : $rp;
 ?>
 <!DOCTYPE html>
 <html lang="es">
