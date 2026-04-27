@@ -1238,7 +1238,18 @@ $documentos = $stmt_docs->fetchAll();
                                 <td style="background: #fff; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; padding: 12px; border: 1px solid #cbd5e1; text-align: left;">Nivel de Acceso:</td>
                                 <td colspan="3" style="background: #fff; border: 1px solid #cbd5e1; padding: 15px;">
                                     <div style="display: flex; align-items: center; gap: 25px; flex-wrap: wrap;">
-                                        <input type="number" name="nivel_acceso" value="<?= htmlspecialchars($trabajador['nivel_acceso'] ?? 1) ?>" style="width: 200px; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 8px; color: #1e3a8a; font-weight: 700; box-sizing: border-box;">
+                                        <select name="nivel_acceso" style="width: 300px; border: 1px solid #1e3a8a; background: #fff; padding: 8px; color: #1e3a8a; font-weight: 700; box-sizing: border-box; border-radius: 4px;">
+                                            <option value="1" <?= ($trabajador['nivel_acceso'] ?? 1) == 1 ? 'selected' : '' ?>>1 - Acceso total</option>
+                                            <option value="2" <?= ($trabajador['nivel_acceso'] ?? 1) == 2 ? 'selected' : '' ?>>2 - Comercial</option>
+                                            <option value="3" <?= ($trabajador['nivel_acceso'] ?? 1) == 3 ? 'selected' : '' ?>>3 - Madrid</option>
+                                            <option value="4" <?= ($trabajador['nivel_acceso'] ?? 1) == 4 ? 'selected' : '' ?>>4 - Documentación</option>
+                                            <option value="5" <?= ($trabajador['nivel_acceso'] ?? 1) == 5 ? 'selected' : '' ?>>5 - Admin. Madrid</option>
+                                            <option value="6" <?= ($trabajador['nivel_acceso'] ?? 1) == 6 ? 'selected' : '' ?>>6 - Datos IDFO</option>
+                                            <option value="7" <?= ($trabajador['nivel_acceso'] ?? 1) == 7 ? 'selected' : '' ?>>7 - FES-UGT</option>
+                                            <option value="8" <?= ($trabajador['nivel_acceso'] ?? 1) == 8 ? 'selected' : '' ?>>8 - Candidatos</option>
+                                            <option value="9" <?= ($trabajador['nivel_acceso'] ?? 1) == 9 ? 'selected' : '' ?>>9 - Arto Blanco</option>
+                                            <option value="10" <?= ($trabajador['nivel_acceso'] ?? 1) == 10 ? 'selected' : '' ?>>10 - Financiero</option>
+                                        </select>
                                         
                                         <label style="display: flex; align-items: center; gap: 8px; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; cursor: pointer;">
                                             Acceso multicentro: <input type="checkbox" name="acceso_multicentro" <?= ($trabajador['acceso_multicentro'] ?? 0) ? 'checked' : '' ?> style="width: 18px; height: 18px; accent-color: #1e3a8a;">
