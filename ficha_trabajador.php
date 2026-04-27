@@ -188,7 +188,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             exit();
         }
 
-        if ($action == 'add_formacion') {
+        if ($action == 'add_tarea') {
+            $stmt = $pdo->prepare("INSERT INTO prof_tareas (profesor_id, expediente, num_accion, anio, mes_1, mes_2, mes_3, mes_4, mes_5, mes_6, mes_7, mes_8, mes_9, mes_10, mes_11, mes_12, horas_impartidas, horas_tutorizadas) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([
+                $id, $_POST['expediente'], $_POST['num_accion'], $_POST['anio'],
+                $_POST['mes_1'] ?: 0, $_POST['mes_2'] ?: 0, $_POST['mes_3'] ?: 0, $_POST['mes_4'] ?: 0, $_POST['mes_5'] ?: 0, $_POST['mes_6'] ?: 0,
+                $_POST['mes_7'] ?: 0, $_POST['mes_8'] ?: 0, $_POST['mes_9'] ?: 0, $_POST['mes_10'] ?: 0, $_POST['mes_11'] ?: 0, $_POST['mes_12'] ?: 0,
+                $_POST['horas_impartidas'] ?: 0, $_POST['horas_tutorizadas'] ?: 0
+            ]);
+            header("Location: ficha_trabajador.php?id=$id&tab=tareas&success=1");
+            exit();
+        }
+
+        if ($action == 'edit_tarea') {
+            $stmt = $pdo->prepare("UPDATE prof_tareas SET expediente = ?, num_accion = ?, anio = ?, mes_1 = ?, mes_2 = ?, mes_3 = ?, mes_4 = ?, mes_5 = ?, mes_6 = ?, mes_7 = ?, mes_8 = ?, mes_9 = ?, mes_10 = ?, mes_11 = ?, mes_12 = ?, horas_impartidas = ?, horas_tutorizadas = ? WHERE id = ? AND profesor_id = ?");
+            $stmt->execute([
+                $_POST['expediente'], $_POST['num_accion'], $_POST['anio'],
+                $_POST['mes_1'] ?: 0, $_POST['mes_2'] ?: 0, $_POST['mes_3'] ?: 0, $_POST['mes_4'] ?: 0, $_POST['mes_5'] ?: 0, $_POST['mes_6'] ?: 0,
+                $_POST['mes_7'] ?: 0, $_POST['mes_8'] ?: 0, $_POST['mes_9'] ?: 0, $_POST['mes_10'] ?: 0, $_POST['mes_11'] ?: 0, $_POST['mes_12'] ?: 0,
+                $_POST['horas_impartidas'] ?: 0, $_POST['horas_tutorizadas'] ?: 0,
+                $_POST['entry_id'], $id
+            ]);
+            header("Location: ficha_trabajador.php?id=$id&tab=tareas&success=1");
+            exit();
+        }
             $stmt = $pdo->prepare("INSERT INTO prof_formacion (profesor_id, usuario_id, denominacion, organismo, centro, desde, hasta, horas, tipo_formacion, calificacion, valoracion_usuario, observaciones) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $id, $id,
@@ -249,7 +272,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
 
 // PROCESAR BORRADO CV (GET)
 if (isset($_GET['del_tab']) && isset($_GET['del_id'])) {
-    $tables_map = ['formacion' => 'prof_formacion', 'experiencia' => 'prof_experiencia', 'idioma' => 'prof_idiomas', 'informatica' => 'prof_informatica', 'asistencia' => 'prof_asistencia', 'documento' => 'profesorado_documentos'];
+    $tables_map = ['formacion' => 'prof_formacion', 'experiencia' => 'prof_experiencia', 'idioma' => 'prof_idiomas', 'informatica' => 'prof_informatica', 'asistencia' => 'prof_asistencia', 'documento' => 'profesorado_documentos', 'tareas' => 'prof_tareas'];
     if (isset($tables_map[$_GET['del_tab']])) {
         $stmt = $pdo->prepare("DELETE FROM {$tables_map[$_GET['del_tab']]} WHERE id = ? AND " . ($_GET['del_tab'] == 'documento' ? 'usuario_id' : 'profesor_id') . " = ?");
         $stmt->execute([$_GET['del_id'], $id]);
@@ -303,6 +326,11 @@ $stmt_curr_perfiles->execute([$id]);
 $raw_perfiles = $stmt_curr_perfiles->fetchAll();
 $current_perfiles = [];
 foreach($raw_perfiles as $rp) $current_perfiles[] = is_array($rp) ? ($rp['perfil'] ?? '') : $rp;
+
+// Cargar tareas
+$stmt_tareas = $pdo->prepare("SELECT * FROM prof_tareas WHERE profesor_id = ? ORDER BY anio DESC, expediente ASC");
+$stmt_tareas->execute([$id]);
+$tareas = $stmt_tareas->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -1492,7 +1520,138 @@ foreach($raw_perfiles as $rp) $current_perfiles[] = is_array($rp) ? ($rp['perfil
                 </div>
             </div>
             <div id="tab-comerciales" style="<?= $active_tab == 'comerciales' ? '' : 'display:none;' ?>"><div class="info-section"><h3>Comercial</h3><p>Módulo en desarrollo...</p></div></div>
-            <div id="tab-tareas" style="<?= $active_tab == 'tareas' ? '' : 'display:none;' ?>"><div class="info-section"><h3>Tareas</h3><p>Módulo en desarrollo...</p></div></div>
+            <div id="tab-tareas" style="<?= $active_tab == 'tareas' ? '' : 'display:none;' ?>">
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                    <div style="background: #fff; padding: 12px; border-bottom: 2px solid #b91c1c; text-align: center;">
+                        <h3 style="color: #b91c1c; margin: 0; font-size: 1rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;">TAREAS</h3>
+                    </div>
+                    
+                    <div style="padding: 1rem; overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; min-width: 1000px; font-size: 0.85rem;">
+                            <thead>
+                                <tr style="background: #f8fafc; color: #1e3a8a; font-weight: 800; border-bottom: 2px solid #cbd5e1;">
+                                    <th style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">Expediente</th>
+                                    <th style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">Nº Acción</th>
+                                    <th style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">Año</th>
+                                    <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; width: 40px;">Ene</th>
+                                    <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; width: 40px;">Feb</th>
+                                    <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; width: 40px;">Mar</th>
+                                    <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; width: 40px;">Abr</th>
+                                    <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; width: 40px;">May</th>
+                                    <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; width: 40px;">Jun</th>
+                                    <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; width: 40px;">Jul</th>
+                                    <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; width: 40px;">Ago</th>
+                                    <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; width: 40px;">Sep</th>
+                                    <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; width: 40px;">Oct</th>
+                                    <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; width: 40px;">Nov</th>
+                                    <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; width: 40px;">Dic</th>
+                                    <th style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">Horas impart.</th>
+                                    <th style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">Horas tutoriz.</th>
+                                    <th style="padding: 12px; border: 1px solid #cbd5e1; text-align: center; width: 100px;">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (empty($tareas)): ?>
+                                    <tr><td colspan="18" style="text-align: center; color: #94a3b8; padding: 2rem;">No hay tareas registradas.</td></tr>
+                                <?php else: ?>
+                                    <?php foreach ($tareas as $t): ?>
+                                    <tr style="border-bottom: 1px solid #e2e8f0; background: #fff;">
+                                        <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700; color: #1e3a8a;"><?= htmlspecialchars($t['expediente'] ?? '') ?></td>
+                                        <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700; color: #1e3a8a;"><?= htmlspecialchars($t['num_accion'] ?? '') ?></td>
+                                        <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: center;"><?= htmlspecialchars($t['anio'] ?? '') ?></td>
+                                        <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;"><?= number_format($t['mes_1'] ?? 0, 0) ?></td>
+                                        <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;"><?= number_format($t['mes_2'] ?? 0, 0) ?></td>
+                                        <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;"><?= number_format($t['mes_3'] ?? 0, 0) ?></td>
+                                        <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;"><?= number_format($t['mes_4'] ?? 0, 0) ?></td>
+                                        <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;"><?= number_format($t['mes_5'] ?? 0, 0) ?></td>
+                                        <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;"><?= number_format($t['mes_6'] ?? 0, 0) ?></td>
+                                        <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;"><?= number_format($t['mes_7'] ?? 0, 0) ?></td>
+                                        <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;"><?= number_format($t['mes_8'] ?? 0, 0) ?></td>
+                                        <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;"><?= number_format($t['mes_9'] ?? 0, 0) ?></td>
+                                        <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;"><?= number_format($t['mes_10'] ?? 0, 0) ?></td>
+                                        <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;"><?= number_format($t['mes_11'] ?? 0, 0) ?></td>
+                                        <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;"><?= number_format($t['mes_12'] ?? 0, 0) ?></td>
+                                        <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700; color: #1e3a8a;"><?= number_format($t['horas_impartidas'] ?? 0, 1) ?>h</td>
+                                        <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700; color: #1e3a8a;"><?= number_format($t['horas_tutorizadas'] ?? 0, 1) ?>h</td>
+                                        <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: center;">
+                                            <div style="display: flex; gap: 4px; justify-content: center;">
+                                                <button onclick='openModalTarea(<?= json_encode($t) ?>)' style="padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 4px; background: #fff; color: #475569; font-weight: 800; font-size: 0.7rem; cursor: pointer;">Editar</button>
+                                                <button onclick="confirmDeleteEntry('tareas', <?= $t['id'] ?>, 'Tarea <?= addslashes($t['expediente'] ?? '') ?>')" style="padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 4px; background: #fef2f2; color: #b91c1c; font-weight: 800; font-size: 0.7rem; cursor: pointer;">Borrar</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div style="padding: 1.5rem; background: #f8fafc; border-top: 1px solid #e2e8f0;">
+                        <button onclick="openModalTarea()" class="btn-actualizar" style="margin: 0; padding: 8px 25px; font-weight: 800; text-transform: uppercase; font-size: 0.85rem;">Nueva Tarea</button>
+                    </div>
+                </div>
+
+                <!-- Modal Nueva/Editar Tarea -->
+                <div id="modalTarea" class="modal-overlay">
+                    <div class="modal-container" style="max-width: 900px;">
+                        <div class="modal-header" style="background: #fff; border-bottom: 2px solid #b91c1c;">
+                            <h2 style="color: #b91c1c; font-weight: 900; text-transform: uppercase;">GESTIÓN DE TAREA</h2>
+                            <button class="modal-close" onclick="closeModal('modalTarea')">
+                                <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                            </button>
+                        </div>
+                        <div class="modal-body" style="padding: 2rem;">
+                            <form method="POST" action="ficha_trabajador.php?id=<?= $id ?>&tab=tareas">
+                                <input type="hidden" name="action" value="add_tarea">
+                                <table style="width: 100%; border-collapse: collapse; border: 1px solid #cbd5e1; background: white;">
+                                    <tr style="background: #f8fafc;">
+                                        <td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 800; color: #1e3a8a; width: 150px;">Expediente:</td>
+                                        <td colspan="2" style="padding: 8px; border: 1px solid #cbd5e1;">
+                                            <input type="text" name="expediente" required style="width: 100%; border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px;">
+                                        </td>
+                                        <td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 800; color: #1e3a8a; width: 150px;">Nº Acción:</td>
+                                        <td colspan="2" style="padding: 8px; border: 1px solid #cbd5e1;">
+                                            <input type="text" name="num_accion" required style="width: 100%; border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px;">
+                                        </td>
+                                        <td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 800; color: #1e3a8a; width: 100px;">Año:</td>
+                                        <td style="padding: 8px; border: 1px solid #cbd5e1;">
+                                            <input type="number" name="anio" value="<?= date('Y') ?>" required style="width: 100%; border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px;">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="8" style="background: #e2e8f0; padding: 8px; font-weight: 800; color: #1e3a8a; text-align: center;">HORAS POR MES</td>
+                                    </tr>
+                                    <tr>
+                                        <?php 
+                                        $months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+                                        foreach($months as $i => $m): ?>
+                                            <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: center; background: #f8fafc;">
+                                                <div style="font-weight: 800; color: #1e3a8a; margin-bottom: 5px;"><?= $m ?></div>
+                                                <input type="number" step="0.1" name="mes_<?= $i+1 ?>" value="0" style="width: 50px; border: 1px solid #cbd5e1; padding: 5px; text-align: center; border-radius: 4px;">
+                                            </td>
+                                            <?php if (($i+1) % 4 == 0 && $i < 11): ?> </tr><tr> <?php endif; ?>
+                                        <?php endforeach; ?>
+                                    </tr>
+                                    <tr style="background: #f8fafc;">
+                                        <td colspan="2" style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 800; color: #1e3a8a; text-align: right;">HORAS IMPARTIDAS:</td>
+                                        <td colspan="2" style="padding: 8px; border: 1px solid #cbd5e1;">
+                                            <input type="number" step="0.1" name="horas_impartidas" value="0" style="width: 100%; border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px; font-weight: 700; color: #1e3a8a;">
+                                        </td>
+                                        <td colspan="2" style="padding: 12px; border: 1px solid #cbd5e1; font-weight: 800; color: #1e3a8a; text-align: right;">HORAS TUTORIZADAS:</td>
+                                        <td colspan="2" style="padding: 8px; border: 1px solid #cbd5e1;">
+                                            <input type="number" step="0.1" name="horas_tutorizadas" value="0" style="width: 100%; border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px; font-weight: 700; color: #1e3a8a;">
+                                        </td>
+                                    </tr>
+                                </table>
+
+                                <div style="text-align: center; margin-top: 2rem;">
+                                    <button type="submit" class="btn-actualizar" style="margin: 0; padding: 12px 50px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;">Guardar Tarea</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
         </div>
     </main>
@@ -1855,6 +2014,41 @@ foreach($raw_perfiles as $rp) $current_perfiles[] = is_array($rp) ? ($rp['perfil
                 if (form.entry_id) form.entry_id.remove();
             }
             openModal('modalNuevaFormacion');
+        }
+        // MODAL TAREAS
+        function openModalTarea(editData = null) {
+            const modal = document.getElementById('modalTarea');
+            const form = modal.querySelector('form');
+            const title = modal.querySelector('h2');
+            const btn = form.querySelector('button[type="submit"]');
+
+            if (editData) {
+                title.innerText = 'EDITAR TAREA';
+                btn.innerText = 'Guardar Cambios';
+                form.action.value = 'edit_tarea';
+                if (!form.entry_id) {
+                    const hidden = document.createElement('input');
+                    hidden.type = 'hidden';
+                    hidden.name = 'entry_id';
+                    form.appendChild(hidden);
+                }
+                form.entry_id.value = editData.id;
+                form.expediente.value = editData.expediente || '';
+                form.num_accion.value = editData.num_accion || '';
+                form.anio.value = editData.anio || '';
+                for (let i = 1; i <= 12; i++) {
+                    form['mes_' + i].value = editData['mes_' + i] || 0;
+                }
+                form.horas_impartidas.value = editData.horas_impartidas || 0;
+                form.horas_tutorizadas.value = editData.horas_tutorizadas || 0;
+            } else {
+                title.innerText = 'INSERTAR TAREA';
+                btn.innerText = 'Guardar Tarea';
+                form.action.value = 'add_tarea';
+                form.reset();
+                if (form.entry_id) form.entry_id.remove();
+            }
+            openModal('modalTarea');
         }
     </script>
     <!-- MODAL: Confirmar Borrado -->
