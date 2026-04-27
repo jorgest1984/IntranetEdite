@@ -212,6 +212,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             header("Location: ficha_trabajador.php?id=$id&tab=tareas&success=1");
             exit();
         }
+        if ($action == 'add_formacion') {
             $stmt = $pdo->prepare("INSERT INTO prof_formacion (profesor_id, usuario_id, denominacion, organismo, centro, desde, hasta, horas, tipo_formacion, calificacion, valoracion_usuario, observaciones) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $id, $id,
