@@ -2,14 +2,24 @@
 // acciones_formativas.php
 require_once 'includes/auth.php';
 
-if (!has_permission([ROLE_ADMIN, ROLE_TUTOR])) {
+if (!has_permission([ROLE_ADMIN, ROLE_TUTOR, ROLE_COMERCIAL, ROLE_ADMINISTRATIVO])) {
     header("Location: home.php");
     exit();
 }
 
 $is_subvencionada = (isset($_GET['context']) && $_GET['context'] === 'subvencionada');
-$page_title_prefix = $is_subvencionada ? 'FORMACIÓN SUBVENCIONADA' : 'ACCIONES FORMATIVAS';
-$back_url = $is_subvencionada ? 'formacion_subvencionada.php' : 'formacion_bonificada.php';
+$is_comercial = (isset($_GET['context']) && $_GET['context'] === 'comercial');
+
+if ($is_subvencionada) {
+    $page_title_prefix = 'FORMACIÓN SUBVENCIONADA';
+    $back_url = 'formacion_subvencionada.php';
+} elseif ($is_comercial) {
+    $page_title_prefix = 'ACCIONES FORMATIVAS';
+    $back_url = 'comerciales_acciones.php';
+} else {
+    $page_title_prefix = 'ACCIONES FORMATIVAS';
+    $back_url = 'formacion_bonificada.php';
+}
 
 // Fetch lists for selects
 $convocatorias = $pdo->query("SELECT id, nombre FROM convocatorias ORDER BY nombre ASC")->fetchAll();
