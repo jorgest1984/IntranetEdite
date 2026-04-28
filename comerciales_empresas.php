@@ -39,7 +39,7 @@ if (!has_permission([ROLE_ADMIN, ROLE_ADMINISTRATIVO, ROLE_COMERCIAL])) {
 
         <div class="home-container" style="padding: 0; margin-top: 2rem;">
             <div class="home-section">
-                <h2 class="home-section-title">Funcionalidades</h2>
+                <h2 class="home-section-title" style="font-size: 1.1rem; color: var(--text-color); margin-bottom: 1rem;">Herramientas para gestionar empresas en intranet para comerciales</h2>
                 <div class="tiles-grid">
                     
                     <!-- Tarjeta BUSCAR EMPRESA -->
