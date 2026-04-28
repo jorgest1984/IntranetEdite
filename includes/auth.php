@@ -39,4 +39,8 @@ define('ROLE_ADMINISTRATIVO', 2);
 define('ROLE_TUTOR', 3);
 define('ROLE_LECTURA', 4); // Legacy / Mantenimiento
 define('ROLE_COMERCIAL', 5);
+
+// Alias para compatibilidad con código antiguo
+define('ROLE_COORD', 2);
+define('ROLE_FORMADOR', 3);
 ?>
