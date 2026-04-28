@@ -2,7 +2,7 @@
 // buscar_alumnos.php
 require_once 'includes/auth.php';
 
-if (!has_permission([ROLE_ADMIN, ROLE_TUTOR])) {
+if (!has_permission([ROLE_ADMIN, ROLE_TUTOR, ROLE_COMERCIAL, ROLE_ADMINISTRATIVO])) {
     header("Location: home.php");
     exit();
 }
@@ -12,8 +12,18 @@ $error = '';
 $success = '';
 
 $is_subvencionada = (isset($_GET['context']) && $_GET['context'] === 'subvencionada');
-$page_title_prefix = $is_subvencionada ? 'FORMACIÓN SUBVENCIONADA' : 'ALUMNOS';
-$back_url = $is_subvencionada ? 'formacion_subvencionada.php' : 'formacion_bonificada.php';
+$is_comercial = (isset($_GET['context']) && $_GET['context'] === 'comercial');
+
+if ($is_subvencionada) {
+    $page_title_prefix = 'FORMACIÓN SUBVENCIONADA';
+    $back_url = 'formacion_subvencionada.php';
+} elseif ($is_comercial) {
+    $page_title_prefix = 'ALUMNOS';
+    $back_url = 'comerciales_trabajadores.php';
+} else {
+    $page_title_prefix = 'ALUMNOS';
+    $back_url = 'formacion_bonificada.php';
+}
 
 // Listas para dropdowns
 $provincias = [
