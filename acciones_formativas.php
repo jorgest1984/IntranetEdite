@@ -111,342 +111,430 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <link rel="icon" type="image/png" href="/img/logo_efp.png">
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $is_subvencionada ? 'Formación Subvencionada' : 'Acciones Formativas' ?> - Campos de Búsqueda</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
     <style>
         :root {
-            --primary-blue: #1a237e;
-            --header-red: #b22222;
-            --border-gray: #ccc;
-            --bg-light: #f9f9f9;
+            --title-red: #b91c1c;
+            --label-blue: #1e40af;
+            --border-gray: #cbd5e1;
+            --primary-color: #1e3a8a;
         }
-        body {
-            font-family: Arial, sans-serif;
+
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; margin: 0; }
+        .main-content { padding: 1.5rem; }
+
+        .search-card {
+            background: #fff;
+            border: 1px solid var(--border-gray);
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .card-header-custom {
+            background: #fff;
+            padding: 0.5rem;
+            border-bottom: 2px solid var(--border-gray);
+            text-align: center;
+        }
+
+        .card-header-custom h2 {
             margin: 0;
-            padding: 20px;
-            background-color: #fff;
-        }
-        .main-container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        .section-header {
-            color: var(--header-red);
-            font-size: 14px;
-            font-weight: bold;
-            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: var(--title-red);
             text-transform: uppercase;
-            margin-bottom: 10px;
-            border-bottom: 1px solid var(--border-gray);
-            padding-bottom: 5px;
         }
-        .search-grid {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-        .search-grid td {
-            padding: 8px 10px;
-            border: 1px solid #efefef;
-            vertical-align: middle;
-        }
-        .label {
-            color: var(--primary-blue);
-            font-weight: bold;
-            font-size: 13px;
-            text-align: right;
-            white-space: nowrap;
-            width: 120px;
-        }
-        .input-field {
-            width: 100%;
-            padding: 4px;
-            border: 1px solid #aaa;
-            border-radius: 2px;
-            font-size: 13px;
-            box-sizing: border-box;
-        }
-        .button-bar {
-            text-align: center;
-            padding: 15px;
-            gap: 15px;
+
+        .search-form { padding: 1rem; }
+
+        .search-row {
             display: flex;
-            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 10px;
             align-items: center;
         }
-        .btn-classic {
-            background: #eee;
-            border: 1px solid #999;
-            padding: 5px 15px;
-            cursor: pointer;
-            font-size: 12px;
+
+        .form-group {
             display: flex;
             align-items: center;
             gap: 5px;
-            text-decoration: none;
-            color: #000;
         }
-        .btn-classic:hover {
-            background: #ddd;
-        }
-        .pdf-icon {
-            width: 16px;
-            height: 16px;
-        }
-        .results-section {
-            margin-top: 30px;
-        }
-        .results-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 11px;
-            margin-top: 10px;
-        }
-        .results-table th {
-            background: #eee;
-            color: var(--primary-blue);
-            border: 1px solid var(--border-gray);
-            padding: 5px;
-            text-align: center;
+
+        .form-group label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--label-blue);
             white-space: nowrap;
         }
-        .results-table td {
+
+        .form-control {
+            font-size: 0.8rem;
+            padding: 3px 6px;
             border: 1px solid var(--border-gray);
-            padding: 5px;
-            text-align: left;
+            border-radius: 2px;
+            background: #fff;
         }
-        .results-table tr:hover {
-            background-color: #f5f5f5;
-        }
-        .sort-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 0;
-            vertical-align: middle;
-        }
-        .volver-container {
+
+        select.form-control { height: 26px; padding: 0 6px; }
+        input[type="text"].form-control { height: 24px; }
+
+        .button-bar {
             text-align: center;
-            margin-top: 20px;
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
         }
-        .check-group {
+
+        .btn-buscar {
+            background: #f1f5f9;
+            border: 1px solid var(--border-gray);
+            padding: 4px 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+        .btn-buscar:hover { background: #e2e8f0; }
+
+        .btn-print {
+            background: #fff;
+            border: 1px solid var(--border-gray);
+            padding: 3px 12px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: 3px;
+        }
+
+        .btn-print:hover { background: #f8fafc; }
+
+        /* Results Table */
+        .results-section {
+            background: #fff;
+            border: 1px solid var(--border-gray);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .results-header {
+            padding: 0.6rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border-gray);
+            position: relative;
+        }
+
+        .results-header .check-group {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.65rem;
             display: flex;
             align-items: center;
-            gap: 10px;
-            font-size: 13px;
-            color: var(--primary-blue);
-            font-weight: bold;
+            gap: 5px;
+            color: var(--label-blue);
+            font-weight: 700;
         }
+
+        .results-header h2 {
+            margin: 0;
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: var(--title-red);
+            text-transform: uppercase;
+        }
+
+        .table-responsive { 
+            overflow-x: auto; 
+            width: 100%;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border-gray);
+        }
+        
+        .table-custom {
+            width: 100%;
+            min-width: 1200px;
+            border-collapse: collapse;
+            font-size: 0.75rem;
+        }
+
+        .table-custom th {
+            background: #f8fafc;
+            border: 1px solid var(--border-gray);
+            padding: 8px;
+            text-align: center;
+            color: var(--label-blue);
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .table-custom th svg {
+            width: 10px;
+            height: 10px;
+            vertical-align: middle;
+            margin-right: 5px;
+            color: #64748b;
+        }
+
+        .table-custom td {
+            border: 1px solid #f1f5f9;
+            padding: 8px;
+            white-space: nowrap;
+        }
+
+        .table-custom tr:nth-child(even) { background: #f8fafc; }
+        .table-custom tr:hover { background: #f1f5f9; }
+
+        .btn-volver {
+            margin-top: 15px;
+            padding: 5px 20px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            background: #f1f5f9;
+            border: 1px solid var(--border-gray);
+            border-radius: 3px;
+        }
+        
+        .btn-volver:hover { background: #e2e8f0; }
+
+        .td-center { text-align: center; }
+        .td-right { text-align: right; }
     </style>
 </head>
 <body>
 
-<div class="main-container">
-    <div class="section-header"><?= $page_title_prefix ?> - CAMPOS DE BÚSQUEDA</div>
-    
-    <form method="GET">
-        <table class="search-grid">
-            <!-- Row 1 -->
-            <tr>
-                <td class="label">Nombre:</td>
-                <td colspan="5">
-                    <input type="text" name="nombre" class="input-field" value="<?= htmlspecialchars($_GET['nombre'] ?? '') ?>">
-                </td>
-            </tr>
-            <!-- Row 2 -->
-            <tr>
-                <td class="label">Convocatoria:</td>
-                <td>
-                    <select name="convocatoria_id" class="input-field">
-                        <option value="">Todas</option>
-                        <?php foreach ($convocatorias as $c): ?>
-                            <option value="<?= $c['id'] ?>" <?= (($_GET['convocatoria_id'] ?? '') == $c['id']) ? 'selected' : '' ?>><?= htmlspecialchars($c['nombre']) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </td>
-                <td class="label">Plan:</td>
-                <td colspan="3">
-                    <select name="plan_id" class="input-field">
-                        <option value="">Todos los planes</option>
-                        <?php foreach ($planes as $p): ?>
-                            <option value="<?= $p['id'] ?>" <?= (($_GET['plan_id'] ?? '') == $p['id']) ? 'selected' : '' ?>><?= htmlspecialchars($p['nombre']) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </td>
-            </tr>
-            <!-- Row 3 -->
-            <tr>
-                <td class="label">Solicitante:</td>
-                <td>
-                    <select name="solicitante" class="input-field">
-                        <option value=""></option>
-                        <?php foreach ($solicitantes as $s): ?>
-                            <option value="<?= htmlspecialchars($s) ?>" <?= (($_GET['solicitante'] ?? '') == $s) ? 'selected' : '' ?>><?= htmlspecialchars($s) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </td>
-                <td class="label">Sector:</td>
-                <td colspan="3">
-                    <select name="sector" class="input-field">
-                        <option value=""></option>
-                        <?php foreach ($sectores as $s): ?>
-                            <option value="<?= htmlspecialchars($s) ?>" <?= (($_GET['sector'] ?? '') == $s) ? 'selected' : '' ?>><?= htmlspecialchars($s) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </td>
-            </tr>
-            <!-- Row 4 -->
-            <tr>
-                <td class="label">Proveedor:</td>
-                <td>
-                    <select name="proveedor" class="input-field">
-                        <option value=""></option>
-                        <?php foreach ($proveedores as $p): ?>
-                            <option value="<?= htmlspecialchars($p) ?>" <?= (($_GET['proveedor'] ?? '') == $p) ? 'selected' : '' ?>><?= htmlspecialchars($p) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </td>
-                <td class="label">Catálogo:</td>
-                <td colspan="3">
-                    <select name="catalogo" class="input-field">
-                        <option value=""></option>
-                        <?php foreach ($catalogos as $c): ?>
-                            <option value="<?= htmlspecialchars($c) ?>" <?= (($_GET['catalogo'] ?? '') == $c) ? 'selected' : '' ?>><?= htmlspecialchars($c) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </td>
-            </tr>
-            <!-- Row 5 -->
-            <tr>
-                <td class="label">Consultora:</td>
-                <td>
-                    <select name="consultora" class="input-field">
-                        <option value=""></option>
-                        <?php foreach ($consultoras as $c): ?>
-                            <option value="<?= htmlspecialchars($c) ?>" <?= (($_GET['consultora'] ?? '') == $c) ? 'selected' : '' ?>><?= htmlspecialchars($c) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </td>
-                <td class="label">Num. acción:</td>
-                <td>
-                    <input type="text" name="id_accion" class="input-field" value="<?= htmlspecialchars($_GET['id_accion'] ?? '') ?>">
-                </td>
-                <td class="label">Prioridad:</td>
-                <td>
-                    <select name="prioridad" class="input-field">
-                        <option value=""></option>
-                        <?php foreach ($prioridades as $p): ?>
-                            <option value="<?= $p ?>" <?= (($_GET['prioridad'] ?? '') == $p) ? 'selected' : '' ?>><?= $p ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </td>
-            </tr>
-            <tr>
-                <td class="label">Modalidad:</td>
-                <td>
-                    <select name="modalidad" class="input-field">
-                        <option value=""></option>
-                        <?php foreach ($modalidades as $m): ?>
-                            <option value="<?= $m ?>" <?= (($_GET['modalidad'] ?? '') == $m) ? 'selected' : '' ?>><?= $m ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </td>
-                <td class="label">Reserva:</td>
-                <td colspan="3">
-                    <select name="reserva" class="input-field">
-                        <option value=""></option>
-                    </select>
-                </td>
-            </tr>
-        </table>
+<div class="app-container" style="display: flex; min-height: 100vh;">
+    <?php include 'includes/sidebar.php'; ?>
 
-        <div class="button-bar">
-            <button type="submit" class="btn-classic">Buscar</button>
-            <button type="button" class="btn-classic">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="red" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                Imprimir Contenidos
-            </button>
-            <button type="button" class="btn-classic">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="red" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                Contenidos resumidos
-            </button>
-            <button type="button" class="btn-classic">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="red" stroke-width="2"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-                Imprimir
-            </button>
-        </div>
-    </form>
-
-    <div class="results-section">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-            <div class="check-group">
-                Ordenar múltiple <input type="checkbox" name="ord_multiple">
+    <main class="main-content" style="flex: 1; overflow-y: auto;">
+        
+        <div class="search-card">
+            <div class="card-header-custom">
+                <h2><?= $page_title_prefix ?> - CAMPOS DE BÚSQUEDA</h2>
             </div>
-            <div style="color: var(--header-red); font-weight: bold; font-size: 14px; text-transform: uppercase;">
-                RESULTADO DE LA BÚSQUEDA
-            </div>
-            <div style="width: 150px;"></div>
+            
+            <form class="search-form" method="GET">
+                <input type="hidden" name="context" value="<?= htmlspecialchars($_GET['context'] ?? '') ?>">
+                
+                <!-- Fila 1 -->
+                <div class="search-row" style="justify-content: center;">
+                    <div class="form-group">
+                        <label>Nombre:</label>
+                        <input type="text" name="nombre" value="<?= htmlspecialchars($_GET['nombre'] ?? '') ?>" class="form-control" style="width: 400px;">
+                    </div>
+                </div>
+
+                <!-- Fila 2 -->
+                <div class="search-row">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Convocatoria:</label>
+                        <select name="convocatoria_id" class="form-control" style="width: 100%; max-width: 300px;">
+                            <option value="">Todas</option>
+                            <?php foreach ($convocatorias as $c): ?>
+                                <option value="<?= $c['id'] ?>" <?= (($_GET['convocatoria_id'] ?? '') == $c['id']) ? 'selected' : '' ?>><?= htmlspecialchars($c['nombre']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 2;">
+                        <label>Plan:</label>
+                        <select name="plan_id" class="form-control" style="width: 100%;">
+                            <option value="">Todos los planes</option>
+                            <?php foreach ($planes as $p): ?>
+                                <option value="<?= $p['id'] ?>" <?= (($_GET['plan_id'] ?? '') == $p['id']) ? 'selected' : '' ?>><?= htmlspecialchars($p['nombre']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Fila 3 -->
+                <div class="search-row">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Solicitante:</label>
+                        <select name="solicitante" class="form-control" style="width: 100%;">
+                            <option value=""></option>
+                            <?php foreach ($solicitantes as $s): ?>
+                                <option value="<?= htmlspecialchars($s) ?>" <?= (($_GET['solicitante'] ?? '') == $s) ? 'selected' : '' ?>><?= htmlspecialchars($s) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Sector:</label>
+                        <select name="sector" class="form-control" style="width: 100%;">
+                            <option value=""></option>
+                            <?php foreach ($sectores as $s): ?>
+                                <option value="<?= htmlspecialchars($s) ?>" <?= (($_GET['sector'] ?? '') == $s) ? 'selected' : '' ?>><?= htmlspecialchars($s) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Fila 4 -->
+                <div class="search-row">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Proveedor:</label>
+                        <select name="proveedor" class="form-control" style="width: 100%;">
+                            <option value=""></option>
+                            <?php foreach ($proveedores as $p): ?>
+                                <option value="<?= htmlspecialchars($p) ?>" <?= (($_GET['proveedor'] ?? '') == $p) ? 'selected' : '' ?>><?= htmlspecialchars($p) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Catálogo:</label>
+                        <select name="catalogo" class="form-control" style="width: 100%;">
+                            <option value=""></option>
+                            <?php foreach ($catalogos as $c): ?>
+                                <option value="<?= htmlspecialchars($c) ?>" <?= (($_GET['catalogo'] ?? '') == $c) ? 'selected' : '' ?>><?= htmlspecialchars($c) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Fila 5 -->
+                <div class="search-row">
+                    <div class="form-group" style="flex: 2;">
+                        <label>Consultora:</label>
+                        <select name="consultora" class="form-control" style="width: 100%;">
+                            <option value=""></option>
+                            <?php foreach ($consultoras as $c): ?>
+                                <option value="<?= htmlspecialchars($c) ?>" <?= (($_GET['consultora'] ?? '') == $c) ? 'selected' : '' ?>><?= htmlspecialchars($c) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Num. acción:</label>
+                        <input type="text" name="id_accion" class="form-control" value="<?= htmlspecialchars($_GET['id_accion'] ?? '') ?>" style="width: 80px;">
+                    </div>
+                    <div class="form-group">
+                        <label>Prioridad:</label>
+                        <select name="prioridad" class="form-control" style="width: 100px;">
+                            <option value=""></option>
+                            <?php foreach ($prioridades as $p): ?>
+                                <option value="<?= $p ?>" <?= (($_GET['prioridad'] ?? '') == $p) ? 'selected' : '' ?>><?= $p ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Modalidad:</label>
+                        <select name="modalidad" class="form-control" style="width: 140px;">
+                            <option value=""></option>
+                            <?php foreach ($modalidades as $m): ?>
+                                <option value="<?= $m ?>" <?= (($_GET['modalidad'] ?? '') == $m) ? 'selected' : '' ?>><?= $m ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Reserva:</label>
+                        <select name="reserva" class="form-control" style="width: 80px;">
+                            <option value=""></option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="button-bar">
+                    <button type="submit" class="btn-buscar">Buscar</button>
+                    <button type="button" class="btn-print" onclick="alert('Funcionalidad en desarrollo')">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg" width="14" alt="PDF">
+                        Imprimir Contenidos
+                    </button>
+                    <button type="button" class="btn-print" onclick="alert('Funcionalidad en desarrollo')">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg" width="14" alt="PDF">
+                        Contenidos resumidos
+                    </button>
+                    <button type="button" class="btn-print" onclick="window.print()">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg" width="14" alt="PDF">
+                        Imprimir
+                    </button>
+                </div>
+            </form>
         </div>
 
-        <table class="results-table">
-            <thead>
-                <tr>
-                    <th><button class="sort-btn">⬇️</button> Nº Acc</th>
-                    <th><button class="sort-btn">⬇️</button> Título</th>
-                    <th><button class="sort-btn">⬇️</button> Abrev.</th>
-                    <th><button class="sort-btn">⬇️</button> Modalidad</th>
-                    <th><button class="sort-btn">⬇️</button> Duración</th>
-                    <th><button class="sort-btn">⬇️</button> Plan</th>
-                    <th><button class="sort-btn">⬇️</button> Partic.</th>
-                    <th><button class="sort-btn">⬇️</button> Mostrar</th>
-                    <th><button class="sort-btn">⬇️</button> Estado</th>
-                    <th><button class="sort-btn">⬇️</button> Tutor1</th>
-                    <th><button class="sort-btn">⬇️</button> Tutor2</th>
-                    <th><button class="sort-btn">⬇️</button> Win</th>
-                    <th><button class="sort-btn">⬇️</button> Mac</th>
-                    <th><button class="sort-btn">⬇️</button> Proveedor</th>
-                    <th><button class="sort-btn">⬇️</button> Precio venta</th>
-                    <th><button class="sort-btn">⬇️</button> Último inicio</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if ($searched && count($results) > 0): ?>
-                    <?php foreach ($results as $row): ?>
+        <div class="results-section">
+            <div class="results-header">
+                <div class="check-group">
+                    <input type="checkbox" name="ord_multiple"> Ordenar múltiple
+                </div>
+                <h2>RESULTADO DE LA BÚSQUEDA</h2>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table-custom">
+                    <thead>
                         <tr>
-                            <td align="center"><?= $row['id'] ?></td>
-                            <td><?= htmlspecialchars($row['titulo']) ?></td>
-                            <td><?= htmlspecialchars($row['abreviatura'] ?? '') ?></td>
-                            <td align="center"><?= htmlspecialchars($row['modalidad'] ?? '') ?></td>
-                            <td align="center"><?= $row['duracion'] ?></td>
-                            <td><?= htmlspecialchars($row['nombre_plan'] ?? '') ?></td>
-                            <td align="center"><?= $row['participantes'] ?></td>
-                            <td align="center"><?= $row['mostrar_web'] ? 'Sí' : 'No' ?></td>
-                            <td align="center"><?= htmlspecialchars($row['estado']) ?></td>
-                            <td><?= $row['tutor1_id'] ?></td>
-                            <td><?= $row['tutor2_id'] ?></td>
-                            <td align="center"><?= $row['win'] ? 'X' : '' ?></td>
-                            <td align="center"><?= $row['mac'] ? 'X' : '' ?></td>
-                            <td><?= htmlspecialchars($row['proveedor'] ?? '') ?></td>
-                            <td align="right"><?= number_format($row['precio_venta'], 2) ?> €</td>
-                            <td align="center"><?= $row['ultimo_inicio'] ?></td>
+                            <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Nº Acc</th>
+                            <th style="text-align: left;"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Título</th>
+                            <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Abrev.</th>
+                            <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Modalidad</th>
+                            <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Duración</th>
+                            <th style="text-align: left;"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Plan</th>
+                            <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Partic.</th>
+                            <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Mostrar</th>
+                            <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Estado</th>
+                            <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Tutor1</th>
+                            <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Tutor2</th>
+                            <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Win</th>
+                            <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Mac</th>
+                            <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Proveedor</th>
+                            <th style="text-align: right;"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Precio venta</th>
+                            <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Último inicio</th>
                         </tr>
-                    <?php endforeach; ?>
-                <?php elseif ($searched): ?>
-                    <tr>
-                        <td colspan="16" align="center" style="padding: 20px; color: #666;">No se encontraron acciones formativas que coincidan con los criterios.</td>
-                    </tr>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="16" align="center" style="padding: 20px; color: #666;">Realice una búsqueda para ver los resultados.</td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
-    </div>
+                    </thead>
+                    <tbody>
+                        <?php if ($searched && count($results) > 0): ?>
+                            <?php foreach ($results as $row): ?>
+                                <tr>
+                                    <td class="td-center"><?= $row['id'] ?></td>
+                                    <td><a href="#" style="color: var(--label-blue); font-weight: 700; text-decoration: none;"><?= htmlspecialchars($row['titulo'] ?? '') ?></a></td>
+                                    <td><?= htmlspecialchars($row['abreviatura'] ?? '') ?></td>
+                                    <td class="td-center"><?= htmlspecialchars($row['modalidad'] ?? '') ?></td>
+                                    <td class="td-center"><?= $row['duracion'] ?></td>
+                                    <td><?= htmlspecialchars($row['nombre_plan'] ?? '') ?></td>
+                                    <td class="td-center"><?= $row['participantes'] ?></td>
+                                    <td class="td-center"><?= $row['mostrar_web'] ? 'Sí' : 'No' ?></td>
+                                    <td class="td-center"><?= htmlspecialchars($row['estado'] ?? '') ?></td>
+                                    <td><?= htmlspecialchars($row['tutor1_id'] ?? '') ?></td>
+                                    <td><?= htmlspecialchars($row['tutor2_id'] ?? '') ?></td>
+                                    <td class="td-center"><?= $row['win'] ? 'X' : '' ?></td>
+                                    <td class="td-center"><?= $row['mac'] ? 'X' : '' ?></td>
+                                    <td><?= htmlspecialchars($row['proveedor'] ?? '') ?></td>
+                                    <td class="td-right"><?= number_format($row['precio_venta'], 2) ?> €</td>
+                                    <td class="td-center"><?= htmlspecialchars($row['ultimo_inicio'] ?? '') ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php elseif ($searched): ?>
+                            <tr>
+                                <td colspan="16" class="td-center" style="padding: 2rem; color: var(--title-red); font-weight: 600;">
+                                    No se encontraron acciones formativas que coincidan con los criterios seleccionados.
+                                </td>
+                            </tr>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="16" class="td-center" style="padding: 2rem; color: #64748b;">
+                                    Utilice los filtros superiores para realizar una búsqueda.
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-    <div class="volver-container">
-        <a href="<?= $back_url ?>" class="btn-classic" style="text-decoration: none; display: inline-block;">Volver</a>
-    </div>
+        <div style="text-align: center;">
+            <a href="<?= $back_url ?>" class="btn-volver" style="display: inline-block; text-decoration: none;">Volver</a>
+        </div>
+
+    </main>
 </div>
 
 </body>
