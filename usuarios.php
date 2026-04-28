@@ -316,8 +316,9 @@ $roles = $pdo->query("SELECT * FROM roles WHERE id != " . ROLE_LECTURA . " ORDER
                 <h2>Listado de Personal</h2>
                 <div style="font-size: 0.8rem; color: var(--text-muted);"><?= count($usuarios) ?> usuarios registrados</div>
             </div>
-            <table class="premium-table">
-                <thead>
+            <div style="overflow-x: auto;">
+                <table class="premium-table">
+                    <thead>
                     <tr>
                         <th>Identidad Accesso</th>
                         <th>Nombre y Apellidos</th>
@@ -351,15 +352,22 @@ $roles = $pdo->query("SELECT * FROM roles WHERE id != " . ROLE_LECTURA . " ORDER
                         </td>
                         <td style="text-align: right; white-space: nowrap;">
                             <div style="display: flex; gap: 8px; justify-content: flex-end; align-items: center;">
-                                <a href="ficha_trabajador.php?id=<?= $u['id'] ?>" style="display: inline-block; text-align: center; min-width: 100px; padding: 8px 12px; border: 1px solid var(--label-blue); border-radius: 6px; font-size: 0.8rem; background: #eff6ff; color: var(--label-blue); text-decoration: none; font-weight: 700; text-transform: uppercase; transition: all 0.2s;">
-                                    Ver Perfil
+                                <a href="ficha_trabajador.php?id=<?= $u['id'] ?>" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 12px; border: 1px solid var(--label-blue); border-radius: 6px; font-size: 0.75rem; background: #eff6ff; color: var(--label-blue); text-decoration: none; font-weight: 700; text-transform: uppercase; transition: all 0.2s;">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                                    Perfil
                                 </a>
                                 <form method="POST" style="margin: 0;">
                                     <input type="hidden" name="action" value="toggle_status">
                                     <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
                                     <input type="hidden" name="status" value="<?= $u['activo'] ? '0' : '1' ?>">
-                                    <button type="submit" style="display: inline-block; text-align: center; min-width: 100px; padding: 8px 12px; border: 1px solid var(--border-gray); font-size: 0.8rem; background: #fff; border-radius: 6px; cursor: pointer; color: #475569; font-weight: 700; text-transform: uppercase; transition: all 0.2s;">
-                                        <?= $u['activo'] ? 'Suspender' : 'Activar' ?>
+                                    <button type="submit" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 12px; border: 1px solid <?= $u['activo'] ? '#fca5a5' : '#86efac' ?>; font-size: 0.75rem; background: <?= $u['activo'] ? '#fef2f2' : '#f0fdf4' ?>; border-radius: 6px; cursor: pointer; color: <?= $u['activo'] ? '#dc2626' : '#16a34a' ?>; font-weight: 700; text-transform: uppercase; transition: all 0.2s;">
+                                        <?php if ($u['activo']): ?>
+                                            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/></svg>
+                                            Suspender
+                                        <?php else: ?>
+                                            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+                                            Activar
+                                        <?php endif; ?>
                                     </button>
                                 </form>
                             </div>
@@ -368,6 +376,7 @@ $roles = $pdo->query("SELECT * FROM roles WHERE id != " . ROLE_LECTURA . " ORDER
                     <?php endforeach; ?>
                 </tbody>
             </table>
+            </div>
         </section>
     </main>
 </div>
