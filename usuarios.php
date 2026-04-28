@@ -63,8 +63,8 @@ $stmt = $pdo->query("SELECT u.*, r.nombre as rol_nombre
                      ORDER BY u.activo DESC, u.username ASC");
 $usuarios = $stmt->fetchAll();
 
-// Listado de roles para el combo
-$roles = $pdo->query("SELECT * FROM roles")->fetchAll();
+// Listado de roles para el combo (excluyendo Solo Lectura)
+$roles = $pdo->query("SELECT * FROM roles WHERE id != " . ROLE_LECTURA . " ORDER BY id ASC")->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="es">
