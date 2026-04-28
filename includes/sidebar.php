@@ -33,6 +33,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     </div>
     
     <ul class="sidebar-menu">
+        <li class="menu-divider">Inicio</li>
         <li>
             <a href="home.php" class="<?= $current_page == 'home.php' ? 'active' : '' ?>">
                 <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>

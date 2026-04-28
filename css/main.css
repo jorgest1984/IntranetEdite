@@ -147,6 +147,16 @@ body.is-resizing .main-content {
     padding: 0.25rem 1rem;
 }
 
+.sidebar-menu .menu-divider {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #b91c1c; /* Corporate Red */
+    text-transform: uppercase;
+    padding: 1.5rem 1rem 0.5rem 1rem;
+    letter-spacing: 0.5px;
+    opacity: 0.8;
+}
+
 .sidebar-menu a {
     display: flex;
     align-items: center;
