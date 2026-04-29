@@ -218,7 +218,7 @@ $provincias = [
                     <!-- Fila 4 -->
                     <div class="form-row" style="margin-top: 15px;">
                         <div class="form-group" style="flex: 3;">
-                            <span class="label" style="width: 120px; text-align: right;">Domicilio:</span>
+                            <span class="label" style="min-width: 145px; text-align: right;">Domicilio:</span>
                             <input type="text" class="form-control" name="domicilio">
                         </div>
                         <div class="form-group" style="flex: 1;">
@@ -230,7 +230,7 @@ $provincias = [
                     <!-- Fila 5 -->
                     <div class="form-row">
                         <div class="form-group">
-                            <span class="label" style="width: 120px; text-align: right;">Localidad:</span>
+                            <span class="label" style="min-width: 145px; text-align: right;">Localidad:</span>
                             <input type="text" class="form-control" name="localidad">
                         </div>
                         <div class="form-group">
@@ -259,7 +259,7 @@ $provincias = [
                     <!-- Fila 6 -->
                     <div class="form-row">
                         <div class="form-group" style="flex: 1;">
-                            <span class="label" style="width: 120px; text-align: right;">Móvil:</span>
+                            <span class="label" style="min-width: 145px; text-align: right;">Móvil:</span>
                             <input type="text" class="form-control" name="movil">
                         </div>
                         <div class="form-group" style="flex: 2;">
@@ -282,7 +282,7 @@ $provincias = [
                     <!-- Fila 7 -->
                     <div class="form-row">
                         <div class="form-group" style="flex: 2;">
-                            <span class="label" style="width: 120px; text-align: right;">Tema de interés:</span>
+                            <span class="label" style="min-width: 145px; text-align: right;">Tema de interés:</span>
                             <input type="text" class="form-control" name="tema_interes">
                         </div>
                         <div class="checkbox-group" style="flex: 1;">
@@ -309,7 +309,7 @@ $provincias = [
 
                     <!-- Fila 9 (Notas) -->
                     <div class="form-row" style="align-items: flex-start; margin-top: 15px;">
-                        <span class="label" style="width: 120px; text-align: right; margin-top: 5px;">Notas:</span>
+                        <span class="label" style="min-width: 145px; text-align: right; margin-top: 5px;">Notas:</span>
                         <textarea class="form-control" name="notas" style="height: 100px; resize: vertical;"></textarea>
                     </div>
 
