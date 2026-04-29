@@ -658,6 +658,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_schedule'])) {
                                 <?= nl2br(htmlspecialchars($llamada['notas_importantes'])) ?>
                                 <button type="button" class="btn-add-note" onclick="openNotaModal()" style="margin-left: 15px;">Editar nota</button>
                             </div>
+                        <?php endif; ?>
                     </section>
 
                     <!-- SECCIÓN 6: DATOS DE LA LLAMADA -->
