@@ -59,6 +59,10 @@ $llamada = [
     'notas_importantes' => ''
 ];
 
+// MOCK: ID del usuario que supuestamente creó esta llamada/nota
+$llamada_usuario_id = 1; 
+$puede_editar = ($_SESSION['user_id'] == $llamada_usuario_id) || has_permission([ROLE_ADMIN]);
+
 // PROCESAR GUARDADO DE NOTA IMPORTANTE
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_save_nota'])) {
     $nota_texto = trim($_POST['nota_texto'] ?? '');
@@ -145,6 +149,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_save_call'])) 
         $success_msg = "Registro de llamada guardado correctamente.";
     } catch (Exception $e) {
         $error_msg = "Error al guardar la llamada: " . $e->getMessage();
+    }
+}
+
+// PROCESAR BORRADO DE LLAMADA
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_delete_call'])) {
+    if ($puede_editar) {
+        // Lógica de borrado en DB
+        $success_msg = "Llamada eliminada correctamente.";
+    } else {
+        $error_msg = "No tienes permiso para eliminar esta llamada.";
     }
 }
 
@@ -664,11 +678,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_schedule'])) {
                         <?php if (empty($llamada['notas_importantes'])): ?>
                             <div style="color: #b91c1c; font-weight: 700; font-size: 0.9rem;">
                                 Este alumno no tiene registrada ninguna nota importante
+                                <?php if ($puede_editar): ?>
                                 <button type="button" class="btn-add-note" onclick="openNotaModal()">Añadir nota imp.</button>
+                                <?php endif; ?>
                             </div>
                         <?php else: ?>
                             <div style="color: #0f172a; font-weight: 600; font-size: 0.9rem; background: #fff; padding: 10px; border-radius: 4px; border: 1px solid var(--border-gray); display: flex; justify-content: space-between; align-items: flex-start; gap: 15px;">
                                 <div style="flex: 1;"><?= nl2br(htmlspecialchars($llamada['notas_importantes'])) ?></div>
+                                <?php if ($puede_editar): ?>
                                 <div style="display: flex; gap: 8px;">
                                     <button type="button" class="btn-add-note" onclick="openNotaModal()" style="margin: 0; background: #f1f5f9; color: #1e293b; border-color: #cbd5e1;">Editar nota</button>
                                     <form method="POST" style="margin: 0;" onsubmit="return confirm('¿Estás seguro de que deseas borrar esta nota?');">
@@ -676,6 +693,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_schedule'])) {
                                         <button type="submit" class="btn-add-note" style="margin: 0;">Borrar nota</button>
                                     </form>
                                 </div>
+                                <?php endif; ?>
                             </div>
                         <?php endif; ?>
                     </section>
@@ -793,9 +811,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_schedule'])) {
                                 </div>
                             </div>
 
-                            <div style="text-align: center; margin-top: 30px;">
+                            <?php if ($puede_editar): ?>
+                            <div style="text-align: center; margin-top: 30px; display: flex; justify-content: center; gap: 15px;">
                                 <button type="submit" class="btn btn-primary" style="padding: 10px 40px; text-transform: uppercase; font-weight: 800; letter-spacing: 1px;">Guardar registro</button>
+                                <button type="submit" name="action_delete_call" value="1" class="btn" style="padding: 10px 30px; text-transform: uppercase; font-weight: 800; letter-spacing: 1px; background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;" onclick="return confirm('¿Estás seguro de que deseas eliminar esta llamada permanentemente?');">Eliminar llamada</button>
                             </div>
+                            <?php else: ?>
+                            <div style="text-align: center; margin-top: 30px;">
+                                <span style="color: #64748b; font-size: 0.85rem; font-weight: 600;">No tienes permisos para editar o eliminar esta llamada.</span>
+                            </div>
+                            <?php endif; ?>
                         </form>
                     </section>
 
