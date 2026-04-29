@@ -11,6 +11,21 @@ $id = $_GET['id'] ?? null;
 $success_msg = '';
 $error_msg = '';
 
+// PROCESAR GUARDADO DE NOTA IMPORTANTE
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_save_nota'])) {
+    $nota_texto = trim($_POST['nota_texto'] ?? '');
+    
+    // Aquí guardaríamos en la DB, por ejemplo en alumnos.observaciones o una tabla de notas
+    /*
+    $stmt = $pdo->prepare("UPDATE alumnos SET observaciones = ? WHERE id = ?");
+    $stmt->execute([$nota_texto, $alumno_id]);
+    */
+    
+    // Simulamos el guardado para la vista
+    $llamada['notas_importantes'] = $nota_texto;
+    $success_msg = "Nota guardada correctamente.";
+}
+
 // PROCESAR ENVÍO DE EMAIL
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_send_email'])) {
     $to = $_POST['destinatario_email'] ?? '';
@@ -636,9 +651,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_schedule'])) {
                         <?php if (empty($llamada['notas_importantes'])): ?>
                             <div style="color: #b91c1c; font-weight: 700; font-size: 0.9rem;">
                                 Este alumno no tiene registrada ninguna nota importante
-                                <button class="btn-add-note">Añadir nota imp.</button>
+                                <button type="button" class="btn-add-note" onclick="openNotaModal()">Añadir nota imp.</button>
                             </div>
-                        <?php endif; ?>
+                        <?php else: ?>
+                            <div style="color: #0f172a; font-weight: 600; font-size: 0.9rem; background: #fff; padding: 10px; border-radius: 4px; border: 1px solid var(--border-gray);">
+                                <?= nl2br(htmlspecialchars($llamada['notas_importantes'])) ?>
+                                <button type="button" class="btn-add-note" onclick="openNotaModal()" style="margin-left: 15px;">Editar nota</button>
+                            </div>
                     </section>
 
                     <!-- SECCIÓN 6: DATOS DE LA LLAMADA -->
@@ -910,6 +929,31 @@ Nos ponemos en contacto contigo en relación con el curso de <?= htmlspecialchar
         </div>
     </div>
 
+    <!-- Modal Nota Importante -->
+    <div id="notaModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header" style="justify-content: center; position: relative;">
+                <h2 style="font-size: 1rem;">FICHA DE NOTA ALUMNO</h2>
+                <button type="button" class="modal-close" onclick="closeNotaModal()" style="position: absolute; right: 15px; top: 15px;">&times;</button>
+            </div>
+            <form action="#" method="POST">
+                <input type="hidden" name="action_save_nota" value="1">
+                <div class="email-body" style="padding: 0;">
+                    <div style="padding: 15px 20px; border-bottom: 1px solid var(--border-gray);">
+                        <span style="font-weight: 800; color: var(--label-blue);">Alumno:</span>
+                        <span style="font-weight: 800; color: #b91c1c; margin-left: 10px;"><?= htmlspecialchars($llamada['alumno']['nombre']) ?></span>
+                    </div>
+                    <div style="padding: 20px; background: #f8fafc;">
+                        <textarea name="nota_texto" style="width: 100%; height: 150px; padding: 10px; border: 1px solid #94a3b8; background: #e2e8f0; font-family: inherit; font-size: 1rem; resize: vertical;"><?= htmlspecialchars($llamada['notas_importantes']) ?></textarea>
+                    </div>
+                </div>
+                <div class="actions-footer" style="margin-top: 0; padding: 15px;">
+                    <button type="submit" class="btn-efp btn-primary-efp" style="font-weight: 600;">Guardar nota</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         function openEmailModal() {
             document.getElementById('emailModal').style.display = 'flex';
@@ -917,6 +961,14 @@ Nos ponemos en contacto contigo en relación con el curso de <?= htmlspecialchar
 
         function closeEmailModal() {
             document.getElementById('emailModal').style.display = 'none';
+        }
+        
+        function openNotaModal() {
+            document.getElementById('notaModal').style.display = 'flex';
+        }
+
+        function closeNotaModal() {
+            document.getElementById('notaModal').style.display = 'none';
         }
 
         function updateFileName(input) {
@@ -933,11 +985,15 @@ Nos ponemos en contacto contigo en relación con el curso de <?= htmlspecialchar
             }
         }
         
-        // Cerrar al hacer clic fuera del contenido
+        // Cerrar modales al hacer clic fuera
         window.onclick = function(event) {
-            const modal = document.getElementById('emailModal');
-            if (event.target == modal) {
+            const emailModal = document.getElementById('emailModal');
+            const notaModal = document.getElementById('notaModal');
+            if (event.target == emailModal) {
                 closeEmailModal();
+            }
+            if (event.target == notaModal) {
+                closeNotaModal();
             }
         }
     </script>
