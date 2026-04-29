@@ -94,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_delete_nota'])
 // PROCESAR ENVÍO DE EMAIL
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_send_email'])) {
     $to = $_POST['destinatario_email'] ?? '';
-    $subject = $_POST['asunto_email'] ?? 'Mensaje de Editeformación';
+    $subject = $_POST['asunto_email'] ?? 'Mensaje de GrupoEFP';
     $message = $_POST['mensaje'] ?? '';
     $from = $_POST['remitente_email'] ?? 'intranet@grupoefp.es';
     
@@ -902,7 +902,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_schedule'])) {
                         </div>
                         <div class="form-group" style="flex: 1;">
                             <span class="label">Asunto:</span>
-                            <input type="text" name="asunto_email" class="form-control" value="Mensaje de Editeformación" style="color: var(--label-blue); text-decoration: underline;">
+                            <input type="text" name="asunto_email" class="form-control" value="Mensaje de GrupoEFP" style="color: var(--label-blue); text-decoration: underline;">
                         </div>
                     </div>
                     <!-- Fila 3 -->
