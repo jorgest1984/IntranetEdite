@@ -294,7 +294,7 @@ $provincias = [
                     <!-- Fila 8 -->
                     <div class="form-row">
                         <div class="form-group" style="flex: 2;">
-                            <span class="label" style="width: 120px; text-align: right;">Persona de contacto:</span>
+                            <span class="label" style="min-width: 145px; text-align: right;">Persona de contacto:</span>
                             <input type="text" class="form-control" name="persona_contacto">
                         </div>
                         <div class="checkbox-group" style="flex: 0.5;">
