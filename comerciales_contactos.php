@@ -83,6 +83,7 @@ $provincias = [
                 font-weight: 700;
                 font-size: 0.8rem;
                 white-space: nowrap;
+                display: inline-block;
             }
             .form-control {
                 border: 1px solid #94a3b8;
