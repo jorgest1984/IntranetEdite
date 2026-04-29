@@ -223,22 +223,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && (!empty($_GET['fecha_desde']) || !em
             width: 100%;
             min-width: 1200px;
             border-collapse: collapse;
-            font-size: 0.9rem;
+            font-size: 0.75rem;
         }
 
         .table-custom th {
             background: var(--bg-header);
             border: 1px solid var(--border-gray);
-            padding: 10px;
+            padding: 8px 10px;
             text-align: left;
             color: var(--label-blue);
             font-weight: 800;
-            font-size: 1.1rem;
+            font-size: 0.8rem;
+            text-transform: uppercase;
         }
 
         .table-custom td {
             border: 1px solid var(--border-gray);
-            padding: 8px 12px;
+            padding: 6px 10px;
             white-space: normal;
             vertical-align: middle;
             color: var(--label-blue);
