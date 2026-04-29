@@ -35,34 +35,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && (!empty($_GET['fecha_desde']) || !em
     // Mock data según la imagen enviada por el usuario
     $llamadas = [
         [
-            'empresa' => 'BRIAN BUENO GUERRERO',
+            'empresa' => 'Brian Bueno Guerrero',
             'contacto' => '',
             'fecha' => '',
             'hora' => '09:58:00',
-            'asunto' => 'TURISMO',
-            'notas' => 'NO LE INTERESA, ESTÁ TRABAJANDO',
+            'asunto' => 'Turismo',
+            'notas' => 'No le interesa, está trabajando',
             'enviada_info' => '',
             'fecha_envio' => '',
             'resultado' => ''
         ],
         [
-            'empresa' => 'CELIA MUÑOZ RODRIGUEZ',
+            'empresa' => 'Celia Muñoz Rodriguez',
             'contacto' => '',
             'fecha' => '',
             'hora' => '10:00:00',
-            'asunto' => 'TURISMO',
-            'notas' => 'HABLO CON ELLA Y ME DICE QUE EN ESTE MOMENTO NO LE INTERESA',
+            'asunto' => 'Turismo',
+            'notas' => 'Hablo con ella y me dice que en este momento no le interesa',
             'enviada_info' => '',
             'fecha_envio' => '',
             'resultado' => ''
         ],
         [
-            'empresa' => 'CARLOS GARCIA TORRIJOS',
+            'empresa' => 'Carlos Garcia Torrijos',
             'contacto' => '',
             'fecha' => '',
             'hora' => '10:03:00',
-            'asunto' => 'TURISMO',
-            'notas' => 'NO CONTESTA',
+            'asunto' => 'Turismo',
+            'notas' => 'No contesta',
             'enviada_info' => '',
             'fecha_envio' => '',
             'resultado' => ''
@@ -234,7 +234,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && (!empty($_GET['fecha_desde']) || !em
             color: var(--label-blue);
             font-weight: 800;
             font-size: 0.8rem;
-            text-transform: uppercase;
         }
 
         .table-custom td {
@@ -250,8 +249,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && (!empty($_GET['fecha_desde']) || !em
         .table-custom tr.row-even { background: var(--row-beige); }
 
         .cell-bold-blue {
-            font-weight: 800 !important;
-            font-size: 1.1rem;
+            font-weight: 700 !important;
         }
 
         .action-icons {
@@ -424,9 +422,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && (!empty($_GET['fecha_desde']) || !em
                                     <tr class="<?= ($index % 2 == 0) ? 'row-odd' : 'row-even' ?>">
                                         <td class="cell-bold-blue"><?= htmlspecialchars($ll['empresa']) ?></td>
                                         <td><?= $ll['fecha'] ? date('d/m/Y', strtotime($ll['fecha'])) : '' ?></td>
-                                        <td class="cell-bold-blue" style="font-size: 1rem;"><?= htmlspecialchars($ll['hora']) ?></td>
-                                        <td class="cell-bold-blue" style="font-size: 1rem;"><?= htmlspecialchars($ll['asunto']) ?></td>
-                                        <td class="cell-bold-blue" style="font-size: 1rem;"><?= htmlspecialchars($ll['notas']) ?></td>
+                                        <td class="cell-bold-blue"><?= htmlspecialchars($ll['hora']) ?></td>
+                                        <td class="cell-bold-blue"><?= htmlspecialchars($ll['asunto']) ?></td>
+                                        <td class="cell-bold-blue"><?= htmlspecialchars($ll['notas']) ?></td>
                                         <td style="text-align: center;"><?= htmlspecialchars($ll['enviada_info']) ?></td>
                                         <td><?= $ll['fecha_envio'] ? date('d/m/Y', strtotime($ll['fecha_envio'])) : '' ?></td>
                                         <td><?= htmlspecialchars($ll['resultado']) ?></td>
