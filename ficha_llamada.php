@@ -469,6 +469,147 @@ $llamada = [
                             </div>
                         <?php endif; ?>
                     </section>
+
+                    <!-- SECCIÓN 6: DATOS DE LA LLAMADA -->
+                    <section class="section-box" style="background: #f8fafc;">
+                        <h2 class="section-title">DATOS DE LA LLAMADA</h2>
+                        
+                        <form method="POST">
+                            <div class="call-data-container" style="display: flex; gap: 20px;">
+                                <div style="flex: 1;">
+                                    <div class="data-row" style="gap: 15px;">
+                                        <div class="data-item">
+                                            <label class="label">Fecha contacto:</label>
+                                            <input type="date" class="form-control" value="<?= date('Y-m-d') ?>">
+                                        </div>
+                                        <div class="data-item">
+                                            <label class="label">Hora contacto:</label>
+                                            <input type="time" class="form-control" value="09:58">
+                                        </div>
+                                        <div class="data-item">
+                                            <label class="label">Motivo ():</label>
+                                            <select class="form-control">
+                                                <option>Información</option>
+                                                <option>Seguimiento</option>
+                                                <option>Reclamación</option>
+                                            </select>
+                                        </div>
+                                        <div class="data-item" style="flex-direction: row; align-items: center; gap: 10px; margin-top: 20px;">
+                                            <label style="font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 4px;">
+                                                <input type="radio" name="quien_contacta" checked> Contactamos nosotros
+                                            </label>
+                                            <label style="font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 4px;">
+                                                <input type="radio" name="quien_contacta"> Contactan ellos
+                                            </label>
+                                        </div>
+                                        <div class="data-item">
+                                            <label class="label">Forma:</label>
+                                            <select class="form-control">
+                                                <option>Teléfono</option>
+                                                <option>Email</option>
+                                                <option>Presencial</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="data-row" style="gap: 15px; margin-top: 15px;">
+                                        <div class="data-item">
+                                            <label class="label">Preferencias impartición presencial:</label>
+                                        </div>
+                                        <div class="data-item">
+                                            <label class="label">Modulación:</label>
+                                            <select class="form-control" style="width: 120px;"><option>---</option></select>
+                                        </div>
+                                        <div class="data-item">
+                                            <label class="label">Horarios:</label>
+                                            <select class="form-control" style="width: 120px;"><option>---</option></select>
+                                        </div>
+                                        <div class="data-item">
+                                            <label class="label">Resultado llamada:</label>
+                                            <select class="form-control" style="width: 180px;"><option>---</option></select>
+                                        </div>
+                                    </div>
+
+                                    <div class="data-item" style="margin-top: 20px;">
+                                        <label class="label">Asunto:</label>
+                                        <textarea class="form-control" style="height: 80px; width: 100%; resize: vertical; font-family: inherit;">TURISMO</textarea>
+                                    </div>
+
+                                    <div class="data-item" style="margin-top: 20px;">
+                                        <label class="label" style="color: var(--label-blue);">Observaciones internas:</label>
+                                        <textarea class="form-control" style="height: 80px; width: 100%; resize: vertical; font-family: inherit; color: var(--label-blue); font-weight: 600;">NO LE INTERESA, ESTÁ TRABAJANDO</textarea>
+                                    </div>
+                                </div>
+
+                                <!-- Panel de iconos lateral derecho -->
+                                <div style="width: 180px; display: flex; flex-direction: column; gap: 20px; border-left: 1px solid var(--border-gray); padding-left: 20px;">
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                        <div style="text-align: center;">
+                                            <svg viewBox="0 0 24 24" width="32" height="32" style="color: #0ea5e9;"><path fill="currentColor" d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                                            <div style="font-size: 0.7rem; font-weight: 700; color: var(--label-blue);">e-mail</div>
+                                        </div>
+                                        <div style="text-align: center;">
+                                            <svg viewBox="0 0 24 24" width="32" height="32" style="color: #64748b;"><path fill="currentColor" d="M19 8h-1V3H6v5H5c-1.66 0-3 1.33-3 3v6h4v4h12v-4h4v-6c0-1.67-1.33-3-3-3zM8 5h8v3H8V5zm8 14H8v-4h8v4zm4-4h-2v-2H6v2H4v-4c0-.55.45-1 1-1h14c.55 0 1 .45 1 1v4z"/></svg>
+                                            <div style="font-size: 0.7rem; font-weight: 700; color: var(--label-blue);">Fax</div>
+                                        </div>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <svg viewBox="0 0 24 24" width="32" height="32" style="color: #f59e0b;"><path fill="currentColor" d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-4H6V8h12v4z"/></svg>
+                                        <div style="font-size: 0.7rem; font-weight: 700; color: var(--label-blue);">Carta</div>
+                                    </div>
+                                    
+                                    <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 15px;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <div style="width: 32px; height: 32px; background: #fee2e2; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #b91c1c;">
+                                                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                                            </div>
+                                            <span style="font-size: 0.75rem; font-weight: 700; color: var(--label-blue);">Emitir queja</span>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <svg viewBox="0 0 24 24" width="24" height="24" style="color: #475569;"><path fill="currentColor" d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg>
+                                            <span style="font-size: 0.75rem; font-weight: 700; color: var(--label-blue);">Agenda alertas</span>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <svg viewBox="0 0 24 24" width="24" height="24" style="color: #0ea5e9;"><path fill="currentColor" d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-7H6V5h12v2z"/></svg>
+                                            <span style="font-size: 0.75rem; font-weight: 700; color: var(--label-blue);">Mensajería</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="text-align: center; margin-top: 30px;">
+                                <button type="submit" class="btn btn-primary" style="padding: 10px 40px; text-transform: uppercase; font-weight: 800; letter-spacing: 1px;">Guardar registro</button>
+                            </div>
+                        </form>
+                    </section>
+
+                    <!-- SECCIÓN 7: PROGRAMAR CITA -->
+                    <section class="section-box" style="margin-top: 20px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff;">
+                        <h3 style="margin: 0 0 20px 0; font-size: 1.1rem; font-weight: 700; color: #334155;">Programar cita</h3>
+                        
+                        <form method="POST">
+                            <div style="display: grid; grid-template-columns: 300px 1fr; gap: 20px;">
+                                <div class="data-item">
+                                    <label class="label">Fecha y hora:</label>
+                                    <div style="display: flex; gap: 10px; align-items: center;">
+                                        <input type="date" class="form-control">
+                                        <input type="time" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="data-item">
+                                    <label class="label">Asunto:</label>
+                                    <input type="text" class="form-control" value="Llamar a BRIAN BUENO GUERRERO" style="width: 100%;">
+                                </div>
+                            </div>
+                            <div class="data-item" style="margin-top: 15px;">
+                                <label class="label">Descripción:</label>
+                                <textarea class="form-control" style="height: 60px; width: 100%; resize: vertical; font-family: inherit;"></textarea>
+                            </div>
+                            <div style="margin-top: 15px;">
+                                <button type="submit" class="btn" style="background: #f1f5f9; border: 1px solid var(--border-gray); font-weight: 600; padding: 6px 20px;">Programar</button>
+                            </div>
+                        </form>
+                    </section>
                 </div>
 
                 <!-- COLUMNA LATERAL (SIDEBAR) -->
