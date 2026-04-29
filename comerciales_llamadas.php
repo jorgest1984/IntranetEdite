@@ -32,30 +32,40 @@ $searchPerformed = false;
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && (!empty($_GET['fecha_desde']) || !empty($_GET['comercial_id']))) {
     $searchPerformed = true;
-    // Aquí iría la consulta real a la tabla de llamadas
-    // Por ahora mockeamos un resultado para demostración si se pulsa buscar
+    // Mock data según la imagen enviada por el usuario
     $llamadas = [
         [
-            'empresa' => 'Empresa de Prueba SL',
-            'contacto' => 'Juan Pérez',
-            'fecha' => date('Y-m-d'),
-            'hora' => '10:30',
-            'asunto' => 'Presentación servicios',
-            'notas' => 'Interesado en formación bonificada',
-            'enviada_info' => 'SI',
-            'fecha_envio' => date('Y-m-d'),
-            'resultado' => 'Cita concertada'
+            'empresa' => 'BRIAN BUENO GUERRERO',
+            'contacto' => '',
+            'fecha' => '',
+            'hora' => '09:58:00',
+            'asunto' => 'TURISMO',
+            'notas' => 'NO LE INTERESA, ESTÁ TRABAJANDO',
+            'enviada_info' => '',
+            'fecha_envio' => '',
+            'resultado' => ''
         ],
         [
-            'empresa' => 'Talleres Mecánicos S.A.',
-            'contacto' => 'María García',
-            'fecha' => date('Y-m-d', strtotime('-1 day')),
-            'hora' => '11:45',
-            'asunto' => 'Seguimiento presupuesto',
-            'notas' => 'Pendiente de aprobación por gerencia',
-            'enviada_info' => 'SI',
-            'fecha_envio' => date('Y-m-d', strtotime('-1 day')),
-            'resultado' => 'Volver a llamar'
+            'empresa' => 'CELIA MUÑOZ RODRIGUEZ',
+            'contacto' => '',
+            'fecha' => '',
+            'hora' => '10:00:00',
+            'asunto' => 'TURISMO',
+            'notas' => 'HABLO CON ELLA Y ME DICE QUE EN ESTE MOMENTO NO LE INTERESA',
+            'enviada_info' => '',
+            'fecha_envio' => '',
+            'resultado' => ''
+        ],
+        [
+            'empresa' => 'CARLOS GARCIA TORRIJOS',
+            'contacto' => '',
+            'fecha' => '',
+            'hora' => '10:03:00',
+            'asunto' => 'TURISMO',
+            'notas' => 'NO CONTESTA',
+            'enviada_info' => '',
+            'fecha_envio' => '',
+            'resultado' => ''
         ]
     ];
 }
@@ -72,9 +82,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && (!empty($_GET['fecha_desde']) || !em
     <style>
         :root {
             --title-red: #b91c1c;
-            --label-blue: #1e40af;
+            --label-blue: #000080; /* Azul oscuro similar a la imagen */
             --border-gray: #cbd5e1;
-            --bg-light: #f8fafc;
+            --bg-header: #e2e8f0;
+            --row-pink: #fee2e2;
+            --row-beige: #fef3c7;
         }
 
         body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
@@ -194,7 +206,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && (!empty($_GET['fecha_desde']) || !em
 
         .results-header h2 {
             margin: 0;
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             font-weight: 800;
             color: var(--title-red);
             text-transform: uppercase;
@@ -211,27 +223,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && (!empty($_GET['fecha_desde']) || !em
             width: 100%;
             min-width: 1200px;
             border-collapse: collapse;
-            font-size: 0.8rem;
+            font-size: 0.9rem;
         }
 
         .table-custom th {
-            background: #f8fafc;
+            background: var(--bg-header);
             border: 1px solid var(--border-gray);
             padding: 10px;
             text-align: left;
             color: var(--label-blue);
-            font-weight: 700;
-            text-transform: uppercase;
+            font-weight: 800;
+            font-size: 1.1rem;
         }
 
         .table-custom td {
-            border: 1px solid #f1f5f9;
-            padding: 10px;
+            border: 1px solid var(--border-gray);
+            padding: 8px 12px;
             white-space: normal;
+            vertical-align: middle;
+            color: var(--label-blue);
+            font-weight: 500;
         }
 
-        .table-custom tr:nth-child(even) { background: #f8fafc; }
-        .table-custom tr:hover { background: #fef2f2; }
+        .table-custom tr.row-odd { background: var(--row-pink); }
+        .table-custom tr.row-even { background: var(--row-beige); }
+
+        .cell-bold-blue {
+            font-weight: 800 !important;
+            font-size: 1.1rem;
+        }
+
+        .action-icons {
+            display: flex;
+            gap: 5px;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        .icon-edit { color: #555; cursor: pointer; }
+        .icon-delete { color: #dc2626; cursor: pointer; font-weight: bold; }
 
         .btn-volver {
             margin-top: 15px;
@@ -364,48 +394,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && (!empty($_GET['fecha_desde']) || !em
                     <table class="table-custom">
                         <thead>
                             <tr>
-                                <th>Empresa/Contacto</th>
-                                <th>Fecha</th>
-                                <th>Hora</th>
-                                <th>Asunto</th>
-                                <th style="width: 30%;">Notas</th>
-                                <th>Enviada info</th>
-                                <th>Fecha envio info</th>
-                                <th>Resultado</th>
+                                <th style="width: 20%;">Empresa/Contacto</th>
+                                <th style="width: 8%;">Fecha</th>
+                                <th style="width: 8%;">Hora</th>
+                                <th style="width: 10%;">Asunto</th>
+                                <th>Notas</th>
+                                <th style="width: 8%;">Enviada info</th>
+                                <th style="width: 8%;">Fecha envio info</th>
+                                <th style="width: 10%;">Resultado</th>
+                                <th style="width: 50px;"></th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php if (!$searchPerformed): ?>
                                 <tr>
-                                    <td colspan="8" style="text-align: center; padding: 3rem; color: #64748b; font-size: 0.9rem;">
+                                    <td colspan="9" style="text-align: center; padding: 3rem; color: #64748b; font-size: 0.9rem; background: #fff !important;">
                                         Utilice los filtros superiores para consultar el registro de llamadas.
                                     </td>
                                 </tr>
                             <?php elseif (empty($llamadas)): ?>
                                 <tr>
-                                    <td colspan="8" style="text-align: center; padding: 3rem; color: var(--title-red); font-weight: 600;">
+                                    <td colspan="9" style="text-align: center; padding: 3rem; color: var(--title-red); font-weight: 600; background: #fff !important;">
                                         No se encontraron registros de llamadas con los criterios seleccionados.
                                     </td>
                                 </tr>
                             <?php else: ?>
-                                <?php foreach ($llamadas as $ll): ?>
-                                    <tr>
+                                <?php foreach ($llamadas as $index => $ll): ?>
+                                    <tr class="<?= ($index % 2 == 0) ? 'row-odd' : 'row-even' ?>">
+                                        <td class="cell-bold-blue"><?= htmlspecialchars($ll['empresa']) ?></td>
+                                        <td><?= $ll['fecha'] ? date('d/m/Y', strtotime($ll['fecha'])) : '' ?></td>
+                                        <td class="cell-bold-blue" style="font-size: 1rem;"><?= htmlspecialchars($ll['hora']) ?></td>
+                                        <td class="cell-bold-blue" style="font-size: 1rem;"><?= htmlspecialchars($ll['asunto']) ?></td>
+                                        <td class="cell-bold-blue" style="font-size: 1rem;"><?= htmlspecialchars($ll['notas']) ?></td>
+                                        <td style="text-align: center;"><?= htmlspecialchars($ll['enviada_info']) ?></td>
+                                        <td><?= $ll['fecha_envio'] ? date('d/m/Y', strtotime($ll['fecha_envio'])) : '' ?></td>
+                                        <td><?= htmlspecialchars($ll['resultado']) ?></td>
                                         <td>
-                                            <div style="font-weight: 700; color: var(--label-blue);"><?= htmlspecialchars($ll['empresa']) ?></div>
-                                            <div style="font-size: 0.75rem; color: #64748b;"><?= htmlspecialchars($ll['contacto']) ?></div>
-                                        </td>
-                                        <td><?= date('d/m/Y', strtotime($ll['fecha'])) ?></td>
-                                        <td><?= htmlspecialchars($ll['hora']) ?></td>
-                                        <td style="font-weight: 500;"><?= htmlspecialchars($ll['asunto']) ?></td>
-                                        <td style="font-size: 0.75rem; color: #334155;"><?= htmlspecialchars($ll['notas']) ?></td>
-                                        <td style="text-align: center; font-weight: 700; color: <?= $ll['enviada_info'] == 'SI' ? '#059669' : '#dc2626' ?>;">
-                                            <?= $ll['enviada_info'] ?>
-                                        </td>
-                                        <td><?= $ll['fecha_envio'] ? date('d/m/Y', strtotime($ll['fecha_envio'])) : '---' ?></td>
-                                        <td>
-                                            <span style="display: inline-block; padding: 2px 8px; border-radius: 4px; background: #f1f5f9; font-weight: 600; font-size: 0.7rem; color: #475569; border: 1px solid var(--border-gray);">
-                                                <?= htmlspecialchars($ll['resultado']) ?>
-                                            </span>
+                                            <div class="action-icons">
+                                                <span class="icon-edit" title="Editar">
+                                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 000-1.41l-2.34-2.34a.996.996 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                                                </span>
+                                                <span class="icon-delete" title="Eliminar">✕</span>
+                                            </div>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
