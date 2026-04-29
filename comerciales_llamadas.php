@@ -263,7 +263,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && (!empty($_GET['fecha_desde']) || !em
         .icon-delete { color: #dc2626; cursor: pointer; font-weight: bold; }
 
         .btn-volver {
-            margin-top: 15px;
             padding: 6px 20px;
             font-size: 0.85rem;
             cursor: pointer;
@@ -302,6 +301,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && (!empty($_GET['fecha_desde']) || !em
 
         <main class="main-content" style="flex: 1; overflow-y: auto;">
             
+            <div style="margin-bottom: 15px;">
+                <a href="comerciales.php" class="btn-volver">← Volver a Gestión Comercial</a>
+            </div>
+
             <div class="search-card">
                 <div class="card-header-custom">
                     <h2>LLAMADAS REALIZADAS - CAMPOS DE BÚSQUEDA</h2>
