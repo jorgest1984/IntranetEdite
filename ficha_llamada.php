@@ -543,19 +543,9 @@ $llamada = [
 
                                 <!-- Panel de iconos lateral derecho -->
                                 <div style="width: 180px; display: flex; flex-direction: column; gap: 20px; border-left: 1px solid var(--border-gray); padding-left: 20px;">
-                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                                        <div style="text-align: center;">
-                                            <svg viewBox="0 0 24 24" width="32" height="32" style="color: #0ea5e9;"><path fill="currentColor" d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
-                                            <div style="font-size: 0.7rem; font-weight: 700; color: var(--label-blue);">e-mail</div>
-                                        </div>
-                                        <div style="text-align: center;">
-                                            <svg viewBox="0 0 24 24" width="32" height="32" style="color: #64748b;"><path fill="currentColor" d="M19 8h-1V3H6v5H5c-1.66 0-3 1.33-3 3v6h4v4h12v-4h4v-6c0-1.67-1.33-3-3-3zM8 5h8v3H8V5zm8 14H8v-4h8v4zm4-4h-2v-2H6v2H4v-4c0-.55.45-1 1-1h14c.55 0 1 .45 1 1v4z"/></svg>
-                                            <div style="font-size: 0.7rem; font-weight: 700; color: var(--label-blue);">Fax</div>
-                                        </div>
-                                    </div>
                                     <div style="text-align: center;">
-                                        <svg viewBox="0 0 24 24" width="32" height="32" style="color: #f59e0b;"><path fill="currentColor" d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-4H6V8h12v4z"/></svg>
-                                        <div style="font-size: 0.7rem; font-weight: 700; color: var(--label-blue);">Carta</div>
+                                        <svg viewBox="0 0 24 24" width="32" height="32" style="color: #0ea5e9;"><path fill="currentColor" d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                                        <div style="font-size: 0.7rem; font-weight: 700; color: var(--label-blue);">e-mail</div>
                                     </div>
                                     
                                     <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 15px;">
