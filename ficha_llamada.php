@@ -74,6 +74,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_save_nota'])) 
     $success_msg = "Nota guardada correctamente.";
 }
 
+// PROCESAR BORRADO DE NOTA IMPORTANTE
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_delete_nota'])) {
+    // Aquí borraríamos en la DB
+    /*
+    $stmt = $pdo->prepare("UPDATE alumnos SET observaciones = '' WHERE id = ?");
+    $stmt->execute([$alumno_id]);
+    */
+    
+    // Simulamos el borrado para la vista
+    $llamada['notas_importantes'] = '';
+    $success_msg = "Nota eliminada correctamente.";
+}
+
 // PROCESAR ENVÍO DE EMAIL
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_send_email'])) {
     $to = $_POST['destinatario_email'] ?? '';
@@ -654,9 +667,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_schedule'])) {
                                 <button type="button" class="btn-add-note" onclick="openNotaModal()">Añadir nota imp.</button>
                             </div>
                         <?php else: ?>
-                            <div style="color: #0f172a; font-weight: 600; font-size: 0.9rem; background: #fff; padding: 10px; border-radius: 4px; border: 1px solid var(--border-gray);">
-                                <?= nl2br(htmlspecialchars($llamada['notas_importantes'])) ?>
-                                <button type="button" class="btn-add-note" onclick="openNotaModal()" style="margin-left: 15px;">Editar nota</button>
+                            <div style="color: #0f172a; font-weight: 600; font-size: 0.9rem; background: #fff; padding: 10px; border-radius: 4px; border: 1px solid var(--border-gray); display: flex; justify-content: space-between; align-items: flex-start; gap: 15px;">
+                                <div style="flex: 1;"><?= nl2br(htmlspecialchars($llamada['notas_importantes'])) ?></div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button type="button" class="btn-add-note" onclick="openNotaModal()" style="margin: 0; background: #f1f5f9; color: #1e293b; border-color: #cbd5e1;">Editar nota</button>
+                                    <form method="POST" style="margin: 0;" onsubmit="return confirm('¿Estás seguro de que deseas borrar esta nota?');">
+                                        <input type="hidden" name="action_delete_nota" value="1">
+                                        <button type="submit" class="btn-add-note" style="margin: 0;">Borrar nota</button>
+                                    </form>
+                                </div>
                             </div>
                         <?php endif; ?>
                     </section>
