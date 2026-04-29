@@ -24,31 +24,27 @@ if ($token !== MAIL_TOKEN) {
     exit;
 }
 
-$asunto     = strip_tags(trim($_POST['asunto'] ?? ''));
-$descripcion = trim($_POST['descripcion'] ?? '');
-$usuario    = strip_tags(trim($_POST['usuario'] ?? 'Desconocido'));
+$to         = trim($_POST['to'] ?? '');
+$from       = trim($_POST['from'] ?? 'intranet@grupoefp.es');
+$subject    = trim($_POST['subject'] ?? 'Mensaje de la Intranet');
+$body       = trim($_POST['body'] ?? '');
 
-if (empty($asunto) || empty($descripcion)) {
-    echo json_encode(['error' => 'Asunto y descripción son obligatorios']);
+if (empty($to) || empty($subject) || empty($body)) {
+    http_response_code(400);
+    echo json_encode(['error' => 'to, subject y body son obligatorios']);
     exit;
 }
 
-$to      = 'jorge@estaciondiseno.es';
-$subject = '[Intranet Grupo EFP] Sugerencia: ' . $asunto;
-$body    = "Nueva sugerencia recibida desde la Intranet de Grupo EFP.\n\n";
-$body   .= "Usuario: $usuario\n";
-$body   .= "Asunto: $asunto\n\n";
-$body   .= "Descripción:\n" . strip_tags($descripcion) . "\n\n";
-$body   .= "---\nEnviado automáticamente desde la Intranet Grupo EFP.";
-
-$headers  = "From: intranet@grupoefp.es\r\n";
-$headers .= "Reply-To: intranet@grupoefp.es\r\n";
+$headers  = "From: " . strip_tags($from) . "\r\n";
+$headers .= "Reply-To: " . strip_tags($from) . "\r\n";
+$headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
 $headers .= "X-Mailer: PHP/" . phpversion();
 
-$sent = mail($to, $subject, $body, $headers);
+$sent = @mail($to, $subject, $body, $headers);
 
 if ($sent) {
-    echo json_encode(['success' => true, 'message' => 'Sugerencia enviada correctamente']);
+    echo json_encode(['success' => true, 'message' => 'Correo enviado correctamente']);
 } else {
-    echo json_encode(['error' => 'No se pudo enviar el correo. Por favor, inténtalo de nuevo.']);
+    http_response_code(500);
+    echo json_encode(['error' => 'No se pudo enviar el correo.']);
 }

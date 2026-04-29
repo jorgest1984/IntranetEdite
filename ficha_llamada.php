@@ -18,17 +18,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_send_email']))
     $message = $_POST['mensaje'] ?? '';
     $from = $_POST['remitente_email'] ?? 'intranet@grupoefp.es';
     
-    $headers = "From: " . $from . "\r\n";
-    $headers .= "Reply-To: " . $from . "\r\n";
-    $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
+    // Preparar los datos para el Relay de Vercel
+    $postData = http_build_query([
+        'token' => 'dbbea329538b1694971d7ee66cc3e4673',
+        'to' => $to,
+        'from' => $from,
+        'subject' => $subject,
+        'body' => $message
+    ]);
 
-    // Intentamos usar la función mail nativa
-    if (@mail($to, $subject, $message, $headers)) {
+    $ch = curl_init('https://gestion.grupoefp.es/send_mail.php');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+    
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($httpCode === 200) {
         $success_msg = "El e-mail se ha enviado correctamente a $to.";
     } else {
-        // En un entorno de desarrollo sin servidor de correo configurado, mail() fallará.
-        // Mostramos un mensaje de éxito simulado para que el flujo de UI funcione.
-        $success_msg = "Simulación: E-mail procesado correctamente hacia $to. (Configurar SMTP en producción)";
+        $error_msg = "Error al enviar el e-mail a través del servidor. (Código: $httpCode)";
     }
 }
 
