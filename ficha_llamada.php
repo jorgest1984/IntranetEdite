@@ -11,6 +11,54 @@ $id = $_GET['id'] ?? null;
 $success_msg = '';
 $error_msg = '';
 
+// Mock data basado en la imagen proporcionada
+$llamada = [
+    'alumno' => [
+        'nombre' => 'BRIAN BUENO GUERRERO',
+        'alias' => '',
+        'usuario' => 'bue51709',
+        'clave' => '45614999',
+        'domicilio' => 'Calle ESPAÑA nº 32',
+        'cp' => '18100',
+        'localidad' => 'ARMILLA',
+        'provincia' => 'GRANADA',
+        'telefono' => '',
+        'movil' => '601 31 62 47',
+        'email' => 'brian32plas@gmail.com',
+        'email2' => '',
+        'horario' => [
+            'manana_desde' => '',
+            'manana_hasta' => '',
+            'tarde_desde' => '',
+            'tarde_hasta' => '',
+            'solo_dias' => ''
+        ]
+    ],
+    'empresa' => [
+        'nombre' => 'DESEMPLEADO',
+        'sector' => 'Seguridad Privada',
+        'direccion' => '',
+        'cp' => '',
+        'localidad' => '',
+        'provincia' => 'DESCONOCIDA'
+    ],
+    'envio' => [
+        'direccion' => '',
+        'cp' => '',
+        'localidad' => '',
+        'provincia' => 'DESCONOCIDA',
+        'telefono' => '',
+        'fax' => ''
+    ],
+    'curso' => [
+        'nombre' => 'COMT0007 - ATENCIÓN AL CLIENTE CON DISCAPACIDAD EN TRANSPORTE DE VIAJEROS',
+        'inicio' => '',
+        'fin' => '',
+        'fecha_25' => ''
+    ],
+    'notas_importantes' => ''
+];
+
 // PROCESAR GUARDADO DE NOTA IMPORTANTE
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_save_nota'])) {
     $nota_texto = trim($_POST['nota_texto'] ?? '');
@@ -57,54 +105,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_send_email']))
         $error_msg = "Error al enviar el e-mail a través del servidor. (Código: $httpCode)";
     }
 }
-
-// Mock data basado en la imagen proporcionada
-$llamada = [
-    'alumno' => [
-        'nombre' => 'BRIAN BUENO GUERRERO',
-        'alias' => '',
-        'usuario' => 'bue51709',
-        'clave' => '45614999',
-        'domicilio' => 'Calle ESPAÑA nº 32',
-        'cp' => '18100',
-        'localidad' => 'ARMILLA',
-        'provincia' => 'GRANADA',
-        'telefono' => '',
-        'movil' => '601 31 62 47',
-        'email' => 'brian32plas@gmail.com',
-        'email2' => '',
-        'horario' => [
-            'manana_desde' => '',
-            'manana_hasta' => '',
-            'tarde_desde' => '',
-            'tarde_hasta' => '',
-            'solo_dias' => ''
-        ]
-    ],
-    'empresa' => [
-        'nombre' => 'DESEMPLEADO',
-        'sector' => 'Seguridad Privada',
-        'direccion' => '',
-        'cp' => '',
-        'localidad' => '',
-        'provincia' => 'DESCONOCIDA'
-    ],
-    'envio' => [
-        'direccion' => '',
-        'cp' => '',
-        'localidad' => '',
-        'provincia' => 'DESCONOCIDA',
-        'telefono' => '',
-        'fax' => ''
-    ],
-    'curso' => [
-        'nombre' => 'COMT0007 - ATENCIÓN AL CLIENTE CON DISCAPACIDAD EN TRANSPORTE DE VIAJEROS',
-        'inicio' => '',
-        'fin' => '',
-        'fecha_25' => ''
-    ],
-    'notas_importantes' => []
-];
 
 // PROCESAR GUARDADO DE LLAMADA
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_save_call'])) {
