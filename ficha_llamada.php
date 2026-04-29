@@ -8,6 +8,8 @@ if (!has_permission([ROLE_ADMIN, ROLE_ADMINISTRATIVO, ROLE_COMERCIAL])) {
 }
 
 $id = $_GET['id'] ?? null;
+$success_msg = '';
+$error_msg = '';
 
 // Mock data basado en la imagen proporcionada
 $llamada = [
@@ -56,6 +58,67 @@ $llamada = [
     ],
     'notas_importantes' => []
 ];
+
+// PROCESAR GUARDADO DE LLAMADA
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_save_call'])) {
+    try {
+        $stmt = $pdo->prepare("INSERT INTO tutorias_seguimiento 
+            (alumno_id, empresa_id, curso_id, usuario_id, fecha, hora, motivo, quien_contacta, forma, modulacion, horarios_pref, resultado, asunto, notas) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        
+        $stmt->execute([
+            1, // Alumno ID (Mock)
+            1, // Empresa ID (Mock)
+            1, // Curso ID (Mock)
+            $_SESSION['user_id'] ?? null,
+            $_POST['fecha'],
+            $_POST['hora'],
+            $_POST['motivo'],
+            $_POST['quien_contacta'],
+            $_POST['forma'],
+            $_POST['modulacion'],
+            $_POST['horarios_pref'],
+            $_POST['resultado'],
+            $_POST['asunto'],
+            $_POST['notas']
+        ]);
+        $success_msg = "Registro de llamada guardado correctamente.";
+    } catch (Exception $e) {
+        $error_msg = "Error al guardar la llamada: " . $e->getMessage();
+    }
+}
+
+// PROCESAR PROGRAMACIÓN DE CITA
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_schedule'])) {
+    try {
+        $stmt = $pdo->prepare("UPDATE tutorias_seguimiento SET 
+            cita_fecha = ?, cita_hora = ?, cita_asunto = ?, cita_descripcion = ? 
+            WHERE id = ?");
+        
+        // Si es una nueva cita sin haber guardado la llamada primero, 
+        // en un sistema real buscaríamos el último ID o crearíamos uno.
+        // Por simplicidad en este mock, asumimos que se actualiza el último insertado si existe.
+        $last_id = $pdo->lastInsertId();
+        if ($last_id) {
+            $stmt->execute([
+                $_POST['cita_fecha'],
+                $_POST['cita_hora'],
+                $_POST['cita_asunto'],
+                $_POST['cita_descripcion'],
+                $last_id
+            ]);
+            $success_msg = "Cita programada correctamente.";
+        } else {
+            // Si no hay ID previo, insertamos uno nuevo mínimo
+            $stmtIns = $pdo->prepare("INSERT INTO tutorias_seguimiento (alumno_id, cita_fecha, cita_hora, cita_asunto, cita_descripcion) VALUES (?, ?, ?, ?, ?)");
+            $stmtIns->execute([1, $_POST['cita_fecha'], $_POST['cita_hora'], $_POST['cita_asunto'], $_POST['cita_descripcion']]);
+            $success_msg = "Cita programada correctamente.";
+        }
+    } catch (Exception $e) {
+        $error_msg = "Error al programar la cita: " . $e->getMessage();
+    }
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -278,6 +341,10 @@ $llamada = [
 
         .btn-volver:hover { background: #f1f5f9; color: var(--efp-blue); }
 
+        .alert { padding: 15px; border-radius: 4px; margin-bottom: 20px; font-weight: 600; text-align: center; }
+        .alert-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .alert-danger { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
     </style>
 </head>
 <body>
@@ -289,6 +356,13 @@ $llamada = [
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
                 Volver al listado
             </a>
+
+            <?php if ($success_msg): ?>
+                <div class="alert alert-success"><?= $success_msg ?></div>
+            <?php endif; ?>
+            <?php if ($error_msg): ?>
+                <div class="alert alert-danger"><?= $error_msg ?></div>
+            <?php endif; ?>
 
             <div class="ficha-container">
                 <!-- COLUMNA PRINCIPAL -->
@@ -475,39 +549,40 @@ $llamada = [
                         <h2 class="section-title">DATOS DE LA LLAMADA</h2>
                         
                         <form method="POST">
+                            <input type="hidden" name="action_save_call" value="1">
                             <div class="call-data-container" style="display: flex; gap: 20px;">
                                 <div style="flex: 1;">
                                     <div class="data-row" style="gap: 15px;">
                                         <div class="data-item">
                                             <label class="label">Fecha contacto:</label>
-                                            <input type="date" class="form-control" value="<?= date('Y-m-d') ?>">
+                                            <input type="date" name="fecha" class="form-control" value="<?= date('Y-m-d') ?>">
                                         </div>
                                         <div class="data-item">
                                             <label class="label">Hora contacto:</label>
-                                            <input type="time" class="form-control" value="09:58">
+                                            <input type="time" name="hora" class="form-control" value="<?= date('H:i') ?>">
                                         </div>
                                         <div class="data-item">
                                             <label class="label">Motivo ():</label>
-                                            <select class="form-control">
-                                                <option>Información</option>
-                                                <option>Seguimiento</option>
-                                                <option>Reclamación</option>
+                                            <select name="motivo" class="form-control">
+                                                <option value="Información">Información</option>
+                                                <option value="Seguimiento" selected>Seguimiento</option>
+                                                <option value="Reclamación">Reclamación</option>
                                             </select>
                                         </div>
                                         <div class="data-item" style="flex-direction: row; align-items: center; gap: 10px; margin-top: 20px;">
                                             <label style="font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 4px;">
-                                                <input type="radio" name="quien_contacta" checked> Contactamos nosotros
+                                                <input type="radio" name="quien_contacta" value="Nosotros" checked> Contactamos nosotros
                                             </label>
                                             <label style="font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 4px;">
-                                                <input type="radio" name="quien_contacta"> Contactan ellos
+                                                <input type="radio" name="quien_contacta" value="Ellos"> Contactan ellos
                                             </label>
                                         </div>
                                         <div class="data-item">
                                             <label class="label">Forma:</label>
-                                            <select class="form-control">
-                                                <option>Teléfono</option>
-                                                <option>Email</option>
-                                                <option>Presencial</option>
+                                            <select name="forma" class="form-control">
+                                                <option value="Teléfono" selected>Teléfono</option>
+                                                <option value="Email">Email</option>
+                                                <option value="Presencial">Presencial</option>
                                             </select>
                                         </div>
                                     </div>
@@ -518,26 +593,39 @@ $llamada = [
                                         </div>
                                         <div class="data-item">
                                             <label class="label">Modulación:</label>
-                                            <select class="form-control" style="width: 120px;"><option>---</option></select>
+                                            <select name="modulacion" class="form-control" style="width: 120px;">
+                                                <option value="">---</option>
+                                                <option value="Mañana">Mañana</option>
+                                                <option value="Tarde">Tarde</option>
+                                            </select>
                                         </div>
                                         <div class="data-item">
                                             <label class="label">Horarios:</label>
-                                            <select class="form-control" style="width: 120px;"><option>---</option></select>
+                                            <select name="horarios_pref" class="form-control" style="width: 120px;">
+                                                <option value="">---</option>
+                                                <option value="L-V">L-V</option>
+                                                <option value="Sábados">Sábados</option>
+                                            </select>
                                         </div>
                                         <div class="data-item">
                                             <label class="label">Resultado llamada:</label>
-                                            <select class="form-control" style="width: 180px;"><option>---</option></select>
+                                            <select name="resultado" class="form-control" style="width: 180px;">
+                                                <option value="">---</option>
+                                                <option value="Interesado">Interesado</option>
+                                                <option value="No interesa">No interesa</option>
+                                                <option value="Pendiente">Pendiente</option>
+                                            </select>
                                         </div>
                                     </div>
 
                                     <div class="data-item" style="margin-top: 20px;">
                                         <label class="label">Asunto:</label>
-                                        <textarea class="form-control" style="height: 80px; width: 100%; resize: vertical; font-family: inherit;">TURISMO</textarea>
+                                        <textarea name="asunto" class="form-control" style="height: 80px; width: 100%; resize: vertical; font-family: inherit;">TURISMO</textarea>
                                     </div>
 
                                     <div class="data-item" style="margin-top: 20px;">
                                         <label class="label" style="color: var(--label-blue);">Observaciones internas:</label>
-                                        <textarea class="form-control" style="height: 80px; width: 100%; resize: vertical; font-family: inherit; color: var(--label-blue); font-weight: 600;">NO LE INTERESA, ESTÁ TRABAJANDO</textarea>
+                                        <textarea name="notas" class="form-control" style="height: 80px; width: 100%; resize: vertical; font-family: inherit; color: var(--label-blue); font-weight: 600;">NO LE INTERESA, ESTÁ TRABAJANDO</textarea>
                                     </div>
                                 </div>
 
@@ -578,22 +666,23 @@ $llamada = [
                         <h3 style="margin: 0 0 20px 0; font-size: 1.1rem; font-weight: 700; color: #334155;">Programar cita</h3>
                         
                         <form method="POST">
+                            <input type="hidden" name="action_schedule" value="1">
                             <div style="display: grid; grid-template-columns: 300px 1fr; gap: 20px;">
                                 <div class="data-item">
                                     <label class="label">Fecha y hora:</label>
                                     <div style="display: flex; gap: 10px; align-items: center;">
-                                        <input type="date" class="form-control">
-                                        <input type="time" class="form-control">
+                                        <input type="date" name="cita_fecha" class="form-control" value="<?= date('Y-m-d') ?>">
+                                        <input type="time" name="cita_hora" class="form-control" value="10:00">
                                     </div>
                                 </div>
                                 <div class="data-item">
                                     <label class="label">Asunto:</label>
-                                    <input type="text" class="form-control" value="Llamar a BRIAN BUENO GUERRERO" style="width: 100%;">
+                                    <input type="text" name="cita_asunto" class="form-control" value="Llamar a BRIAN BUENO GUERRERO" style="width: 100%;">
                                 </div>
                             </div>
                             <div class="data-item" style="margin-top: 15px;">
                                 <label class="label">Descripción:</label>
-                                <textarea class="form-control" style="height: 60px; width: 100%; resize: vertical; font-family: inherit;"></textarea>
+                                <textarea name="cita_descripcion" class="form-control" style="height: 60px; width: 100%; resize: vertical; font-family: inherit;"></textarea>
                             </div>
                             <div style="margin-top: 15px;">
                                 <button type="submit" class="btn" style="background: #f1f5f9; border: 1px solid var(--border-gray); font-weight: 600; padding: 6px 20px;">Programar</button>
