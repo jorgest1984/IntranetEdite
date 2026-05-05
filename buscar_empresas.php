@@ -2,7 +2,7 @@
 // buscar_empresas.php
 require_once 'includes/auth.php';
 
-if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA])) {
+if (!has_permission([ROLE_ADMIN, ROLE_ADMINISTRATIVO, ROLE_COMERCIAL, ROLE_LECTURA])) {
     header("Location: dashboard.php");
     exit();
 }
@@ -337,7 +337,7 @@ $current_page = 'buscar_empresas.php';
                         </div>
                         <div class="form-group">
                             <label>Localidad:</label>
-                            <input type="text" name="localidad" value="<?= htmlspecialchars($_GET['localidad'] ?? '') ?>" class="form-control" style="width: 120px;">
+                            <input type="text" name="localidad" value="<?= htmlspecialchars($_GET['localidad'] ?? '') ?>" class="form-control" style="width: 220px;">
                         </div>
                     </div>
 

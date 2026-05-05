@@ -22,7 +22,7 @@ $provincias = [
     <link rel="stylesheet" href="css/main.css">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
-        .main-content { padding: 1.5rem; }
+        .main-content { padding: 1rem 0.75rem; }
         .btn-volver {
             padding: 6px 20px;
             font-size: 0.85rem;
@@ -52,6 +52,8 @@ $provincias = [
                 padding: 1.5rem;
                 margin-top: 15px;
                 box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                width: 100%;
+                box-sizing: border-box;
             }
             .section-header {
                 text-align: center;
@@ -157,14 +159,18 @@ $provincias = [
                 background: #fff;
                 outline: none;
             }
-        </style>
+    </style>
+</head>
+<body>
+    <div class="app-container" style="display: flex; min-height: 100vh;">
+        <?php include 'includes/sidebar.php'; ?>
 
         <main class="main-content" style="flex: 1; overflow-y: auto;">
             <div style="margin-bottom: 0;">
                 <a href="comerciales.php" class="btn-volver">← Volver a Gestión Comercial</a>
             </div>
 
-            <form method="POST">
+            <form method="POST" style="width: 100%;">
                 <div class="form-section">
                     <div class="section-header">
                         <h2>FICHA DE CONTACTOS EMPRESA</h2>
@@ -231,11 +237,11 @@ $provincias = [
 
                     <!-- Fila 5 -->
                     <div class="form-row">
-                        <div class="form-group">
-                            <span class="label" style="width: 160px; min-width: 160px; text-align: right;">Localidad:</span>
+                        <div class="form-group" style="flex: 2;">
+                            <span class="label">Localidad:</span>
                             <input type="text" class="form-control" name="localidad">
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" style="flex: 2;">
                             <span class="label">Provincia:</span>
                             <select class="form-control" name="provincia">
                                 <option value=""></option>
@@ -244,15 +250,22 @@ $provincias = [
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="form-group">
+                    </div>
+
+                    <!-- Fila 5b (Teléfonos y Fax) -->
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1; visibility: hidden;">
+                            <span class="label" style="width: 160px; min-width: 160px;"></span>
+                        </div>
+                        <div class="form-group" style="flex: 1;">
                             <span class="label">Teléfono 1:</span>
                             <input type="text" class="form-control" name="telefono1">
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" style="flex: 1;">
                             <span class="label">Teléfono 2:</span>
                             <input type="text" class="form-control" name="telefono2">
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" style="flex: 1;">
                             <span class="label">Fax:</span>
                             <input type="text" class="form-control" name="fax">
                         </div>
