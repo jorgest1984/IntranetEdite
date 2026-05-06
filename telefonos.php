@@ -67,7 +67,8 @@ $telefonos = $stmt->fetchAll();
 $sedes_list = ['Almería','Centralita','Granada','Madrid - Francisco Silvela','Valladolid'];
 
 // Recuperar también las que estén en base de datos por si hay alguna histórica no contemplada
-$db_sedes = $pdo->query("SELECT DISTINCT sede FROM telefonos WHERE sede != '' ORDER BY sede")->fetchAll(PDO::FETCH_COLUMN);
+$db_sedes_raw = $pdo->query("SELECT DISTINCT sede FROM telefonos WHERE sede != '' ORDER BY sede")->fetchAll();
+$db_sedes = array_map(function($row) { return is_array($row) ? $row['sede'] : $row; }, $db_sedes_raw);
 $sedes = array_unique(array_merge($sedes_list, $db_sedes));
 sort($sedes);
 ?>
