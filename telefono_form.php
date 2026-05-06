@@ -9,6 +9,11 @@ $error   = '';
 // Cargar usuarios para el selector
 $usuarios_list = $pdo->query("SELECT id, CONCAT(nombre,' ',COALESCE(apellidos,'')) AS nombre_completo FROM usuarios WHERE activo = 1 ORDER BY nombre ASC")->fetchAll();
 
+// Asegurarnos de que existe la columna 'codigo' antes de intentar guardar
+try {
+    $pdo->query("ALTER TABLE telefonos ADD COLUMN codigo VARCHAR(50) DEFAULT '' AFTER id");
+} catch(Exception $e) {}
+
 // ─── Guardar ─────────────────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $codigo       = trim($_POST['codigo'] ?? '');
