@@ -4,6 +4,7 @@ require_once 'includes/auth.php';
 // ─── Auto-setup tablas ────────────────────────────────────────────────────────
 $pdo->query("CREATE TABLE IF NOT EXISTS telefonos (
     id          INT AUTO_INCREMENT PRIMARY KEY,
+    codigo      VARCHAR(50)  DEFAULT '',
     numero      VARCHAR(20)  DEFAULT '',
     extension   VARCHAR(10)  DEFAULT '',
     imei        VARCHAR(25)  DEFAULT '',
@@ -17,6 +18,10 @@ $pdo->query("CREATE TABLE IF NOT EXISTS telefonos (
     observaciones TEXT,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )");
+
+try {
+    $pdo->query("ALTER TABLE telefonos ADD COLUMN codigo VARCHAR(50) DEFAULT '' AFTER id");
+} catch(PDOException $e) {}
 
 $pdo->query("CREATE TABLE IF NOT EXISTS telefono_asignaciones (
     id          INT AUTO_INCREMENT PRIMARY KEY,
@@ -177,18 +182,19 @@ sort($sedes);
         <table class="data-table" id="tabla-telefonos">
             <thead>
                 <tr>
-                    <th onclick="sortTable(0)">Extensión ↕</th>
-                    <th onclick="sortTable(1)">Número ↕</th>
-                    <th onclick="sortTable(2)">Estado ↕</th>
-                    <th onclick="sortTable(3)">Usuario ↕</th>
-                    <th onclick="sortTable(4)">Sede ↕</th>
+                    <th onclick="sortTable(0)">Código ↕</th>
+                    <th onclick="sortTable(1)">Extensión ↕</th>
+                    <th onclick="sortTable(2)">Número ↕</th>
+                    <th onclick="sortTable(3)">Estado ↕</th>
+                    <th onclick="sortTable(4)">Usuario ↕</th>
+                    <th onclick="sortTable(5)">Sede ↕</th>
                     <th>Observaciones</th>
                     <th style="text-align:center">Editar</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if (empty($telefonos)): ?>
-                    <tr><td colspan="7" class="empty-state">No se encontraron registros con los filtros aplicados.</td></tr>
+                    <tr><td colspan="8" class="empty-state">No se encontraron registros con los filtros aplicados.</td></tr>
                 <?php else: ?>
                     <?php foreach ($telefonos as $t): ?>
                     <?php
@@ -196,6 +202,7 @@ sort($sedes);
                         $estadoClass = $estadoMap[$t['estado']] ?? '';
                     ?>
                     <tr>
+                        <td><span style="font-family:monospace;color:#475569;background:#f1f5f9;padding:0.2rem 0.4rem;border-radius:4px;font-size:0.8rem;"><?= htmlspecialchars($t['codigo'] ?? '') ?></span></td>
                         <td><strong><?= htmlspecialchars($t['extension']) ?></strong></td>
                         <td><?= htmlspecialchars($t['numero']) ?></td>
                         <td><span class="badge-estado <?= $estadoClass ?>"><?= htmlspecialchars($t['estado']) ?></span></td>

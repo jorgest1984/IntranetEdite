@@ -11,6 +11,7 @@ $usuarios_list = $pdo->query("SELECT id, CONCAT(nombre,' ',COALESCE(apellidos,''
 
 // ─── Guardar ─────────────────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $codigo       = trim($_POST['codigo'] ?? '');
     $numero       = trim($_POST['numero'] ?? '');
     $extension    = trim($_POST['extension'] ?? '');
     $imei         = trim($_POST['imei'] ?? '');
@@ -24,11 +25,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $observaciones= trim($_POST['observaciones'] ?? '');
 
     if ($is_edit) {
-        $stmt = $pdo->prepare("UPDATE telefonos SET numero=?,extension=?,imei=?,iccid=?,modelo=?,operador=?,pin=?,puk=?,estado=?,sede=?,observaciones=? WHERE id=?");
-        $stmt->execute([$numero,$extension,$imei,$iccid,$modelo,$operador,$pin,$puk,$estado,$sede,$observaciones,$id]);
+        $stmt = $pdo->prepare("UPDATE telefonos SET codigo=?,numero=?,extension=?,imei=?,iccid=?,modelo=?,operador=?,pin=?,puk=?,estado=?,sede=?,observaciones=? WHERE id=?");
+        $stmt->execute([$codigo,$numero,$extension,$imei,$iccid,$modelo,$operador,$pin,$puk,$estado,$sede,$observaciones,$id]);
     } else {
-        $stmt = $pdo->prepare("INSERT INTO telefonos (numero,extension,imei,iccid,modelo,operador,pin,puk,estado,sede,observaciones) VALUES (?,?,?,?,?,?,?,?,?,?,?)");
-        $stmt->execute([$numero,$extension,$imei,$iccid,$modelo,$operador,$pin,$puk,$estado,$sede,$observaciones]);
+        $stmt = $pdo->prepare("INSERT INTO telefonos (codigo,numero,extension,imei,iccid,modelo,operador,pin,puk,estado,sede,observaciones) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)");
+        $stmt->execute([$codigo,$numero,$extension,$imei,$iccid,$modelo,$operador,$pin,$puk,$estado,$sede,$observaciones]);
         $id = $pdo->lastInsertId();
         $is_edit = true;
     }
@@ -132,10 +133,15 @@ $t = $telefono;
                 <form method="POST">
                     <?php if ($is_edit): ?>
                     <div class="form-row">
-                        <label>Código</label>
+                        <label>ID BD</label>
                         <input type="text" value="<?= $id ?>" class="code-field" readonly style="width:80px;">
                     </div>
                     <?php endif; ?>
+
+                    <div class="form-row">
+                        <label for="codigo">Código</label>
+                        <input type="text" id="codigo" name="codigo" value="<?= htmlspecialchars($t['codigo'] ?? '') ?>" placeholder="Ej: TEL-001">
+                    </div>
 
                     <div class="form-row">
                         <label for="numero">Número</label>
