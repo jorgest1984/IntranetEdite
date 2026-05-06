@@ -21,7 +21,7 @@ $pdo->query("CREATE TABLE IF NOT EXISTS telefonos (
 
 try {
     $pdo->query("ALTER TABLE telefonos ADD COLUMN codigo VARCHAR(50) DEFAULT '' AFTER id");
-} catch(PDOException $e) {}
+} catch(Exception $e) {}
 
 $pdo->query("CREATE TABLE IF NOT EXISTS telefono_asignaciones (
     id          INT AUTO_INCREMENT PRIMARY KEY,
