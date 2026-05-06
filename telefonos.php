@@ -59,7 +59,12 @@ $stmt->execute($params);
 $telefonos = $stmt->fetchAll();
 
 // Sedes únicas para el filtro
-$sedes = $pdo->query("SELECT DISTINCT sede FROM telefonos WHERE sede != '' ORDER BY sede")->fetchAll();
+$sedes_list = ['Almería','Centralita','Granada','Madrid - Francisco Silvela','Valladolid'];
+
+// Recuperar también las que estén en base de datos por si hay alguna histórica no contemplada
+$db_sedes = $pdo->query("SELECT DISTINCT sede FROM telefonos WHERE sede != '' ORDER BY sede")->fetchAll(PDO::FETCH_COLUMN);
+$sedes = array_unique(array_merge($sedes_list, $db_sedes));
+sort($sedes);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -157,7 +162,7 @@ $sedes = $pdo->query("SELECT DISTINCT sede FROM telefonos WHERE sede != '' ORDER
                     <select name="sede">
                         <option value="">Todas</option>
                         <?php foreach ($sedes as $s): ?>
-                            <option value="<?= htmlspecialchars($s['sede']) ?>" <?= $f_sede === $s['sede'] ? 'selected' : '' ?>><?= htmlspecialchars($s['sede']) ?></option>
+                            <option value="<?= htmlspecialchars($s) ?>" <?= $f_sede === $s ? 'selected' : '' ?>><?= htmlspecialchars($s) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
