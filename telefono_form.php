@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $operador     = trim($_POST['operador'] ?? '');
     $pin          = trim($_POST['pin'] ?? '');
     $puk          = trim($_POST['puk'] ?? '');
-    $estado       = $_POST['estado'] ?? 'Disponible';
+    $estado       = !empty($_POST['estado']) ? $_POST['estado'] : 'Disponible';
     $sede         = trim($_POST['sede'] ?? '');
     $observaciones= trim($_POST['observaciones'] ?? '');
 
@@ -178,6 +178,7 @@ $t = $telefono;
                     <div class="form-row">
                         <label for="estado">Estado</label>
                         <select id="estado" name="estado">
+                            <option value="">— Selecciona —</option>
                             <option value="En uso"     <?= ($t['estado'] ?? '') === 'En uso'      ? 'selected' : '' ?>>En uso</option>
                             <option value="Disponible" <?= ($t['estado'] ?? 'Disponible') === 'Disponible' ? 'selected' : '' ?>>Disponible</option>
                             <option value="Baja"       <?= ($t['estado'] ?? '') === 'Baja'        ? 'selected' : '' ?>>Baja</option>
