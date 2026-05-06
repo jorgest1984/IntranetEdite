@@ -4,7 +4,7 @@ require_once 'includes/auth.php'; // Verifica login y permisos
 
 // Define los módulos de la página Edite Formación
 $sections = [
-    'Bienvenido/a a Edite Formación' => [
+    'Escuela de Formación Profesional' => [
         ['title' => 'Manual de bienvenida', 'icon' => '<svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 14H8v-2h5v2zm3-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>', 'url' => 'docs/manual_bienvenida.pdf', 'color' => 'red', 'external' => true],
         ['title' => 'Código de conducta', 'icon' => '<svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 14H8v-2h5v2zm3-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>', 'url' => 'docs/codigo_conducta.pdf', 'color' => 'red', 'external' => true],
         ['title' => 'Medidas de conciliación', 'icon' => '<svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 14H8v-2h5v2zm3-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>', 'url' => 'docs/medidas_conciliacion.pdf', 'color' => 'red', 'external' => true],
@@ -41,7 +41,7 @@ $sections = [
     <main class="main-content">
         <header class="page-header">
             <div class="page-title">
-                <h1>Edite Formación</h1>
+                <h1>Escuela de Formación Profesional</h1>
                 <p>Información corporativa y de interés común</p>
             </div>
             <div class="page-actions">
