@@ -32,6 +32,17 @@ $pdo->query("CREATE TABLE IF NOT EXISTS telefono_asignaciones (
     hasta       DATE
 )");
 
+// ─── Borrado ──────────────────────────────────────────────────────────────────
+if (isset($_GET['delete_id'])) {
+    $delete_id = intval($_GET['delete_id']);
+    // Eliminar primero las asignaciones
+    $pdo->prepare("DELETE FROM telefono_asignaciones WHERE telefono_id = ?")->execute([$delete_id]);
+    // Eliminar el teléfono
+    $pdo->prepare("DELETE FROM telefonos WHERE id = ?")->execute([$delete_id]);
+    header("Location: telefonos.php?deleted=1");
+    exit;
+}
+
 // ─── Filtros ──────────────────────────────────────────────────────────────────
 $f_numero    = trim($_GET['numero'] ?? '');
 $f_extension = trim($_GET['extension'] ?? '');
@@ -109,6 +120,10 @@ sort($sedes);
         .btn-edit { background: transparent; border: none; cursor: pointer; color: #2563eb; padding: 0.3rem; border-radius: 4px; transition: background 0.15s; }
         .btn-edit:hover { background: #dbeafe; }
         .btn-edit svg { width: 18px; height: 18px; fill: currentColor; }
+
+        .btn-delete { background: transparent; border: none; cursor: pointer; color: #dc2626; padding: 0.3rem; border-radius: 4px; transition: background 0.15s; }
+        .btn-delete:hover { background: #fee2e2; }
+        .btn-delete svg { width: 18px; height: 18px; fill: currentColor; }
 
         .empty-state { text-align: center; padding: 3rem; color: #94a3b8; }
         .sede-link { color: #dc2626; text-decoration: none; font-weight: 500; }
@@ -190,7 +205,7 @@ sort($sedes);
                     <th onclick="sortTable(4)">Usuario ↕</th>
                     <th onclick="sortTable(5)">Sede ↕</th>
                     <th>Observaciones</th>
-                    <th style="text-align:center">Editar</th>
+                    <th style="text-align:center">Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -211,9 +226,14 @@ sort($sedes);
                         <td><span class="sede-link"><?= htmlspecialchars($t['sede']) ?></span></td>
                         <td style="max-width:280px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="<?= htmlspecialchars($t['observaciones'] ?? '') ?>"><?= htmlspecialchars($t['observaciones'] ?? '') ?></td>
                         <td style="text-align:center">
-                            <a href="telefono_form.php?id=<?= $t['id'] ?>" class="btn-edit" title="Editar">
-                                <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-                            </a>
+                            <div style="display:flex; justify-content:center; gap:0.4rem;">
+                                <a href="telefono_form.php?id=<?= $t['id'] ?>" class="btn-edit" title="Editar">
+                                    <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                                </a>
+                                <button type="button" class="btn-delete" title="Borrar" onclick="confirmDelete(<?= $t['id'] ?>)">
+                                    <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                     <?php endforeach; ?>
@@ -237,6 +257,12 @@ function sortTable(col) {
         return asc ? vb.localeCompare(va, 'es') : va.localeCompare(vb, 'es');
     });
     rows.forEach(r => table.querySelector('tbody').appendChild(r));
+}
+
+function confirmDelete(id) {
+    if (confirm('¿Estás seguro de que deseas eliminar este teléfono? Esta acción no se puede deshacer.')) {
+        window.location.href = 'telefonos.php?delete_id=' + id;
+    }
 }
 </script>
 </body>
