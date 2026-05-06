@@ -74,6 +74,65 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $telefonos = $stmt->fetchAll();
 
+// ─── Exportar a Excel ─────────────────────────────────────────────────────────
+if (isset($_GET['export']) && $_GET['export'] == '1') {
+    $filename = 'directorio_telefonos_' . date('Ymd_His') . '.xls';
+    
+    header('Content-Type: application/vnd.ms-excel');
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
+    header('Cache-Control: max-age=0');
+
+    $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+    $xml .= '<?mso-application progid="Excel.Sheet"?>' . "\n";
+    $xml .= '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"' . "\n";
+    $xml .= ' xmlns:o="urn:schemas-microsoft-com:office:office"' . "\n";
+    $xml .= ' xmlns:x="urn:schemas-microsoft-com:office:excel"' . "\n";
+    $xml .= ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">' . "\n";
+    
+    $xml .= '<Styles>' . "\n";
+    $xml .= ' <Style ss:ID="Default" ss:Name="Normal"><Font ss:FontName="Calibri" ss:Size="11"/></Style>' . "\n";
+    $xml .= ' <Style ss:ID="Header"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#1e293b" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center" ss:Vertical="Center"/></Style>' . "\n";
+    $xml .= ' <Style ss:ID="Data"><Alignment ss:Vertical="Center"/></Style>' . "\n";
+    $xml .= '</Styles>' . "\n";
+    
+    $xml .= '<Worksheet ss:Name="Telefonos">' . "\n";
+    $xml .= ' <Table>' . "\n";
+    
+    // Encabezados
+    $cols = ['Código', 'Extensión', 'Número', 'IMEI', 'ICCID', 'Modelo', 'Operador', 'PIN', 'PUK', 'Estado', 'Sede', 'Usuario Actual', 'Observaciones'];
+    $xml .= '  <Row ss:Height="20">' . "\n";
+    foreach ($cols as $col) {
+        $xml .= '   <Cell ss:StyleID="Header"><Data ss:Type="String">' . htmlspecialchars($col) . '</Data></Cell>' . "\n";
+    }
+    $xml .= '  </Row>' . "\n";
+    
+    // Datos
+    foreach ($telefonos as $row) {
+        $xml .= '  <Row>' . "\n";
+        $xml .= '   <Cell ss:StyleID="Data"><Data ss:Type="String">' . htmlspecialchars($row['codigo'] ?? '') . '</Data></Cell>' . "\n";
+        $xml .= '   <Cell ss:StyleID="Data"><Data ss:Type="String">' . htmlspecialchars($row['extension'] ?? '') . '</Data></Cell>' . "\n";
+        $xml .= '   <Cell ss:StyleID="Data"><Data ss:Type="String">' . htmlspecialchars($row['numero'] ?? '') . '</Data></Cell>' . "\n";
+        $xml .= '   <Cell ss:StyleID="Data"><Data ss:Type="String">' . htmlspecialchars($row['imei'] ?? '') . '</Data></Cell>' . "\n";
+        $xml .= '   <Cell ss:StyleID="Data"><Data ss:Type="String">' . htmlspecialchars($row['iccid'] ?? '') . '</Data></Cell>' . "\n";
+        $xml .= '   <Cell ss:StyleID="Data"><Data ss:Type="String">' . htmlspecialchars($row['modelo'] ?? '') . '</Data></Cell>' . "\n";
+        $xml .= '   <Cell ss:StyleID="Data"><Data ss:Type="String">' . htmlspecialchars($row['operador'] ?? '') . '</Data></Cell>' . "\n";
+        $xml .= '   <Cell ss:StyleID="Data"><Data ss:Type="String">' . htmlspecialchars($row['pin'] ?? '') . '</Data></Cell>' . "\n";
+        $xml .= '   <Cell ss:StyleID="Data"><Data ss:Type="String">' . htmlspecialchars($row['puk'] ?? '') . '</Data></Cell>' . "\n";
+        $xml .= '   <Cell ss:StyleID="Data"><Data ss:Type="String">' . htmlspecialchars($row['estado'] ?? '') . '</Data></Cell>' . "\n";
+        $xml .= '   <Cell ss:StyleID="Data"><Data ss:Type="String">' . htmlspecialchars($row['sede'] ?? '') . '</Data></Cell>' . "\n";
+        $xml .= '   <Cell ss:StyleID="Data"><Data ss:Type="String">' . htmlspecialchars($row['usuario_actual'] ?? '') . '</Data></Cell>' . "\n";
+        $xml .= '   <Cell ss:StyleID="Data"><Data ss:Type="String">' . htmlspecialchars($row['observaciones'] ?? '') . '</Data></Cell>' . "\n";
+        $xml .= '  </Row>' . "\n";
+    }
+    
+    $xml .= ' </Table>' . "\n";
+    $xml .= '</Worksheet>' . "\n";
+    $xml .= '</Workbook>' . "\n";
+    
+    echo $xml;
+    exit;
+}
+
 // Sedes únicas para el filtro
 $sedes_list = ['Almería','Centralita','Granada','Madrid - Francisco Silvela','Valladolid'];
 
