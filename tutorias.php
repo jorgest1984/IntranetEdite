@@ -301,11 +301,29 @@ $current_page = 'tutorias.php';
                     </div>
                     <div class="form-group" style="gap: 10px;">
                         <label style="color: #000; font-weight: 700;">Solicitante:</label>
-                        <select class="form-control" style="width: 250px;">
+                        <select name="solicitante" class="form-control" style="width: 250px;">
                             <option value="">---</option>
                             <option value="COMFIA">COMFIA</option>
                             <option value="FED. COM. Y TTE. CCOO MADRID">FED. COM. Y TTE. CCOO MADRID</option>
-                            <!-- ... resto de opciones ... -->
+                            <option value="UGT DE CATALUNYA">UGT DE CATALUNYA</option>
+                            <option value="UGT Madrid">UGT Madrid</option>
+                            <option value="FETCM-UGT">FETCM-UGT</option>
+                            <option value="FETE-UGT">FETE-UGT</option>
+                            <option value="FED. NACIONAL DE DETALLISTAS DE FRUTAS Y HORTALIZA">FED. NACIONAL DE DETALLISTAS DE FRUTAS Y HORTALIZA</option>
+                            <option value="MARS">MARS</option>
+                            <option value="FITAG">FITAG</option>
+                            <option value="Comunidad de Madrid">Comunidad de Madrid</option>
+                            <option value="FAECTA">FAECTA</option>
+                            <option value="UGT Andalucía">UGT Andalucía</option>
+                            <option value="FTFE">FTFE</option>
+                            <option value="Criteria">Criteria</option>
+                            <option value="FSP-UGT Palencia">FSP-UGT Palencia</option>
+                            <option value="JUNTA DE CASTILLA Y LEON">JUNTA DE CASTILLA Y LEON</option>
+                            <option value="JUNTA DE ANDALUCIA">JUNTA DE ANDALUCIA</option>
+                            <option value="CRUZ ROJA ESPAÑOLA">CRUZ ROJA ESPAÑOLA</option>
+                            <option value="MARSDIGITAL S.L.">MARSDIGITAL S.L.</option>
+                            <option value="FUNDACIÓN PIQUER">FUNDACIÓN PIQUER</option>
+                            <option value="Fed. Estatal de servicios - UGT">Fed. Estatal de servicios - UGT</option>
                         </select>
                     </div>
                     <div class="form-group" style="gap: 10px;">
