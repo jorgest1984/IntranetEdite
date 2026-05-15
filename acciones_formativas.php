@@ -59,7 +59,10 @@ if (!empty($_GET['plan_id'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
     $searched = true;
     $params = [];
-    $sql = "SELECT af.*, c.nombre_largo as titulo, p.nombre as nombre_plan 
+    $sql = "SELECT af.*, c.nombre_largo as titulo, p.nombre as nombre_plan,
+            (SELECT COUNT(*) FROM matriculas m 
+             JOIN grupos g ON m.grupo_id = g.id 
+             WHERE g.accion_id = af.id) as participantes
             FROM acciones_formativas af
             JOIN cursos c ON af.curso_id = c.id
             LEFT JOIN planes p ON af.plan_id = p.id
