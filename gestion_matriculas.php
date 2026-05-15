@@ -238,15 +238,18 @@ btnBuscar.addEventListener('click', function() {
     const dni = searchDni.value.trim();
     const nombre = searchNombre.value.trim();
     
-    if (dni.length === 0 && nombre.length === 0) {
-        alert("Por favor, introduce al menos un dato para buscar.");
+    // Usar el que tenga contenido, priorizando DNI
+    const q = dni || nombre;
+    
+    if (q.length === 0) {
+        alert("Por favor, introduce el DNI o el nombre para buscar.");
         return;
     }
 
     this.disabled = true;
-    this.innerHTML = "Buscando...";
+    this.innerHTML = "⌛ Buscando...";
 
-    fetch(`api_buscar_alumnos.php?q=${encodeURIComponent(dni || nombre)}&exact=1`)
+    fetch(`api_buscar_alumnos.php?q=${encodeURIComponent(q)}&exact=1`)
         .then(r => r.json())
         .then(data => {
             this.disabled = false;
@@ -255,9 +258,9 @@ btnBuscar.addEventListener('click', function() {
             resultArea.style.display = 'none';
             noResultsMsg.style.display = 'none';
 
-            if (data.length > 0) {
+            if (data && data.length > 0) {
                 const a = data[0];
-                foundName.innerText = `${a.nombre} ${a.primer_apellido || ''} ${a.segundo_apellido || ''}`;
+                foundName.innerText = `${a.nombre} ${a.primer_apellido || ''}`;
                 foundDni.innerText = `DNI: ${a.dni}`;
                 selectedIdInput.value = a.id;
                 resultArea.style.display = 'block';
@@ -265,6 +268,12 @@ btnBuscar.addEventListener('click', function() {
             } else {
                 noResultsMsg.style.display = 'block';
             }
+        })
+        .catch(err => {
+            this.disabled = false;
+            this.innerHTML = "🔍 Buscar Alumno";
+            alert("Error al realizar la búsqueda. Por favor, inténtalo de nuevo.");
+            console.error(err);
         });
 });
 
