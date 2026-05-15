@@ -176,30 +176,47 @@ $alumnos = $matriculados->fetchAll();
             </div>
 
             <div class="add-section">
-                <div style="background: #f8fafc; padding: 25px; border-radius: 16px; border: 1px solid #e2e8f0; position: sticky; top: 20px;">
-                    <h3 style="margin-top: 0; font-size: 1rem; color: #1e3a8a;">Matricular Alumno</h3>
-                    <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 20px;">Busca por nombre o DNI para añadir al curso.</p>
-                    
-                    <form id="addForm" method="POST">
-                        <div class="search-box">
-                            <input type="text" id="studentSearch" name="student_search_text" class="form-control" placeholder="Buscar por nombre o DNI..." style="width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #e2e8f0; font-size: 0.9rem;" autocomplete="off">
-                            <div id="searchResults" class="search-results"></div>
+                    <!-- Formulario de Búsqueda -->
+                    <div id="searchFormContainer" style="margin-bottom: 25px;">
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="font-size: 0.8rem; font-weight: 700; color: #1e3a8a;">DNI:</label>
+                            <input type="text" id="searchDni" class="form-control" placeholder="Ej: 12345678X" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
                         </div>
-
-                        <input type="hidden" name="add_alumno_id" id="selectedAlumnoId">
-                        <button type="submit" id="enrollBtn" class="btn btn-primary" style="width: 100%; padding: 12px; border-radius: 8px; background: #1e3a8a; border: none; font-weight: 700; margin-bottom: 20px;">
-                            Matricular Alumno
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="font-size: 0.8rem; font-weight: 700; color: #1e3a8a;">Nombre Completo:</label>
+                            <input type="text" id="searchNombre" class="form-control" placeholder="Nombre y apellidos..." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                        </div>
+                        <button type="button" id="btnBuscar" class="btn btn-primary" style="width: 100%; padding: 12px; border-radius: 8px; background: #1e3a8a; border: none; font-weight: 700;">
+                            🔍 Buscar Alumno
                         </button>
-                    </form>
+                    </div>
 
-                    <?php if (isset($error)): ?>
-                        <div style="background: #fee2e2; color: #b91c1c; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; border: 1px solid #fecaca;">
-                            <?= htmlspecialchars($error) ?>
+                    <!-- Resultado de Búsqueda -->
+                    <div id="searchResultArea" style="display: none; background: white; padding: 20px; border-radius: 12px; border: 2px solid #3b82f6; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(59,130,246,0.1);">
+                        <h4 style="margin-top: 0; color: #1e40af; font-size: 0.9rem;">Alumno Encontrado:</h4>
+                        <div id="foundStudentInfo" style="margin-bottom: 20px;">
+                            <div id="foundName" style="font-weight: 700; color: #1e293b;"></div>
+                            <div id="foundDni" style="font-size: 0.85rem; color: #64748b;"></div>
                         </div>
-                    <?php endif; ?>
+                        
+                        <form id="addForm" method="POST">
+                            <input type="hidden" name="add_alumno_id" id="selectedAlumnoId">
+                            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; border-radius: 8px; background: #059669; border: none; font-weight: 700;">
+                                ✅ Matricular Alumno
+                            </button>
+                        </form>
+                        
+                        <button type="button" onclick="resetSearch()" style="width: 100%; margin-top: 10px; background: none; border: none; color: #64748b; font-size: 0.8rem; cursor: pointer; text-decoration: underline;">
+                            Nueva búsqueda
+                        </button>
+                    </div>
+
+                    <div id="noResultsMsg" style="display: none; background: #fee2e2; color: #b91c1c; padding: 15px; border-radius: 12px; border: 1px solid #fecaca; margin-bottom: 20px; font-size: 0.85rem; text-align: center;">
+                        ❌ No se encontró ningún alumno con esos datos.
+                    </div>
 
                     <div style="background: #eff6ff; padding: 15px; border-radius: 12px; border: 1px solid #bfdbfe; font-size: 0.8rem; color: #1e40af;">
-                        <strong>Tip:</strong> Puedes escribir el DNI directamente y pulsar en "Matricular Alumno" para darlo de alta rápidamente.
+                        <strong>Instrucciones:</strong> Primero busca al alumno por su DNI o Nombre. Una vez localizado, podrás proceder a la matriculación.
                     </div>
                 </div>
             </div>
@@ -208,51 +225,56 @@ $alumnos = $matriculados->fetchAll();
 </div>
 
 <script>
-const searchInput = document.getElementById('studentSearch');
-const resultsDiv = document.getElementById('searchResults');
-const addForm = document.getElementById('addForm');
+const btnBuscar = document.getElementById('btnBuscar');
+const searchDni = document.getElementById('searchDni');
+const searchNombre = document.getElementById('searchNombre');
+const resultArea = document.getElementById('searchResultArea');
+const noResultsMsg = document.getElementById('noResultsMsg');
+const foundName = document.getElementById('foundName');
+const foundDni = document.getElementById('foundDni');
 const selectedIdInput = document.getElementById('selectedAlumnoId');
 
-searchInput.addEventListener('input', function() {
-    const q = this.value;
+btnBuscar.addEventListener('click', function() {
+    const dni = searchDni.value.trim();
+    const nombre = searchNombre.value.trim();
     
-    // Clear the hidden ID when typing, so the backend uses the text search
-    selectedIdInput.value = '';
-
-    if (q.length < 3) {
-        resultsDiv.style.display = 'none';
+    if (dni.length === 0 && nombre.length === 0) {
+        alert("Por favor, introduce al menos un dato para buscar.");
         return;
     }
 
-    fetch('api_buscar_alumnos.php?q=' + encodeURIComponent(q))
+    this.disabled = true;
+    this.innerHTML = "Buscando...";
+
+    fetch(`api_buscar_alumnos.php?q=${encodeURIComponent(dni || nombre)}&exact=1`)
         .then(r => r.json())
         .then(data => {
-            resultsDiv.innerHTML = '';
+            this.disabled = false;
+            this.innerHTML = "🔍 Buscar Alumno";
+            
+            resultArea.style.display = 'none';
+            noResultsMsg.style.display = 'none';
+
             if (data.length > 0) {
-                data.forEach(a => {
-                    const div = document.createElement('div');
-                    div.className = 'search-item';
-                    div.innerHTML = `<strong>${a.nombre} ${a.primer_apellido || ''}</strong><br><small>${a.dni}</small>`;
-                    div.onclick = () => {
-                        selectedIdInput.value = a.id;
-                        searchInput.value = a.dni; // Show the DNI in the input
-                        resultsDiv.style.display = 'none';
-                    };
-                    resultsDiv.appendChild(div);
-                });
-                resultsDiv.style.display = 'block';
+                const a = data[0];
+                foundName.innerText = `${a.nombre} ${a.primer_apellido || ''} ${a.segundo_apellido || ''}`;
+                foundDni.innerText = `DNI: ${a.dni}`;
+                selectedIdInput.value = a.id;
+                resultArea.style.display = 'block';
+                document.getElementById('searchFormContainer').style.display = 'none';
             } else {
-                resultsDiv.innerHTML = '<div style="padding:10px; color:#94a3b8;">No se encontraron alumnos.</div>';
-                resultsDiv.style.display = 'block';
+                noResultsMsg.style.display = 'block';
             }
         });
 });
 
-document.addEventListener('click', (e) => {
-    if (!searchInput.contains(e.target) && !resultsDiv.contains(e.target)) {
-        resultsDiv.style.display = 'none';
-    }
-});
+function resetSearch() {
+    document.getElementById('searchFormContainer').style.display = 'block';
+    resultArea.style.display = 'none';
+    noResultsMsg.style.display = 'none';
+    searchDni.value = '';
+    searchNombre.value = '';
+}
 </script>
 </body>
 </html>
