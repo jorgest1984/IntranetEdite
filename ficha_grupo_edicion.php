@@ -15,11 +15,13 @@ $tutores = [];
 $centros = [];
 
 try {
-    // Tutors
-    $stmtTutores = $pdo->query("SELECT a.id, CONCAT(a.nombre, ' ', a.primer_apellido) as nombre 
-                                FROM alumnos a 
-                                JOIN profesorado_detalles p ON a.id = p.alumno_id 
-                                ORDER BY a.nombre ASC");
+    // Tutors (Docentes) - Fetching from usuarios with Tutor/Formador roles
+    $stmtTutores = $pdo->query("SELECT u.id, CONCAT(u.nombre, ' ', u.apellidos) as nombre 
+                                FROM usuarios u 
+                                JOIN roles r ON u.rol_id = r.id 
+                                WHERE (r.nombre LIKE '%Tutor%' OR r.nombre LIKE '%Formador%') 
+                                AND u.activo = 1
+                                ORDER BY u.nombre ASC");
     if ($stmtTutores) $tutores = $stmtTutores->fetchAll(PDO::FETCH_ASSOC);
 
     // Centers
