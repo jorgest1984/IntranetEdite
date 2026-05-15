@@ -62,6 +62,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         $params['activo'] = ($_POST['activo'] ?? '1') == '1' ? 1 : 0;
         $params['convocatoria_id'] = $conv_id;
 
+        // Validar duplicados de Código o Expediente
+        $checkSql = "SELECT id FROM planes WHERE (codigo = ? OR expediente = ?) AND convocatoria_id = ?";
+        $checkParams = [$_POST['codigo'], $_POST['expediente'], $conv_id];
+        
+        if ($plan_id) {
+            $checkSql .= " AND id != ?";
+            $checkParams[] = $plan_id;
+        }
+        
+        $stmtCheck = $pdo->prepare($checkSql);
+        $stmtCheck->execute($checkParams);
+        if ($stmtCheck->fetch()) {
+            throw new Exception("Ya existe otro plan con el mismo Código o Número de Expediente en esta convocatoria.");
+        }
+
         if ($plan_id) {
             // Update
             $setClauses = [];
@@ -107,12 +122,29 @@ if (isset($_GET['success'])) $success = "Plan guardado correctamente.";
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/main.css">
     <style>
-        .plan-form-card { background: white; padding: 2.5rem; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-        .form-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
+        .plan-form-card { 
+            background: white; 
+            padding: 2.5rem; 
+            border-radius: 12px; 
+            border: 1px solid #e2e8f0; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+        .form-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); 
+            gap: 1.5rem; 
+            margin-bottom: 2rem; 
+        }
         .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
-        .form-group.full-width { grid-column: span 4; }
+        .form-group.full-width { grid-column: 1 / -1; }
         .form-group.half-width { grid-column: span 2; }
         .form-group.three-quarter { grid-column: span 3; }
+
+        @media (max-width: 1200px) {
+            .form-group.half-width, .form-group.three-quarter { grid-column: 1 / -1; }
+        }
         
         .form-label { font-size: 0.85rem; font-weight: 600; color: #475569; text-transform: uppercase; letter-spacing: 0.025em; }
         .form-control { padding: 0.65rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.95rem; background: #f8fafc; transition: all 0.2s; }
@@ -121,7 +153,7 @@ if (isset($_GET['success'])) $success = "Plan guardado correctamente.";
         .checkbox-row { display: flex; align-items: center; gap: 1.5rem; margin-top: 0.5rem; border: 1px solid #e2e8f0; padding: 0.75rem; border-radius: 6px; background: #f1f5f9; }
         .checkbox-group { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.9rem; }
         
-        .section-separator { grid-column: span 4; border-bottom: 2px solid #f1f5f9; margin: 1rem 0; position: relative; }
+        .section-separator { grid-column: 1 / -1; border-bottom: 2px solid #f1f5f9; margin: 1rem 0; position: relative; }
         .section-separator span { position: absolute; top: -10px; left: 20px; background: white; padding: 0 10px; font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; }
 
         .btn-header { display: flex; gap: 1rem; }
@@ -142,9 +174,9 @@ if (isset($_GET['success'])) $success = "Plan guardado correctamente.";
 <body>
 
 <div class="app-container">
-    <?php include 'includes/sidebar.php'; ?>
+    <?php include 'includes/fp_sidebar.php'; ?>
 
-    <main class="main-content">
+    <main class="main-content" style="width: 100%; max-width: 100%; margin-left: 0; overflow-x: auto;">
         <header class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
             <div class="page-title">
                 <h1 style="color: #8e1d52; font-size: 1.5rem; font-weight: 700; text-transform: uppercase;">Ficha Planes de Formación</h1>
@@ -354,7 +386,7 @@ if (isset($_GET['success'])) $success = "Plan guardado correctamente.";
                         <input type="date" name="fecha_convenio" class="form-control" value="<?= htmlspecialchars($plan['fecha_convenio'] ?? '') ?>">
                     </div>
 
-                    <div class="form-separator" style="grid-column: span 4; margin-top: 2rem;">
+                    <div class="form-separator" style="grid-column: 1 / -1; margin-top: 2rem; overflow-x: auto;">
                         <h3 style="font-size: 0.9rem; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; text-transform: uppercase;">Datos Reconfiguración 2009-2010</h3>
                         <table class="reconfig-table">
                             <thead>
