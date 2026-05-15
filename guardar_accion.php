@@ -12,7 +12,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'nivel' => $_POST['nivel'] ?? null,
         'prioridad' => $_POST['prioridad'] ?? null,
         'estado' => $_POST['estado'] ?? null,
-        'destacar_web' => isset($_POST['destacar_web']) ? (int)$_POST['destacar_web'] : 0,
         'ultimas_plazas' => isset($_POST['ultimas_plazas']) ? 1 : 0,
         'id_plataforma' => $_POST['id_plataforma'] ?? null,
         'titulo' => $_POST['titulo'] ?? null,
@@ -100,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Update
             $sql = "UPDATE acciones_formativas SET 
                 plan_id = :plan_id, nivel = :nivel, prioridad = :prioridad, estado = :estado, 
-                destacar_web = :destacar_web, ultimas_plazas = :ultimas_plazas, id_plataforma = :id_plataforma, 
+                ultimas_plazas = :ultimas_plazas, id_plataforma = :id_plataforma, 
                 titulo = :titulo, abreviatura = :abreviatura, num_accion = :num_accion, duracion = :duracion, 
                 p = :p, d = :d, t = :t, modalidad = :modalidad, area_tematica = :area_tematica, 
                 familia_profesional = :familia_profesional, horas_teoricas = :horas_teoricas, 
@@ -139,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             // Insert
             $sql = "INSERT INTO acciones_formativas (
-                plan_id, nivel, prioridad, estado, destacar_web, ultimas_plazas, id_plataforma, 
+                plan_id, nivel, prioridad, estado, ultimas_plazas, id_plataforma, 
                 titulo, abreviatura, num_accion, duracion, p, d, t, modalidad, area_tematica, 
                 familia_profesional, horas_teoricas, horas_practicas, dias_extra, asignacion, 
                 modulo_sensib, modulo_alfab, encuesta_post, dur_int_empresas, dur_emprendimiento, 
@@ -160,7 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 cae_check, edite_gestion_check, nivel_gestion, paquete_gestion,
                 observaciones_gestion
             ) VALUES (
-                :plan_id, :nivel, :prioridad, :estado, :destacar_web, :ultimas_plazas, :id_plataforma, 
+                :plan_id, :nivel, :prioridad, :estado, :ultimas_plazas, :id_plataforma, 
                 :titulo, :abreviatura, :num_accion, :duracion, :p, :d, :t, :modalidad, :area_tematica, 
                 :familia_profesional, :horas_teoricas, :horas_practicas, :dias_extra, :asignacion, 
                 :modulo_sensib, :modulo_alfab, :encuesta_post, :dur_int_empresas, :dur_emprendimiento, 

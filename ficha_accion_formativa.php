@@ -422,19 +422,12 @@ try {
                     </div>
 
                     <div class="form-row">
-                        <div class="form-group form-col" style="width: 20%;">
+                        <div class="form-group form-col" style="width: 40%;">
                             <label>Estado de la acción:</label>
                             <select name="estado">
                                 <?php foreach ($estados as $e): ?>
                                     <option value="<?= $e ?>" <?= ($accion['estado'] ?? '') == $e ? 'selected' : '' ?>><?= $e ?></option>
                                 <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <div class="form-group form-col" style="width: 20%;">
-                            <label>Destacar en la web:</label>
-                            <select name="destacar_web">
-                                <option value="0" <?= ($accion['destacar_web'] ?? 0) == 0 ? 'selected' : '' ?>>No</option>
-                                <option value="1" <?= ($accion['destacar_web'] ?? 0) == 1 ? 'selected' : '' ?>>Sí</option>
                             </select>
                         </div>
                         <div class="form-group form-col" style="width: 15%;">
