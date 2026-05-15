@@ -164,6 +164,24 @@ class MoodleAPI {
         ];
         return $this->call('core_group_create_groups', $params);
     }
+
+    /**
+     * Crear un curso nuevo en Moodle
+     */
+    public function createCourse($fullname, $shortname, $categoryId = 1, $summary = '') {
+        $params = [
+            'courses' => [
+                [
+                    'fullname' => $fullname,
+                    'shortname' => $shortname,
+                    'categoryid' => $categoryId,
+                    'summary' => $summary,
+                    'format' => 'topics'
+                ]
+            ]
+        ];
+        return $this->call('core_course_create_courses', $params);
+    }
     
     /**
      * Matricular usuario en un curso (manual enrol)
@@ -225,6 +243,51 @@ class MoodleAPI {
         }
         
         return $moodleUserId;
+    }
+
+    /**
+     * Obtener el progreso de los usuarios en un curso
+     */
+    public function getCourseUserProgress($courseId) {
+        $params = [
+            'courseids' => [$courseId]
+        ];
+        return $this->call('core_completion_get_course_completion_status', ['courseid' => $courseId, 'userid' => 0]); // 0 can mean self or need specific loop
+        // Better: core_enrol_get_enrolled_users with course completion info
+    }
+
+    /**
+     * Obtener usuarios matriculados con su último acceso y progreso
+     */
+    public function getEnrolledUsers($courseId) {
+        $params = [
+            'courseid' => $courseId,
+            'options' => [
+                ['name' => 'userfields', 'value' => 'id,username,firstname,lastname,email,lastaccess,lastlogin']
+            ]
+        ];
+        return $this->call('core_enrol_get_enrolled_users', $params);
+    }
+
+    /**
+     * Actualizar metadatos de un curso (ej. visibilidad, nombre)
+     */
+    public function updateCourse($courseId, $data) {
+        $course = ['id' => $courseId];
+        if (isset($data['fullname'])) $course['fullname'] = $data['fullname'];
+        if (isset($data['shortname'])) $course['shortname'] = $data['shortname'];
+        if (isset($data['visible'])) $course['visible'] = (int)$data['visible'];
+        
+        $params = ['courses' => [$course]];
+        return $this->call('core_course_update_courses', $params);
+    }
+
+    /**
+     * Eliminar un curso de Moodle
+     */
+    public function deleteCourse($courseId) {
+        $params = ['courseids' => [(int)$courseId]];
+        return $this->call('core_course_delete_courses', $params);
     }
 }
 ?>
