@@ -20,6 +20,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
         if ($nombre && $convocatoria_id) {
             try {
+                // Validar duplicados de Nombre o Código en la misma convocatoria
+                $checkSql = "SELECT id FROM planes WHERE (nombre = ? OR (codigo != '' AND codigo = ?)) AND convocatoria_id = ?";
+                $stmtCheck = $pdo->prepare($checkSql);
+                $stmtCheck->execute([$nombre, $codigo, $convocatoria_id]);
+                if ($stmtCheck->fetch()) {
+                    throw new Exception("Ya existe un plan con el mismo nombre o código en esta convocatoria.");
+                }
+
                 $stmt = $pdo->prepare("INSERT INTO planes (nombre, convocatoria_id, codigo) VALUES (?, ?, ?)");
                 $stmt->execute([$nombre, $convocatoria_id, $codigo]);
                 $success = "Plan estratégico creado con éxito.";

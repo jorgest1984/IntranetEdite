@@ -62,12 +62,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         $params['activo'] = ($_POST['activo'] ?? '1') == '1' ? 1 : 0;
         $params['convocatoria_id'] = $conv_id;
 
-        // Validar duplicados de Código o Expediente (solo si se proporcionan)
+        // Validar duplicados de Nombre, Código o Expediente (solo si se proporcionan)
         $checks = [];
         $checkParams = [];
+        $nombre_input = trim($_POST['nombre'] ?? '');
         $codigo_input = trim($_POST['codigo'] ?? '');
         $expediente_input = trim($_POST['expediente'] ?? '');
 
+        if ($nombre_input !== '') {
+            $checks[] = "nombre = ?";
+            $checkParams[] = $nombre_input;
+        }
         if ($codigo_input !== '') {
             $checks[] = "codigo = ?";
             $checkParams[] = $codigo_input;
@@ -89,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             $stmtCheck = $pdo->prepare($checkSql);
             $stmtCheck->execute($checkParams);
             if ($stmtCheck->fetch()) {
-                throw new Exception("Ya existe otro plan con el mismo Código ('$codigo_input') o Número de Expediente ('$expediente_input') en esta convocatoria.");
+                throw new Exception("Ya existe otro plan con el mismo Nombre, Código o Número de Expediente en esta convocatoria.");
             }
         }
 
