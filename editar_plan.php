@@ -62,19 +62,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         $params['activo'] = ($_POST['activo'] ?? '1') == '1' ? 1 : 0;
         $params['convocatoria_id'] = $conv_id;
 
-        // Validar duplicados de Código o Expediente
-        $checkSql = "SELECT id FROM planes WHERE (codigo = ? OR expediente = ?) AND convocatoria_id = ?";
-        $checkParams = [$_POST['codigo'], $_POST['expediente'], $conv_id];
-        
-        if ($plan_id) {
-            $checkSql .= " AND id != ?";
-            $checkParams[] = $plan_id;
+        // Validar duplicados de Código o Expediente (solo si se proporcionan)
+        $checks = [];
+        $checkParams = [];
+        $codigo_input = trim($_POST['codigo'] ?? '');
+        $expediente_input = trim($_POST['expediente'] ?? '');
+
+        if ($codigo_input !== '') {
+            $checks[] = "codigo = ?";
+            $checkParams[] = $codigo_input;
         }
-        
-        $stmtCheck = $pdo->prepare($checkSql);
-        $stmtCheck->execute($checkParams);
-        if ($stmtCheck->fetch()) {
-            throw new Exception("Ya existe otro plan con el mismo Código o Número de Expediente en esta convocatoria.");
+        if ($expediente_input !== '') {
+            $checks[] = "expediente = ?";
+            $checkParams[] = $expediente_input;
+        }
+
+        if (!empty($checks)) {
+            $checkSql = "SELECT id FROM planes WHERE (" . implode(' OR ', $checks) . ") AND convocatoria_id = ?";
+            $checkParams[] = $conv_id;
+            
+            if ($plan_id) {
+                $checkSql .= " AND id != ?";
+                $checkParams[] = $plan_id;
+            }
+            
+            $stmtCheck = $pdo->prepare($checkSql);
+            $stmtCheck->execute($checkParams);
+            if ($stmtCheck->fetch()) {
+                throw new Exception("Ya existe otro plan con el mismo Código ('$codigo_input') o Número de Expediente ('$expediente_input') en esta convocatoria.");
+            }
         }
 
         if ($plan_id) {
