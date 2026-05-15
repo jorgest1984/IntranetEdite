@@ -488,17 +488,6 @@ try {
                         </div>
                     </div>
 
-                    <div class="form-row">
-                        <div class="form-group form-col" style="width: 40%;">
-                            <label>Área temática (a eliminar):</label>
-                            <div style="display: flex; gap: 5px;">
-                                <select name="area_tematica">
-                                    <option value="<?= htmlspecialchars($accion['area_tematica'] ?? '') ?>"><?= htmlspecialchars($accion['area_tematica'] ?? '') ?></option>
-                                </select>
-                                <button type="button" class="btn-add-sector">...</button>
-                            </div>
-                        </div>
-                    </div>
 
                     <div class="form-row">
                         <div class="form-group form-col" style="width: 100%;">

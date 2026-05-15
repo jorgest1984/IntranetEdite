@@ -22,7 +22,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'd' => !empty($_POST['d']) ? (int)$_POST['d'] : 0,
         't' => !empty($_POST['t']) ? (int)$_POST['t'] : 0,
         'modalidad' => $_POST['modalidad'] ?? null,
-        'area_tematica' => $_POST['area_tematica'] ?? null,
         'familia_profesional' => $_POST['familia_profesional'] ?? null,
         'horas_teoricas' => !empty($_POST['horas_teoricas']) ? (int)$_POST['horas_teoricas'] : 0,
         'horas_practicas' => !empty($_POST['horas_practicas']) ? (int)$_POST['horas_practicas'] : 0,
@@ -101,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 plan_id = :plan_id, nivel = :nivel, prioridad = :prioridad, estado = :estado, 
                 ultimas_plazas = :ultimas_plazas, id_plataforma = :id_plataforma, 
                 titulo = :titulo, abreviatura = :abreviatura, num_accion = :num_accion, duracion = :duracion, 
-                p = :p, d = :d, t = :t, modalidad = :modalidad, area_tematica = :area_tematica, 
+                p = :p, d = :d, t = :t, modalidad = :modalidad, 
                 familia_profesional = :familia_profesional, horas_teoricas = :horas_teoricas, 
                 horas_practicas = :horas_practicas, dias_extra = :dias_extra, asignacion = :asignacion, 
                 modulo_sensib = :modulo_sensib, modulo_alfab = :modulo_alfab, encuesta_post = :encuesta_post, 
@@ -139,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Insert
             $sql = "INSERT INTO acciones_formativas (
                 plan_id, nivel, prioridad, estado, ultimas_plazas, id_plataforma, 
-                titulo, abreviatura, num_accion, duracion, p, d, t, modalidad, area_tematica, 
+                titulo, abreviatura, num_accion, duracion, p, d, t, modalidad, 
                 familia_profesional, horas_teoricas, horas_practicas, dias_extra, asignacion, 
                 modulo_sensib, modulo_alfab, encuesta_post, dur_int_empresas, dur_emprendimiento, 
                 objetivos, objetivos_especificos, contenidos, contenidos_breves, que_aprenden, 
@@ -160,7 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 observaciones_gestion
             ) VALUES (
                 :plan_id, :nivel, :prioridad, :estado, :ultimas_plazas, :id_plataforma, 
-                :titulo, :abreviatura, :num_accion, :duracion, :p, :d, :t, :modalidad, :area_tematica, 
+                :titulo, :abreviatura, :num_accion, :duracion, :p, :d, :t, :modalidad, 
                 :familia_profesional, :horas_teoricas, :horas_practicas, :dias_extra, :asignacion, 
                 :modulo_sensib, :modulo_alfab, :encuesta_post, :dur_int_empresas, :dur_emprendimiento, 
                 :objetivos, :objetivos_especificos, :contenidos, :contenidos_breves, :que_aprenden, 
