@@ -61,7 +61,7 @@ $asignaciones = ['I', 'E', 'M'];
     <link rel="stylesheet" href="css/main.css">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-        .main-content { padding: 2rem; max-width: 1200px; margin: 0 auto; }
+        .main-content { padding: 2rem; max-width: 1400px; }
         
         .page-header {
             display: flex;
@@ -193,16 +193,15 @@ $asignaciones = ['I', 'E', 'M'];
 <body>
     <?php include 'includes/sidebar.php'; ?>
 
-    <div class="page-header">
-        <div class="header-title">
-            <h1><?= $id ? 'Editar Grupo' : 'Nuevo Grupo' ?></h1>
-        </div>
-        <div class="btn-group-header">
-            <a href="ficha_accion_formativa.php?id=<?= $accion_id ?>&tab=grupos" class="btn-back">Volver a la ficha</a>
-        </div>
-    </div>
-
     <main class="main-content">
+        <div class="page-header">
+            <div class="header-title">
+                <h1><?= $id ? 'Editar Grupo' : 'Nuevo Grupo' ?></h1>
+            </div>
+            <div class="btn-group-header">
+                <a href="ficha_accion_formativa.php?id=<?= $accion_id ?>&tab=grupos" class="btn-back">Volver a la ficha</a>
+            </div>
+        </div>
         <div class="action-info-box">
             <div class="action-info-title">Acción Formativa vinculada</div>
             <div class="action-info-content">
