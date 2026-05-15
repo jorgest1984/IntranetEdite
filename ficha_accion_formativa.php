@@ -1198,42 +1198,45 @@ try {
                 </div>
 
                 <!-- Evaluaciones Base -->
-                <div class="form-row" style="gap: 20px;">
-                    <div class="form-group" style="width: 20%;">
-                        <label>Nº Evaluaciones:</label>
-                        <input type="number" name="num_evaluaciones" value="<?= htmlspecialchars($accion['num_evaluaciones'] ?? '0') ?>">
+                <div class="form-row" style="align-items: flex-end; gap: 20px; margin-bottom: 25px;">
+                    <div class="form-group" style="width: 180px;">
+                        <label style="color: #1e3a8a; font-weight: 700;">Nº EVALUACIONES:</label>
+                        <input type="number" name="num_evaluaciones" value="<?= htmlspecialchars($accion['num_evaluaciones'] ?? '0') ?>" style="padding: 8px;">
                     </div>
-                    <div style="display: flex; align-items: center; gap: 40px; flex-grow: 1; padding-top: 15px;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <label style="margin: 0; white-space: nowrap; font-weight: 600; color: #1e40af;">Recibí material 1:</label>
-                            <input type="checkbox" name="recibi_material1" value="1" <?= ($accion['recibi_material1'] ?? 0) ? 'checked' : '' ?> style="width: auto; margin: 0;">
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <label style="margin: 0; white-space: nowrap; font-weight: 600; color: #1e40af;">Recibí material 2:</label>
-                            <input type="checkbox" name="recibi_material2" value="1" <?= ($accion['recibi_material2'] ?? 0) ? 'checked' : '' ?> style="width: auto; margin: 0;">
-                        </div>
+                    <div style="display: flex; gap: 30px; padding-bottom: 10px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #1e3a8a; font-weight: 700; font-size: 0.85rem;">
+                             Recibí material 1: <input type="checkbox" name="recibi_material1" value="1" <?= ($accion['recibi_material1'] ?? 0) ? 'checked' : '' ?> style="width: 16px; height: 16px;">
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #1e3a8a; font-weight: 700; font-size: 0.85rem;">
+                             Recibí material 2: <input type="checkbox" name="recibi_material2" value="1" <?= ($accion['recibi_material2'] ?? 0) ? 'checked' : '' ?> style="width: 16px; height: 16px;">
+                        </label>
                     </div>
                 </div>
 
                 <!-- Evaluaciones Detalle -->
-                <?php for($i=1; $i<=4; $i++): ?>
-                <div class="form-row" style="align-items: center;">
-                    <div class="form-group form-col" style="width: 15%; display: flex; align-items: center; gap: 10px; padding-top: 15px;">
-                        <label style="margin: 0; white-space: nowrap;"><?= $i ?>ª Evaluación:</label>
-                        <input type="checkbox" name="eval<?= $i ?>_check" value="1" <?= ($accion['eval' . $i . '_check'] ?? 0) ? 'checked' : '' ?>>
+                <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px;">
+                    <?php for($i=1; $i<=4; $i++): ?>
+                    <div style="display: grid; grid-template-columns: 160px 1fr; gap: 15px; align-items: center;">
+                        <label style="display: flex; align-items: center; gap: 10px; color: #1e3a8a; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; cursor: pointer;">
+                            <input type="checkbox" name="eval<?= $i ?>_check" value="1" <?= ($accion['eval' . $i . '_check'] ?? 0) ? 'checked' : '' ?> style="width: 16px; height: 16px;">
+                            <?= $i ?>ª Evaluación:
+                        </label>
+                        <div class="form-group" style="margin: 0;">
+                            <input type="text" name="eval<?= $i ?>_titulo" value="<?= htmlspecialchars($accion['eval' . $i . '_titulo'] ?? '') ?>" 
+                                   placeholder="TÍTULO DE LA <?= $i ?>ª EVALUACIÓN" 
+                                   style="width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 4px; background: #f8fafc;">
+                        </div>
                     </div>
-                    <div class="form-group form-col" style="width: 85%;">
-                        <label>Título:</label>
-                        <input type="text" name="eval<?= $i ?>_titulo" value="<?= htmlspecialchars($accion['eval' . $i . '_titulo'] ?? '') ?>" class="textarea-grey">
-                    </div>
+                    <?php endfor; ?>
                 </div>
-                <?php endfor; ?>
 
                 <!-- Supuesto Práctico -->
                 <div class="form-row">
                     <div class="form-group form-col" style="width: 100%;">
-                        <label>Supuesto práctico:</label>
-                        <input type="text" name="supuesto_practico" value="<?= htmlspecialchars($accion['supuesto_practico'] ?? '') ?>" class="textarea-grey" placeholder="Título del supuesto práctico">
+                        <label style="color: #1e3a8a; font-weight: 700; text-transform: uppercase;">Supuesto práctico:</label>
+                        <input type="text" name="supuesto_practico" value="<?= htmlspecialchars($accion['supuesto_practico'] ?? '') ?>" 
+                               placeholder="Título del supuesto práctico"
+                               style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 4px; background: #f8fafc;">
                     </div>
                 </div>
 
