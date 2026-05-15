@@ -33,14 +33,30 @@ if (!$grupo) {
 }
 
 // Procesar Alta de Alumno
-if (isset($_POST['add_alumno_id'])) {
-    $alumno_id = (int)$_POST['add_alumno_id'];
+if (isset($_POST['add_alumno_id']) || !empty($_POST['student_search_text'])) {
+    $alumno_id = (int)($_POST['add_alumno_id'] ?? 0);
+    $search_text = trim($_POST['student_search_text'] ?? '');
+
     try {
-        $stmt = $pdo->prepare("INSERT IGNORE INTO matriculas (alumno_id, grupo_id, convocatoria_id, estado, fecha_matricula) 
-                               VALUES (?, ?, ?, 'Inscrito', CURDATE())");
-        $stmt->execute([$alumno_id, $grupo_id, $accion['plan_id']]); // Usamos plan_id como fallback de convocatoria si es necesario
-        header("Location: gestion_matriculas.php?af_id=$af_id&success=1");
-        exit();
+        if (!$alumno_id && !empty($search_text)) {
+            // Buscar por DNI exacto o nombre exacto si no hay ID
+            $stmt = $pdo->prepare("SELECT id FROM alumnos WHERE dni = ? OR CONCAT(nombre, ' ', primer_apellido) = ? LIMIT 1");
+            $stmt->execute([$search_text, $search_text]);
+            $found = $stmt->fetch();
+            if ($found) {
+                $alumno_id = $found['id'];
+            } else {
+                throw new Exception("No se encontró ningún alumno con ese DNI o nombre exacto.");
+            }
+        }
+
+        if ($alumno_id) {
+            $stmt = $pdo->prepare("INSERT IGNORE INTO matriculas (alumno_id, grupo_id, convocatoria_id, estado, fecha_matricula) 
+                                   VALUES (?, ?, ?, 'Inscrito', CURDATE())");
+            $stmt->execute([$alumno_id, $grupo_id, $accion['plan_id']]);
+            header("Location: gestion_matriculas.php?af_id=$af_id&success=1");
+            exit();
+        }
     } catch (Exception $e) { $error = $e->getMessage(); }
 }
 
@@ -164,20 +180,26 @@ $alumnos = $matriculados->fetchAll();
                     <h3 style="margin-top: 0; font-size: 1rem; color: #1e3a8a;">Matricular Alumno</h3>
                     <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 20px;">Busca por nombre o DNI para añadir al curso.</p>
                     
-                    <div class="search-box">
-                        <input type="text" id="studentSearch" class="form-control" placeholder="Buscar por nombre o DNI..." style="width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #e2e8f0; font-size: 0.9rem;">
-                        <div id="searchResults" class="search-results"></div>
-                    </div>
-
                     <form id="addForm" method="POST">
+                        <div class="search-box">
+                            <input type="text" id="studentSearch" name="student_search_text" class="form-control" placeholder="Buscar por nombre o DNI..." style="width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #e2e8f0; font-size: 0.9rem;" autocomplete="off">
+                            <div id="searchResults" class="search-results"></div>
+                        </div>
+
                         <input type="hidden" name="add_alumno_id" id="selectedAlumnoId">
-                        <button type="submit" id="enrollBtn" class="btn btn-primary" style="width: 100%; padding: 12px; border-radius: 8px; background: #1e3a8a; border: none; font-weight: 700; margin-bottom: 20px; opacity: 0.5; pointer-events: none;">
+                        <button type="submit" id="enrollBtn" class="btn btn-primary" style="width: 100%; padding: 12px; border-radius: 8px; background: #1e3a8a; border: none; font-weight: 700; margin-bottom: 20px;">
                             Matricular Alumno
                         </button>
                     </form>
 
+                    <?php if (isset($error)): ?>
+                        <div style="background: #fee2e2; color: #b91c1c; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; border: 1px solid #fecaca;">
+                            <?= htmlspecialchars($error) ?>
+                        </div>
+                    <?php endif; ?>
+
                     <div style="background: #eff6ff; padding: 15px; border-radius: 12px; border: 1px solid #bfdbfe; font-size: 0.8rem; color: #1e40af;">
-                        <strong>Tip:</strong> Al matricular a un alumno, el sistema lo preparará automáticamente para la próxima sincronización con Moodle.
+                        <strong>Tip:</strong> Puedes escribir el DNI directamente y pulsar en "Matricular Alumno" para darlo de alta rápidamente.
                     </div>
                 </div>
             </div>
@@ -190,15 +212,12 @@ const searchInput = document.getElementById('studentSearch');
 const resultsDiv = document.getElementById('searchResults');
 const addForm = document.getElementById('addForm');
 const selectedIdInput = document.getElementById('selectedAlumnoId');
-const enrollBtn = document.getElementById('enrollBtn');
 
 searchInput.addEventListener('input', function() {
     const q = this.value;
     
-    // Clear selection if input changes
+    // Clear the hidden ID when typing, so the backend uses the text search
     selectedIdInput.value = '';
-    enrollBtn.style.opacity = '0.5';
-    enrollBtn.style.pointerEvents = 'none';
 
     if (q.length < 3) {
         resultsDiv.style.display = 'none';
@@ -216,10 +235,8 @@ searchInput.addEventListener('input', function() {
                     div.innerHTML = `<strong>${a.nombre} ${a.primer_apellido || ''}</strong><br><small>${a.dni}</small>`;
                     div.onclick = () => {
                         selectedIdInput.value = a.id;
-                        searchInput.value = `${a.nombre} ${a.primer_apellido || ''} (${a.dni})`;
+                        searchInput.value = a.dni; // Show the DNI in the input
                         resultsDiv.style.display = 'none';
-                        enrollBtn.style.opacity = '1';
-                        enrollBtn.style.pointerEvents = 'auto';
                     };
                     resultsDiv.appendChild(div);
                 });
