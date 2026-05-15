@@ -22,7 +22,7 @@ try {
     $curso_id = 0;
 
     // 1. Crear registro en la tabla 'cursos' (Necesario para consistencia con el resto de la app)
-    $stmtCurso = $pdo->prepare("INSERT INTO cursos (nombre_largo, nombre_corto, visible) VALUES (?, ?, 1)");
+    $stmtCurso = $pdo->prepare("INSERT INTO cursos (nombre_largo, nombre_corto, visible, moodle_id) VALUES (?, ?, 1, 0)");
     $stmtCurso->execute([$titulo, $abreviatura]);
     $curso_id = $pdo->lastInsertId();
 
