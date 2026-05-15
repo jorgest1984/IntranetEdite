@@ -48,6 +48,13 @@ $prioridades = ['Alta', 'Media', 'Baja'];
 // Search Logic
 $results = [];
 $searched = false;
+$current_plan_name = '';
+
+if (!empty($_GET['plan_id'])) {
+    $stmt = $pdo->prepare("SELECT nombre FROM planes WHERE id = ?");
+    $stmt->execute([$_GET['plan_id']]);
+    $current_plan_name = $stmt->fetchColumn();
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
     $searched = true;
@@ -114,7 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
     <link rel="icon" type="image/png" href="/img/logo_efp.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $is_subvencionada ? 'Formación Subvencionada' : 'Acciones Formativas' ?> - Campos de Búsqueda</title>
+    <title><?= $current_plan_name ? 'Cursos del Plan: ' . htmlspecialchars($current_plan_name) : ($is_subvencionada ? 'Formación Subvencionada' : 'Acciones Formativas') ?> - <?= APP_NAME ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/main.css">
     <style>
@@ -308,23 +315,178 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
         
         .btn-volver:hover { background: #e2e8f0; }
 
-        .td-center { text-align: center; }
-        .td-right { text-align: right; }
+        /* Estilos Premium para Acciones */
+        .table-premium th { padding: 15px; border-bottom: 2px solid #f1f5f9; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; font-size: 0.7rem; }
+        .table-premium tr:hover { background: #f8fafc; }
+        .btn-action {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            color: #1e3a8a;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-color: currentColor;
+        }
+
+        /* Loading Spinner */
+        .syncing { animation: spin 1s linear infinite; color: #ea580c !important; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* Tabs Styles */
+        .tabs-header-af {
+            display: flex;
+            gap: 5px;
+            margin-bottom: -1px;
+            padding-left: 10px;
+        }
+
+        .tab-af-btn {
+            padding: 10px 25px;
+            background: #e2e8f0;
+            border: 1px solid #cbd5e1;
+            border-bottom: none;
+            border-radius: 8px 8px 0 0;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        .tab-af-btn.active {
+            background: white;
+            color: #1e3a8a;
+            border-bottom: 2px solid white;
+            margin-bottom: -1px;
+            z-index: 2;
+        }
+
+        .tab-content-af {
+            display: none;
+        }
+
+        .tab-content-af.active {
+            display: block;
+        }
+
+        /* Form Styles for Tab */
+        .form-card-tab {
+            background: white;
+            padding: 30px;
+            border-radius: 0 0 8px 8px;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        
+        .section-title-tab {
+            color: #1e3a8a;
+            font-size: 0.85rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 8px;
+            margin: 25px 0 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .grid-form-tab {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .form-group-tab label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #64748b;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        
+        .form-control-tab {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+        
+        .moodle-sync-box-tab {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
     </style>
+    <script>
+    function syncMoodle(afId) {
+        if (!confirm('¿Deseas sincronizar esta Acción Formativa y sus alumnos con el Aula Virtual?')) return;
+        
+        const btn = event.currentTarget;
+        const originalContent = btn.innerHTML;
+        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="syncing"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>';
+        btn.disabled = true;
+
+        fetch('api_sync_moodle.php?id=' + afId)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('✓ Sincronización completada: ' + data.message);
+                } else {
+                    alert('✕ Error: ' + data.error);
+                }
+            })
+            .catch(err => alert('✕ Error de conexión con el servidor.'))
+            .finally(() => {
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+            });
+    }
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-af-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content-af').forEach(content => content.classList.remove('active'));
+        
+        document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+        document.getElementById(tabId).classList.add('active');
+    }
+    </script>
 </head>
 <body>
 
-<div class="app-container" style="display: flex; min-height: 100vh;">
-    <?php include 'includes/sidebar.php'; ?>
+<div class="app-container">
+    <?php include 'includes/fp_sidebar.php'; ?>
 
     <main class="main-content" style="flex: 1; overflow-y: auto;">
         
         <div class="search-card">
-            <div class="card-header-custom">
-                <h2><?= $page_title_prefix ?> - CAMPOS DE BÚSQUEDA</h2>
+            <div class="card-header-custom" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 20px;">
+                <h2 style="margin: 0; color: #b91c1c; font-size: 0.85rem; font-weight: 800; text-transform: uppercase;"><?= $current_plan_name ? 'CURSOS DEL PLAN: ' . htmlspecialchars($current_plan_name) : ($page_title_prefix . ' - CAMPOS DE BÚSQUEDA') ?></h2>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <?php if ($current_plan_name): ?>
+                        <button onclick="document.getElementById('searchForm').style.display = (document.getElementById('searchForm').style.display === 'none' ? 'block' : 'none')" class="btn-small" style="font-size: 0.7rem; padding: 4px 10px; cursor:pointer; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px;">🔍 Filtros</button>
+                    <?php endif; ?>
+                </div>
             </div>
             
-            <form class="search-form" method="GET">
+            <form id="searchForm" class="search-form" method="GET" style="<?= $current_plan_name ? 'display: none;' : '' ?>">
                 <input type="hidden" name="context" value="<?= htmlspecialchars($_GET['context'] ?? '') ?>">
                 
                 <!-- Fila 1 -->
@@ -460,78 +622,178 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
             </form>
         </div>
 
-        <div class="results-section">
-            <div class="results-header">
-                <div class="check-group">
-                    <input type="checkbox" name="ord_multiple"> Ordenar múltiple
-                </div>
-                <h2>RESULTADO DE LA BÚSQUEDA</h2>
-            </div>
+        <?php if (!empty($_GET['plan_id'])): ?>
+        <div class="tabs-header-af">
+            <button class="tab-af-btn active" data-tab="tab-listado" onclick="switchTab('tab-listado')">Listado de Acciones</button>
+            <button class="tab-af-btn" data-tab="tab-nueva" onclick="switchTab('tab-nueva')">Nueva Acción Formativa</button>
+        </div>
+        <?php endif; ?>
 
-            <div class="table-responsive">
-                <table class="table-custom">
+        <div id="tab-listado" class="tab-content-af active">
+            <div class="results-section">
+                <div class="results-header" style="background: white; border-bottom: 2px solid #e2e8f0; padding: 15px 25px; border-radius: 8px 8px 0 0;">
+                    <h2 style="margin: 0; color: #1e3a8a; font-size: 1rem; text-transform: uppercase;">Gestión de Acciones Formativas</h2>
+                </div>
+
+            <div class="table-responsive" style="background: white; border-radius: 0 0 8px 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                <table class="table-premium" style="width: 100%; border-collapse: collapse;">
                     <thead>
-                        <tr>
-                            <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Nº Acc</th>
-                            <th style="text-align: left;"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Título</th>
-                            <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Abrev.</th>
-                            <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Modalidad</th>
-                            <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Duración</th>
-                            <th style="text-align: left;"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Plan</th>
-                            <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Partic.</th>
-                            <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Mostrar</th>
-                            <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Estado</th>
-                            <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Tutor1</th>
-                            <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Tutor2</th>
-                            <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Win</th>
-                            <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Mac</th>
-                            <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Proveedor</th>
-                            <th style="text-align: right;"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Precio venta</th>
-                            <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Último inicio</th>
+                        <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                            <th style="padding: 15px; text-align: left; font-size: 0.7rem; color: #64748b;">ID / CÓDIGO</th>
+                            <th style="padding: 15px; text-align: left; font-size: 0.7rem; color: #64748b;">NOMBRE DEL CURSO</th>
+                            <th style="padding: 15px; text-align: center; font-size: 0.7rem; color: #64748b;">MODALIDAD</th>
+                            <th style="padding: 15px; text-align: center; font-size: 0.7rem; color: #64748b;">DURACIÓN</th>
+                            <th style="padding: 15px; text-align: center; font-size: 0.7rem; color: #64748b;">MATRÍCULAS</th>
+                            <th style="padding: 15px; text-align: center; font-size: 0.7rem; color: #64748b;">ESTADO</th>
+                            <th style="padding: 15px; text-align: center; font-size: 0.7rem; color: #64748b;">ACCIONES</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if ($searched && count($results) > 0): ?>
                             <?php foreach ($results as $row): ?>
-                                <tr>
-                                    <td class="td-center"><?= $row['id'] ?></td>
-                                    <td><a href="#" style="color: var(--label-blue); font-weight: 700; text-decoration: none;"><?= htmlspecialchars($row['titulo'] ?? '') ?></a></td>
-                                    <td><?= htmlspecialchars($row['abreviatura'] ?? '') ?></td>
-                                    <td class="td-center"><?= htmlspecialchars($row['modalidad'] ?? '') ?></td>
-                                    <td class="td-center"><?= $row['duracion'] ?></td>
-                                    <td><?= htmlspecialchars($row['nombre_plan'] ?? '') ?></td>
-                                    <td class="td-center"><?= $row['participantes'] ?></td>
-                                    <td class="td-center"><?= $row['mostrar_web'] ? 'Sí' : 'No' ?></td>
-                                    <td class="td-center"><?= htmlspecialchars($row['estado'] ?? '') ?></td>
-                                    <td><?= htmlspecialchars($row['tutor1_id'] ?? '') ?></td>
-                                    <td><?= htmlspecialchars($row['tutor2_id'] ?? '') ?></td>
-                                    <td class="td-center"><?= $row['win'] ? 'X' : '' ?></td>
-                                    <td class="td-center"><?= $row['mac'] ? 'X' : '' ?></td>
-                                    <td><?= htmlspecialchars($row['proveedor'] ?? '') ?></td>
-                                    <td class="td-right"><?= number_format($row['precio_venta'], 2) ?> €</td>
-                                    <td class="td-center"><?= htmlspecialchars($row['ultimo_inicio'] ?? '') ?></td>
+                                <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.2s;">
+                                    <td style="padding: 15px;">
+                                        <div style="font-weight: 800; color: #1e3a8a;">#<?= $row['id'] ?></div>
+                                        <small style="color: #94a3b8; font-weight: 600;"><?= htmlspecialchars($row['num_accion'] ?? '---') ?></small>
+                                    </td>
+                                    <td style="padding: 15px;">
+                                        <div style="font-weight: 700; color: #1e293b; font-size: 0.9rem;"><?= htmlspecialchars($row['titulo'] ?? '') ?></div>
+                                        <small style="color: #64748b; font-weight: 600;"><?= htmlspecialchars($row['nombre_plan'] ?? 'Sin Plan') ?></small>
+                                    </td>
+                                    <td style="padding: 15px; text-align: center;">
+                                        <span style="background: #eff6ff; color: #1e40af; padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 800;"><?= htmlspecialchars($row['modalidad'] ?? '') ?></span>
+                                    </td>
+                                    <td style="padding: 15px; text-align: center; font-weight: 800; color: #1e293b;"><?= $row['duracion'] ?>h</td>
+                                    <td style="padding: 15px; text-align: center;">
+                                        <div style="background: #f1f5f9; padding: 5px; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px;">
+                                            <span style="font-weight: 800; color: #1e3a8a; font-size: 1rem;"><?= $row['participantes'] ?? 0 ?></span>
+                                            <small style="font-weight: 700; color: #94a3b8; font-size: 0.6rem;">ALUMNOS</small>
+                                        </div>
+                                    </td>
+                                    <td style="padding: 15px; text-align: center;">
+                                        <span style="font-weight: 800; font-size: 0.7rem; color: <?= ($row['estado'] == 'ACTIVA' || $row['estado'] == 'En curso') ? '#16a34a' : '#ef4444' ?>;">
+                                            ● <?= htmlspecialchars($row['estado'] ?? 'PENDIENTE') ?>
+                                        </span>
+                                    </td>
+                                    <td style="padding: 15px;">
+                                        <div style="display: flex; gap: 8px; justify-content: center;">
+                                            <a href="editar_af.php?id=<?= $row['id'] ?>" class="btn-action" title="Editar Parámetros">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                            </a>
+                                            <a href="gestion_matriculas.php?af_id=<?= $row['id'] ?>" class="btn-action" style="color: #16a34a;" title="Matricular Alumnos">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="17" y1="11" x2="23" y2="11"></line></svg>
+                                            </a>
+                                            <button onclick="syncMoodle(<?= $row['id'] ?>)" class="btn-action" style="color: #ea580c; border:none; background:none; cursor:pointer;" title="Sincronizar Aula Virtual">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17.5 19a3.5 3.5 0 0 1-3.5-3.5c0-1.57 1.03-2.9 2.45-3.3a3.5 3.5 0 0 1 5.05-3.2c.46.22.86.54 1.18.94A5 5 0 0 1 21 19h-3.5z"></path><path d="M12 13l-3 3 3 3"></path><path d="M9 16h9"></path></svg>
+                                            </button>
+                                        </div>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php elseif ($searched): ?>
                             <tr>
-                                <td colspan="16" class="td-center" style="padding: 2rem; color: var(--title-red); font-weight: 600;">
-                                    No se encontraron acciones formativas que coincidan con los criterios seleccionados.
+                                <td colspan="7" style="padding: 40px; text-align: center;">
+                                    <div style="color: #ef4444; font-weight: 600; margin-bottom: 20px;">No se encontraron resultados para los filtros aplicados.</div>
+                                    <?php if (!empty($_GET['plan_id'])): ?>
+                                        <a href="nueva_af.php?plan_id=<?= (int)$_GET['plan_id'] ?>" class="btn-buscar" style="background: #1e3a8a; color: white; border: none; text-decoration: none; padding: 10px 25px; display: inline-block;">
+                                            Crear Nueva Acción Formativa para este Plan
+                                        </a>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                         <?php else: ?>
                             <tr>
-                                <td colspan="16" class="td-center" style="padding: 2rem; color: #64748b;">
-                                    Utilice los filtros superiores para realizar una búsqueda.
-                                </td>
+                                <td colspan="7" style="padding: 40px; text-align: center; color: #64748b;">Utilice los filtros superiores para comenzar la gestión.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
             </div>
         </div>
+        </div>
 
-        <div style="text-align: center;">
-            <a href="<?= $back_url ?>" class="btn-volver" style="display: inline-block; text-decoration: none;">Volver</a>
+        <?php if (!empty($_GET['plan_id'])): ?>
+        <div id="tab-nueva" class="tab-content-af">
+            <form action="procesar_nueva_af.php" method="POST" class="form-card-tab">
+                <input type="hidden" name="plan_id" value="<?= (int)$_GET['plan_id'] ?>">
+                
+                <div class="section-title-tab">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                    Identificación de la Acción
+                </div>
+                
+                <div class="grid-form-tab">
+                    <div class="form-group-tab" style="grid-column: span 2;">
+                        <label>Título Completo del Curso:</label>
+                        <input type="text" name="titulo" class="form-control-tab" placeholder="Ej: Gestión de Equipos de Trabajo" required>
+                    </div>
+                    <div class="form-group-tab">
+                        <label>Nombre Corto / Abrev:</label>
+                        <input type="text" name="abreviatura" class="form-control-tab" placeholder="Ej: GET-2024" required>
+                    </div>
+                    <div class="form-group-tab">
+                        <label>Nº de Acción (Código):</label>
+                        <input type="text" name="num_accion" class="form-control-tab" placeholder="0001">
+                    </div>
+                </div>
+
+                <div class="section-title-tab">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+                    Configuración Didáctica
+                </div>
+
+                <div class="grid-form-tab">
+                    <div class="form-group-tab">
+                        <label>Plan Estratégico:</label>
+                        <select class="form-control-tab" disabled>
+                            <option><?= htmlspecialchars($current_plan_name) ?></option>
+                        </select>
+                    </div>
+                    <div class="form-group-tab">
+                        <label>Modalidad:</label>
+                        <select name="modalidad" class="form-control-tab">
+                            <option value="TELEFORMACIÓN">TELEFORMACIÓN</option>
+                            <option value="PRESENCIAL">PRESENCIAL</option>
+                            <option value="MIXTA">MIXTA</option>
+                            <option value="AULA VIRTUAL">AULA VIRTUAL</option>
+                        </select>
+                    </div>
+                    <div class="form-group-tab">
+                        <label>Duración (Horas Totales):</label>
+                        <input type="number" name="duracion" class="form-control-tab" value="60">
+                    </div>
+                    <div class="form-group-tab">
+                        <label>Familia Profesional:</label>
+                        <select name="familia_profesional" class="form-control-tab">
+                            <option value=""></option>
+                            <option value="Administración y Gestión">Administración y Gestión</option>
+                            <option value="Comercio y Marketing">Comercio y Marketing</option>
+                            <option value="Hostelería y Turismo">Hostelería y Turismo</option>
+                            <option value="Informática y Comunicaciones">Informática y Comunicaciones</option>
+                            <option value="Sanidad">Sanidad</option>
+                            <option value="Servicios Socioculturales">Servicios Socioculturales</option>
+                            <option value="Transversal">Transversal</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="moodle-sync-box-tab">
+                    <input type="checkbox" name="crear_moodle" id="crear_moodle_tab" checked style="width: 18px; height: 18px;">
+                    <div>
+                        <label for="crear_moodle_tab" style="font-weight: 700; color: #1e40af; cursor: pointer; display: block; font-size: 0.8rem;">Aprovisionar automáticamente en el Aula Virtual</label>
+                        <span style="font-size: 0.7rem; color: #3b82f6;">Se creará un curso en Moodle y se vinculará automáticamente.</span>
+                    </div>
+                </div>
+
+                <div style="margin-top: 30px; text-align: right;">
+                    <button type="submit" class="btn btn-primary" style="padding: 12px 40px; font-size: 0.9rem; border-radius: 8px; cursor: pointer;">Crear Acción Formativa</button>
+                </div>
+            </form>
+        </div>
+        <?php endif; ?>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="<?= $back_url ?>" class="btn-volver" style="padding: 10px 30px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">« Volver</a>
         </div>
 
     </main>

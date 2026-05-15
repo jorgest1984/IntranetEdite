@@ -22,7 +22,12 @@ $sections = [
     [
         'title' => 'Transferencias Excel a SEPA XML',
         'url' => 'transferencias_sepa.php',
-        'icon' => '<svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/><path d="M9.41 12.59L8 14l-4-4 4-4 1.41 1.41L6.83 10l2.58 2.59zm5.18 0l2.58-2.59-2.58-2.59L16 6l4 4-4 4-1.41-1.41z"/></svg>'
+        'icon' => '<svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/><path d="M9.41 12.59L8 14l-4-4 4-4 1.41 1.41L6.83 10l2.58 2.59zm5.18 0l2.58-2.59-2.58-2.59L16 6l4 4-4 4-1.41-1.41z"/></svg>'
+    ],
+    [
+        'title' => 'Proveedores',
+        'url' => 'proveedores.php',
+        'icon' => '<svg viewBox="0 0 24 24"><path d="M7 18h2V6H7v12zm4 4h2V6h-2v16zm-8-8h2V6H3v8zM15 6v16h2V6h-2zm4 16h2V6h-2v16zM1 2v2h22V2H1z"/></svg>'
     ]
 ];
 

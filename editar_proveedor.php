@@ -100,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $proveedor) {
 // Origen para el botón Volver
 $from = $_GET['from'] ?? '';
 $factura_id = $_GET['factura_id'] ?? '';
-$volver_url = 'facturas.php';
+$volver_url = 'proveedores.php';
 if ($from === 'ficha_factura' && $factura_id) {
     $volver_url = "ficha_factura.php?id=" . intval($factura_id);
 }

@@ -1,119 +1,222 @@
 <?php
 // includes/fp_sidebar.php
+$current_fp_page = basename($_SERVER['PHP_SELF']);
 ?>
+<style>
+    .fp-sidebar {
+        width: 260px;
+        background: white;
+        border-right: 1px solid #e2e8f0;
+        height: 100vh;
+        position: fixed;
+        left: 0;
+        top: 0;
+        overflow-y: auto;
+        z-index: 1000;
+        box-shadow: 2px 0 10px rgba(0,0,0,0.02);
+    }
+    .fp-menu {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .fp-menu li a {
+        display: flex;
+        align-items: center;
+        padding: 12px 20px;
+        color: #334155;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.2s;
+        gap: 12px;
+    }
+    .fp-menu li a:hover, .fp-menu li a.active {
+        background: #eff6ff;
+        color: #006ce4;
+    }
+    .fp-menu li a.active {
+        border-right: 3px solid #006ce4;
+    }
+    .fp-menu-icon {
+        width: 18px;
+        height: 18px;
+        opacity: 0.7;
+    }
+    .fp-submenu {
+        list-style: none;
+        padding-left: 45px;
+        background: #f8fafc;
+        padding-bottom: 10px;
+    }
+    .fp-submenu li a {
+        padding: 8px 10px;
+        font-size: 0.8rem;
+    }
+    .menu-divider {
+        font-size: 0.7rem;
+        font-weight: 800;
+        color: #94a3b8;
+        text-transform: uppercase;
+        padding: 20px 20px 10px 20px;
+        letter-spacing: 0.5px;
+    }
+</style>
 <aside class="fp-sidebar">
+    <div class="fp-sidebar-header" style="padding: 20px; text-align: center; border-bottom: 1px solid #f1f5f9; margin-bottom: 10px;">
+        <a href="home.php" style="display: block;">
+            <img src="img/logo_efp.png" alt="Logo EFP" style="max-width: 80%; height: auto;">
+        </a>
+        <div style="font-size: 0.7rem; font-weight: 800; color: #1e3a8a; margin-top: 10px; text-transform: uppercase; letter-spacing: 1px;">
+            Formación Profesional
+        </div>
+    </div>
     <ul class="fp-menu">
         <li>
-            <a href="formacion_profesional.php" <?php echo (basename($_SERVER['PHP_SELF']) == 'formacion_profesional.php') ? 'class="active"' : ''; ?>>
-                <svg class="fp-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
-                Títulos formativos
+            <a href="planes.php" class="<?= $current_fp_page == 'planes.php' ? 'active' : '' ?>">
+                <svg class="fp-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+                Planes
+            </a>
+        </li>
+        <li>
+            <a href="sectores.php" class="<?= $current_fp_page == 'sectores.php' ? 'active' : '' ?>">
+                <svg class="fp-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+                Sectores
+            </a>
+        </li>
+        <li>
+            <a href="areas_tematicas.php" class="<?= $current_fp_page == 'areas_tematicas.php' ? 'active' : '' ?>">
+                <svg class="fp-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+                Áreas Temáticas
+            </a>
+        </li>
+        <li>
+            <a href="convocatorias.php" class="<?= $current_fp_page == 'convocatorias.php' ? 'active' : '' ?>">
+                <svg class="fp-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                Convocatoria
+            </a>
+        </li>
+        <li class="has-submenu">
+            <a href="javascript:void(0)" class="<?= in_array($current_fp_page, ['acciones_formativas.php', 'gestor_contenidos.php', 'buscar_aaff.php']) ? 'active' : '' ?>">
+                <svg class="fp-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                Acc. Formativas <span style="color:red; font-weight:bold;">•</span>
             </a>
             <ul class="fp-submenu">
-                <li>
-                    <a href="formacion_profesional.php">
-                        <svg class="submenu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
-                        Listado de títulos formativos
-                    </a>
-                </li>
-                <li>
-                    <a href="nuevo_titulo_formativo.php">
-                        <svg class="submenu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                        Nuevo título formativo
-                    </a>
-                </li>
+                <li><a href="gestor_contenidos.php">Listado contenidos</a></li>
+                <li><a href="buscar_aaff.php">Buscar AAFF <span style="color:red; font-weight:bold;">•</span></a></li>
+                <li><a href="aula_virtual_control.php">Aula Virtual</a></li>
+                <li><a href="control_cursos_plataforma.php">Control cursos plataforma</a></li>
+                <li><a href="nueva_af.php">Nueva A.F.</a></li>
+                <li><a href="resumen_aaff.php">Resumen AA.FF.</a></li>
+                <li><a href="objetivos_aaff.php">Objetivos AA.FF.</a></li>
+                <li><a href="objetivos_comercial.php">Objetivos/comercial</a></li>
+                <li><a href="revision_objetivos.php">Revisión objetivos</a></li>
+                <li><a href="cuadro_resumen.php">Cuadro resumen</a></li>
+                <li><a href="informe_ugt.php">Informe UGT</a></li>
+                <li><a href="acciones_peligro.php">Acciones en "peligro"</a></li>
             </ul>
         </li>
         <li>
-            <a href="asignaturas.php" <?php echo (in_array(basename($_SERVER['PHP_SELF']), ['asignaturas.php', 'nueva_asignatura.php'])) ? 'class="active"' : ''; ?>>
-                <svg class="fp-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-                Asignaturas / acciones "abuela"
-            </a>
-            <ul class="fp-submenu">
-                <li>
-                    <a href="asignaturas.php">
-                        <svg class="submenu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
-                        Listado de asignaturas
-                    </a>
-                </li>
-                <li>
-                    <a href="nueva_asignatura.php">
-                        <svg class="submenu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                        Nueva asignatura
-                    </a>
-                </li>
-            </ul>
-        </li>
-        <li>
-            <a href="acciones_madre.php" <?php echo (in_array(basename($_SERVER['PHP_SELF']), ['acciones_madre.php', 'nueva_accion_madre.php', 'editar_accion_madre.php'])) ? 'class="active"' : ''; ?>>
-                <svg class="fp-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-                Contenidos acciones / acciones "madre"
-            </a>
-            <ul class="fp-submenu">
-                <li>
-                    <a href="acciones_madre.php">
-                        <svg class="submenu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
-                        Listado de contenidos acciones
-                    </a>
-                </li>
-                <li>
-                    <a href="nueva_accion_madre.php">
-                        <svg class="submenu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                        Nuevo contenido
-                    </a>
-                </li>
-            </ul>
-        </li>
-        <li>
-            <a href="acciones_hija.php" <?php echo (in_array(basename($_SERVER['PHP_SELF']), ['acciones_hija.php', 'ficha_accion_formativa.php'])) ? 'class="active"' : ''; ?>>
-                <svg class="fp-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                Acc. Formativas / Acc. "hija"
-            </a>
-            <ul class="fp-submenu">
-                <li>
-                    <a href="acciones_hija.php">
-                        <svg class="submenu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
-                        Listado de acciones formativas
-                    </a>
-                </li>
-                <li>
-                    <a href="ficha_accion_formativa.php">
-                        <svg class="submenu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                        Nueva acción formativa
-                    </a>
-                </li>
-            </ul>
-        </li>
-        <li>
-            <a href="grupos.php" <?php echo (basename($_SERVER['PHP_SELF']) == 'grupos.php') ? 'class="active"' : ''; ?>>
+            <a href="grupos.php" class="<?= in_array($current_fp_page, ['grupos.php', 'nuevo_grupo.php']) ? 'active' : '' ?>">
                 <svg class="fp-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                Grupos
+                Grupos <span style="color:red; font-weight:bold;">•</span>
             </a>
+            <ul class="fp-submenu">
+                <li><a href="grupos.php" class="<?= $current_fp_page == 'grupos.php' ? 'active' : '' ?>">Buscar grupo <span style="color:red; font-weight:bold;">•</span></a></li>
+                <li><a href="control_doc.php">Control doc.</a></li>
+                <li><a href="nuevo_grupo.php">Nuevo Grupo</a></li>
+                <li><a href="informe_cursos.php">Informe Cursos</a></li>
+                <li><a href="informe_cursos_profes.php">Informe Cursos con profes</a></li>
+                <li><a href="informe_plazos.php">Informe Plazos Comunicaciones</a></li>
+                <li><a href="comunicaciones.php">Comunicaciones</a></li>
+                <li><a href="calendario_ocupacion.php">Calendario de ocupación de tutores</a></li>
+                <li><a href="programar.php">Programar</a></li>
+                <li><a href="programar_v2.php">Programar v.2</a></li>
+                <li><a href="alertas_s20.php">Alertas S20</a></li>
+                <li><a href="grupos_previstos.php">Grupos Previstos IDFO</a></li>
+            </ul>
         </li>
         <li>
-            <a href="inscripciones.php" <?php echo (basename($_SERVER['PHP_SELF']) == 'inscripciones.php') ? 'class="active"' : ''; ?>>
+            <a href="inscripciones.php" class="<?= in_array($current_fp_page, ['inscripciones.php', 'tutorias.php', 'informe_certificacion.php']) ? 'active' : '' ?>">
                 <svg class="fp-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
-                Inscripciones
+                Matrículas <span style="color:red; font-weight:bold;">•</span>
+            </a>
+            <ul class="fp-submenu">
+                <li><a href="llamadas_admision.php">Llamadas Admisión</a></li>
+                <li><a href="tutorias.php" class="<?= $current_fp_page == 'tutorias.php' ? 'active' : '' ?>">Tutorías <span style="color:red; font-weight:bold;">•</span></a></li>
+                <li><a href="inscripciones.php" class="<?= $current_fp_page == 'inscripciones.php' ? 'active' : '' ?>">Buscar Matrícula</a></li>
+                <li><a href="informe_estados_ins.php">Informe estados matrículas</a></li>
+                <li><a href="informe_certificacion.php" class="<?= $current_fp_page == 'informe_certificacion.php' ? 'active' : '' ?>">Informe matrículas certifican <span style="color:red; font-weight:bold;">•</span></a></li>
+                <li><a href="informe_captacion.php">Informe de captación por acción</a></li>
+                <li><a href="informe_ins_alumno.php">Informe de matrículas por alumno</a></li>
+                <li><a href="tiempos_conexion.php">Tiempos conexión</a></li>
+                <li><a href="datos_tutores.php">Datos tutores --></a></li>
+                <li><a href="comunicaciones_ins.php">Comunicaciones</a></li>
+                <li><a href="control_diplomas.php">Control diplomas</a></li>
+                <li><a href="recuento_inscripciones.php">Recuento matrículas</a></li>
+                <li><a href="produc_ciales.php">Produc. ciales.</a></li>
+                <li><a href="liquid_ciales.php">Liquid. ciales.</a></li>
+            </ul>
+        </li>
+        <li>
+            <a href="buscar_empresas.php" class="<?= $current_fp_page == 'buscar_empresas.php' ? 'active' : '' ?>">
+                <svg class="fp-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"></path><path d="M3 7v1a3 3 0 0 0 6 0V7m0 1a3 3 0 0 0 6 0V7m0 1a3 3 0 0 0 6 0V7H3l2-4h14l2 4"></path><path d="M5 21V10.85"></path><path d="M19 21V10.85"></path><path d="M9 21V14"></path><path d="M15 21V14"></path></svg>
+                Empresas
             </a>
         </li>
         <li>
-            <a href="buscar_alumnos.php" <?php echo (in_array(basename($_SERVER['PHP_SELF']), ['buscar_alumnos.php', 'alumnos.php'])) ? 'class="active"' : ''; ?>>
-                <svg class="fp-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                Alumnos
+            <a href="buscar_alumnos.php" class="<?= $current_fp_page == 'buscar_alumnos.php' ? 'active' : '' ?>">
+                <svg class="fp-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                Trabajadores
+            </a>
+        </li>
+        <li>
+            <a href="documentacion.php" class="<?= $current_fp_page == 'documentacion.php' ? 'active' : '' ?>">
+                <svg class="fp-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                Documentación
+            </a>
+        </li>
+        <li>
+            <a href="envios_doc.php" class="<?= $current_fp_page == 'envios_doc.php' ? 'active' : '' ?>">
+                <svg class="fp-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                Envíos doc.
+            </a>
+        </li>
+        <li>
+            <a href="documentos.php" class="<?= $current_fp_page == 'documentos.php' ? 'active' : '' ?>">
+                <svg class="fp-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                Documentos
+            </a>
+        </li>
+        <li class="has-submenu">
+            <a href="javascript:void(0)" class="<?= in_array($current_fp_page, ['encuestas.php', 'auditoria_tutores.php', 'no_conformidades.php']) ? 'active' : '' ?>">
+                <svg class="fp-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                Calidad
             </a>
             <ul class="fp-submenu">
-                <li>
-                    <a href="buscar_alumnos.php">
-                        <svg class="submenu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                        Buscar Alumno
-                    </a>
-                </li>
-                <li>
-                    <a href="alumnos.php">
-                        <svg class="submenu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                        Nuevo Alumno
-                    </a>
-                </li>
+                <li><a href="encuestas.php">Encuestas de satisfacción</a></li>
+                <li><a href="auditoria_tutores.php">Auditoría de tutores</a></li>
+                <li><a href="no_conformidades.php">No Conformidades</a></li>
+                <li><a href="evaluacion_formadores.php">Evaluación formadores</a></li>
             </ul>
+        </li>
+        <li>
+            <a href="doc_costes.php" class="<?= $current_fp_page == 'doc_costes.php' ? 'active' : '' ?>">
+                <svg class="fp-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                Doc. Costes
+            </a>
+        </li>
+        <li>
+            <a href="imputacion_costes.php" class="<?= $current_fp_page == 'imputacion_costes.php' ? 'active' : '' ?>">
+                <svg class="fp-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20v-6M6 20V10M18 20V4"></path></svg>
+                Imputación Costes
+            </a>
+        </li>
+        <li>
+            <a href="tareas.php" class="<?= $current_fp_page == 'tareas.php' ? 'active' : '' ?>">
+                <svg class="fp-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                Tareas
+            </a>
         </li>
     </ul>
 </aside>

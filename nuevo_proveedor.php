@@ -69,7 +69,7 @@ $sectores = ['Servicios', 'Formación', 'Informática', 'Construcción', 'Comerc
                 <p>Gestión de datos fiscales y de contacto</p>
             </div>
             <div>
-                <a href="facturas.php" class="btn btn-invoice-secondary" style="text-decoration: none;">Volver</a>
+                <a href="proveedores.php" class="btn btn-invoice-secondary" style="text-decoration: none;">Volver</a>
             </div>
         </header>
 
@@ -177,7 +177,7 @@ $sectores = ['Servicios', 'Formación', 'Informática', 'Construcción', 'Comerc
                 </div>
 
                 <div class="form-footer-proveedor">
-                    <a href="facturas.php" class="btn-proveedor btn-proveedor-secondary" style="text-decoration: none;">CANCELAR</a>
+                    <a href="proveedores.php" class="btn-proveedor btn-proveedor-secondary" style="text-decoration: none;">CANCELAR</a>
                     <button type="submit" class="btn-proveedor btn-proveedor-primary">GUARDAR PROVEEDOR</button>
                 </div>
 
