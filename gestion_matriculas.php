@@ -165,12 +165,15 @@ $alumnos = $matriculados->fetchAll();
                     <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 20px;">Busca por nombre o DNI para añadir al curso.</p>
                     
                     <div class="search-box">
-                        <input type="text" id="studentSearch" class="form-control" placeholder="Buscar alumno..." style="width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #e2e8f0;">
+                        <input type="text" id="studentSearch" class="form-control" placeholder="Buscar por nombre o DNI..." style="width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #e2e8f0; font-size: 0.9rem;">
                         <div id="searchResults" class="search-results"></div>
                     </div>
 
-                    <form id="addForm" method="POST" style="display: none;">
+                    <form id="addForm" method="POST">
                         <input type="hidden" name="add_alumno_id" id="selectedAlumnoId">
+                        <button type="submit" id="enrollBtn" class="btn btn-primary" style="width: 100%; padding: 12px; border-radius: 8px; background: #1e3a8a; border: none; font-weight: 700; margin-bottom: 20px; opacity: 0.5; pointer-events: none;">
+                            Matricular Alumno
+                        </button>
                     </form>
 
                     <div style="background: #eff6ff; padding: 15px; border-radius: 12px; border: 1px solid #bfdbfe; font-size: 0.8rem; color: #1e40af;">
@@ -187,9 +190,16 @@ const searchInput = document.getElementById('studentSearch');
 const resultsDiv = document.getElementById('searchResults');
 const addForm = document.getElementById('addForm');
 const selectedIdInput = document.getElementById('selectedAlumnoId');
+const enrollBtn = document.getElementById('enrollBtn');
 
 searchInput.addEventListener('input', function() {
     const q = this.value;
+    
+    // Clear selection if input changes
+    selectedIdInput.value = '';
+    enrollBtn.style.opacity = '0.5';
+    enrollBtn.style.pointerEvents = 'none';
+
     if (q.length < 3) {
         resultsDiv.style.display = 'none';
         return;
@@ -206,7 +216,10 @@ searchInput.addEventListener('input', function() {
                     div.innerHTML = `<strong>${a.nombre} ${a.primer_apellido || ''}</strong><br><small>${a.dni}</small>`;
                     div.onclick = () => {
                         selectedIdInput.value = a.id;
-                        addForm.submit();
+                        searchInput.value = `${a.nombre} ${a.primer_apellido || ''} (${a.dni})`;
+                        resultsDiv.style.display = 'none';
+                        enrollBtn.style.opacity = '1';
+                        enrollBtn.style.pointerEvents = 'auto';
                     };
                     resultsDiv.appendChild(div);
                 });
