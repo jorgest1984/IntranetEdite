@@ -31,9 +31,9 @@ if ($zip->open($zipFile, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
 // Obtener todos los grupos y alumnos de esta convocatoria
 $sql = "
     SELECT 
-        af.codigo as af_codigo,
-        af.nombre as af_nombre,
-        g.nombre as grupo_nombre,
+        af.num_accion as af_codigo,
+        af.titulo as af_nombre,
+        g.numero_grupo as grupo_nombre,
         g.id as grupo_id,
         a.dni,
         a.nombre as alumno_nombre,
