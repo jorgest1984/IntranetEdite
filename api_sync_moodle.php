@@ -67,7 +67,7 @@ try {
     foreach ($alumnos as $alumno) {
         $userData = [
             'firstname' => $alumno['nombre'],
-            'lastname' => ($alumno['primer_apellido'] ?? '') . ' ' . ($alumno['segundo_apellido'] ?? ''),
+            'lastname' => $alumno['apellidos'] ?? 'Sin apellidos',
             'email' => $alumno['email'],
             'username' => $alumno['dni'], // Usamos el DNI como username por defecto
             'password' => 'Edite' . str_replace(['-', '.', ' '], '', $alumno['dni']) . '!' // Password predecible: EditeDNI!

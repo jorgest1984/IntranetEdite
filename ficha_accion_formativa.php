@@ -42,7 +42,7 @@ if ($id) {
         $accion = $stmt->fetch();
 
         // Fetch groups
-        $stmtGrupos = $pdo->prepare("SELECT g.*, e.nombre as centro_nombre, CONCAT(a.nombre, ' ', a.primer_apellido) as tutor_nombre 
+        $stmtGrupos = $pdo->prepare("SELECT g.*, e.nombre as centro_nombre, CONCAT(a.nombre, ' ', a.apellidos) as tutor_nombre 
                                     FROM grupos g 
                                     LEFT JOIN empresas e ON g.centro_id = e.id 
                                     LEFT JOIN alumnos a ON g.tutor_id = a.id 
