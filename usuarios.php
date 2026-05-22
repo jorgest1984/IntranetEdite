@@ -54,6 +54,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             $success = "Estado de usuario actualizado.";
         }
     }
+    
+    // Eliminar Usuario
+    if ($_POST['action'] == 'delete') {
+        $id = intval($_POST['user_id']);
+        
+        // Evitar borrarse a sí mismo
+        if ($id == $_SESSION['user_id']) {
+            $error = "No puedes borrar tu propia cuenta de administrador.";
+        } else {
+            try {
+                // Intentar eliminación física en BD
+                $stmt = $pdo->prepare("DELETE FROM usuarios WHERE id = ?");
+                $stmt->execute([$id]);
+                
+                audit_log($pdo, 'USUARIO_ELIMINADO', 'usuarios', $id, null, ['id_eliminado' => $id]);
+                $success = "Usuario eliminado de forma permanente.";
+            } catch (PDOException $e) {
+                // Si falla por clave foránea (SQLSTATE 23000) - común por logs de auditoría o documentos
+                if ($e->getCode() == '23000') {
+                    $error = "No se puede eliminar este usuario porque tiene registros de actividad asociados (logs de auditoría, incidencias, etc.) para cumplir con la normativa ISO 27001. En su lugar, puedes suspender su cuenta para deshabilitar su acceso por completo.";
+                } else {
+                    $error = "Error al eliminar el usuario: " . $e->getMessage();
+                }
+            }
+        }
+    }
 }
 
 // Listado de usuarios
@@ -73,127 +99,422 @@ $roles = $pdo->query("SELECT * FROM roles WHERE id != " . ROLE_LECTURA . " ORDER
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Usuarios - <?= APP_NAME ?></title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/main.css">
     <style>
         :root {
-            --title-red: #b91c1c;
+            /* Palette tailored to Intranet EFP */
+            --primary-rose: #e11d48;
+            --primary-rose-hover: #be123c;
+            --admin-gradient: linear-gradient(135deg, #f43f5e 0%, #be123c 100%);
+            --adm-gradient: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            --tutor-gradient: linear-gradient(135deg, #10b981 0%, #047857 100%);
+            --com-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            --lec-gradient: linear-gradient(135deg, #6b7280 0%, #374151 100%);
+            
+            --title-blue: #1e3a8a;
             --label-blue: #1e40af;
-            --border-gray: #cbd5e1;
+            --border-gray: #e2e8f0;
             --bg-gray: #f8fafc;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+            --shadow-premium: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
 
-        .list-section {
-            background: #fff;
-            border-radius: 12px;
+        /* Dashboard Stats Custom Style overrides */
+        .stats-grid {
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-card-premium {
+            background: #ffffff;
             border: 1px solid var(--border-gray);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border-radius: 16px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card-premium::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: transparent;
+            transition: background 0.3s;
+        }
+
+        .stat-card-premium.total::before { background: #3b82f6; }
+        .stat-card-premium.active::before { background: #10b981; }
+        .stat-card-premium.suspended::before { background: #f59e0b; }
+        .stat-card-premium.admin::before { background: #f43f5e; }
+
+        .stat-card-premium:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: #cbd5e1;
+        }
+
+        .stat-icon-wrapper {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .stat-icon-wrapper.blue { background: #eff6ff; color: #2563eb; }
+        .stat-icon-wrapper.green { background: #ecfdf5; color: #059669; }
+        .stat-icon-wrapper.amber { background: #fffbeb; color: #d97706; }
+        .stat-icon-wrapper.rose { background: #fff1f2; color: #e11d48; }
+
+        /* Search Section */
+        .search-filter-card {
+            background: #ffffff;
+            border: 1px solid var(--border-gray);
+            border-radius: 16px;
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .search-filter-card:focus-within {
+            border-color: #93c5fd;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.05);
+        }
+
+        .search-input-wrapper {
+            position: relative;
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            width: 20px;
+            height: 20px;
+            color: #94a3b8;
+            pointer-events: none;
+        }
+
+        .search-input-wrapper input {
+            width: 100%;
+            padding: 12px 16px 12px 46px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            background-color: #f8fafc;
+            color: var(--text-color);
+            transition: all 0.2s;
+        }
+
+        .search-input-wrapper input:focus {
+            background-color: #ffffff;
+            border-color: #3b82f6;
+            outline: none;
+        }
+
+        /* List Section Redesign */
+        .list-section-premium {
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid var(--border-gray);
+            box-shadow: var(--shadow-sm);
             overflow: hidden;
             margin-top: 1rem;
         }
 
         .section-header-premium {
             background: #f8fafc;
-            padding: 15px 25px;
+            padding: 20px 24px;
             border-bottom: 1px solid var(--border-gray);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
 
         .section-header-premium h2 {
             margin: 0;
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--label-blue);
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--title-blue);
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        /* Tabla Estilizada */
+        /* Premium Table and Rows */
         .premium-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.9rem;
+            font-size: 0.925rem;
         }
 
         .premium-table th {
             text-align: left;
-            padding: 15px 25px;
+            padding: 16px 24px;
             background: #f8fafc;
-            color: var(--text-muted);
-            font-weight: 600;
+            color: #475569;
+            font-weight: 700;
             text-transform: uppercase;
-            font-size: 0.75rem;
+            font-size: 0.725rem;
+            letter-spacing: 0.75px;
             border-bottom: 1px solid var(--border-gray);
         }
 
         .premium-table td {
-            padding: 18px 25px;
+            padding: 16px 24px;
             border-bottom: 1px solid #f1f5f9;
             vertical-align: middle;
+            transition: background-color 0.2s;
         }
 
-        .premium-table tr:hover { background-color: #fef2f2; }
+        .premium-table tr {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
 
-        .user-info-cell .username { font-weight: 700; color: var(--text-color); font-size: 0.95rem; display: block; }
-        .user-info-cell .email { font-size: 0.8rem; color: var(--text-muted); }
+        .premium-table tr:hover td {
+            background-color: #eff6ff;
+        }
 
-        .badge-premium {
+        /* User identity & dynamic avatar cell */
+        .identity-flex {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-avatar-gradient {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 1.05rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            text-transform: uppercase;
+            flex-shrink: 0;
+        }
+
+        .avatar-admin { background: var(--admin-gradient); box-shadow: 0 4px 8px rgba(244, 63, 94, 0.25); }
+        .avatar-adm { background: var(--adm-gradient); box-shadow: 0 4px 8px rgba(59, 130, 246, 0.25); }
+        .avatar-tutor { background: var(--tutor-gradient); box-shadow: 0 4px 8px rgba(16, 185, 129, 0.25); }
+        .avatar-com { background: var(--com-gradient); box-shadow: 0 4px 8px rgba(245, 158, 11, 0.25); }
+        .avatar-lec { background: var(--lec-gradient); box-shadow: 0 4px 8px rgba(107, 114, 128, 0.25); }
+
+        .user-info-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-info-text .username {
+            font-weight: 700;
+            color: var(--text-color);
+            font-size: 0.975rem;
+        }
+
+        .user-info-text .email {
+            font-size: 0.775rem;
+            color: var(--text-muted);
+            margin-top: 1px;
+        }
+
+        /* Badges */
+        .badge-premium-pill {
             display: inline-flex;
             align-items: center;
-            padding: 4px 12px;
+            padding: 6px 14px;
             border-radius: 9999px;
-            font-size: 0.7rem;
+            font-size: 0.725rem;
             font-weight: 700;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: var(--shadow-sm);
         }
 
-        .badge-role-admin { background: #fee2e2; color: #b91c1c; }
-        .badge-role-default { background: #f1f5f9; color: #475569; }
+        .badge-admin { background: #ffe4e6; color: #be123c; border: 1px solid #fecdd3; }
+        .badge-adm { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
+        .badge-tutor { background: #d1fae5; color: #047857; border: 1px solid #a7f3d0; }
+        .badge-comercial { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+        .badge-default { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
 
-        .status-badge { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 500; }
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; }
-        .status-dot.active { background: #10b981; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1); }
-        .status-dot.inactive { background: #94a3b8; }
+        /* Pulsing Status Dot & Badge */
+        .status-badge-premium {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 8px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+        }
 
-        /* MODAL STYLES */
+        .status-dot-pulse {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .status-dot-pulse.active {
+            background: #10b981;
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+            animation: pulseEmerald 2s infinite;
+        }
+
+        .status-dot-pulse.inactive {
+            background: #94a3b8;
+            box-shadow: 0 0 0 4px rgba(148, 163, 184, 0.1);
+        }
+
+        @keyframes pulseEmerald {
+            0% { box-shadow: 0 0 0 0px rgba(16, 185, 129, 0.4); }
+            70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0px rgba(16, 185, 129, 0); }
+        }
+
+        /* Action Buttons */
+        .btn-action-premium {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.775rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid transparent;
+        }
+
+        .btn-action-premium.profile {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border-color: #bfdbfe;
+        }
+
+        .btn-action-premium.profile:hover {
+            background: #3b82f6;
+            color: #ffffff;
+            border-color: #3b82f6;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(59, 130, 246, 0.15);
+        }
+
+        .btn-action-premium.suspend {
+            background: #fff5f5;
+            color: #e11d48;
+            border-color: #fecdd3;
+        }
+
+        .btn-action-premium.suspend:hover {
+            background: #e11d48;
+            color: #ffffff;
+            border-color: #e11d48;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(225, 29, 72, 0.15);
+        }
+
+        .btn-action-premium.activate {
+            background: #f0fdf4;
+            color: #16a34a;
+            border-color: #bbf7d0;
+        }
+
+        .btn-action-premium.activate:hover {
+            background: #16a34a;
+            color: #ffffff;
+            border-color: #16a34a;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(22, 163, 74, 0.15);
+        }
+
+        .btn-action-premium.delete-btn {
+            background: #fff1f2;
+            color: #e11d48;
+            border-color: #fecdd3;
+        }
+
+        .btn-action-premium.delete-btn:hover {
+            background: #e11d48;
+            color: #ffffff;
+            border-color: #e11d48;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(225, 29, 72, 0.15);
+        }
+
+        /* Premium Modal Design */
         .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(4px);
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(12px);
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 2000;
             padding: 20px;
+            transition: opacity 0.3s ease;
         }
 
         .modal-container {
-            background: white;
+            background: #ffffff;
             width: 100%;
-            max-width: 500px;
-            border-radius: 12px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            max-width: 520px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-premium);
             overflow: hidden;
-            animation: modalFadeIn 0.3s ease-out;
+            border: 1px solid var(--border-gray);
+            transform: scale(0.95);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
             max-height: 90vh;
             display: flex;
             flex-direction: column;
         }
 
-        @keyframes modalFadeIn {
-            from { opacity: 0; transform: translateY(-20px) scale(0.95); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .modal-overlay.open .modal-container {
+            transform: scale(1);
+            opacity: 1;
         }
 
         .modal-header {
-            padding: 20px 25px;
-            background: #fff;
-            border-bottom: 1px solid var(--border-color);
+            padding: 24px 28px;
+            background: #f8fafc;
+            border-bottom: 1px solid var(--border-gray);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -201,83 +522,106 @@ $roles = $pdo->query("SELECT * FROM roles WHERE id != " . ROLE_LECTURA . " ORDER
 
         .modal-header h2 {
             margin: 0;
-            font-size: 1.1rem;
-            color: var(--title-red);
+            font-size: 1.2rem;
+            color: var(--title-blue);
             font-weight: 800;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .modal-close {
-            background: none;
+            background: #e2e8f0;
             border: none;
-            color: var(--text-muted);
+            color: #475569;
             cursor: pointer;
-            padding: 5px;
+            padding: 6px;
             border-radius: 50%;
-            transition: background 0.2s;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .modal-close:hover { background: #f1f5f9; color: var(--primary-color); }
+        .modal-close:hover {
+            background: #cbd5e1;
+            color: #0f172a;
+        }
 
         .modal-body {
-            padding: 25px;
+            padding: 28px;
             overflow-y: auto;
         }
 
-        .premium-field { margin-bottom: 20px; }
+        .premium-field {
+            margin-bottom: 1.25rem;
+        }
+
         .premium-field label {
             display: block;
             font-weight: 700;
             color: var(--label-blue);
-            font-size: 0.75rem;
-            margin-bottom: 8px;
+            font-size: 0.725rem;
+            margin-bottom: 6px;
             text-transform: uppercase;
+            letter-spacing: 0.75px;
         }
 
         .premium-field input, .premium-field select {
             width: 100%;
-            padding: 10px 15px;
-            border: 1px solid var(--border-gray);
-            border-radius: 6px;
-            font-size: 0.9rem;
+            padding: 11px 15px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            font-size: 0.925rem;
             transition: all 0.2s;
             box-sizing: border-box;
+            background-color: #ffffff;
+            color: var(--text-color);
         }
 
-        .premium-field input:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.05);
+        .premium-field input:focus, .premium-field select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
             outline: none;
         }
 
-        .btn-create-full {
-            background: var(--primary-color);
+        .btn-create-premium {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
             color: white;
-            padding: 12px;
+            padding: 14px;
             border: none;
-            border-radius: 6px;
+            border-radius: 10px;
             width: 100%;
             font-weight: 700;
             text-transform: uppercase;
             cursor: pointer;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.75px;
             transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(30, 64, 175, 0.15);
+            margin-top: 0.5rem;
         }
 
-        .btn-create-full:hover { background: var(--primary-hover); transform: translateY(-1px); }
+        .btn-create-premium:hover {
+            background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 12px rgba(30, 64, 175, 0.25);
+        }
 
-        /* Alertas Premium */
+        /* Custom Alert styling */
         .premium-alert {
-            padding: 15px 25px;
-            border-radius: 8px;
-            margin-bottom: 1.5rem;
+            padding: 16px 24px;
+            border-radius: 12px;
+            margin-bottom: 2rem;
             display: flex;
             align-items: center;
-            gap: 12px;
-            font-weight: 500;
+            gap: 14px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            box-shadow: var(--shadow-sm);
+            border-left: 6px solid transparent;
         }
-        .premium-alert-success { background: #d1fae5; color: #065f46; border-left: 5px solid #10b981; }
-        .premium-alert-error { background: #fee2e2; color: #991b1b; border-left: 5px solid #ef4444; }
+        .premium-alert-success { background: #ecfdf5; color: #065f46; border-left-color: #10b981; border: 1px solid #a7f3d0; }
+        .premium-alert-error { background: #fff1f2; color: #991b1b; border-left-color: #ef4444; border: 1px solid #fecdd3; }
+        .premium-alert svg { flex-shrink: 0; }
     </style>
 </head>
 <body>
@@ -289,9 +633,9 @@ $roles = $pdo->query("SELECT * FROM roles WHERE id != " . ROLE_LECTURA . " ORDER
         <header class="page-header">
             <div class="page-title">
                 <h1>Usuarios y Permisos</h1>
-                <p>Administración de acceso al sistema corporativo</p>
+                <p>Administración del acceso y control de seguridad corporativo (ISO 27001)</p>
             </div>
-            <button class="btn btn-primary" onclick="openModal()">
+            <button class="btn btn-primary" onclick="openModal()" style="border-radius: 10px; padding: 11px 20px;">
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
                 Nuevo Usuario
             </button>
@@ -300,27 +644,99 @@ $roles = $pdo->query("SELECT * FROM roles WHERE id != " . ROLE_LECTURA . " ORDER
         <?php if ($success): ?>
             <div class="premium-alert premium-alert-success">
                 <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-                <?= $success ?>
+                <span><?= $success ?></span>
             </div>
         <?php endif; ?>
 
         <?php if ($error): ?>
             <div class="premium-alert premium-alert-error">
                 <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-                <?= $error ?>
+                <span><?= $error ?></span>
             </div>
         <?php endif; ?>
 
-        <section class="list-section">
+        <!-- CALCULATE DASHBOARD COUNTS -->
+        <?php
+        $total_users = count($usuarios);
+        $active_users = 0;
+        $suspended_users = 0;
+        $admin_users = 0;
+        foreach ($usuarios as $u) {
+            if ($u['activo']) {
+                $active_users++;
+            } else {
+                $suspended_users++;
+            }
+            if ($u['rol_id'] == ROLE_ADMIN) {
+                $admin_users++;
+            }
+        }
+        ?>
+
+        <!-- DASHBOARD STATS SECTION -->
+        <section class="stats-grid">
+            <div class="stat-card-premium total">
+                <div class="stat-icon-wrapper blue">
+                    <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value"><?= $total_users ?></div>
+                    <div class="stat-label">Personal Total</div>
+                </div>
+            </div>
+            
+            <div class="stat-card-premium active">
+                <div class="stat-icon-wrapper green">
+                    <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value"><?= $active_users ?></div>
+                    <div class="stat-label">Habilitados</div>
+                </div>
+            </div>
+
+            <div class="stat-card-premium suspended">
+                <div class="stat-icon-wrapper amber">
+                    <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value"><?= $suspended_users ?></div>
+                    <div class="stat-label">Suspendidos</div>
+                </div>
+            </div>
+
+            <div class="stat-card-premium admin">
+                <div class="stat-icon-wrapper rose">
+                    <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value"><?= $admin_users ?></div>
+                    <div class="stat-label">Administradores</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- INTERACTIVE LIVE FILTER SEARCH BAR -->
+        <section class="search-filter-card">
+            <div class="search-input-wrapper">
+                <svg class="search-icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                <input type="text" id="userSearchInput" placeholder="Buscar personal por nombre, usuario, email o rol en tiempo real..." onkeyup="filterUsers()">
+            </div>
+        </section>
+
+        <!-- TABLE SECTION -->
+        <section class="list-section-premium">
             <div class="section-header-premium">
-                <h2>Listado de Personal</h2>
-                <div style="font-size: 0.8rem; color: var(--text-muted);"><?= count($usuarios) ?> usuarios registrados</div>
+                <h2>Listado de Personal Registrado</h2>
+                <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); background: #f1f5f9; padding: 6px 14px; border-radius: 8px;" id="userCounter">
+                    <?= $total_users ?> usuarios
+                </div>
             </div>
             <div style="overflow-x: auto;">
-                <table class="premium-table">
+                <table class="premium-table" id="usersTable">
                     <thead>
                     <tr>
-                        <th>Identidad Accesso</th>
+                        <th>Identidad Acceso</th>
                         <th>Nombre y Apellidos</th>
                         <th>Nivel de Acceso</th>
                         <th>Estado Actual</th>
@@ -329,53 +745,102 @@ $roles = $pdo->query("SELECT * FROM roles WHERE id != " . ROLE_LECTURA . " ORDER
                 </thead>
                 <tbody>
                     <?php foreach ($usuarios as $u): ?>
-                    <tr>
+                    <?php
+                    // Dynamic class selection for background gradients based on role
+                    $avatar_class = 'avatar-lec';
+                    $badge_class = 'badge-default';
+                    switch ($u['rol_id']) {
+                        case ROLE_ADMIN:
+                            $avatar_class = 'avatar-admin';
+                            $badge_class = 'badge-admin';
+                            break;
+                        case ROLE_ADMINISTRATIVO:
+                            $avatar_class = 'avatar-adm';
+                            $badge_class = 'badge-adm';
+                            break;
+                        case ROLE_TUTOR:
+                            $avatar_class = 'avatar-tutor';
+                            $badge_class = 'badge-tutor';
+                            break;
+                        case ROLE_COMERCIAL:
+                            $avatar_class = 'avatar-com';
+                            $badge_class = 'badge-comercial';
+                            break;
+                    }
+                    
+                    // Initials for avatar
+                    $iniciales = strtoupper(substr($u['nombre'], 0, 1) . substr($u['apellidos'] ?: $u['username'], 0, 1));
+                    ?>
+                    <tr class="user-row-item">
                         <td>
-                            <div class="user-info-cell">
-                                <span class="username"><?= htmlspecialchars($u['username']) ?></span>
-                                <span class="email"><?= htmlspecialchars($u['email']) ?></span>
+                            <div class="identity-flex">
+                                <div class="user-avatar-gradient <?= $avatar_class ?>">
+                                    <?= $iniciales ?>
+                                </div>
+                                <div class="user-info-text">
+                                    <span class="username"><?= htmlspecialchars($u['username']) ?></span>
+                                    <span class="email"><?= htmlspecialchars($u['email']) ?></span>
+                                </div>
                             </div>
                         </td>
-                        <td style="font-weight: 500;"><?= htmlspecialchars($u['nombre'] . ' ' . $u['apellidos']) ?></td>
+                        <td style="font-weight: 600; color: #1e293b;"><?= htmlspecialchars($u['nombre'] . ' ' . $u['apellidos']) ?></td>
                         <td>
-                            <span class="badge-premium <?= ($u['rol_id'] == ROLE_ADMIN) ? 'badge-role-admin' : 'badge-role-default' ?>">
+                            <span class="badge-premium-pill <?= $badge_class ?>">
                                 <?= htmlspecialchars($u['rol_nombre']) ?>
                             </span>
                         </td>
                         <td>
-                            <div class="status-badge">
-                                <span class="status-dot <?= $u['activo'] ? 'active' : 'inactive' ?>"></span>
-                                <span style="color: <?= $u['activo'] ? '#065f46' : '#64748b' ?>;">
+                            <div class="status-badge-premium">
+                                <span class="status-dot-pulse <?= $u['activo'] ? 'active' : 'inactive' ?>"></span>
+                                <span style="color: <?= $u['activo'] ? '#059669' : '#64748b' ?>;">
                                     <?= $u['activo'] ? 'Habilitado' : 'Suspendido' ?>
                                 </span>
                             </div>
                         </td>
                         <td style="text-align: right; white-space: nowrap;">
-                            <div style="display: flex; gap: 8px; justify-content: flex-end; align-items: center;">
-                                <a href="ficha_trabajador.php?id=<?= $u['id'] ?>" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 12px; border: 1px solid var(--label-blue); border-radius: 6px; font-size: 0.75rem; background: #eff6ff; color: var(--label-blue); text-decoration: none; font-weight: 700; text-transform: uppercase; transition: all 0.2s;">
+                            <div style="display: flex; gap: 10px; justify-content: flex-end; align-items: center;">
+                                <a href="ficha_trabajador.php?id=<?= $u['id'] ?>" class="btn-action-premium profile">
                                     <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                                     Perfil
                                 </a>
-                                <form method="POST" style="margin: 0;">
+                                <form method="POST" style="margin: 0;" onsubmit="return confirm('¿Seguro que desea cambiar el estado de este usuario?');">
                                     <input type="hidden" name="action" value="toggle_status">
                                     <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
                                     <input type="hidden" name="status" value="<?= $u['activo'] ? '0' : '1' ?>">
-                                    <button type="submit" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 12px; border: 1px solid <?= $u['activo'] ? '#fca5a5' : '#86efac' ?>; font-size: 0.75rem; background: <?= $u['activo'] ? '#fef2f2' : '#f0fdf4' ?>; border-radius: 6px; cursor: pointer; color: <?= $u['activo'] ? '#dc2626' : '#16a34a' ?>; font-weight: 700; text-transform: uppercase; transition: all 0.2s;">
-                                        <?php if ($u['activo']): ?>
+                                    
+                                    <?php if ($u['activo']): ?>
+                                        <button type="submit" class="btn-action-premium suspend">
                                             <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/></svg>
                                             Suspender
-                                        <?php else: ?>
+                                        </button>
+                                    <?php else: ?>
+                                        <button type="submit" class="btn-action-premium activate">
                                             <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
                                             Activar
-                                        <?php endif; ?>
-                                    </button>
+                                        </button>
+                                    <?php endif; ?>
                                 </form>
+                                <?php if ($u['id'] != $_SESSION['user_id']): ?>
+                                    <form method="POST" style="margin: 0;" onsubmit="return confirm('¿Seguro que desea eliminar de forma permanente a este usuario? Esta acción no se puede deshacer.');">
+                                        <input type="hidden" name="action" value="delete">
+                                        <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
+                                        <button type="submit" class="btn-action-premium delete-btn">
+                                            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                                            Borrar
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
                             </div>
                         </td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
+            </div>
+            
+            <div id="noResults" style="display: none; padding: 3rem; text-align: center; color: #64748b; font-weight: 500;">
+                <svg viewBox="0 0 24 24" width="48" height="48" fill="currentColor" style="margin: 0 auto 15px auto; color: #cbd5e1;"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                No se encontraron usuarios que coincidan con la búsqueda.
             </div>
         </section>
     </main>
@@ -387,11 +852,11 @@ $roles = $pdo->query("SELECT * FROM roles WHERE id != " . ROLE_LECTURA . " ORDER
         <div class="modal-header">
             <h2>Alta de Nuevo Usuario</h2>
             <button class="modal-close" onclick="closeModal()">
-                <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
             </button>
         </div>
         <div class="modal-body">
-            <form method="POST">
+            <form method="POST" autocomplete="off">
                 <input type="hidden" name="action" value="create">
                 
                 <div class="premium-field">
@@ -421,7 +886,7 @@ $roles = $pdo->query("SELECT * FROM roles WHERE id != " . ROLE_LECTURA . " ORDER
                 </div>
                 
                 <div class="premium-field">
-                    <label>Rol y Atribuciones</label>
+                    <label>Rol y Atribuciones de Acceso</label>
                     <select name="rol_id" required>
                         <?php foreach ($roles as $r): ?>
                             <option value="<?= $r['id'] ?>"><?= htmlspecialchars($r['nombre']) ?></option>
@@ -429,9 +894,9 @@ $roles = $pdo->query("SELECT * FROM roles WHERE id != " . ROLE_LECTURA . " ORDER
                     </select>
                 </div>
                 
-                <button type="submit" class="btn-create-full">Generar Credenciales de Acceso</button>
-                <p style="font-size: 0.7rem; color: var(--text-muted); text-align: center; margin-top: 15px;">
-                    ISO 27001: El usuario será notificado tras la creación exitosa siguiendo los protocolos de seguridad.
+                <button type="submit" class="btn-create-premium">Generar Credenciales de Acceso</button>
+                <p style="font-size: 0.725rem; color: var(--text-muted); text-align: center; margin-top: 15px; font-weight: 500; line-height: 1.4;">
+                    🔒 ISO 27001: El usuario será notificado tras la creación exitosa siguiendo los protocolos de seguridad de la información corporativa.
                 </p>
             </form>
         </div>
@@ -439,17 +904,57 @@ $roles = $pdo->query("SELECT * FROM roles WHERE id != " . ROLE_LECTURA . " ORDER
 </div>
 
 <script>
+    // Live client-side user search and filtering
+    function filterUsers() {
+        const query = document.getElementById('userSearchInput').value.toLowerCase().trim();
+        const rows = document.querySelectorAll('#usersTable tbody tr.user-row-item');
+        const noResults = document.getElementById('noResults');
+        const table = document.querySelector('.premium-table');
+        const counter = document.getElementById('userCounter');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            if (text.includes(query)) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // Update matches counter dynamically
+        counter.textContent = `${visibleCount} de ${rows.length} usuarios`;
+
+        if (visibleCount === 0) {
+            table.style.display = 'none';
+            noResults.style.display = 'block';
+        } else {
+            table.style.display = 'table';
+            noResults.style.display = 'none';
+        }
+    }
+
+    // Modal Operations with smooth backdrop scaling transitions
     function openModal() {
-        document.getElementById('modalOverlay').style.display = 'flex';
-        document.body.style.overflow = 'hidden'; // Evita scroll de fondo
+        const overlay = document.getElementById('modalOverlay');
+        overlay.style.display = 'flex';
+        // Force reflow
+        overlay.offsetHeight;
+        overlay.classList.add('open');
+        document.body.style.overflow = 'hidden'; 
     }
 
     function closeModal() {
-        document.getElementById('modalOverlay').style.display = 'none';
-        document.body.style.overflow = 'auto';
+        const overlay = document.getElementById('modalOverlay');
+        overlay.classList.remove('open');
+        setTimeout(() => {
+            overlay.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }, 300);
     }
 
-    // Cerrar al pulsar fuera del contenedor
+    // Close when clicking outside modal box
     window.onclick = function(event) {
         const overlay = document.getElementById('modalOverlay');
         if (event.target == overlay) {
