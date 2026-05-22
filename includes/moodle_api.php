@@ -62,7 +62,7 @@ class MoodleAPI {
         }
         
         if (isset($result['exception'])) {
-            throw new Exception("Moodle API Error: " . ($result['message'] ?? $result['exception']));
+            throw new Exception("Moodle API Error (" . $functionName . "): " . ($result['message'] ?? $result['exception']));
         }
         
         if ($result === null) {
@@ -103,6 +103,33 @@ class MoodleAPI {
      * Obtener usuarios por campo (ej. 'email')
      */
     public function getUsersByField($field, $values) {
+        // 1. Intentamos con core_user_get_users_by_field (método oficial y recomendado para búsquedas exactas)
+        // ya que suele estar expuesto con menores restricciones de seguridad que core_user_get_users.
+        try {
+            $params = [
+                'field' => $field,
+                'values' => $values
+            ];
+            $res = $this->call('core_user_get_users_by_field', $params);
+            
+            // core_user_get_users_by_field devuelve un array plano de usuarios.
+            // Para mantener total compatibilidad con el código actual que espera ['users' => [...]]:
+            if (is_array($res)) {
+                return ['users' => $res];
+            }
+        } catch (Exception $e) {
+            // Si la función core_user_get_users_by_field no está habilitada o da un error de acceso/parámetro,
+            // hacemos fallback al método genérico core_user_get_users.
+            // Ignoramos errores de control de acceso o de parámetro inválido para el fallback, pero arrojamos otros.
+            if (strpos($e->getMessage(), 'control de acceso') === false && 
+                strpos($e->getMessage(), 'access') === false && 
+                strpos($e->getMessage(), 'invalidparameter') === false &&
+                strpos($e->getMessage(), 'invalidrecord') === false) {
+                throw $e;
+            }
+        }
+
+        // 2. Fallback al método original core_user_get_users
         $params = [
             'criteria' => [
                 [
