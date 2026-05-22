@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Por favor, rellena el asunto y la descripción.';
     } else {
         // Enviar via relay en el servidor externo
-        $bridge_url   = 'https://gestion.grupoefp.es/send_mail.php';
+        $bridge_url   = APP_URL . '/send_mail.php';
         $bridge_token = getenv('BRIDGE_TOKEN') ?: 'dbbea329538b1694971d7ee66cc3e4673';
 
         $ch = curl_init($bridge_url);

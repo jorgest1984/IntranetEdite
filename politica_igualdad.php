@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($asunto) || empty($descripcion)) {
         $error = 'Por favor, rellena el asunto y la descripción.';
     } else {
-        $bridge_url   = 'https://gestion.grupoefp.es/send_mail.php';
+        $bridge_url   = APP_URL . '/send_mail.php';
         $bridge_token = getenv('BRIDGE_TOKEN') ?: 'dbbea329538b1694971d7ee66cc3e4673';
 
         $ch = curl_init($bridge_url);

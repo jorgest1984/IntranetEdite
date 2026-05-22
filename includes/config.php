@@ -1,8 +1,10 @@
 <?php
 // includes/config.php
 
-// Detección de entorno (Local vs Producción)
-$is_local = in_array($_SERVER['HTTP_HOST'] ?? '', ['localhost', '127.0.0.1', 'localhost:8000', 'localhost:3000']);
+// Detección de entorno (Local vs Preproducción vs Producción)
+$host = $_SERVER['HTTP_HOST'] ?? '';
+$is_local = in_array($host, ['localhost', '127.0.0.1', 'localhost:8000', 'localhost:3000']);
+$is_preproduction = ($host === 'pre-gestion.grupoefp.es');
 
 if ($is_local) {
     // Configuración Local (XAMPP/WAMP)
@@ -18,106 +20,34 @@ if ($is_local) {
     } catch (PDOException $e) {
         throw new Exception("Error de conexión LOCAL: " . $e->getMessage());
     }
+} elseif ($is_preproduction) {
+    // Configuración Preproducción (Plesk) con conexión local directa a MySQL
+    define('DB_HOST', 'localhost');
+    define('DB_USER', 'tu_usuario_preprod');    // <--- CAMBIAR POR EL USUARIO DE BD DE PREPRODUCCION
+    define('DB_PASS', 'tu_clave_preprod');      // <--- CAMBIAR POR LA CLAVE DE BD DE PREPRODUCCION
+    define('DB_NAME', 'tu_base_datos_preprod');  // <--- CAMBIAR POR EL NOMBRE DE LA BD DE PREPRODUCCION
+    
+    try {
+        $pdo = new PDO("mysql:host=".DB_HOST.";dbname=".DB_NAME.";charset=utf8mb4", DB_USER, DB_PASS);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        throw new Exception("Error de conexión en PREPRODUCCIÓN (Plesk): " . $e->getMessage());
+    }
 } else {
-    /**
-     * Clase DBBridge - Simula PDO a través de un puente HTTP
-     * Esto evita abrir el puerto 3306.
-     */
-    class DBBridge {
-        private $bridge_url;
-        private $token;
-        public $lastInsertId = null;
-
-        public function __construct($url, $token) {
-            $this->bridge_url = $url;
-            $this->token = $token;
-        }
-
-        public function prepare($sql) { return new BridgeStatement($this->bridge_url, $this->token, $sql, $this); }
-        
-        public function query($sql) {
-            $stmt = $this->prepare($sql);
-            $stmt->execute();
-            return $stmt;
-        }
-
-        public function lastInsertId() { return $this->lastInsertId; }
-        
-        // Métodos vacíos para compatibilidad simple
-        public function setAttribute($a, $b) {}
-        public function beginTransaction() {}
-        public function commit() {}
-        public function rollBack() {}
-        public function inTransaction() { return false; }
+    // Configuración para Producción (Plesk) con conexión local directa a MySQL
+    define('DB_HOST', 'localhost');
+    define('DB_USER', 'gestion.efp2026');
+    define('DB_PASS', 'Oy0v?ggswFBr6d0~');
+    define('DB_NAME', 'intranet_formacion');
+    
+    try {
+        $pdo = new PDO("mysql:host=".DB_HOST.";dbname=".DB_NAME.";charset=utf8mb4", DB_USER, DB_PASS);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        throw new Exception("Error de conexión en PRODUCCIÓN (Plesk): " . $e->getMessage());
     }
-
-    class BridgeStatement {
-        private $url;
-        private $token;
-        private $sql;
-        private $data = [];
-        private $parent;
-
-        public function __construct($url, $token, $sql, $parent) {
-            $this->url = $url;
-            $this->token = $token;
-            $this->sql = $sql;
-            $this->parent = $parent;
-        }
-
-        public function execute($params = []) {
-            $post = [
-                'token' => $this->token,
-                'sql' => $this->sql,
-                'params' => json_encode($params),
-                'action' => (preg_match('/^\s*(SELECT|SHOW|DESCRIBE|EXPLAIN)/i', $this->sql)) ? 'query' : 'execute'
-            ];
-
-            $ch = curl_init($this->url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Fix XAMPP SSL cert issues
-            $response = curl_exec($ch);
-            
-            if ($response === false) {
-                throw new Exception("Error de Curl Bridge: " . curl_error($ch));
-            }
-            curl_close($ch);
-
-            $result = json_decode($response, true);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new Exception("Error de Bridge: No se pudo decodificar la respuesta JSON. Respuesta recibida: " . substr(strip_tags($response), 0, 200));
-            }
-
-            if (isset($result['error'])) {
-                throw new Exception("Error de Bridge SQL: " . $result['error']);
-            }
-            
-            $this->data = $result['data'] ?? [];
-            if (isset($result['last_insert_id'])) {
-                $this->parent->lastInsertId = $result['last_insert_id'];
-            }
-            return true;
-        }
-
-        public function fetchAll() { return $this->data; }
-        public function fetch() { return array_shift($this->data); }
-        public function fetchColumn($column_number = 0) {
-            $row = $this->fetch();
-            if (!$row) return false;
-            $values = array_values($row);
-            return $values[$column_number] ?? false;
-        }
-        public function rowCount() { return count($this->data); }
-    }
-
-    // Configuración para Producción (Vercel) usando el Puente
-    // IMPORTANTE: Sube api_bridge.php a tu servidor y pon aquí la URL completa.
-    $bridge_url = 'https://gestion.grupoefp.es/api_bridge.php'; 
-    $bridge_token = getenv('BRIDGE_TOKEN') ?: 'dbbea329538b1694971d7ee66cc3e4673'; // Configúralo en Vercel
-
-    $pdo = new DBBridge($bridge_url, $bridge_token);
 }
 
 // Inicializar Manejador de Sesiones en Base de Datos (debe hacerse ANTES de session_start)
@@ -129,7 +59,14 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // Configuración de la aplicación
 define('APP_NAME', 'Grupo EFP - Gestión Académica');
-define('APP_URL', 'http://localhost/intranet');
+
+if ($is_local) {
+    define('APP_URL', 'http://localhost/intranet');
+} elseif ($is_preproduction) {
+    define('APP_URL', 'https://pre-gestion.grupoefp.es');
+} else {
+    define('APP_URL', 'https://gestion.grupoefp.es');
+}
 
 // Tiempo de expiración de sesión (ej. 30 minutos para ISO 27001)
 define('SESSION_TIMEOUT', 1800);

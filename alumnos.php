@@ -81,10 +81,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         }
 
         // 1.5 Comprobar duplicados en local antes de seguir
-        $stmtCheck = $pdo->prepare("SELECT id FROM alumnos WHERE dni = ? OR email = ?");
-        $stmtCheck->execute([$data['dni'], $data['email']]);
-        if ($stmtCheck->rowCount() > 0) {
-            throw new Exception("Ya existe un alumno con ese DNI o Email en el sistema.");
+        $stmtCheckDni = $pdo->prepare("SELECT id FROM alumnos WHERE dni = ?");
+        $stmtCheckDni->execute([$data['dni']]);
+        if ($stmtCheckDni->rowCount() > 0) {
+            throw new Exception("Ya existe un alumno con el DNI '" . htmlspecialchars($data['dni']) . "' en el sistema.");
+        }
+
+        $stmtCheckEmail = $pdo->prepare("SELECT id FROM alumnos WHERE email = ?");
+        $stmtCheckEmail->execute([$data['email']]);
+        if ($stmtCheckEmail->rowCount() > 0) {
+            throw new Exception("Ya existe un alumno con el Email '" . htmlspecialchars($data['email']) . "' en el sistema.");
         }
 
         // 2. Sincronización con Moodle (Opcional, no debe bloquear el registro local)
@@ -145,6 +151,37 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     }
 }
 
+// Control de pestaña activa
+$active_tab = 'listado';
+if ($_SERVER['REQUEST_METHOD'] == 'POST' || (isset($_GET['tab']) && $_GET['tab'] == 'nuevo')) {
+    $active_tab = 'nuevo';
+}
+
+// Obtener estadísticas globales de alumnos
+$totalAlumnos = 0;
+$totalMoodle = 0;
+try {
+    $totalAlumnos = $pdo->query("SELECT COUNT(*) FROM alumnos")->fetchColumn();
+    $totalMoodle = $pdo->query("SELECT COUNT(*) FROM alumnos WHERE moodle_user_id IS NOT NULL")->fetchColumn();
+} catch (Exception $e) {
+    // Silencioso
+}
+
+// Búsqueda y listado de alumnos
+$search = trim($_GET['search'] ?? '');
+$alumnosList = [];
+try {
+    if ($search !== '') {
+        $stmtList = $pdo->prepare("SELECT * FROM alumnos WHERE nombre LIKE :search OR primer_apellido LIKE :search OR segundo_apellido LIKE :search OR dni LIKE :search OR email LIKE :search ORDER BY creado_en DESC LIMIT 100");
+        $stmtList->execute(['search' => "%$search%"]);
+    } else {
+        $stmtList = $pdo->query("SELECT * FROM alumnos ORDER BY creado_en DESC LIMIT 100");
+    }
+    $alumnosList = $stmtList->fetchAll();
+} catch (Exception $e) {
+    $error = "Error al cargar el listado de alumnos: " . $e->getMessage();
+}
+
 // Datos para Selects
 $provincias = ["Álava", "Albacete", "Alicante", "Almería", "Asturias", "Ávila", "Badajoz", "Baleares", "Barcelona", "Burgos", "Cáceres", "Cádiz", "Cantabria", "Castellón", "Ciudad Real", "Córdoba", "Coruña (La)", "Cuenca", "Gerona", "Granada", "Guadalajara", "Guipúzcoa", "Huelva", "Huesca", "Jaén", "León", "Lérida", "Lugo", "Madrid", "Málaga", "Murcia", "Navarra", "Orense", "Palencia", "Las Palmas", "Pontevedra", "La Rioja", "Salamanca", "Santa Cruz de Tenerife", "Segovia", "Sevilla", "Soria", "Tarragona", "Teruel", "Toledo", "Valencia", "Valladolid", "Vizcaya", "Zamora", "Zaragoza", "Ceuta", "Melilla"];
 $comerciales = $pdo->query("SELECT u.id, u.nombre, u.apellidos FROM usuarios u JOIN roles r ON u.rol_id = r.id WHERE r.nombre LIKE '%Comercial%' AND u.activo = 1 ORDER BY u.nombre ASC")->fetchAll();
@@ -156,7 +193,7 @@ $empresas = $pdo->query("SELECT id, nombre FROM empresas ORDER BY nombre ASC LIM
     <link rel="icon" type="image/png" href="/img/logo_efp.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nuevo Alumno - <?= APP_NAME ?></title>
+    <title>Alumnos - <?= APP_NAME ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/main.css">
     <style>
@@ -193,6 +230,227 @@ $empresas = $pdo->query("SELECT id, nombre FROM empresas ORDER BY nombre ASC LIM
         
         .alert { padding: 10px; border-radius: 4px; margin-bottom: 20px; font-weight: 600; }
         .alert-error { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+
+        /* Pestañas */
+        .tabs-header {
+            display: flex;
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 12px 12px 0 0;
+            overflow-x: auto;
+            margin-bottom: 0;
+        }
+        .tab-btn {
+            padding: 1rem 1.5rem;
+            border: none;
+            background: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            cursor: pointer;
+            white-space: nowrap;
+            border-right: 1px solid var(--border-color);
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+        }
+        .tab-btn:hover {
+            background: #f1f5f9;
+        }
+        .tab-btn.active {
+            background: white;
+            color: var(--primary-color);
+            font-weight: 600;
+            border-bottom: 2px solid var(--primary-color);
+        }
+        .tab-panel {
+            background: white;
+            padding: 2rem;
+            border-radius: 0 0 12px 12px;
+            border: 1px solid var(--border-color);
+            border-top: none;
+            min-height: 400px;
+        }
+
+        /* Estadísticas */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        }
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .stat-icon.primary {
+            background: #eff6ff;
+            color: var(--primary-color);
+        }
+        .stat-icon.success {
+            background: #d1fae5;
+            color: #059669;
+        }
+        .stat-info {
+            flex: 1;
+        }
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 0.25rem;
+            color: var(--text-color);
+        }
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* Buscador Rápido */
+        .search-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .search-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+            max-width: 400px;
+            width: 100%;
+        }
+        .search-input {
+            width: 100%;
+            padding: 0.6rem 1rem 0.6rem 2.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .search-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 108, 228, 0.15);
+        }
+        .search-icon {
+            position: absolute;
+            left: 0.875rem;
+            width: 1.2rem;
+            height: 1.2rem;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+        .search-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.6rem 1.2rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .search-btn:hover {
+            background: var(--primary-hover);
+        }
+
+        /* Tabla de Alumnos */
+        .table-responsive {
+            overflow-x: auto;
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+        }
+        .table-custom {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            text-align: left;
+        }
+        .table-custom th {
+            background: #f8fafc;
+            padding: 1rem;
+            color: var(--text-color);
+            font-weight: 700;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .table-custom td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-color);
+            vertical-align: middle;
+        }
+        .table-custom tr:last-child td {
+            border-bottom: none;
+        }
+        .table-custom tr:hover {
+            background: #f8fafc;
+        }
+        
+        /* Badges de Sincronización */
+        .badge-sync {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-sync.active {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .badge-sync.inactive {
+            background: #f1f5f9;
+            color: #475569;
+        }
+        
+        /* Acciones */
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 12px;
+            background: #eff6ff;
+            color: var(--primary-color);
+            border: 1px solid #bfdbfe;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .btn-action:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
     </style>
 </head>
 <body>
@@ -201,8 +459,13 @@ $empresas = $pdo->query("SELECT id, nombre FROM empresas ORDER BY nombre ASC LIM
         <main class="main-content">
             <header class="page-header">
                 <div class="page-title">
-                    <h1>Sincronización Moodle</h1>
-                    <p>Alta de alumno con provisionamiento automático</p>
+                    <?php if ($active_tab == 'listado'): ?>
+                        <h1>Gestión de Alumnos</h1>
+                        <p>Listado completo y matriculaciones en la intranet</p>
+                    <?php else: ?>
+                        <h1>Sincronización Moodle</h1>
+                        <p>Alta de alumno con provisionamiento automático</p>
+                    <?php endif; ?>
                 </div>
             </header>
 
@@ -210,9 +473,126 @@ $empresas = $pdo->query("SELECT id, nombre FROM empresas ORDER BY nombre ASC LIM
                 <div class="alert alert-error"><?= $error ?></div>
             <?php endif; ?>
 
-            <form method="POST" class="ficha-container">
-                <input type="hidden" name="action" value="create">
-                <div class="ficha-title">Ficha de Inscripción / Alta de Alumno</div>
+            <!-- Cabecera de Pestañas -->
+            <nav class="tabs-header">
+                <button class="tab-btn <?= $active_tab == 'listado' ? 'active' : '' ?>" onclick="location.href='?tab=listado'">
+                    <svg viewBox="0 0 24 24" width="16" height="16" style="vertical-align: middle; margin-right: 6px; fill: currentColor;"><path d="M4 14h6v-6H4v6zm0 7h6v-6H4v6zm7 0h6v-6h-6v6zm0-14v6h6V7h-6z"/></svg>
+                    Listado de Alumnos
+                </button>
+                <button class="tab-btn <?= $active_tab == 'nuevo' ? 'active' : '' ?>" onclick="location.href='?tab=nuevo'">
+                    <svg viewBox="0 0 24 24" width="16" height="16" style="vertical-align: middle; margin-right: 6px; fill: currentColor;"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                    Registrar Nuevo Alumno
+                </button>
+            </nav>
+
+            <?php if ($active_tab == 'listado'): ?>
+                <div class="tab-panel">
+                    <!-- Tarjetas de Estadísticas -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon primary">
+                                <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-value"><?= number_format($totalAlumnos) ?></div>
+                                <div class="stat-label">Total Alumnos Registrados</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon success">
+                                <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-value"><?= number_format($totalMoodle) ?></div>
+                                <div class="stat-label">Sincronizados con Moodle</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Buscador Rápido -->
+                    <form method="GET" class="search-container">
+                        <input type="hidden" name="tab" value="listado">
+                        <div class="search-box">
+                            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            <input type="text" name="search" class="search-input" placeholder="Buscar por Nombre, DNI, Email..." value="<?= htmlspecialchars($search) ?>">
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button type="submit" class="search-btn">Buscar</button>
+                            <?php if ($search !== ''): ?>
+                                <a href="?tab=listado" class="btn-action" style="padding: 0.6rem 1.2rem; background: #f1f5f9; color: #475569; border-color: #cbd5e1; display: inline-flex; align-items: center; justify-content: center; height: auto;">Limpiar</a>
+                            <?php endif; ?>
+                        </div>
+                    </form>
+
+                    <!-- Tabla de Alumnos -->
+                    <div class="table-responsive">
+                        <table class="table-custom">
+                            <thead>
+                                <tr>
+                                    <th>Nombre Completo</th>
+                                    <th>NIF / NIE</th>
+                                    <th>Email Principal</th>
+                                    <th>Teléfono</th>
+                                    <th>Moodle Sync</th>
+                                    <th>Fecha Alta</th>
+                                    <th style="text-align: center; width: 120px;">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (empty($alumnosList)): ?>
+                                    <tr>
+                                        <td colspan="7" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                                            No se encontraron alumnos registrados en el sistema.
+                                        </td>
+                                    </tr>
+                                <?php else: ?>
+                                    <?php foreach ($alumnosList as $alumno): 
+                                        $fullName = trim($alumno['nombre'] . ' ' . $alumno['primer_apellido'] . ' ' . $alumno['segundo_apellido']);
+                                        $phone = $alumno['telefono'] ?: ($alumno['telefono_empresa'] ?: '---');
+                                        $dateAlta = $alumno['creado_en'] ? date('d/m/Y H:i', strtotime($alumno['creado_en'])) : '---';
+                                        $isSynced = !empty($alumno['moodle_user_id']);
+                                    ?>
+                                        <tr>
+                                            <td style="font-weight: 600; color: var(--text-color);">
+                                                <a href="ficha_alumno.php?id=<?= $alumno['id'] ?>" style="color: var(--primary-color); text-decoration: none;">
+                                                    <?= htmlspecialchars($fullName) ?>
+                                                </a>
+                                            </td>
+                                            <td style="font-family: monospace; font-size: 0.9rem;"><?= htmlspecialchars($alumno['dni']) ?></td>
+                                            <td><?= htmlspecialchars($alumno['email']) ?></td>
+                                            <td><?= htmlspecialchars($phone) ?></td>
+                                            <td>
+                                                <?php if ($isSynced): ?>
+                                                    <span class="badge-sync active" title="ID de Moodle: <?= $alumno['moodle_user_id'] ?>">
+                                                        <span style="width: 6px; height: 6px; background: #10b981; border-radius: 50%;"></span>
+                                                        Sincronizado
+                                                    </span>
+                                                <?php else: ?>
+                                                    <span class="badge-sync inactive">
+                                                        <span style="width: 6px; height: 6px; background: #64748b; border-radius: 50%;"></span>
+                                                        Local
+                                                    </span>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td><?= htmlspecialchars($dateAlta) ?></td>
+                                            <td style="text-align: center;">
+                                                <a href="ficha_alumno.php?id=<?= $alumno['id'] ?>" class="btn-action" title="Ver ficha del alumno">
+                                                    <svg viewBox="0 0 24 24" width="14" height="14" style="fill: currentColor; vertical-align: middle; margin-right: 2px;"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                                                    Ficha
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            <?php else: ?>
+                <div class="tab-panel">
+                    <form method="POST" class="ficha-container" style="border: none; padding: 0; box-shadow: none; margin: 0;">
+                        <input type="hidden" name="action" value="create">
+                        <div class="ficha-title">Ficha de Inscripción / Alta de Alumno</div>
 
                 <!-- SECCIÓN 1: DATOS PERSONALES -->
                 <div class="form-section">
@@ -443,18 +823,23 @@ $empresas = $pdo->query("SELECT id, nombre FROM empresas ORDER BY nombre ASC LIM
                         Se creará el registro en la base de datos local y se enviará la petición a la API de Moodle.
                     </div>
                 </div>
-            </form>
+                    </form>
+                </div>
+            <?php endif; ?>
         </main>
     </div>
 
     <script>
-        // Script simple para concatenar domicilio si se desea
-        document.querySelector('form').addEventListener('submit', function() {
-            const via = document.querySelector('[name="tipo_via"]').value;
-            const nombre = document.querySelector('[name="nombre_via"]').value;
-            const num = document.querySelector('[name="num_domicilio"]').value;
-            document.getElementById('domicilio_full').value = via + ' ' + nombre + ', ' + num;
-        });
+        // Script simple para concatenar domicilio si se desea (sólo si el formulario de registro está presente)
+        const regForm = document.querySelector('form[method="POST"]');
+        if (regForm) {
+            regForm.addEventListener('submit', function() {
+                const via = document.querySelector('[name="tipo_via"]').value;
+                const nombre = document.querySelector('[name="nombre_via"]').value;
+                const num = document.querySelector('[name="num_domicilio"]').value;
+                document.getElementById('domicilio_full').value = via + ' ' + nombre + ', ' + num;
+            });
+        }
     </script>
 </body>
 </html>

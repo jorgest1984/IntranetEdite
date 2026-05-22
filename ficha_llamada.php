@@ -107,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_send_email']))
         'body' => $message
     ]);
 
-    $ch = curl_init('https://gestion.grupoefp.es/send_mail.php');
+    $ch = curl_init(APP_URL . '/send_mail.php');
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
