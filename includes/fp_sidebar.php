@@ -2,18 +2,34 @@
 // includes/fp_sidebar.php
 $current_fp_page = basename($_SERVER['PHP_SELF']);
 ?>
+<script>
+    // Aplicar el tema antes de que se renderice el resto para evitar destellos
+    (function() {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark-theme');
+        } else {
+            document.documentElement.classList.remove('dark-theme');
+        }
+    })();
+</script>
 <style>
     .fp-sidebar {
         width: 260px;
-        background: white;
-        border-right: 1px solid #e2e8f0;
+        background: var(--sidebar-bg);
+        border-right: 1px solid var(--sidebar-border);
+        backdrop-filter: var(--glass-blur);
+        -webkit-backdrop-filter: var(--glass-blur);
         height: 100vh;
         position: fixed;
         left: 0;
         top: 0;
         overflow-y: auto;
         z-index: 1000;
-        box-shadow: 2px 0 10px rgba(0,0,0,0.02);
+        box-shadow: var(--glass-shadow);
+        transition: background-color 0.4s ease, border-color 0.4s ease;
+        display: flex;
+        flex-direction: column;
     }
     .fp-menu {
         list-style: none;
@@ -24,7 +40,7 @@ $current_fp_page = basename($_SERVER['PHP_SELF']);
         display: flex;
         align-items: center;
         padding: 12px 20px;
-        color: #334155;
+        color: var(--sidebar-text);
         text-decoration: none;
         font-size: 0.9rem;
         font-weight: 500;
@@ -32,11 +48,11 @@ $current_fp_page = basename($_SERVER['PHP_SELF']);
         gap: 12px;
     }
     .fp-menu li a:hover, .fp-menu li a.active {
-        background: #eff6ff;
-        color: #006ce4;
+        background: var(--input-focus-bg);
+        color: var(--primary-color);
     }
     .fp-menu li a.active {
-        border-right: 3px solid #006ce4;
+        border-right: 3px solid var(--primary-color);
     }
     .fp-menu-icon {
         width: 18px;
@@ -46,8 +62,11 @@ $current_fp_page = basename($_SERVER['PHP_SELF']);
     .fp-submenu {
         list-style: none;
         padding-left: 45px;
-        background: #f8fafc;
+        background: rgba(0, 0, 0, 0.04);
         padding-bottom: 10px;
+    }
+    .dark-theme .fp-submenu {
+        background: rgba(255, 255, 255, 0.03);
     }
     .fp-submenu li a {
         padding: 8px 10px;
@@ -56,7 +75,7 @@ $current_fp_page = basename($_SERVER['PHP_SELF']);
     .menu-divider {
         font-size: 0.7rem;
         font-weight: 800;
-        color: #94a3b8;
+        color: var(--text-muted);
         text-transform: uppercase;
         padding: 20px 20px 10px 20px;
         letter-spacing: 0.5px;
@@ -219,4 +238,46 @@ $current_fp_page = basename($_SERVER['PHP_SELF']);
             </a>
         </li>
     </ul>
+    
+    <div style="padding: 15px; margin-top: auto; border-top: 1px solid var(--sidebar-border);">
+        <button id="themeToggleBtn" class="btn-logout" style="width: 100%; display: flex; justify-content: flex-start; gap: 0.75rem; border: 1px solid var(--sidebar-border); background: transparent; padding: 8px 12px; border-radius: 6px; color: var(--sidebar-text); cursor: pointer; font-size: 0.8rem; font-weight: 500; align-items: center; box-sizing: border-box;">
+            <svg id="themeToggleSun" style="width: 14px; height: 14px; display: none;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+            <svg id="themeToggleMoon" style="width: 14px; height: 14px; display: none;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            <span id="themeToggleText">Modo Oscuro</span>
+        </button>
+    </div>
 </aside>
+
+<script>
+// Lógica de cambio de tema en sidebar de FP
+(function() {
+    const btn = document.getElementById('themeToggleBtn');
+    const sunIcon = document.getElementById('themeToggleSun');
+    const moonIcon = document.getElementById('themeToggleMoon');
+    const textNode = document.getElementById('themeToggleText');
+
+    if (!btn) return;
+
+    function updateToggleUI(theme) {
+        if (theme === 'dark') {
+            sunIcon.style.display = 'block';
+            moonIcon.style.display = 'none';
+            textNode.textContent = 'Modo Claro';
+        } else {
+            sunIcon.style.display = 'none';
+            moonIcon.style.display = 'block';
+            textNode.textContent = 'Modo Oscuro';
+        }
+    }
+
+    const currentTheme = document.documentElement.classList.contains('dark-theme') ? 'dark' : 'light';
+    updateToggleUI(currentTheme);
+
+    btn.addEventListener('click', () => {
+        const isDark = document.documentElement.classList.toggle('dark-theme');
+        const theme = isDark ? 'dark' : 'light';
+        localStorage.setItem('theme', theme);
+        updateToggleUI(theme);
+    });
+})();
+</script>

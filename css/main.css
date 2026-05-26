@@ -1,11 +1,11 @@
 /* css/main.css */
 :root {
-    /* Color Palette - Red/White Corporate Theme */
+    /* Color Palette - Premium Light Theme */
     --bg-color: #f8fafc;
-    --card-bg: #ffffff;
-    --input-bg: #ffffff;
+    --card-bg: rgba(255, 255, 255, 0.7);
+    --input-bg: rgba(255, 255, 255, 0.85);
     --input-focus-bg: #eff6ff;
-    --border-color: #e2e8f0;
+    --border-color: rgba(0, 108, 228, 0.08);
 
     --primary-color: #006ce4;
     /* Edite Premium Blue */
@@ -16,21 +16,77 @@
     --text-color: #0f172a;
     --text-muted: #64748b;
 
-    --sidebar-bg: #ffffff;
+    --sidebar-bg: rgba(255, 255, 255, 0.6);
     --sidebar-text: #334155;
-    --sidebar-border: #e2e8f0;
+    --sidebar-border: rgba(0, 108, 228, 0.08);
 
     --sidebar-width: 260px;
     --header-height: 60px;
+
+    /* Glassmorphism Styles (Light Mode) */
+    --glass-bg: rgba(255, 255, 255, 0.65);
+    --glass-border: rgba(255, 255, 255, 0.5);
+    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.04);
+    --glass-blur: blur(12px) saturate(180%);
+    --card-hover-border: rgba(0, 108, 228, 0.25);
+    --text-glow: rgba(0, 108, 228, 0.15);
+}
+
+.dark-theme {
+    /* Premium Dark Theme */
+    --bg-color: #080c14;
+    --card-bg: rgba(17, 24, 39, 0.55);
+    --input-bg: rgba(10, 15, 30, 0.5);
+    --input-focus-bg: rgba(59, 130, 246, 0.15);
+    --border-color: rgba(255, 255, 255, 0.08);
+
+    --primary-color: #3b82f6;
+    --primary-hover: #60a5fa;
+    --accent-blue: #38bdf8;
+
+    --text-color: #f8fafc;
+    --text-muted: #94a3b8;
+
+    --sidebar-bg: rgba(15, 23, 42, 0.65);
+    --sidebar-text: #cbd5e1;
+    --sidebar-border: rgba(255, 255, 255, 0.08);
+
+    /* Glassmorphism Styles (Dark Mode) */
+    --glass-bg: rgba(15, 23, 42, 0.55);
+    --glass-border: rgba(255, 255, 255, 0.06);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35);
+    --glass-blur: blur(16px) saturate(200%);
+    --card-hover-border: rgba(59, 130, 246, 0.35);
+    --text-glow: rgba(59, 130, 246, 0.25);
 }
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background-color: var(--bg-color);
     color: var(--text-color);
     margin: 0;
     padding: 0;
     line-height: 1.5;
+    background-color: var(--bg-color);
+    transition: color 0.4s ease, background-color 0.4s ease;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: -1;
+    background: 
+        radial-gradient(circle at 15% 15%, rgba(0, 108, 228, 0.06) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(14, 165, 233, 0.06) 0%, transparent 45%),
+        #f8fafc;
+    transition: background 0.4s ease;
+}
+
+.dark-theme body::before {
+    background: 
+        radial-gradient(circle at 15% 15%, rgba(59, 130, 246, 0.14) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(56, 189, 248, 0.1) 0%, transparent 45%),
+        #080c14;
 }
 
 /* Layout Dashboard */
@@ -46,14 +102,16 @@ body {
     width: var(--sidebar-width);
     background-color: var(--sidebar-bg);
     border-right: 1px solid var(--sidebar-border);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
     display: flex;
     flex-direction: column;
     position: fixed;
     height: 100vh;
     overflow-y: auto;
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.03);
+    box-shadow: var(--glass-shadow);
     z-index: 1000;
-    transition: transform 0.3s ease, width 0.05s linear;
+    transition: transform 0.3s ease, width 0.05s linear, background-color 0.4s ease, border-color 0.4s ease;
 }
 
 /* Resize Handle */
@@ -349,12 +407,12 @@ body.is-resizing .main-content {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.6rem 1.2rem;
-    border-radius: 6px;
+    padding: 0.65rem 1.3rem;
+    border-radius: 8px;
     font-weight: 600;
     font-size: 0.875rem;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     border: none;
     text-decoration: none;
 }
@@ -362,19 +420,44 @@ body.is-resizing .main-content {
 .btn-primary {
     background-color: var(--primary-color);
     color: white;
-    box-shadow: 0 4px 6px -1px rgba(0, 108, 228, 0.2);
+    box-shadow: 0 4px 12px 0 rgba(0, 108, 228, 0.2);
 }
 
 .btn-primary:hover {
     background-color: var(--primary-hover);
-    transform: translateY(-1px);
-    box-shadow: 0 6px 8px -1px rgba(0, 108, 228, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px 0 rgba(0, 108, 228, 0.35);
 }
 
 .btn-primary svg {
     width: 18px;
     height: 18px;
     fill: currentColor;
+}
+
+/* Glass & Transparent Buttons */
+.btn-glass {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--text-color);
+}
+
+.btn-glass:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.dark-theme .btn-glass {
+    background: rgba(15, 23, 42, 0.3);
+    border-color: rgba(255, 255, 255, 0.06);
+}
+
+.dark-theme .btn-glass:hover {
+    background: rgba(15, 23, 42, 0.55);
+    border-color: var(--primary-color);
 }
 
 .stats-grid {
@@ -385,15 +468,17 @@ body.is-resizing .main-content {
 }
 
 .stat-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
     padding: 1.5rem;
     display: flex;
     align-items: center;
     gap: 1rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    box-shadow: var(--glass-shadow);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease, background-color 0.4s ease;
 }
 
 a.stat-card {
@@ -403,9 +488,79 @@ a.stat-card {
 }
 
 .stat-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
-    border-color: #fca5a5;
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 12px 24px 0 rgba(0, 0, 0, 0.08);
+    border-color: var(--card-hover-border);
+}
+
+/* Generic Glassmorphism Cards & Containers */
+.card, .settings-card, .fp-card, .data-card, .settings-card form {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    box-shadow: var(--glass-shadow);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease, background-color 0.4s ease;
+}
+
+/* Modern Inputs & Form Controls */
+input[type="text"], 
+input[type="email"], 
+input[type="password"], 
+input[type="number"], 
+input[type="tel"], 
+input[type="url"], 
+input[type="date"], 
+select, 
+textarea,
+.form-input,
+.form-control {
+    background-color: var(--input-bg) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-color) !important;
+    border-radius: 8px !important;
+    padding: 0.75rem 1rem !important;
+    font-family: inherit !important;
+    font-size: 0.95rem !important;
+    box-sizing: border-box !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+input[type="text"]:focus, 
+input[type="email"]:focus, 
+input[type="password"]:focus, 
+input[type="number"]:focus, 
+input[type="tel"]:focus, 
+input[type="url"]:focus, 
+input[type="date"]:focus, 
+select:focus, 
+textarea:focus,
+.form-input:focus,
+.form-control:focus {
+    border-color: var(--primary-color) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px var(--input-focus-bg) !important;
+    background-color: var(--input-focus-bg) !important;
+}
+
+/* Sleek Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.3);
+    border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.5);
 }
 
 .stat-icon {
