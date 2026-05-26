@@ -23,9 +23,9 @@ if ($is_local) {
 } elseif ($is_preproduction) {
     // Configuración Preproducción (Plesk) con conexión local directa a MySQL
     define('DB_HOST', 'localhost');
-    define('DB_USER', 'tu_usuario_preprod');    // <--- CAMBIAR POR EL USUARIO DE BD DE PREPRODUCCION
-    define('DB_PASS', 'tu_clave_preprod');      // <--- CAMBIAR POR LA CLAVE DE BD DE PREPRODUCCION
-    define('DB_NAME', 'tu_base_datos_preprod');  // <--- CAMBIAR POR EL NOMBRE DE LA BD DE PREPRODUCCION
+    define('DB_USER', 'pre_gestion');
+    define('DB_PASS', 'Oy0v?ggswFBr6d0~');
+    define('DB_NAME', 'pre_intranet_formacion');
     
     try {
         $pdo = new PDO("mysql:host=".DB_HOST.";dbname=".DB_NAME.";charset=utf8mb4", DB_USER, DB_PASS);
