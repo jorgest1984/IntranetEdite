@@ -46,13 +46,20 @@ if (!empty($term)) {
     // Determinar qué buscar según etiquetas o selección manual
     $searchIn = (!empty($areas)) ? $areas : ['alumnos', 'empresas', 'contactos', 'usuarios', 'cursos', 'grupos'];
     if ($tag) {
-        $searchIn = match($tag) {
-            'a' => ['alumnos'],
-            'c' => ['cursos'],
-            'g' => ['grupos'],
-            'ct' => ['contactos'],
-            default => $searchIn
-        };
+        switch ($tag) {
+            case 'a':
+                $searchIn = ['alumnos'];
+                break;
+            case 'c':
+                $searchIn = ['cursos'];
+                break;
+            case 'g':
+                $searchIn = ['grupos'];
+                break;
+            case 'ct':
+                $searchIn = ['contactos'];
+                break;
+        }
     }
 
     // --- BÚSQUEDA ALUMNOS ---
