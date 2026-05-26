@@ -541,8 +541,22 @@ textarea:focus,
 .form-control:focus {
     border-color: var(--primary-color) !important;
     outline: none !important;
-    box-shadow: 0 0 0 3px var(--input-focus-bg) !important;
-    background-color: var(--input-focus-bg) !important;
+    box-shadow: 0 0 0 3px rgba(0, 108, 228, 0.15) !important;
+    background-color: var(--input-bg) !important;
+}
+
+.dark-theme input[type="text"]:focus, 
+.dark-theme input[type="email"]:focus, 
+.dark-theme input[type="password"]:focus, 
+.dark-theme input[type="number"]:focus, 
+.dark-theme input[type="tel"]:focus, 
+.dark-theme input[type="url"]:focus, 
+.dark-theme input[type="date"]:focus, 
+.dark-theme select:focus, 
+.dark-theme textarea:focus,
+.dark-theme .form-input:focus,
+.dark-theme .form-control:focus {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
 }
 
 /* Sleek Scrollbar */
