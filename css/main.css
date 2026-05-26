@@ -835,4 +835,57 @@ textarea:focus,
     background-color: var(--input-focus-bg) !important;
     color: var(--primary-hover) !important;
     border-bottom-color: var(--primary-hover) !important;
+}
+
+/* Floating Theme Toggle Button */
+.floating-theme-btn {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15);
+    color: var(--text-color);
+    cursor: pointer;
+    z-index: 9999; /* Siempre por encima de todo */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-sizing: border-box;
+}
+
+.floating-theme-btn:hover {
+    transform: scale(1.1) rotate(15deg);
+    border-color: var(--primary-color);
+    box-shadow: 0 12px 36px 0 rgba(0, 108, 228, 0.25);
+}
+
+.floating-theme-btn svg {
+    width: 1.5rem;
+    height: 1.5rem;
+    stroke: currentColor;
+    transition: transform 0.5s ease;
+}
+
+.dark-theme .floating-theme-btn {
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+}
+
+.dark-theme .floating-theme-btn:hover {
+    box-shadow: 0 12px 36px 0 rgba(59, 130, 246, 0.3);
+}
+
+@media (max-width: 768px) {
+    .floating-theme-btn {
+        bottom: 1.5rem;
+        right: 1.5rem;
+        width: 3.2rem;
+        height: 3.2rem;
+    }
 }
