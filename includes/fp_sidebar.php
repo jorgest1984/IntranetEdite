@@ -82,11 +82,11 @@ $current_fp_page = basename($_SERVER['PHP_SELF']);
     }
 </style>
 <aside class="fp-sidebar">
-    <div class="fp-sidebar-header" style="padding: 20px; text-align: center; border-bottom: 1px solid #f1f5f9; margin-bottom: 10px;">
+    <div class="fp-sidebar-header" style="padding: 20px; text-align: center; border-bottom: 1px solid var(--sidebar-border); margin-bottom: 10px;">
         <a href="home.php" style="display: block;">
             <img src="img/logo_efp.png" alt="Logo EFP" style="max-width: 80%; height: auto;">
         </a>
-        <div style="font-size: 0.7rem; font-weight: 800; color: #1e3a8a; margin-top: 10px; text-transform: uppercase; letter-spacing: 1px;">
+        <div class="sidebar-title" style="font-size: 0.8rem; font-weight: 800; color: var(--primary-color); margin-top: 10px; text-transform: uppercase; letter-spacing: 1px;">
             Formación Profesional
         </div>
     </div>

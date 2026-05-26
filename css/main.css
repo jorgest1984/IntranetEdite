@@ -184,8 +184,9 @@ body.is-resizing .main-content {
     font-weight: 700;
     font-size: 1.25rem;
     line-height: 1.2;
-    color: #1e40af; 
+    color: var(--primary-color); 
     letter-spacing: -0.5px;
+    transition: color 0.4s ease;
 }
 
 .sidebar-title span {
@@ -770,4 +771,54 @@ textarea:focus,
     min-width: 0; /* Permite que el flex item se encoja correctamente */
     padding: 30px;
     overflow-x: hidden; /* Evita que la sección principal cree scroll extraño */
+}
+
+/* Sobrescribir colores y fondos estáticos heredados en modo oscuro */
+.dark-theme [style*="background: white"],
+.dark-theme [style*="background:#fff"],
+.dark-theme [style*="background: #fff"],
+.dark-theme [style*="background:white"],
+.dark-theme [style*="background-color: white"],
+.dark-theme [style*="background-color:#fff"],
+.dark-theme [style*="background-color: #fff"],
+.dark-theme [style*="background-color:white"] {
+    background-color: var(--glass-bg) !important;
+    background: var(--glass-bg) !important;
+    color: var(--text-color) !important;
+    border-color: var(--border-color) !important;
+}
+
+.dark-theme [style*="color: #1e3a8a"],
+.dark-theme [style*="color:#1e3a8a"],
+.dark-theme [style*="color: #1e40af"],
+.dark-theme [style*="color:#1e40af"] {
+    color: var(--primary-hover) !important;
+}
+
+/* Forzar que las tablas y cards en todas las páginas se adapten al tema oscuro */
+.dark-theme table,
+.dark-theme table tr,
+.dark-theme table td,
+.dark-theme table th,
+.dark-theme .plan-card,
+.dark-theme .plan-grid div,
+.dark-theme .modal-form,
+.dark-theme .tab-btn,
+.dark-theme .tab-panel,
+.dark-theme .details-box,
+.dark-theme .info-box,
+.dark-theme .container-box,
+.dark-theme div[style*="background-color: #fff"],
+.dark-theme div[style*="background: white"],
+.dark-theme div[style*="background: #fff"] {
+    background-color: var(--glass-bg) !important;
+    background: var(--glass-bg) !important;
+    color: var(--text-color) !important;
+    border-color: var(--border-color) !important;
+}
+
+.dark-theme .tab-btn.active {
+    background-color: var(--input-focus-bg) !important;
+    color: var(--primary-hover) !important;
+    border-bottom-color: var(--primary-hover) !important;
 }
