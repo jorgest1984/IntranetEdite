@@ -178,13 +178,15 @@ $alumnos = $matriculados->fetchAll();
             <div class="add-section">
                     <!-- Formulario de Búsqueda -->
                     <div id="searchFormContainer" style="margin-bottom: 25px;">
-                        <div class="form-group" style="margin-bottom: 15px;">
+                        <div class="form-group" style="margin-bottom: 15px; position: relative;">
                             <label style="font-size: 0.8rem; font-weight: 700; color: #1e3a8a;">DNI:</label>
-                            <input type="text" id="searchDni" class="form-control" placeholder="Ej: 12345678X" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <input type="text" id="searchDni" class="form-control" placeholder="Ej: 12345678X" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;" autocomplete="off">
+                            <div id="dniAutocomplete" class="search-results"></div>
                         </div>
-                        <div class="form-group" style="margin-bottom: 20px;">
+                        <div class="form-group" style="margin-bottom: 20px; position: relative;">
                             <label style="font-size: 0.8rem; font-weight: 700; color: #1e3a8a;">Nombre Completo:</label>
-                            <input type="text" id="searchNombre" class="form-control" placeholder="Nombre y apellidos..." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <input type="text" id="searchNombre" class="form-control" placeholder="Nombre y apellidos..." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;" autocomplete="off">
+                            <div id="nombreAutocomplete" class="search-results"></div>
                         </div>
                         <button type="button" id="btnBuscar" class="btn btn-primary" style="width: 100%; padding: 12px; border-radius: 8px; background: #1e3a8a; border: none; font-weight: 700;">
                             🔍 Buscar Alumno
@@ -216,7 +218,7 @@ $alumnos = $matriculados->fetchAll();
                     </div>
 
                     <div style="background: #eff6ff; padding: 15px; border-radius: 12px; border: 1px solid #bfdbfe; font-size: 0.8rem; color: #1e40af;">
-                        <strong>Instrucciones:</strong> Primero busca al alumno por su DNI o Nombre. Una vez localizado, podrás proceder a la matriculación.
+                        <strong>Instrucciones:</strong> Escribe en cualquiera de los campos anteriores para activar la búsqueda predictiva al instante.
                     </div>
                 </div>
             </div>
@@ -234,11 +236,78 @@ const foundName = document.getElementById('foundName');
 const foundDni = document.getElementById('foundDni');
 const selectedIdInput = document.getElementById('selectedAlumnoId');
 
+const dniAutocomplete = document.getElementById('dniAutocomplete');
+const nombreAutocomplete = document.getElementById('nombreAutocomplete');
+
+function setupAutocomplete(inputEl, resultsEl) {
+    let debounceTimer;
+    
+    inputEl.addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        const val = this.value.trim();
+        
+        if (val.length === 0) {
+            resultsEl.innerHTML = '';
+            resultsEl.style.display = 'none';
+            return;
+        }
+        
+        debounceTimer = setTimeout(() => {
+            fetch(`api_buscar_alumnos.php?q=${encodeURIComponent(val)}`)
+                .then(r => r.json())
+                .then(data => {
+                    resultsEl.innerHTML = '';
+                    if (data && data.length > 0) {
+                        data.forEach(a => {
+                            const item = document.createElement('div');
+                            item.className = 'search-item';
+                            
+                            let fullName = `${a.nombre} ${a.primer_apellido || ''}`.trim();
+                            item.textContent = `${fullName} (${a.dni})`;
+                            
+                            item.addEventListener('click', function() {
+                                selectStudent(a);
+                                resultsEl.innerHTML = '';
+                                resultsEl.style.display = 'none';
+                            });
+                            
+                            resultsEl.appendChild(item);
+                        });
+                        resultsEl.style.display = 'block';
+                    } else {
+                        resultsEl.innerHTML = '<div class="search-item" style="color: #ef4444; cursor: default; padding: 12px 15px;">No hay coincidencias</div>';
+                        resultsEl.style.display = 'block';
+                    }
+                })
+                .catch(err => console.error("Error autocomplete:", err));
+        }, 150); // Fast, responsive debounce
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (e.target !== inputEl && e.target !== resultsEl && !resultsEl.contains(e.target)) {
+            resultsEl.style.display = 'none';
+        }
+    });
+}
+
+function selectStudent(a) {
+    foundName.innerText = `${a.nombre} ${a.primer_apellido || ''}`;
+    foundDni.innerText = `DNI: ${a.dni}`;
+    selectedIdInput.value = a.id;
+    
+    resultArea.style.display = 'block';
+    document.getElementById('searchFormContainer').style.display = 'none';
+    noResultsMsg.style.display = 'none';
+}
+
+setupAutocomplete(searchDni, dniAutocomplete);
+setupAutocomplete(searchNombre, nombreAutocomplete);
+
 btnBuscar.addEventListener('click', function() {
     const dni = searchDni.value.trim();
     const nombre = searchNombre.value.trim();
     
-    // Usar el que tenga contenido, priorizando DNI
     const q = dni || nombre;
     
     if (q.length === 0) {
@@ -259,12 +328,7 @@ btnBuscar.addEventListener('click', function() {
             noResultsMsg.style.display = 'none';
 
             if (data && data.length > 0) {
-                const a = data[0];
-                foundName.innerText = `${a.nombre} ${a.primer_apellido || ''}`;
-                foundDni.innerText = `DNI: ${a.dni}`;
-                selectedIdInput.value = a.id;
-                resultArea.style.display = 'block';
-                document.getElementById('searchFormContainer').style.display = 'none';
+                selectStudent(data[0]);
             } else {
                 noResultsMsg.style.display = 'block';
             }
@@ -283,6 +347,8 @@ function resetSearch() {
     noResultsMsg.style.display = 'none';
     searchDni.value = '';
     searchNombre.value = '';
+    dniAutocomplete.innerHTML = '';
+    nombreAutocomplete.innerHTML = '';
 }
 </script>
 </body>

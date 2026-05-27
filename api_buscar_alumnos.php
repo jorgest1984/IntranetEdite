@@ -8,7 +8,7 @@ header('Content-Type: application/json');
 $q = trim($_GET['q'] ?? '');
 $exact = isset($_GET['exact']) && $_GET['exact'] == '1';
 
-if (strlen($q) < 3 && !$exact) { echo json_encode([]); exit; }
+if (strlen($q) < 1) { echo json_encode([]); exit; }
 
 if ($exact) {
     // Búsqueda exacta por DNI o Nombre Completo (concatenado)
@@ -17,11 +17,12 @@ if ($exact) {
                            LIMIT 1");
     $stmt->execute([$q, $q, $q]);
 } else {
-    // Búsqueda parcial
+    // Búsqueda predictiva (empieza por) para máxima precisión según requerimiento del usuario
     $stmt = $pdo->prepare("SELECT id, nombre, primer_apellido, dni FROM alumnos 
                            WHERE nombre LIKE ? OR primer_apellido LIKE ? OR dni LIKE ? 
+                           ORDER BY nombre ASC, primer_apellido ASC
                            LIMIT 10");
-    $term = "%$q%";
+    $term = "$q%";
     $stmt->execute([$term, $term, $term]);
 }
 
