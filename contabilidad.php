@@ -66,7 +66,6 @@ $sections[1]['icon'] = '<svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-
         </header>
 
         <section class="contabilidad-dashboard">
-            <div class="contabilidad-header-ribbon"></div>
             <div class="contabilidad-grid">
                 <?php foreach ($sections as $section): ?>
                     <a href="<?= htmlspecialchars($section['url']) ?>" class="contabilidad-item">
