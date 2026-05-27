@@ -197,7 +197,7 @@ if (isset($_GET['success'])) $success = "Plan guardado correctamente.";
 <div class="app-container">
     <?php include 'includes/fp_sidebar.php'; ?>
 
-    <main class="main-content" style="width: 100%; max-width: 100%; margin-left: 0; overflow-x: auto;">
+    <main class="main-content" style="overflow-x: auto;">
         <header class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
             <div class="page-title">
                 <h1 style="color: #8e1d52; font-size: 1.5rem; font-weight: 700; text-transform: uppercase;">Ficha Planes de Formación</h1>
