@@ -17,6 +17,9 @@ try {
     // Asegurar que attempt_time sea DATETIME en base de datos (evita bugs de zonas horarias en Plesk/MySQL)
     $pdo->query("ALTER TABLE `login_attempts` MODIFY COLUMN `attempt_time` DATETIME NOT NULL");
 
+    // Limpiar cualquier registro previo para asegurar que empezamos con una tabla limpia sin discrepancias horarias pasadas
+    $pdo->query("DELETE FROM `login_attempts` WHERE `attempt_time` > '" . date('Y-m-d H:i:s') . "' OR `is_successful` = 1");
+    
     // 2. Modificar la columna usuario_id de audit_log para permitir NULL (evita fallos de FK para usuarios inexistentes)
     $pdo->query("ALTER TABLE `audit_log` MODIFY COLUMN `usuario_id` INT(11) NULL");
 } catch (PDOException $e) {
@@ -69,23 +72,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                 if ($failed_ip_count >= 10) {
                     $error = "Acceso bloqueado temporalmente por seguridad (IP restringida). Inténtelo de nuevo en 15 minutos.";
                 } else {
-                    // 2. Bloqueo específico por combinación IP + Usuario (Máximo 3 fallos en los últimos 15 minutos desde el último login exitoso)
+                    // 2. Bloqueo específico por combinación IP + Usuario (Máximo 3 fallos en los últimos 15 minutos)
                     $stmt_user = $pdo->prepare("
                         SELECT COUNT(*) FROM login_attempts 
-                        WHERE ip_address = :ip 
-                          AND username = :username 
+                        WHERE ip_address = ? 
+                          AND username = ? 
                           AND is_successful = 0 
-                          AND attempt_time > :time_limit
-                          AND attempt_time > COALESCE(
-                              (SELECT MAX(attempt_time) FROM login_attempts WHERE ip_address = :ip AND username = :username AND is_successful = 1),
-                              '1970-01-01 00:00:00'
-                          )
+                          AND attempt_time > ?
                     ");
-                    $stmt_user->execute([
-                        'ip' => $ip_address,
-                        'username' => $username,
-                        'time_limit' => $time_limit
-                    ]);
+                    $stmt_user->execute([$ip_address, $username, $time_limit]);
                     $failed_user_count = (int)$stmt_user->fetchColumn();
                     
                     if ($failed_user_count >= 3) {
@@ -97,9 +92,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                         $user = $stmt->fetch();
                         
                         if ($user && password_verify($password, $user['password_hash'])) {
-                            // Login correcto: Registrar éxito en login_attempts con marca de tiempo PHP
-                            $stmt_log = $pdo->prepare("INSERT INTO login_attempts (ip_address, username, attempt_time, is_successful) VALUES (?, ?, ?, 1)");
-                            $stmt_log->execute([$ip_address, $username, date('Y-m-d H:i:s')]);
+                            // Login correcto: Limpiar/Eliminar intentos fallidos previos para este par IP+Usuario (resetear contador a cero)
+                            $stmt_clear = $pdo->prepare("DELETE FROM login_attempts WHERE ip_address = ? AND username = ?");
+                            $stmt_clear->execute([$ip_address, $username]);
                             
                             // Regenerar ID de sesión para prevenir Session Fixation (ISO 27001)
                             session_regenerate_id(true);
