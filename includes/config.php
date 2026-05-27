@@ -62,12 +62,54 @@ if ($is_local) {
     }
 }
 
+// Cabeceras de seguridad HTTP globales (ISO 27001)
+if (!headers_sent()) {
+    header("X-Frame-Options: SAMEORIGIN");
+    header("X-Content-Type-Options: nosniff");
+    header("X-XSS-Protection: 1; mode=block");
+    header("Referrer-Policy: strict-origin-when-cross-origin");
+}
+
 // Inicializar Manejador de Sesiones en Base de Datos (debe hacerse ANTES de session_start)
 require_once __DIR__ . '/SessionHandlerDB.php';
 if (session_status() === PHP_SESSION_NONE) {
+    // Configuración de cookies seguras de sesión
+    ini_set('session.cookie_httponly', 1);
+    ini_set('session.use_only_cookies', 1);
+    
+    // Cookie secure sólo si se usa HTTPS
+    $is_secure_conn = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443);
+    if ($is_secure_conn) {
+        ini_set('session.cookie_secure', 1);
+    }
+    
+    // Configurar parámetros de cookie con SameSite Lax (compatible PHP 7.3+)
+    if (PHP_VERSION_ID >= 70300) {
+        session_set_cookie_params([
+            'lifetime' => 0,
+            'path' => '/',
+            'domain' => '',
+            'secure' => $is_secure_conn,
+            'httponly' => true,
+            'samesite' => 'Lax'
+        ]);
+    } else {
+        session_set_cookie_params(0, '/; HttpOnly; SameSite=Lax', '', $is_secure_conn, true);
+    }
+    
     session_set_save_handler(new SessionHandlerDB($pdo), true);
     session_start();
 }
+
+// Inicializar token CSRF global para protección en formularios
+if (empty($_SESSION['csrf_token'])) {
+    try {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    } catch (Exception $e) {
+        $_SESSION['csrf_token'] = bin2hex(openssl_random_pseudo_bytes(32));
+    }
+}
+
 
 // Configuración de la aplicación
 define('APP_NAME', 'Grupo EFP - Gestión Académica');

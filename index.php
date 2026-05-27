@@ -2,6 +2,24 @@
 // index.php
 require_once 'includes/config.php';
 
+// Migración autogestionada (ISO 27001) - Crear tabla de intentos de login y asegurar audit_log
+try {
+    // 1. Crear tabla login_attempts si no existe
+    $pdo->query("CREATE TABLE IF NOT EXISTS `login_attempts` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `ip_address` VARCHAR(45) NOT NULL,
+        `username` VARCHAR(150) NOT NULL,
+        `attempt_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        `is_successful` TINYINT(1) DEFAULT 0,
+        KEY `idx_ip_user_time` (`ip_address`, `username`, `attempt_time`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+    // 2. Modificar la columna usuario_id de audit_log para permitir NULL (evita fallos de FK para usuarios inexistentes)
+    $pdo->query("ALTER TABLE `audit_log` MODIFY COLUMN `usuario_id` INT(11) NULL");
+} catch (PDOException $e) {
+    // Silencioso en producción para evitar fallos de renderizado
+}
+
 $error = '';
 
 // Si ya está logueado, redirigir al home
@@ -13,8 +31,8 @@ if (isset($_SESSION['user_id'])) {
 // Procesar formulario de login
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
     
-    // Evitar ataques de fuerza bruta simples: pequeño retardo
-    usleep(500000); // 0.5 segundos
+    // Pequeño retardo sutil para mitigar timming attacks
+    usleep(250000); // 0.25 segundos
     
     $username = trim($_POST['username']);
     $password = $_POST['password'];
@@ -22,46 +40,108 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
     if (empty($username) || empty($password)) {
         $error = "Por favor, introduce usuario y contraseña.";
     } else {
-        try {
-            // Buscar usuario en DB
-            $stmt = $pdo->prepare("SELECT u.*, r.nombre as rol_nombre FROM usuarios u INNER JOIN roles r ON u.rol_id = r.id WHERE u.username = ? AND u.activo = 1");
-            $stmt->execute([$username]);
-            $user = $stmt->fetch();
-            
-            if ($user && password_verify($password, $user['password_hash'])) {
-                // Login correcto
-                $_SESSION['user_id'] = $user['id'];
-                $_SESSION['username'] = $user['username'];
-                
-                // Si la tabla de usuarios aún usa el campo 'apellidos'
-                $apellidos = $user['apellidos'] ?? (($user['primer_apellido'] ?? '') . ' ' . ($user['segundo_apellido'] ?? ''));
-                $_SESSION['nombre_completo'] = $user['nombre'] . ' ' . trim($apellidos);
-                $_SESSION['rol_id'] = $user['rol_id'];
-                $_SESSION['rol_nombre'] = $user['rol_nombre'];
-                
-                // Actualizar último acceso
-                $updateSt = $pdo->prepare("UPDATE usuarios SET ultimo_acceso = NOW() WHERE id = ?");
-                $updateSt->execute([$user['id']]);
-                
-                // Registrar log de auditoría (ISO 27001)
-                audit_log($pdo, 'LOGIN_SUCCESS', 'sesion', $user['id'], null, ['ip' => $_SERVER['REMOTE_ADDR']]);
-                
-                header("Location: home.php");
-                exit();
-                
-            } else {
-                $error = "Usuario o contraseña incorrectos.";
-                // Registrar intento fallido
-                if ($user) {
-                    audit_log($pdo, 'LOGIN_FAILED', 'sesion', $user['id'], null, ['ip' => $_SERVER['REMOTE_ADDR'], 'username' => $username], $user['id']);
-                } else {
-                    // Log fail para usuario inexistente - Usar NULL para evitar error de FK
-                    audit_log($pdo, 'LOGIN_FAILED_UNKNOWN', 'sesion', null, null, ['ip' => $_SERVER['REMOTE_ADDR'], 'username' => $username], null);
+        // Validar token CSRF (Cross-Site Request Forgery)
+        $csrf_token = $_POST['csrf_token'] ?? '';
+        if (!isset($_SESSION['csrf_token']) || empty($csrf_token) || !hash_equals($_SESSION['csrf_token'], $csrf_token)) {
+            $error = "Error de seguridad (CSRF). Por favor, refresque la página e inténtelo de nuevo.";
+        } else {
+            try {
+                // Obtener IP del cliente de forma segura (soportando balanceadores de carga / Plesk)
+                $ip_address = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+                if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+                    $parts = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+                    $ip_address = trim($parts[0]);
+                } elseif (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+                    $ip_address = $_SERVER['HTTP_CLIENT_IP'];
                 }
+                
+                // 1. Bloqueo general por IP (Máximo 10 fallos globales en los últimos 15 minutos)
+                $stmt_ip = $pdo->prepare("SELECT COUNT(*) FROM login_attempts WHERE ip_address = ? AND is_successful = 0 AND attempt_time > DATE_SUB(NOW(), INTERVAL 15 MINUTE)");
+                $stmt_ip->execute([$ip_address]);
+                $failed_ip_count = (int)$stmt_ip->fetchColumn();
+                
+                if ($failed_ip_count >= 10) {
+                    $error = "Acceso bloqueado temporalmente por seguridad (IP restringida). Inténtelo de nuevo en 15 minutos.";
+                } else {
+                    // 2. Bloqueo específico por combinación IP + Usuario (Máximo 3 fallos en los últimos 15 minutos desde el último login exitoso)
+                    $stmt_user = $pdo->prepare("
+                        SELECT COUNT(*) FROM login_attempts 
+                        WHERE ip_address = :ip 
+                          AND username = :username 
+                          AND is_successful = 0 
+                          AND attempt_time > DATE_SUB(NOW(), INTERVAL 15 MINUTE)
+                          AND attempt_time > COALESCE(
+                              (SELECT MAX(attempt_time) FROM login_attempts WHERE ip_address = :ip AND username = :username AND is_successful = 1),
+                              '1970-01-01 00:00:00'
+                          )
+                    ");
+                    $stmt_user->execute([
+                        'ip' => $ip_address,
+                        'username' => $username
+                    ]);
+                    $failed_user_count = (int)$stmt_user->fetchColumn();
+                    
+                    if ($failed_user_count >= 3) {
+                        $error = "Acceso bloqueado temporalmente por seguridad. Inténtelo de nuevo en 15 minutos.";
+                    } else {
+                        // Buscar usuario activo en DB
+                        $stmt = $pdo->prepare("SELECT u.*, r.nombre as rol_nombre FROM usuarios u INNER JOIN roles r ON u.rol_id = r.id WHERE u.username = ? AND u.activo = 1");
+                        $stmt->execute([$username]);
+                        $user = $stmt->fetch();
+                        
+                        if ($user && password_verify($password, $user['password_hash'])) {
+                            // Login correcto: Registrar éxito en login_attempts
+                            $stmt_log = $pdo->prepare("INSERT INTO login_attempts (ip_address, username, is_successful) VALUES (?, ?, 1)");
+                            $stmt_log->execute([$ip_address, $username]);
+                            
+                            // Regenerar ID de sesión para prevenir Session Fixation (ISO 27001)
+                            session_regenerate_id(true);
+                            
+                            $_SESSION['user_id'] = $user['id'];
+                            $_SESSION['username'] = $user['username'];
+                            
+                            // Si la tabla de usuarios aún usa el campo 'apellidos'
+                            $apellidos = $user['apellidos'] ?? (($user['primer_apellido'] ?? '') . ' ' . ($user['segundo_apellido'] ?? ''));
+                            $_SESSION['nombre_completo'] = $user['nombre'] . ' ' . trim($apellidos);
+                            $_SESSION['rol_id'] = $user['rol_id'];
+                            $_SESSION['rol_nombre'] = $user['rol_nombre'];
+                            
+                            // Actualizar último acceso
+                            $updateSt = $pdo->prepare("UPDATE usuarios SET ultimo_acceso = NOW() WHERE id = ?");
+                            $updateSt->execute([$user['id']]);
+                            
+                            // Registrar log de auditoría (ISO 27001)
+                            audit_log($pdo, 'LOGIN_SUCCESS', 'sesion', $user['id'], null, ['ip' => $ip_address]);
+                            
+                            header("Location: home.php");
+                            exit();
+                            
+                        } else {
+                            // Login incorrecto: Registrar fallo en login_attempts
+                            $stmt_log = $pdo->prepare("INSERT INTO login_attempts (ip_address, username, is_successful) VALUES (?, ?, 0)");
+                            $stmt_log->execute([$ip_address, $username]);
+                            
+                            // Calcular intentos restantes (incluyendo este último fallo)
+                            $remaining_attempts = 3 - ($failed_user_count + 1);
+                            
+                            if ($remaining_attempts <= 0) {
+                                $error = "Acceso bloqueado temporalmente por seguridad. Inténtelo de nuevo en 15 minutos.";
+                            } else {
+                                $error = "Usuario o contraseña incorrectos. Le queda" . ($remaining_attempts > 1 ? "n " : " ") . $remaining_attempts . " intento" . ($remaining_attempts > 1 ? "s" : "") . ".";
+                            }
+                            
+                            // Registrar log de auditoría inmutable
+                            if ($user) {
+                                audit_log($pdo, 'LOGIN_FAILED', 'sesion', $user['id'], null, ['ip' => $ip_address, 'username' => $username], $user['id']);
+                            } else {
+                                audit_log($pdo, 'LOGIN_FAILED_UNKNOWN', 'sesion', null, null, ['ip' => $ip_address, 'username' => $username], null);
+                            }
+                        }
+                    }
+                }
+            } catch (PDOException $e) {
+                $error = "Error del sistema. Por favor, contacte con el administrador.";
             }
-        } catch (PDOException $e) {
-            $error = "Error del sistema. Por favor, contacte con el administrador.";
-            // $error = $e->getMessage(); // Solo para debug
         }
     }
 }
@@ -294,6 +374,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
         <?php } ?>
 
         <form method="POST" action="">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
             <div class="form-group">
                 <label for="username">Usuario</label>
                 <input type="text" id="username" name="username" class="form-control" placeholder="Introduzca su usuario" required autofocus autocomplete="username">
