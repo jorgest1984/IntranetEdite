@@ -116,7 +116,7 @@ $current_fp_page = basename($_SERVER['PHP_SELF']);
             </a>
         </li>
         <li class="has-submenu">
-            <a href="javascript:void(0)" class="<?= in_array($current_fp_page, ['acciones_formativas.php', 'gestor_contenidos.php', 'buscar_aaff.php']) ? 'active' : '' ?>">
+            <a href="acciones_formativas.php" class="<?= in_array($current_fp_page, ['acciones_formativas.php', 'gestor_contenidos.php', 'buscar_aaff.php']) ? 'active' : '' ?>">
                 <svg class="fp-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
                 Acc. Formativas <span style="color:red; font-weight:bold;">•</span>
             </a>
