@@ -3,38 +3,38 @@
 require_once 'includes/config.php';
 
 // ===========================================================
-// MIGRACIÓN: tabla login_attempts con timestamp Unix (INT)
-// Completely timezone-immune: solo compara números enteros
+// MIGRACIÓN SEGURA — nunca borra registros ni la tabla
+// Usa CREATE IF NOT EXISTS + ALTER ADD COLUMN (idempotentes)
 // ===========================================================
+
+// Paso 1: Crear tabla si no existe (con esquema correcto)
 try {
-    // Comprobar si la tabla ya tiene la columna correcta (attempt_unix INT).
-    // NOTA: rowCount() en SHOW COLUMNS no es fiable con PDO/MySQL.
-    // En su lugar, hacemos un SELECT directo con LIMIT 0 (no trae filas,
-    // solo valida que la columna y la tabla existen).
-    try {
-        $pdo->query("SELECT attempt_unix FROM `login_attempts` LIMIT 0");
-        // Si llega aquí: tabla y columna correctas → no hay nada que migrar
-    } catch (PDOException $e_col) {
-        // La tabla no existe O tiene el esquema antiguo → recrear limpia
-        $pdo->query("DROP TABLE IF EXISTS `login_attempts`");
-        $pdo->query("CREATE TABLE `login_attempts` (
-            `id`            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            `ip_address`    VARCHAR(45)  NOT NULL,
-            `username`      VARCHAR(150) NOT NULL,
-            `attempt_unix`  INT UNSIGNED NOT NULL COMMENT 'PHP time() — sin zonas horarias',
-            `is_successful` TINYINT(1)   NOT NULL DEFAULT 0,
-            KEY `idx_lock` (`ip_address`, `username`, `attempt_unix`, `is_successful`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-    }
+    $pdo->query("CREATE TABLE IF NOT EXISTS `login_attempts` (
+        `id`            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        `ip_address`    VARCHAR(45)  NOT NULL,
+        `username`      VARCHAR(150) NOT NULL,
+        `attempt_unix`  INT UNSIGNED NOT NULL DEFAULT 0
+                        COMMENT 'PHP time() — sin zonas horarias',
+        `is_successful` TINYINT(1)   NOT NULL DEFAULT 0,
+        KEY `idx_lock` (`ip_address`, `username`, `attempt_unix`, `is_successful`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+} catch (PDOException $e) {}
 
-    // Asegurar que audit_log acepta usuario_id NULL
-    try { $pdo->query("ALTER TABLE `audit_log` MODIFY COLUMN `usuario_id` INT(11) NULL"); } catch (PDOException $e2) {}
+// Paso 2: Si la tabla existía con esquema antiguo, añadir la columna nueva
+// (falla silenciosamente si la columna ya existe — comportamiento correcto)
+try {
+    $pdo->query("ALTER TABLE `login_attempts`
+                 ADD COLUMN `attempt_unix` INT UNSIGNED NOT NULL DEFAULT 0
+                 COMMENT 'PHP time()' AFTER `username`");
+} catch (PDOException $e) {}
 
-} catch (PDOException $e) {
-    // Silencioso en producción
-}
+// Paso 3: audit_log — usuario_id puede ser NULL
+try {
+    $pdo->query("ALTER TABLE `audit_log` MODIFY COLUMN `usuario_id` INT(11) NULL");
+} catch (PDOException $e) {}
 
 $error = '';
+
 
 // Constantes de bloqueo
 define('MAX_INTENTOS',      3);
