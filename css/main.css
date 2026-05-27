@@ -809,6 +809,12 @@ textarea:focus,
     color: var(--primary-hover) !important;
 }
 
+.dark-theme [style*="color: #1e293b"],
+.dark-theme [style*="color:#1e293b"] {
+    color: var(--text-color) !important;
+}
+
+
 /* Forzar que las tablas y cards en todas las páginas se adapten al tema oscuro */
 .dark-theme table,
 .dark-theme table tr,
