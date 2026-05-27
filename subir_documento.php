@@ -44,8 +44,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['archivo'])) {
     
     if (move_uploaded_file($file['tmp_name'], $target_path)) {
         try {
-            $stmt = $pdo->prepare("INSERT INTO documentos_alumno (alumno_id, usuario_id, nombre_archivo, ruta_archivo, tipo_documento) VALUES (?, ?, ?, ?, ?)");
-            $stmt->execute([$alumno_id, $usuario_id, basename($file['name']), $target_path, $tipo_doc]);
+            $accion_id = isset($_POST['accion_id']) && $_POST['accion_id'] !== '' ? (int)$_POST['accion_id'] : null;
+            if ($accion_id <= 0) {
+                $accion_id = null;
+            }
+            $stmt = $pdo->prepare("INSERT INTO documentos_alumno (alumno_id, usuario_id, nombre_archivo, ruta_archivo, tipo_documento, accion_id) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$alumno_id, $usuario_id, basename($file['name']), $target_path, $tipo_doc, $accion_id]);
             
             // Registrar en audit log
             audit_log($pdo, 'SUBIDA_DOC', 'documentos_alumno', $pdo->lastInsertId(), null, ['archivo' => basename($file['name'])]);
