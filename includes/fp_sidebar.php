@@ -3,8 +3,13 @@
 $current_fp_page = basename($_SERVER['PHP_SELF']);
 ?>
 <script>
-    // Aplicar el tema antes de que se renderice el resto para evitar destellos
+    // Aplicar el ancho de la sidebar y el tema antes de que se renderice el resto para evitar destellos
     (function() {
+        const savedWidth = localStorage.getItem('sidebarWidth');
+        if (savedWidth && window.innerWidth > 1024) {
+            document.documentElement.style.setProperty('--sidebar-width', savedWidth + 'px');
+        }
+        
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark-theme');
@@ -15,7 +20,7 @@ $current_fp_page = basename($_SERVER['PHP_SELF']);
 </script>
 <style>
     .fp-sidebar {
-        width: 260px;
+        width: var(--sidebar-width) !important;
         background: var(--sidebar-bg);
         border-right: 1px solid var(--sidebar-border);
         backdrop-filter: var(--glass-blur);
@@ -27,7 +32,7 @@ $current_fp_page = basename($_SERVER['PHP_SELF']);
         overflow-y: auto;
         z-index: 1000;
         box-shadow: var(--glass-shadow);
-        transition: background-color 0.4s ease, border-color 0.4s ease;
+        transition: transform 0.3s ease, width 0.05s linear, background-color 0.4s ease, border-color 0.4s ease;
         display: flex;
         flex-direction: column;
     }
@@ -81,7 +86,16 @@ $current_fp_page = basename($_SERVER['PHP_SELF']);
         letter-spacing: 0.5px;
     }
 </style>
-<aside class="fp-sidebar">
+<!-- Mobile Toggle Button -->
+<button class="menu-toggle" onclick="toggleFpSidebar()" aria-label="Abrir menú">
+    <svg viewBox="0 0 24 24" width="24" height="24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+</button>
+
+<aside class="sidebar fp-sidebar" id="fpSidebar">
+    <button class="mobile-close" onclick="toggleFpSidebar()" aria-label="Cerrar menú">
+        <svg viewBox="0 0 24 24" width="24" height="24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+    </button>
+
     <div class="fp-sidebar-header" style="padding: 20px; text-align: center; border-bottom: 1px solid var(--sidebar-border); margin-bottom: 10px;">
         <a href="home.php" style="display: block;">
             <img src="img/logo_efp.png" alt="Logo EFP" style="max-width: 80%; height: auto;">
@@ -228,7 +242,8 @@ $current_fp_page = basename($_SERVER['PHP_SELF']);
         </li>
     </ul>
     
-    
+    <!-- Tirador para redimensionar -->
+    <div class="sidebar-resizer" id="fpSidebarResizer"></div>
 </aside>
 
 <!-- Botón Flotante de Selector de Tema (Accesible en cualquier dispositivo) -->
@@ -265,5 +280,54 @@ $current_fp_page = basename($_SERVER['PHP_SELF']);
         localStorage.setItem('theme', theme);
         updateToggleUI(theme);
     });
+})();
+</script>
+
+<script>
+function toggleFpSidebar() {
+    const sidebar = document.getElementById('fpSidebar');
+    sidebar.classList.toggle('active');
+}
+
+// Lógica de redimensionamiento
+(function() {
+    const resizer = document.getElementById('fpSidebarResizer');
+    const sidebar = document.getElementById('fpSidebar');
+    let isResizing = false;
+
+    if (!resizer) return;
+
+    resizer.addEventListener('mousedown', (e) => {
+        if (window.innerWidth <= 1024) return; // No redimensionar en móvil/tablet
+        
+        isResizing = true;
+        document.body.classList.add('is-resizing');
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', stopResizing);
+    });
+
+    function handleMouseMove(e) {
+        if (!isResizing || window.innerWidth <= 1024) return;
+        
+        let newWidth = e.clientX;
+        
+        // Límites
+        if (newWidth < 200) newWidth = 200;
+        if (newWidth > 600) newWidth = 600;
+        
+        document.documentElement.style.setProperty('--sidebar-width', newWidth + 'px');
+    }
+
+    function stopResizing() {
+        if (!isResizing) return;
+        isResizing = false;
+        document.body.classList.remove('is-resizing');
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', stopResizing);
+        
+        // Guardar preferencia
+        const finalWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sidebar-width'));
+        localStorage.setItem('sidebarWidth', finalWidth);
+    }
 })();
 </script>
