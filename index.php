@@ -2,22 +2,42 @@
 // index.php
 require_once 'includes/config.php';
 
-// Migración autogestionada: crear tabla login_attempts si no existe (solo para auditoría)
+// ===========================================================
+// MIGRACIÓN: tabla login_attempts con timestamp Unix (INT)
+// Completely timezone-immune: solo compara números enteros
+// ===========================================================
 try {
-    $pdo->query("CREATE TABLE IF NOT EXISTS `login_attempts` (
-        `id` INT AUTO_INCREMENT PRIMARY KEY,
-        `ip_address` VARCHAR(45) NOT NULL,
-        `username` VARCHAR(150) NOT NULL,
-        `attempt_time` DATETIME NOT NULL,
-        `is_successful` TINYINT(1) DEFAULT 0,
-        KEY `idx_ip_user_time` (`ip_address`, `username`, `attempt_time`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    // Detectar si la tabla tiene la columna correcta (attempt_unix INT)
+    $has_unix_col = false;
+    try {
+        $chk = $pdo->query("SHOW COLUMNS FROM `login_attempts` LIKE 'attempt_unix'");
+        $has_unix_col = ($chk && $chk->rowCount() > 0);
+    } catch (PDOException $e2) {}
+
+    if (!$has_unix_col) {
+        // Tabla no existe o tiene el esquema antiguo → recrear limpia
+        $pdo->query("DROP TABLE IF EXISTS `login_attempts`");
+        $pdo->query("CREATE TABLE `login_attempts` (
+            `id`           INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            `ip_address`   VARCHAR(45)  NOT NULL,
+            `username`     VARCHAR(150) NOT NULL,
+            `attempt_unix` INT UNSIGNED NOT NULL COMMENT 'PHP time() — sin zonas horarias',
+            `is_successful` TINYINT(1) NOT NULL DEFAULT 0,
+            KEY `idx_lock` (`ip_address`, `username`, `attempt_unix`, `is_successful`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    }
+
+    // Asegurar que audit_log acepta usuario_id NULL
     $pdo->query("ALTER TABLE `audit_log` MODIFY COLUMN `usuario_id` INT(11) NULL");
 } catch (PDOException $e) {
-    // Silencioso
+    // Silencioso en producción
 }
 
 $error = '';
+
+// Constantes de bloqueo
+define('MAX_INTENTOS',      3);
+define('VENTANA_SEGUNDOS',  900); // 15 minutos
 
 // Si ya está logueado, redirigir al home
 if (isset($_SESSION['user_id'])) {
@@ -25,21 +45,10 @@ if (isset($_SESSION['user_id'])) {
     exit();
 }
 
-// =====================================================================
-// SISTEMA DE BLOQUEO BASADO EN SESIÓN (100% fiable, sin zonas horarias)
-// =====================================================================
-define('MAX_LOGIN_ATTEMPTS', 3);
-define('LOCKOUT_DURATION', 900); // 15 minutos en segundos
-
-// Inicializar estructura de intentos en sesión si no existe
-if (!isset($_SESSION['login_fails'])) {
-    $_SESSION['login_fails'] = [];
-}
-
 // Procesar formulario de login
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
 
-    usleep(250000); // 0.25s para mitigar timing attacks
+    usleep(250000); // 0.25s anti-timing attack
 
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
@@ -52,45 +61,62 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
         if (!isset($_SESSION['csrf_token']) || empty($csrf_token) || !hash_equals($_SESSION['csrf_token'], $csrf_token)) {
             $error = "Error de seguridad (CSRF). Por favor, refresque la página e inténtelo de nuevo.";
         } else {
-            // Obtener IP real del cliente
-            $ip_address = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
-            if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-                $parts = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
-                $ip_address = trim($parts[0]);
-            } elseif (!empty($_SERVER['HTTP_CLIENT_IP'])) {
-                $ip_address = $_SERVER['HTTP_CLIENT_IP'];
-            }
+            try {
+                // Obtener IP real (compatible con balanceadores / Plesk)
+                $ip_address = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+                if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+                    $ip_address = trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0]);
+                } elseif (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+                    $ip_address = $_SERVER['HTTP_CLIENT_IP'];
+                }
 
-            // Clave única por combinación IP + usuario para el array de sesión
-            $lock_key = md5($ip_address . '|' . strtolower($username));
+                // ============================================================
+                // BLOQUEO POR UNIX TIMESTAMP — solo comparación de enteros,
+                // completamente inmune a zonas horarias de MySQL/Plesk
+                // ============================================================
+                $ahora      = time();                         // entero PHP
+                $desde      = $ahora - VENTANA_SEGUNDOS;     // entero PHP (15 min atrás)
 
-            // Recuperar datos de intentos para esta clave
-            $fail_data = $_SESSION['login_fails'][$lock_key] ?? ['count' => 0, 'first_fail' => 0];
+                // Contar fallos de esta IP+usuario en los últimos 15 minutos
+                $st_count = $pdo->prepare("
+                    SELECT COUNT(*) FROM login_attempts
+                    WHERE ip_address   = ?
+                      AND username     = ?
+                      AND is_successful = 0
+                      AND attempt_unix  > ?
+                ");
+                $st_count->execute([$ip_address, strtolower($username), $desde]);
+                $fallos = (int) $st_count->fetchColumn();
 
-            // Si han pasado más de 15 minutos desde el primer fallo, reiniciar el contador
-            if ($fail_data['count'] > 0 && (time() - $fail_data['first_fail']) >= LOCKOUT_DURATION) {
-                $fail_data = ['count' => 0, 'first_fail' => 0];
-                $_SESSION['login_fails'][$lock_key] = $fail_data;
-            }
+                if ($fallos >= MAX_INTENTOS) {
+                    // Ya bloqueado — calcular tiempo restante
+                    $st_first = $pdo->prepare("
+                        SELECT MIN(attempt_unix) FROM login_attempts
+                        WHERE ip_address    = ?
+                          AND username      = ?
+                          AND is_successful = 0
+                          AND attempt_unix  > ?
+                    ");
+                    $st_first->execute([$ip_address, strtolower($username), $desde]);
+                    $primer_fallo  = (int) $st_first->fetchColumn();
+                    $desbloqueo    = $primer_fallo + VENTANA_SEGUNDOS;
+                    $segundos_left = max(0, $desbloqueo - $ahora);
+                    $minutos_left  = (int) ceil($segundos_left / 60);
+                    $error = "Acceso bloqueado por seguridad. Inténtelo de nuevo en {$minutos_left} minuto" . ($minutos_left != 1 ? "s" : "") . ".";
 
-            // Comprobar si está bloqueado (3 o más intentos dentro del periodo)
-            if ($fail_data['count'] >= MAX_LOGIN_ATTEMPTS) {
-                $seconds_left = LOCKOUT_DURATION - (time() - $fail_data['first_fail']);
-                $minutes_left = (int)ceil($seconds_left / 60);
-                $error = "Acceso bloqueado por seguridad. Inténtelo de nuevo en {$minutes_left} minuto" . ($minutes_left != 1 ? "s" : "") . ".";
-            } else {
-                // Verificar credenciales en la base de datos
-                try {
+                } else {
+                    // No bloqueado — verificar credenciales
                     $stmt = $pdo->prepare("SELECT u.*, r.nombre as rol_nombre FROM usuarios u INNER JOIN roles r ON u.rol_id = r.id WHERE u.username = ? AND u.activo = 1");
                     $stmt->execute([$username]);
                     $user = $stmt->fetch();
 
                     if ($user && password_verify($password, $user['password_hash'])) {
-                        // ✅ LOGIN CORRECTO: Resetear contador de intentos fallidos
-                        unset($_SESSION['login_fails'][$lock_key]);
+                        // ✅ LOGIN CORRECTO
+                        // Eliminar intentos fallidos previos (resetear contador)
+                        $pdo->prepare("DELETE FROM login_attempts WHERE ip_address = ? AND username = ? AND is_successful = 0")
+                            ->execute([$ip_address, strtolower($username)]);
 
-                        // Regenerar sesión para prevenir Session Fixation
-                        session_regenerate_id(true);
+                        session_regenerate_id(true); // Prevenir session fixation
 
                         $_SESSION['user_id']        = $user['id'];
                         $_SESSION['username']        = $user['username'];
@@ -99,13 +125,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                         $_SESSION['rol_id']          = $user['rol_id'];
                         $_SESSION['rol_nombre']      = $user['rol_nombre'];
 
-                        // Actualizar último acceso
                         $pdo->prepare("UPDATE usuarios SET ultimo_acceso = NOW() WHERE id = ?")->execute([$user['id']]);
 
-                        // Registrar en tabla de auditoría
+                        // Auditoría — login exitoso
                         try {
-                            $pdo->prepare("INSERT INTO login_attempts (ip_address, username, attempt_time, is_successful) VALUES (?, ?, ?, 1)")
-                                ->execute([$ip_address, $username, date('Y-m-d H:i:s')]);
+                            $pdo->prepare("INSERT INTO login_attempts (ip_address, username, attempt_unix, is_successful) VALUES (?, ?, ?, 1)")
+                                ->execute([$ip_address, strtolower($username), $ahora]);
                         } catch (PDOException $e) {}
                         audit_log($pdo, 'LOGIN_SUCCESS', 'sesion', $user['id'], null, ['ip' => $ip_address]);
 
@@ -113,36 +138,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                         exit();
 
                     } else {
-                        // ❌ LOGIN INCORRECTO: Incrementar contador de intentos en sesión
-                        if ($fail_data['count'] === 0) {
-                            $fail_data['first_fail'] = time(); // Marcar inicio del periodo
-                        }
-                        $fail_data['count']++;
-                        $_SESSION['login_fails'][$lock_key] = $fail_data;
+                        // ❌ LOGIN INCORRECTO — registrar intento con Unix timestamp
+                        $pdo->prepare("INSERT INTO login_attempts (ip_address, username, attempt_unix, is_successful) VALUES (?, ?, ?, 0)")
+                            ->execute([$ip_address, strtolower($username), $ahora]);
 
-                        $remaining = MAX_LOGIN_ATTEMPTS - $fail_data['count'];
+                        // Calcular intentos restantes (fallos ANTES de este + 1 = este)
+                        $restantes = MAX_INTENTOS - ($fallos + 1);
 
-                        if ($remaining <= 0) {
+                        if ($restantes <= 0) {
                             $error = "Acceso bloqueado por seguridad. Inténtelo de nuevo en 15 minutos.";
                         } else {
-                            $error = "Usuario o contraseña incorrectos. Le queda" . ($remaining > 1 ? "n " : " ") . $remaining . " intento" . ($remaining > 1 ? "s" : "") . ".";
+                            $error = "Usuario o contraseña incorrectos. Le queda" . ($restantes > 1 ? "n " : " ") . $restantes . " intento" . ($restantes > 1 ? "s" : "") . ".";
                         }
 
-                        // Registrar en tablas de auditoría (no bloquea el flujo si falla)
-                        try {
-                            $pdo->prepare("INSERT INTO login_attempts (ip_address, username, attempt_time, is_successful) VALUES (?, ?, ?, 0)")
-                                ->execute([$ip_address, $username, date('Y-m-d H:i:s')]);
-                        } catch (PDOException $e) {}
-
+                        // Auditoría
                         if ($user) {
                             audit_log($pdo, 'LOGIN_FAILED', 'sesion', $user['id'], null, ['ip' => $ip_address, 'username' => $username], $user['id']);
                         } else {
                             audit_log($pdo, 'LOGIN_FAILED_UNKNOWN', 'sesion', null, null, ['ip' => $ip_address, 'username' => $username], null);
                         }
                     }
-                } catch (PDOException $e) {
-                    $error = "Error del sistema. Por favor, contacte con el administrador.";
                 }
+            } catch (PDOException $e) {
+                $error = "Error del sistema. Por favor, contacte con el administrador.";
             }
         }
     }
