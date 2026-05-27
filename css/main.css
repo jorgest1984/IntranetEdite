@@ -824,7 +824,9 @@ textarea:focus,
 .dark-theme .container-box,
 .dark-theme div[style*="background-color: #fff"],
 .dark-theme div[style*="background: white"],
-.dark-theme div[style*="background: #fff"] {
+.dark-theme div[style*="background: #fff"],
+.dark-theme div[style*="background: #f8fafc"],
+.dark-theme div[style*="background-color: #f8fafc"] {
     background-color: var(--glass-bg) !important;
     background: var(--glass-bg) !important;
     color: var(--text-color) !important;
