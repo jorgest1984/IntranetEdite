@@ -152,17 +152,36 @@ $empresaNombre = $stmtConf->fetchColumn() ?: APP_NAME;
         </div>
         
         <div style="margin-bottom: 1rem;">
-            <label class="form-label" style="display:block; margin-bottom: 0.5rem;">Alumno Receptor:</label>
-            <select id="alumnoSelect" class="form-input" style="width: 100%; margin-bottom: 1rem;">
-                <option value="">-- Todos los alumnos (Generación Masiva) --</option>
-                <?php foreach ($alumnos as $a): ?>
-                    <option value="<?= $a['id'] ?>" data-nombre="<?= htmlspecialchars($a['nombre'] . ' ' . $a['primer_apellido'] . ' ' . $a['segundo_apellido']) ?>" data-dni="<?= htmlspecialchars($a['dni']) ?>">
-                        <?= htmlspecialchars($a['primer_apellido'] . ' ' . $a['segundo_apellido']) ?>, <?= htmlspecialchars($a['nombre']) ?> (<?= htmlspecialchars($a['dni']) ?>)
+            <!-- Convocatoria Selector -->
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Convocatoria *</label>
+            <select id="convocatoriaSelect" class="form-input" style="width: 100%; margin-bottom: 1rem;" onchange="loadPlanes('recibi', this.value)">
+                <option value="">-- Selecciona Convocatoria --</option>
+                <?php foreach ($convocatorias as $c): ?>
+                    <option value="<?= $c['id'] ?>" <?= $convocatoria_id == $c['id'] ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($c['codigo_expediente']) ?> - <?= htmlspecialchars($c['nombre']) ?>
                     </option>
                 <?php endforeach; ?>
             </select>
+
+            <!-- Plan Selector -->
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Plan *</label>
+            <select id="planSelect" class="form-input" style="width: 100%; margin-bottom: 1rem;" disabled onchange="loadAcciones('recibi', this.value)">
+                <option value="">-- Primero elige Convocatoria --</option>
+            </select>
+
+            <!-- Acción Formativa Selector -->
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Acción Formativa *</label>
+            <select id="accionSelect" class="form-input" style="width: 100%; margin-bottom: 1rem;" disabled onchange="loadAlumnos('recibi', this.value)">
+                <option value="">-- Primero elige Plan --</option>
+            </select>
+
+            <!-- Alumno Selector -->
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Alumno Receptor *</label>
+            <select id="alumnoSelect" class="form-input" style="width: 100%; margin-bottom: 1rem;" disabled>
+                <option value="">-- Primero elige Acción Formativa --</option>
+            </select>
             
-            <label class="form-label" style="display:block; margin-bottom: 0.5rem;">Material Entregado:</label>
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Material Entregado:</label>
             <input type="text" id="materialDesc" class="form-input" style="width: 100%;" placeholder="Ej: Manual del curso, Tablet Lenovo, Libreta y boli" value="Manual Formativo, Libreta y Bolígrafo">
         </div>
         
@@ -172,26 +191,222 @@ $empresaNombre = $stmtConf->fetchColumn() ?: APP_NAME;
     </div>
 </div>
 
+<!-- Modal Selección Anexo I -->
+<div id="anexoModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Generar Anexo I: Solicitud</h2>
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+        </div>
+        <div style="margin-bottom: 1rem;">
+            <!-- Convocatoria Selector -->
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Convocatoria *</label>
+            <select id="convocatoriaSelectAnexo" class="form-input" style="width: 100%; margin-bottom: 1rem;" onchange="loadPlanes('anexo1', this.value)">
+                <option value="">-- Selecciona Convocatoria --</option>
+                <?php foreach ($convocatorias as $c): ?>
+                    <option value="<?= $c['id'] ?>" <?= $convocatoria_id == $c['id'] ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($c['codigo_expediente']) ?> - <?= htmlspecialchars($c['nombre']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+
+            <!-- Plan Selector -->
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Plan *</label>
+            <select id="planSelectAnexo" class="form-input" style="width: 100%; margin-bottom: 1rem;" disabled onchange="loadAcciones('anexo1', this.value)">
+                <option value="">-- Primero elige Convocatoria --</option>
+            </select>
+
+            <!-- Acción Formativa Selector -->
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Acción Formativa *</label>
+            <select id="accionSelectAnexo" class="form-input" style="width: 100%; margin-bottom: 1rem;" disabled onchange="loadAlumnos('anexo1', this.value)">
+                <option value="">-- Primero elige Plan --</option>
+            </select>
+
+            <!-- Alumno Selector -->
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Seleccionar Alumno *</label>
+            <select id="alumnoSelectAnexo" class="form-input" style="width: 100%;" disabled>
+                <option value="">-- Primero elige Acción Formativa --</option>
+            </select>
+        </div>
+        <button class="btn btn-primary" style="width: 100%; justify-content:center; margin-top: 1rem;" onclick="generateAnexo1PDF()">Descargar Solicitudes PDF</button>
+    </div>
+</div>
+
 <script>
 // Parse PHP Data to JS
 const empresaGlobal = <?= json_encode($empresaNombre) ?>;
 const convocatoriaActiva = <?= $convocatoriaInfo ? json_encode($convocatoriaInfo) : 'null' ?>;
 const alumnosAcitvos = <?= json_encode($alumnos) ?>;
 
+// State management for dynamically loaded data
+const loadedData = {
+    recibi: {
+        alumnos: [],
+        context: null
+    },
+    anexo1: {
+        alumnos: [],
+        context: null
+    }
+};
+
 function openDocModal(type) {
-    if (type === 'recibi') {
-        document.getElementById('docModal').classList.add('active');
+    document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+    
+    let modalId = type === 'recibi' ? 'docModal' : 'anexoModal';
+    let modal = document.getElementById(modalId);
+    if (!modal) return;
+    
+    modal.classList.add('active');
+    
+    // Auto-load cascade if Convocatoria is pre-selected on main page
+    let convSelect = document.getElementById(type === 'recibi' ? 'convocatoriaSelect' : 'convocatoriaSelectAnexo');
+    if (convSelect && convSelect.value) {
+        let planSelect = document.getElementById(type === 'recibi' ? 'planSelect' : 'planSelectAnexo');
+        if (planSelect && planSelect.options.length <= 1) {
+            loadPlanes(type, convSelect.value);
+        }
     }
 }
 
 function closeModal() {
-    document.getElementById('docModal').classList.remove('active');
+    document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
 }
 
 window.onclick = function(event) {
-    if (event.target == document.getElementById('docModal')) {
+    if (event.target.classList.contains('modal')) {
         closeModal();
     }
+}
+
+function loadPlanes(type, convocatoriaId) {
+    const planSelect = document.getElementById(type === 'recibi' ? 'planSelect' : 'planSelectAnexo');
+    const accionSelect = document.getElementById(type === 'recibi' ? 'accionSelect' : 'accionSelectAnexo');
+    const alumnoSelect = document.getElementById(type === 'recibi' ? 'alumnoSelect' : 'alumnoSelectAnexo');
+    
+    // Reset options
+    planSelect.innerHTML = '<option value="">-- Selecciona Plan --</option>';
+    planSelect.disabled = true;
+    
+    accionSelect.innerHTML = '<option value="">-- Primero elige Plan --</option>';
+    accionSelect.disabled = true;
+    
+    alumnoSelect.innerHTML = '<option value="">-- Primero elige Acción Formativa --</option>';
+    alumnoSelect.disabled = true;
+    
+    loadedData[type].alumnos = [];
+    loadedData[type].context = null;
+    
+    if (!convocatoriaId) return;
+    
+    fetch(`api_documentos_cascade.php?action=get_planes&convocatoria_id=${convocatoriaId}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.length > 0) {
+                data.forEach(p => {
+                    let opt = document.createElement('option');
+                    opt.value = p.id;
+                    opt.textContent = `${p.codigo ? p.codigo + ' - ' : ''}${p.nombre}`;
+                    planSelect.appendChild(opt);
+                });
+                planSelect.disabled = false;
+            } else {
+                planSelect.innerHTML = '<option value="">-- No hay planes registrados --</option>';
+            }
+        })
+        .catch(err => {
+            console.error('Error fetching planes:', err);
+            alert('Error al cargar planes.');
+        });
+}
+
+function loadAcciones(type, planId) {
+    const accionSelect = document.getElementById(type === 'recibi' ? 'accionSelect' : 'accionSelectAnexo');
+    const alumnoSelect = document.getElementById(type === 'recibi' ? 'alumnoSelect' : 'alumnoSelectAnexo');
+    
+    accionSelect.innerHTML = '<option value="">-- Selecciona Acción Formativa --</option>';
+    accionSelect.disabled = true;
+    
+    alumnoSelect.innerHTML = '<option value="">-- Primero elige Acción Formativa --</option>';
+    alumnoSelect.disabled = true;
+    
+    loadedData[type].alumnos = [];
+    loadedData[type].context = null;
+    
+    if (!planId) return;
+    
+    fetch(`api_documentos_cascade.php?action=get_acciones&plan_id=${planId}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.length > 0) {
+                data.forEach(af => {
+                    let opt = document.createElement('option');
+                    opt.value = af.id;
+                    opt.textContent = `${af.num_accion ? '#' + af.num_accion + ' - ' : ''}${af.titulo}`;
+                    accionSelect.appendChild(opt);
+                });
+                accionSelect.disabled = false;
+            } else {
+                accionSelect.innerHTML = '<option value="">-- No hay acciones registradas --</option>';
+            }
+        })
+        .catch(err => {
+            console.error('Error fetching acciones:', err);
+            alert('Error al cargar acciones formativas.');
+        });
+}
+
+function loadAlumnos(type, accionId) {
+    const alumnoSelect = document.getElementById(type === 'recibi' ? 'alumnoSelect' : 'alumnoSelectAnexo');
+    
+    alumnoSelect.innerHTML = '<option value="">-- Buscando alumnos... --</option>';
+    alumnoSelect.disabled = true;
+    
+    loadedData[type].alumnos = [];
+    loadedData[type].context = null;
+    
+    if (!accionId) {
+        alumnoSelect.innerHTML = '<option value="">-- Primero elige Acción Formativa --</option>';
+        return;
+    }
+    
+    fetch(`api_documentos_cascade.php?action=get_alumnos&accion_id=${accionId}`)
+        .then(res => res.json())
+        .then(data => {
+            loadedData[type].alumnos = data.alumnos || [];
+            loadedData[type].context = data.context || null;
+            
+            alumnoSelect.innerHTML = '';
+            
+            // Default option
+            let defOpt = document.createElement('option');
+            defOpt.value = '';
+            defOpt.textContent = type === 'recibi' ? '-- Todos los alumnos (Generación Masiva) --' : '-- Todos los alumnos matriculados --';
+            alumnoSelect.appendChild(defOpt);
+            
+            if (loadedData[type].alumnos.length > 0) {
+                loadedData[type].alumnos.forEach(a => {
+                    let opt = document.createElement('option');
+                    opt.value = a.id;
+                    
+                    let nom = `${a.primer_apellido || ''} ${a.segundo_apellido || ''}`.trim() + `, ${a.nombre}`;
+                    opt.textContent = `${nom} (${a.dni})`;
+                    
+                    // Set extra details
+                    opt.setAttribute('data-nombre', `${a.nombre} ${a.primer_apellido || ''} ${a.segundo_apellido || ''}`.trim());
+                    opt.setAttribute('data-dni', a.dni);
+                    
+                    alumnoSelect.appendChild(opt);
+                });
+                alumnoSelect.disabled = false;
+            } else {
+                alumnoSelect.innerHTML = '<option value="">-- No hay alumnos matriculados --</option>';
+            }
+        })
+        .catch(err => {
+            console.error('Error fetching alumnos:', err);
+            alert('Error al cargar alumnos.');
+        });
 }
 
 function generateRecibiPDF() {
@@ -204,17 +419,24 @@ function generateRecibiPDF() {
     let alumnoId = select.value;
     let alumnosProcesar = [];
     
+    let state = loadedData.recibi;
+    
+    if (!state.context) {
+        alert("Por favor, selecciona una convocatoria, plan y acción formativa válida.");
+        return;
+    }
+    
     if (alumnoId === "") {
         // Todos
-        alumnosProcesar = alumnosAcitvos;
+        alumnosProcesar = state.alumnos;
     } else {
         // Individual
-        let dObj = alumnosAcitvos.find(a => a.id == alumnoId);
+        let dObj = state.alumnos.find(a => a.id == alumnoId);
         if(dObj) alumnosProcesar.push(dObj);
     }
     
     if(alumnosProcesar.length === 0) {
-        alert("Selecciona al menos un alumno.");
+        alert("No hay alumnos seleccionados o matriculados para generar el recibí.");
         return;
     }
 
@@ -239,34 +461,35 @@ function generateRecibiPDF() {
         
         // Empresa y Curso
         doc.text(`ENTIDAD DE FORMACIÓN: ${empresaGlobal}`, 20, 55);
-        doc.text(`EXPEDIENTE / CONVOCATORIA: ${convocatoriaActiva.codigo_expediente}`, 20, 65);
-        doc.text(`D./Dña.: ${nomAlumno}`, 20, 75);
-        doc.text(`CON DNI/NIE: ${dniAlumno}`, 20, 85);
+        doc.text(`EXPEDIENTE / CONVOCATORIA: ${state.context.conv_codigo}`, 20, 65);
+        doc.text(`ACCIÓN FORMATIVA: ${state.context.af_titulo} (#${state.context.af_num || ''})`, 20, 75);
+        doc.text(`D./Dña.: ${nomAlumno}`, 20, 85);
+        doc.text(`CON DNI/NIE: ${dniAlumno}`, 20, 95);
         
         // Cuerpo del Recibí
         let textBody = `Mediante el presente documento, el alumno declara haber recibido en la fecha abajo indicada, de forma totalmente gratuita, el siguiente material didáctico necesario para el desarrollo de la acción formativa:`;
         let splitText = doc.splitTextToSize(textBody, 170);
-        doc.text(splitText, 20, 105);
+        doc.text(splitText, 20, 115);
         
         // Dinámico: Material
         doc.setFont("helvetica", "bold");
-        doc.text(`- ${material}`, 30, 125);
+        doc.text(`- ${material}`, 30, 135);
         doc.setFont("helvetica", "normal");
         
         let textEnd = "Mecione firmar el presente documento asumiendo la responsabilidad sobre el uso y cuidado del material entregado durante la duración de la formación.";
         let splitEnd = doc.splitTextToSize(textEnd, 170);
-        doc.text(splitEnd, 20, 145);
+        doc.text(splitEnd, 20, 155);
         
         // Firmas (Espacio)
-        doc.text(`A ....................., a ...... de ...................... de 20....`, 20, 180);
+        doc.text(`A ....................., a ...... de ...................... de 20....`, 20, 190);
         
         doc.setFont("helvetica", "bold");
-        doc.text("FIRMA DEL ALUMNO/A:", 40, 200);
+        doc.text("FIRMA DEL ALUMNO/A:", 40, 210);
         doc.setFont("helvetica", "normal");
-        doc.text("(Firma)", 55, 230);
+        doc.text("(Firma)", 55, 240);
     });
     
-    let filename = alumnoId === "" ? `Recibos_Material_${convocatoriaActiva.codigo_expediente}.pdf` : `Recibi_${select.options[select.selectedIndex].getAttribute('data-dni')}.pdf`;
+    let filename = alumnoId === "" ? `Recibos_Material_${state.context.conv_codigo}.pdf` : `Recibi_${select.options[select.selectedIndex].getAttribute('data-dni')}.pdf`;
     
     doc.save(filename);
     closeModal();
@@ -280,13 +503,24 @@ function generateAnexo1PDF() {
     let alumnoId = select.value;
     let alumnosProcesar = [];
     
-    if (alumnoId === "") { alumnosProcesar = alumnosAcitvos; }
-    else {
-        let dObj = alumnosAcitvos.find(a => a.id == alumnoId);
+    let state = loadedData.anexo1;
+    
+    if (!state.context) {
+        alert("Por favor, selecciona una convocatoria, plan y acción formativa válida.");
+        return;
+    }
+    
+    if (alumnoId === "") {
+        alumnosProcesar = state.alumnos;
+    } else {
+        let dObj = state.alumnos.find(a => a.id == alumnoId);
         if(dObj) alumnosProcesar.push(dObj);
     }
     
-    if(alumnosProcesar.length === 0) { alert("Selecciona alumnos."); return; }
+    if(alumnosProcesar.length === 0) {
+        alert("No hay alumnos seleccionados o matriculados para generar el Anexo I.");
+        return;
+    }
 
     alumnosProcesar.forEach((alumno, index) => {
         if (index > 0) doc.addPage();
@@ -302,8 +536,8 @@ function generateAnexo1PDF() {
         doc.setFontSize(9);
         doc.text("1. DATOS DE LA ACCIÓN FORMATIVA", 20, 42);
         doc.setFont("helvetica", "normal");
-        doc.text(`Denominación: ${convocatoriaActiva.nombre}`, 25, 50);
-        doc.text(`Código Expediente: ${convocatoriaActiva.codigo_expediente}`, 25, 57);
+        doc.text(`Denominación: ${state.context.af_titulo}`, 25, 50);
+        doc.text(`Código Expediente: ${state.context.conv_codigo}`, 25, 57);
         doc.text(`Entidad: ${empresaGlobal}`, 25, 64);
         
         doc.rect(15, 90, 180, 60); // Sección alumno
@@ -340,38 +574,9 @@ function generateAnexo1PDF() {
         doc.line(130, 270, 180, 270);
     });
     
-    doc.save(`Anexo1_${convocatoriaActiva.codigo_expediente}.pdf`);
+    doc.save(`Anexo1_${state.context.conv_codigo}.pdf`);
     closeModal();
 }
 </script>
-
-<!-- Modal Selección Anexo I -->
-<div id="anexoModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>Generar Anexo I: Solicitud</h2>
-            <button class="close-btn" onclick="closeModal()">&times;</button>
-        </div>
-        <div style="margin-bottom: 1rem;">
-            <label class="form-label">Seleccionar Alumno:</label>
-            <select id="alumnoSelectAnexo" class="form-input" style="width: 100%;">
-                <option value="">-- Todos los alumnos matriculados --</option>
-                <?php foreach ($alumnos as $a): ?>
-                    <option value="<?= $a['id'] ?>"><?= htmlspecialchars($a['primer_apellido'] . " " . $a['segundo_apellido'] . ", " . $a['nombre']) ?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <button class="btn btn-primary" style="width: 100%;" onclick="generateAnexo1PDF()">Descargar Solicitudes PDF</button>
-    </div>
-</div>
-
-<script>
-// Sobrescribir openDocModal para manejar varios modales
-function openDocModal(type) {
-    document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
-    if (type === 'recibi') document.getElementById('docModal').classList.add('active');
-    if (type === 'anexo1') document.getElementById('anexoModal').classList.add('active');
-}
-
 </body>
 </html>

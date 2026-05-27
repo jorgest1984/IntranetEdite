@@ -13,13 +13,24 @@ class MoodleAPI {
             $config[$row['clave']] = $row['valor'];
         }
         
+        $moodleUrl = $config['moodle_url'] ?? '';
+        $moodleToken = $config['moodle_token'] ?? '';
+        
+        // Sobrescribir dinámicamente según el entorno para evitar errores de copia de Base de Datos
+        if (defined('MOODLE_URL_OVERRIDE') && MOODLE_URL_OVERRIDE !== '') {
+            $moodleUrl = MOODLE_URL_OVERRIDE;
+        }
+        if (defined('MOODLE_TOKEN_OVERRIDE') && MOODLE_TOKEN_OVERRIDE !== '') {
+            $moodleToken = MOODLE_TOKEN_OVERRIDE;
+        }
+        
         // Formato URL correcto para REST
-        $cleanUrl = rtrim($config['moodle_url'] ?? '', '/');
+        $cleanUrl = rtrim($moodleUrl, '/');
         // Eliminar si el usuario pegó la URL de la página de tokens por error
         $cleanUrl = str_replace('/admin/webservice/tokens.php', '', $cleanUrl);
         
-        $this->url = $cleanUrl . '/webservice/rest/server.php';
-        $this->token = $config['moodle_token'] ?? '';
+        $this->url = $cleanUrl !== '' ? $cleanUrl . '/webservice/rest/server.php' : '';
+        $this->token = $moodleToken;
     }
     
     public function isConfigured() {

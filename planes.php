@@ -167,8 +167,11 @@ $convocatorias = $pdo->query("SELECT id, nombre FROM convocatorias ORDER BY nomb
         }
 
         .modal-form {
-            background: #f8fafc;
-            border: 2px solid #e2e8f0;
+            background: var(--card-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
             padding: 30px;
             border-radius: 16px;
             margin-bottom: 30px;
@@ -211,27 +214,27 @@ $convocatorias = $pdo->query("SELECT id, nombre FROM convocatorias ORDER BY nomb
         </header>
 
         <div id="formPlan" class="modal-form">
-            <h2 style="margin-top: 0; color: #1e3a8a; font-size: 1.2rem;">Crear Plan Estratégico</h2>
-            <form action="" method="POST" style="display: grid; grid-template-columns: 2fr 2fr 1fr auto; gap: 15px; align-items: flex-end;">
+            <h2 style="margin-top: 0; color: var(--primary-color); font-size: 1.2rem; font-weight: 800; text-transform: uppercase;">Crear Plan Estratégico</h2>
+            <form action="" method="POST" style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; width: 100%;">
                 <input type="hidden" name="action" value="create">
-                <div class="form-group">
-                    <label style="font-size: 0.75rem; font-weight: 700; color: #64748b;">NOMBRE DEL PLAN</label>
-                    <input type="text" name="nombre" class="form-control" required placeholder="Ej: Plan Digital 2024">
+                <div class="form-group" style="flex: 2 1 300px; display: flex; flex-direction: column; gap: 8px;">
+                    <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Nombre del Plan</label>
+                    <input type="text" name="nombre" class="form-control" required placeholder="Ej: Plan Digital 2024" style="width: 100%;">
                 </div>
-                <div class="form-group">
-                    <label style="font-size: 0.75rem; font-weight: 700; color: #64748b;">CONVOCATORIA</label>
-                    <select name="convocatoria_id" class="form-control" required>
+                <div class="form-group" style="flex: 2 1 300px; display: flex; flex-direction: column; gap: 8px;">
+                    <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Convocatoria</label>
+                    <select name="convocatoria_id" class="form-control" required style="width: 100%;">
                         <option value="">Seleccione...</option>
                         <?php foreach($convocatorias as $c): ?>
                             <option value="<?= $c['id'] ?>" <?= ($convocatoria_id == $c['id']) ? 'selected' : '' ?>><?= htmlspecialchars($c['nombre']) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label style="font-size: 0.75rem; font-weight: 700; color: #64748b;">CÓDIGO</label>
-                    <input type="text" name="codigo" class="form-control" placeholder="PL-01">
+                <div class="form-group" style="flex: 1 1 120px; display: flex; flex-direction: column; gap: 8px;">
+                    <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Código</label>
+                    <input type="text" name="codigo" class="form-control" placeholder="PL-01" style="width: 100%;">
                 </div>
-                <button type="submit" class="btn btn-primary" style="height: 42px;">Guardar</button>
+                <button type="submit" class="btn btn-primary" style="height: 42px; padding: 0 30px; flex: 0 0 auto; min-width: 120px;">Guardar</button>
             </form>
         </div>
 

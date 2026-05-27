@@ -40,7 +40,7 @@ $sections = [
         ['title' => 'Web Grupo EFP', 'icon' => '<svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>', 'url' => 'https://escueladeformacionprofesional.com/', 'color' => 'blue', 'external' => true],
         ['title' => 'Webmail', 'icon' => '<svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>', 'url' => 'https://webmail.grupoefp.es/SOGo/', 'color' => 'blue', 'external' => true],
         ['title' => 'NAS', 'icon' => '<svg viewBox="0 0 24 24"><path d="M2 20h20v-4H2v4zm2-3h2v2H4v-2zM2 4v4h20V4H2zm4 3H4V5h2v2zm-4 7h20v-4H2v4zm2-3h2v2H4v-2z"/></svg>', 'url' => 'https://editeformacion.fr1.quickconnect.to/#/signin', 'color' => 'blue', 'external' => true],
-        ['title' => 'Aula Virtual', 'icon' => '<svg viewBox="0 0 24 24"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2.12-1.15V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72l5 2.73 5-2.73v3.72z"/></svg>', 'url' => 'https://aulavirtual.grupoefp.es/', 'color' => 'blue', 'external' => true]
+        ['title' => 'Aula Virtual', 'icon' => '<svg viewBox="0 0 24 24"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2.12-1.15V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72l5 2.73 5-2.73v3.72z"/></svg>', 'url' => (defined('MOODLE_AULA_VIRTUAL_URL') ? MOODLE_AULA_VIRTUAL_URL : 'https://aulavirtual.grupoefp.es/'), 'color' => 'blue', 'external' => true]
     ]
 ];
 ?>
