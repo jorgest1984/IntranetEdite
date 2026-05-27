@@ -9,10 +9,13 @@ try {
         `id` INT AUTO_INCREMENT PRIMARY KEY,
         `ip_address` VARCHAR(45) NOT NULL,
         `username` VARCHAR(150) NOT NULL,
-        `attempt_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        `attempt_time` DATETIME NOT NULL,
         `is_successful` TINYINT(1) DEFAULT 0,
         KEY `idx_ip_user_time` (`ip_address`, `username`, `attempt_time`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+    // Asegurar que attempt_time sea DATETIME en base de datos (evita bugs de zonas horarias en Plesk/MySQL)
+    $pdo->query("ALTER TABLE `login_attempts` MODIFY COLUMN `attempt_time` DATETIME NOT NULL");
 
     // 2. Modificar la columna usuario_id de audit_log para permitir NULL (evita fallos de FK para usuarios inexistentes)
     $pdo->query("ALTER TABLE `audit_log` MODIFY COLUMN `usuario_id` INT(11) NULL");
@@ -55,9 +58,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                     $ip_address = $_SERVER['HTTP_CLIENT_IP'];
                 }
                 
+                // Formatear límite de tiempo de 15 minutos en PHP (independiente de zonas horarias de MySQL)
+                $time_limit = date('Y-m-d H:i:s', time() - 15 * 60);
+                
                 // 1. Bloqueo general por IP (Máximo 10 fallos globales en los últimos 15 minutos)
-                $stmt_ip = $pdo->prepare("SELECT COUNT(*) FROM login_attempts WHERE ip_address = ? AND is_successful = 0 AND attempt_time > DATE_SUB(NOW(), INTERVAL 15 MINUTE)");
-                $stmt_ip->execute([$ip_address]);
+                $stmt_ip = $pdo->prepare("SELECT COUNT(*) FROM login_attempts WHERE ip_address = ? AND is_successful = 0 AND attempt_time > ?");
+                $stmt_ip->execute([$ip_address, $time_limit]);
                 $failed_ip_count = (int)$stmt_ip->fetchColumn();
                 
                 if ($failed_ip_count >= 10) {
@@ -69,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                         WHERE ip_address = :ip 
                           AND username = :username 
                           AND is_successful = 0 
-                          AND attempt_time > DATE_SUB(NOW(), INTERVAL 15 MINUTE)
+                          AND attempt_time > :time_limit
                           AND attempt_time > COALESCE(
                               (SELECT MAX(attempt_time) FROM login_attempts WHERE ip_address = :ip AND username = :username AND is_successful = 1),
                               '1970-01-01 00:00:00'
@@ -77,7 +83,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                     ");
                     $stmt_user->execute([
                         'ip' => $ip_address,
-                        'username' => $username
+                        'username' => $username,
+                        'time_limit' => $time_limit
                     ]);
                     $failed_user_count = (int)$stmt_user->fetchColumn();
                     
@@ -90,9 +97,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                         $user = $stmt->fetch();
                         
                         if ($user && password_verify($password, $user['password_hash'])) {
-                            // Login correcto: Registrar éxito en login_attempts
-                            $stmt_log = $pdo->prepare("INSERT INTO login_attempts (ip_address, username, is_successful) VALUES (?, ?, 1)");
-                            $stmt_log->execute([$ip_address, $username]);
+                            // Login correcto: Registrar éxito en login_attempts con marca de tiempo PHP
+                            $stmt_log = $pdo->prepare("INSERT INTO login_attempts (ip_address, username, attempt_time, is_successful) VALUES (?, ?, ?, 1)");
+                            $stmt_log->execute([$ip_address, $username, date('Y-m-d H:i:s')]);
                             
                             // Regenerar ID de sesión para prevenir Session Fixation (ISO 27001)
                             session_regenerate_id(true);
@@ -117,9 +124,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                             exit();
                             
                         } else {
-                            // Login incorrecto: Registrar fallo en login_attempts
-                            $stmt_log = $pdo->prepare("INSERT INTO login_attempts (ip_address, username, is_successful) VALUES (?, ?, 0)");
-                            $stmt_log->execute([$ip_address, $username]);
+                            // Login incorrecto: Registrar fallo en login_attempts con marca de tiempo PHP
+                            $stmt_log = $pdo->prepare("INSERT INTO login_attempts (ip_address, username, attempt_time, is_successful) VALUES (?, ?, ?, 0)");
+                            $stmt_log->execute([$ip_address, $username, date('Y-m-d H:i:s')]);
                             
                             // Calcular intentos restantes (incluyendo este último fallo)
                             $remaining_attempts = 3 - ($failed_user_count + 1);
