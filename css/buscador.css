@@ -93,18 +93,28 @@
 .search-input {
     width: 100%;
     padding: 0.875rem 1rem 0.875rem 2.75rem;
-    border: 1px solid var(--search-border);
-    border-radius: 12px;
-    font-size: 0.95rem;
-    transition: all 0.2s;
-    background: #f1f5f9;
+    border: 1px solid var(--search-border) !important;
+    border-radius: 12px !important;
+    font-size: 0.95rem !important;
+    transition: all 0.2s !important;
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    box-sizing: border-box !important;
 }
 
 .search-input:focus {
-    outline: none;
-    border-color: var(--search-primary);
-    background: #fff;
-    box-shadow: 0 0 0 4px var(--accent-glow);
+    outline: none !important;
+    border-color: var(--search-primary) !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    box-shadow: 0 0 0 4px var(--accent-glow) !important;
+    color: #0f172a !important;
+}
+
+.search-input::placeholder {
+    color: #94a3b8 !important;
+    opacity: 1 !important;
 }
 
 .select-custom {
@@ -250,4 +260,54 @@
     text-align: center;
     padding: 4rem;
     color: var(--search-text-muted);
+}
+
+/* Soporte premium para Dark Mode en buscador */
+.dark-theme .search-form-panel,
+.dark-theme .category-section {
+    background: var(--glass-bg) !important;
+    border-color: var(--border-color) !important;
+    box-shadow: var(--glass-shadow) !important;
+    backdrop-filter: var(--glass-blur) !important;
+    -webkit-backdrop-filter: var(--glass-blur) !important;
+}
+
+.dark-theme .category-header {
+    background: rgba(255, 255, 255, 0.02) !important;
+    border-bottom-color: var(--border-color) !important;
+}
+
+.dark-theme .result-item {
+    border-bottom-color: var(--border-color) !important;
+    color: var(--text-color) !important;
+}
+
+.dark-theme .result-item:hover {
+    background: rgba(255, 255, 255, 0.04) !important;
+}
+
+.dark-theme .result-main {
+    color: var(--text-color) !important;
+}
+
+.dark-theme .result-sub {
+    color: var(--text-muted) !important;
+}
+
+.dark-theme .area-chip {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-muted) !important;
+}
+
+.dark-theme .area-chip.active {
+    background: var(--search-secondary) !important;
+    color: #ffffff !important;
+    border-color: var(--search-secondary) !important;
+}
+
+.dark-theme .select-custom {
+    background-color: var(--input-bg) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-color) !important;
 }
