@@ -7,28 +7,29 @@ require_once 'includes/config.php';
 // Completely timezone-immune: solo compara números enteros
 // ===========================================================
 try {
-    // Detectar si la tabla tiene la columna correcta (attempt_unix INT)
-    $has_unix_col = false;
+    // Comprobar si la tabla ya tiene la columna correcta (attempt_unix INT).
+    // NOTA: rowCount() en SHOW COLUMNS no es fiable con PDO/MySQL.
+    // En su lugar, hacemos un SELECT directo con LIMIT 0 (no trae filas,
+    // solo valida que la columna y la tabla existen).
     try {
-        $chk = $pdo->query("SHOW COLUMNS FROM `login_attempts` LIKE 'attempt_unix'");
-        $has_unix_col = ($chk && $chk->rowCount() > 0);
-    } catch (PDOException $e2) {}
-
-    if (!$has_unix_col) {
-        // Tabla no existe o tiene el esquema antiguo → recrear limpia
+        $pdo->query("SELECT attempt_unix FROM `login_attempts` LIMIT 0");
+        // Si llega aquí: tabla y columna correctas → no hay nada que migrar
+    } catch (PDOException $e_col) {
+        // La tabla no existe O tiene el esquema antiguo → recrear limpia
         $pdo->query("DROP TABLE IF EXISTS `login_attempts`");
         $pdo->query("CREATE TABLE `login_attempts` (
-            `id`           INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            `ip_address`   VARCHAR(45)  NOT NULL,
-            `username`     VARCHAR(150) NOT NULL,
-            `attempt_unix` INT UNSIGNED NOT NULL COMMENT 'PHP time() — sin zonas horarias',
-            `is_successful` TINYINT(1) NOT NULL DEFAULT 0,
+            `id`            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            `ip_address`    VARCHAR(45)  NOT NULL,
+            `username`      VARCHAR(150) NOT NULL,
+            `attempt_unix`  INT UNSIGNED NOT NULL COMMENT 'PHP time() — sin zonas horarias',
+            `is_successful` TINYINT(1)   NOT NULL DEFAULT 0,
             KEY `idx_lock` (`ip_address`, `username`, `attempt_unix`, `is_successful`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
     }
 
     // Asegurar que audit_log acepta usuario_id NULL
-    $pdo->query("ALTER TABLE `audit_log` MODIFY COLUMN `usuario_id` INT(11) NULL");
+    try { $pdo->query("ALTER TABLE `audit_log` MODIFY COLUMN `usuario_id` INT(11) NULL"); } catch (PDOException $e2) {}
+
 } catch (PDOException $e) {
     // Silencioso en producción
 }
