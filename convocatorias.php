@@ -11,7 +11,6 @@ if (!has_permission([ROLE_ADMIN, ROLE_TUTOR])) {
 $error = '';
 $success = '';
 
-// Procesar formulario de nueva convocatoria
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
     if ($_POST['action'] == 'create') {
         $codigo = trim($_POST['codigo_expediente'] ?? '');
@@ -27,12 +26,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         $ambito = trim($_POST['ambito'] ?? '');
         $solicitante = trim($_POST['solicitante'] ?? '');
         
+        $url = trim($_POST['url'] ?? '');
+        $url_aula_virtual = trim($_POST['url_aula_virtual'] ?? '');
+        $activa = isset($_POST['activa']) ? 1 : 0;
+        $descripcion = trim($_POST['descripcion'] ?? '');
+        $requisitos = trim($_POST['requisitos'] ?? '');
+        
         if (empty($codigo) || empty($nombre)) {
             $error = "El código y el nombre son obligatorios.";
         } else {
             try {
-                $stmt = $pdo->prepare("INSERT INTO convocatorias (codigo_expediente, nombre, tipo, organismo, presupuesto, estado, abreviatura, anio, fecha_inicio_prevista, fecha_fin_prevista, ambito, solicitante) VALUES (?, ?, ?, ?, ?, 'Borrador', ?, ?, ?, ?, ?, ?)");
-                $stmt->execute([$codigo, $nombre, $tipo, $organismo, $presupuesto, $abreviatura, $anio, $fecha_inicio, $fecha_fin, $ambito, $solicitante]);
+                $stmt = $pdo->prepare("INSERT INTO convocatorias (codigo_expediente, nombre, tipo, organismo, presupuesto, estado, abreviatura, anio, fecha_inicio_prevista, fecha_fin_prevista, ambito, solicitante, url, url_aula_virtual, activa, descripcion, requisitos) VALUES (?, ?, ?, ?, ?, 'Borrador', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt->execute([$codigo, $nombre, $tipo, $organismo, $presupuesto, $abreviatura, $anio, $fecha_inicio, $fecha_fin, $ambito, $solicitante, $url, $url_aula_virtual, $activa, $descripcion, $requisitos]);
                 $success = "Convocatoria creada correctamente.";
             } catch (Exception $e) {
                 $error = "Error: " . $e->getMessage();
@@ -164,6 +169,12 @@ $total_alumnos = array_sum(array_column($list, 'total_alumnos'));
             margin-bottom: 25px;
             display: none;
         }
+
+        .rte-mock { border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+        .rte-toolbar { background: #f8fafc; padding: 0.5rem; border-bottom: 1px solid #e2e8f0; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .toolbar-btn { padding: 0.25rem 0.5rem; border: 1px solid transparent; background: none; cursor:pointer; color: #475569; border-radius: 4px; }
+        .toolbar-btn:hover { background: #e2e8f0; }
+        .rte-textarea { width: 100%; min-height: 150px; padding: 1rem; border: none; font-family: inherit; resize: vertical; display: block; font-size: 0.95rem; }
     </style>
 </head>
 <body>
@@ -246,6 +257,55 @@ $total_alumnos = array_sum(array_column($list, 'total_alumnos'));
                 <div class="form-group">
                     <label style="font-size: 0.75rem; font-weight: 700; color: #1e3a8a; text-transform: uppercase;">Solicitante</label>
                     <input type="text" name="solicitante" class="form-control" placeholder="Entidad solicitante">
+                </div>
+
+                <!-- URL -->
+                <div class="form-group" style="grid-column: span 2;">
+                    <label style="font-size: 0.75rem; font-weight: 700; color: #1e3a8a; text-transform: uppercase;">URL</label>
+                    <input type="text" name="url" class="form-control" placeholder="/formacion/bonificada">
+                    <span style="font-size: 0.75rem; color: #94a3b8; font-style: italic; display: block; margin-top: 4px;">URL de la convocatoria en la web. Puede ser una ruta relativa.</span>
+                </div>
+
+                <!-- URL del Aula Virtual -->
+                <div class="form-group" style="grid-column: span 2;">
+                    <label style="font-size: 0.75rem; font-weight: 700; color: #1e3a8a; text-transform: uppercase;">URL del Aula Virtual</label>
+                    <input type="text" name="url_aula_virtual" class="form-control" placeholder="https://...">
+                    <span style="font-size: 0.75rem; color: #94a3b8; font-style: italic; display: block; margin-top: 4px;">URL oficial, la que se comunica a los organismos públicos.</span>
+                </div>
+
+                <!-- Activa -->
+                <div class="form-group" style="grid-column: span 2; display: flex; align-items: center; gap: 10px;">
+                    <input type="checkbox" name="activa" id="activa" checked style="width: 18px; height: 18px; cursor: pointer;">
+                    <label for="activa" style="font-size: 0.85rem; font-weight: 700; color: #1e3a8a; text-transform: uppercase; cursor: pointer; margin-bottom: 0;">Activa</label>
+                </div>
+
+                <!-- Descripción -->
+                <div class="form-group" style="grid-column: span 2; display: flex; flex-direction: column; gap: 8px;">
+                    <label style="font-size: 0.75rem; font-weight: 700; color: #1e3a8a; text-transform: uppercase;">Descripción</label>
+                    <div class="rte-mock">
+                        <div class="rte-toolbar">
+                            <button type="button" class="toolbar-btn"><b>B</b></button>
+                            <button type="button" class="toolbar-btn"><i>I</i></button>
+                            <button type="button" class="toolbar-btn"><u>U</u></button>
+                            <span style="border-right:1px solid #ccc; margin:0 5px;"></span>
+                            <button type="button" class="toolbar-btn">🔗</button>
+                            <button type="button" class="toolbar-btn">🖼️</button>
+                        </div>
+                        <textarea name="descripcion" class="rte-textarea" placeholder="Escribe aquí la descripción..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Requisitos de participación -->
+                <div class="form-group" style="grid-column: span 2; display: flex; flex-direction: column; gap: 8px;">
+                    <label style="font-size: 0.75rem; font-weight: 700; color: #1e3a8a; text-transform: uppercase;">Requisitos de participación</label>
+                    <div class="rte-mock">
+                        <div class="rte-toolbar">
+                            <button type="button" class="toolbar-btn"><b>B</b></button>
+                            <button type="button" class="toolbar-btn"><i>I</i></button>
+                            <button type="button" class="toolbar-btn"><u>U</u></button>
+                        </div>
+                        <textarea name="requisitos" class="rte-textarea" placeholder="Escribe aquí los requisitos de participación..."></textarea>
+                    </div>
                 </div>
 
                 <!-- Código Expediente (Admin) -->
