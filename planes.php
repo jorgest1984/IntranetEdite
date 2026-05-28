@@ -79,7 +79,7 @@ $planes_stmt = $pdo->prepare($sql);
 $planes_stmt->execute($params);
 $planes = $planes_stmt->fetchAll();
 
-$convocatorias = $pdo->query("SELECT id, nombre FROM convocatorias ORDER BY nombre ASC")->fetchAll();
+$convocatorias = $pdo->query("SELECT id, nombre, codigo_expediente FROM convocatorias ORDER BY nombre ASC")->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -177,6 +177,94 @@ $convocatorias = $pdo->query("SELECT id, nombre FROM convocatorias ORDER BY nomb
             margin-bottom: 30px;
             display: none;
         }
+
+        .filter-section {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            border: 1px solid #e2e8f0;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1 1 300px;
+        }
+
+        .filter-label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #1e3a8a;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .filter-select {
+            flex: 1;
+            max-width: 400px;
+            padding: 10px 16px;
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
+            background-color: #f8fafc;
+            color: #1e293b;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23475569' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 40px;
+        }
+
+        .filter-select:hover {
+            border-color: #94a3b8;
+            background-color: #f1f5f9;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-clear-filter {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-clear-filter:hover {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
     </style>
 </head>
 <body>
@@ -212,6 +300,30 @@ $convocatorias = $pdo->query("SELECT id, nombre FROM convocatorias ORDER BY nomb
             </div>
             <button class="btn-add-plan" onclick="toggleForm()">+ Nuevo Plan</button>
         </header>
+
+        <div class="filter-section">
+            <form method="GET" action="" style="display: flex; align-items: center; gap: 15px; width: 100%; flex-wrap: wrap;">
+                <div class="filter-group">
+                    <label for="convocatoria_filter" class="filter-label">Filtrar por Convocatoria</label>
+                    <select id="convocatoria_filter" name="convocatoria_id" class="filter-select" onchange="this.form.submit()">
+                        <option value="0">-- Todas las convocatorias --</option>
+                        <?php foreach($convocatorias as $c): ?>
+                            <option value="<?= $c['id'] ?>" <?= ($convocatoria_id == $c['id']) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($c['nombre']) ?><?= !empty($c['codigo_expediente']) ? ' (' . htmlspecialchars($c['codigo_expediente']) . ')' : '' ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <?php if ($convocatoria_id > 0): ?>
+                    <div class="filter-actions">
+                        <a href="planes.php" class="btn-clear-filter">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            Limpiar Filtro
+                        </a>
+                    </div>
+                <?php endif; ?>
+            </form>
+        </div>
 
         <div id="formPlan" class="modal-form">
             <h2 style="margin-top: 0; color: var(--primary-color); font-size: 1.2rem; font-weight: 800; text-transform: uppercase;">Crear Plan Estratégico</h2>
