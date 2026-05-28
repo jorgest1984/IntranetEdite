@@ -20,12 +20,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         $organismo = trim($_POST['organismo'] ?? '');
         $presupuesto = empty($_POST['presupuesto']) ? 0 : floatval($_POST['presupuesto']);
         
+        $abreviatura = trim($_POST['abreviatura'] ?? '');
+        $anio = trim($_POST['anio'] ?? '');
+        $fecha_inicio = !empty($_POST['fecha_inicio']) ? $_POST['fecha_inicio'] : null;
+        $fecha_fin = !empty($_POST['fecha_fin']) ? $_POST['fecha_fin'] : null;
+        $ambito = trim($_POST['ambito'] ?? '');
+        $solicitante = trim($_POST['solicitante'] ?? '');
+        
         if (empty($codigo) || empty($nombre)) {
             $error = "El código y el nombre son obligatorios.";
         } else {
             try {
-                $stmt = $pdo->prepare("INSERT INTO convocatorias (codigo_expediente, nombre, tipo, organismo, presupuesto, estado) VALUES (?, ?, ?, ?, ?, 'Borrador')");
-                $stmt->execute([$codigo, $nombre, $tipo, $organismo, $presupuesto]);
+                $stmt = $pdo->prepare("INSERT INTO convocatorias (codigo_expediente, nombre, tipo, organismo, presupuesto, estado, abreviatura, anio, fecha_inicio_prevista, fecha_fin_prevista, ambito, solicitante) VALUES (?, ?, ?, ?, ?, 'Borrador', ?, ?, ?, ?, ?, ?)");
+                $stmt->execute([$codigo, $nombre, $tipo, $organismo, $presupuesto, $abreviatura, $anio, $fecha_inicio, $fecha_fin, $ambito, $solicitante]);
                 $success = "Convocatoria creada correctamente.";
             } catch (Exception $e) {
                 $error = "Error: " . $e->getMessage();
@@ -194,31 +201,77 @@ $total_alumnos = array_sum(array_column($list, 'total_alumnos'));
         </div>
 
         <div id="formNueva" class="form-new-card">
-            <h3 style="margin-top: 0; color: #1e3a8a;">Registrar Nueva Convocatoria</h3>
+            <h3 style="margin-top: 0; color: #1e3a8a; font-weight: 800; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 20px;">Registrar Nueva Convocatoria</h3>
             <form action="" method="POST" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                 <input type="hidden" name="action" value="create">
-                <div class="form-group">
-                    <label style="font-size: 0.7rem; font-weight: 700; color: #64748b;">EXPEDIENTE</label>
-                    <input type="text" name="codigo_expediente" class="form-control" required placeholder="Ej: F240001">
+                
+                <!-- Convocatoria -->
+                <div class="form-group" style="grid-column: span 2;">
+                    <label style="font-size: 0.75rem; font-weight: 700; color: #1e3a8a; text-transform: uppercase;">Convocatoria *</label>
+                    <input type="text" name="nombre" class="form-control" required placeholder="Nombre descriptivo de la convocatoria">
+                    <span style="font-size: 0.75rem; color: #94a3b8; font-style: italic;">Nombre de la convocatoria</span>
                 </div>
+
+                <!-- Abreviatura -->
                 <div class="form-group">
-                    <label style="font-size: 0.7rem; font-weight: 700; color: #64748b;">PRESUPUESTO</label>
+                    <label style="font-size: 0.75rem; font-weight: 700; color: #1e3a8a; text-transform: uppercase;">Abreviatura</label>
+                    <input type="text" name="abreviatura" class="form-control" placeholder="E16, TIC18">
+                </div>
+
+                <!-- Año de convocatoria -->
+                <div class="form-group">
+                    <label style="font-size: 0.75rem; font-weight: 700; color: #1e3a8a; text-transform: uppercase;">Año de convocatoria</label>
+                    <input type="text" name="anio" class="form-control" placeholder="2018">
+                </div>
+
+                <!-- Fecha de inicio -->
+                <div class="form-group">
+                    <label style="font-size: 0.75rem; font-weight: 700; color: #1e3a8a; text-transform: uppercase;">Fecha de inicio</label>
+                    <input type="date" name="fecha_inicio" class="form-control">
+                </div>
+
+                <!-- Fecha de finalización -->
+                <div class="form-group">
+                    <label style="font-size: 0.75rem; font-weight: 700; color: #1e3a8a; text-transform: uppercase;">Fecha de finalización</label>
+                    <input type="date" name="fecha_fin" class="form-control">
+                </div>
+
+                <!-- Ámbito -->
+                <div class="form-group">
+                    <label style="font-size: 0.75rem; font-weight: 700; color: #1e3a8a; text-transform: uppercase;">Ámbito</label>
+                    <input type="text" name="ambito" class="form-control" placeholder="Ámbito geográfico (Ej: Estatal)">
+                </div>
+
+                <!-- Solicitante -->
+                <div class="form-group">
+                    <label style="font-size: 0.75rem; font-weight: 700; color: #1e3a8a; text-transform: uppercase;">Solicitante</label>
+                    <input type="text" name="solicitante" class="form-control" placeholder="Entidad solicitante">
+                </div>
+
+                <!-- Código Expediente (Admin) -->
+                <div class="form-group">
+                    <label style="font-size: 0.75rem; font-weight: 700; color: #1e3a8a; text-transform: uppercase;">Código Expediente *</label>
+                    <input type="text" name="codigo_expediente" class="form-control" required placeholder="Ej: F240001 o E16">
+                </div>
+
+                <!-- Presupuesto (Admin) -->
+                <div class="form-group">
+                    <label style="font-size: 0.75rem; font-weight: 700; color: #1e3a8a; text-transform: uppercase;">Presupuesto</label>
                     <input type="number" name="presupuesto" step="0.01" class="form-control" placeholder="0.00">
                 </div>
+
+                <!-- Tipo de convocatoria (Admin) -->
                 <div class="form-group" style="grid-column: span 2;">
-                    <label style="font-size: 0.7rem; font-weight: 700; color: #64748b;">NOMBRE CONVOCATORIA</label>
-                    <input type="text" name="nombre" class="form-control" required placeholder="Nombre descriptivo">
-                </div>
-                <div class="form-group" style="grid-column: span 2;">
-                    <label style="font-size: 0.7rem; font-weight: 700; color: #64748b;">TIPO DE CONVOCATORIA</label>
+                    <label style="font-size: 0.75rem; font-weight: 700; color: #1e3a8a; text-transform: uppercase;">Tipo de Convocatoria</label>
                     <select name="tipo" class="form-control">
                         <option value="SEPE_DESEMPLEADOS">SEPE - Desempleados</option>
                         <option value="FUNDAE_OCUPADOS">FUNDAE - Ocupados</option>
                         <option value="PRIVADA">Privada</option>
                     </select>
                 </div>
-                <div style="grid-column: span 2; text-align: right; border-top: 1px solid #eee; padding-top: 15px;">
-                    <button type="button" class="btn btn-secondary" onclick="toggleForm()">Cancelar</button>
+
+                <div style="grid-column: span 2; text-align: right; border-top: 1px solid #e2e8f0; padding-top: 15px; margin-top: 10px;">
+                    <button type="button" class="btn btn-secondary" onclick="toggleForm()" style="margin-right: 10px;">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Guardar Registro</button>
                 </div>
             </form>
