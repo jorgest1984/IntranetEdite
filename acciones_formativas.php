@@ -190,6 +190,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
             border: 1px solid var(--border-gray);
             border-radius: 2px;
             background: #fff;
+            color: #000000 !important;
+        }
+
+        select.form-control option {
+            color: #000000 !important;
+            background-color: #ffffff !important;
         }
 
         select.form-control { height: 26px; padding: 0 6px; }
@@ -425,6 +431,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
             border: 1px solid #e2e8f0;
             border-radius: 6px;
             font-size: 0.85rem;
+            color: #000000 !important;
+            background-color: #ffffff !important;
+        }
+
+        select.form-control-tab option {
+            color: #000000 !important;
+            background-color: #ffffff !important;
         }
         
         .moodle-sync-box-tab {
