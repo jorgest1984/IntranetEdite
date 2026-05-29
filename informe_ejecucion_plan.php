@@ -545,15 +545,15 @@ if ($plan_id > 0) {
             </div>
 
             <div class="export-actions">
-                <button class="btn-export excel" onclick="alert('Exportación a Excel en desarrollo')">
+                <button class="btn-export excel" onclick="exportarInforme('excel')">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg> 
                     Exportar a Excel
                 </button>
-                <button class="btn-export csv" onclick="alert('Exportación a CSV en desarrollo')">
+                <button class="btn-export csv" onclick="exportarInforme('csv')">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2h12c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/></svg> 
                     Exportar a CSV
                 </button>
-                <button class="btn-export json" onclick="alert('Exportación a JSON en desarrollo')">
+                <button class="btn-export json" onclick="exportarInforme('json')">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg> 
                     Exportar a JSON
                 </button>
@@ -583,5 +583,303 @@ if ($plan_id > 0) {
 
         </main>
     </div>
+
+<script>
+function exportarInforme(formato) {
+    const table = document.querySelector('.table-custom');
+    if (!table) {
+        alert('No hay datos para exportar.');
+        return;
+    }
+
+    const headers = [
+        "Nº AC", "COD", "ACCIÓN FORMATIVA", "MODALIDAD", "HORAS", 
+        "PART", "GR", "GR_EJ", "AD", "F", "AB", 
+        "TOTAL", "PART_P", "BJ", "DSP", "AU", "TR"
+    ];
+
+    const keys = [
+        "n_ac", "cod", "accion_formativa", "modalidad", "horas",
+        "part", "gr", "gr_ej", "ad", "f", "ab",
+        "total", "part_p", "bj", "dsp", "au", "tr"
+    ];
+
+    const rows = [];
+    const tbodyRows = table.querySelectorAll('tbody tr');
+    
+    let planTitle = "Informe_Ejecucion";
+    const headerTitleEl = document.querySelector('.plan-header-card h2');
+    if (headerTitleEl) {
+        planTitle = headerTitleEl.innerText.trim();
+    }
+    // Clean filename for safety
+    const safeTitle = planTitle.replace(/[^a-zA-Z0-9_\-]/g, "_");
+
+    tbodyRows.forEach(tr => {
+        // Skip empty state row
+        if (tr.cells.length === 1 && tr.cells[0].colSpan > 1) {
+            return;
+        }
+        
+        const isTotal = tr.classList.contains('total-row');
+        const rowData = [];
+        for (let i = 0; i < tr.cells.length; i++) {
+            rowData.push(tr.cells[i].innerText.trim());
+        }
+        
+        if (isTotal) {
+            const normalizedTotal = [
+                "TOTAL", "", "", "", 
+                rowData[2] || "0", // HORAS
+                rowData[3] || "0", // PART
+                rowData[4] || "0", // GR
+                rowData[5] || "0", // GR_EJ
+                rowData[6] || "0", // AD
+                rowData[7] || "0", // F
+                rowData[8] || "0", // AB
+                rowData[9] || "0", // TOTAL
+                rowData[10] || "0", // PART_P
+                rowData[11] || "0", // BJ
+                rowData[12] || "0", // DSP
+                rowData[13] || "0", // AU
+                rowData[14] || "0"  // TR
+            ];
+            rows.push({ data: normalizedTotal, isTotal: true });
+        } else {
+            rows.push({ data: rowData, isTotal: false });
+        }
+    });
+
+    if (rows.length === 0) {
+        alert('No hay filas de datos para exportar.');
+        return;
+    }
+
+    if (formato === 'json') {
+        const jsonArray = rows.map(row => {
+            const obj = {};
+            keys.forEach((key, idx) => {
+                let val = row.data[idx];
+                if (["n_ac", "horas", "part", "gr", "gr_ej", "ad", "f", "ab", "total", "part_p", "bj", "dsp", "au", "tr"].includes(key)) {
+                    const num = parseFloat(val);
+                    obj[key] = isNaN(num) ? (val === "" ? null : val) : num;
+                } else {
+                    obj[key] = val;
+                }
+            });
+            if (row.isTotal) {
+                obj["es_total"] = true;
+            }
+            return obj;
+        });
+
+        const jsonString = JSON.stringify(jsonArray, null, 2);
+        downloadFile(jsonString, safeTitle + ".json", "application/json;charset=utf-8;");
+
+    } else if (formato === 'csv') {
+        let csvContent = "\xEF\xBB\xBF"; // UTF-8 BOM
+        csvContent += headers.map(h => `"${h.replace(/"/g, '""')}"`).join(";") + "\r\n";
+
+        rows.forEach(row => {
+            csvContent += row.data.map(val => `"${val.replace(/"/g, '""')}"`).join(";") + "\r\n";
+        });
+
+        downloadFile(csvContent, safeTitle + ".csv", "text/csv;charset=utf-8;");
+
+    } else if (formato === 'excel') {
+        const excelXML = generateExcelXML(headers, rows, "Estado Ejecución", planTitle);
+        downloadFile(excelXML, safeTitle + ".xls", "application/vnd.ms-excel;charset=utf-8;");
+    }
+}
+
+function generateExcelXML(headers, rows, sheetName, planTitle) {
+    const escapedPlanTitle = planTitle
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+
+    let xml = `<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
+  <Author>Intranet EFP</Author>
+  <Created>${new Date().toISOString()}</Created>
+ </DocumentProperties>
+ <Styles>
+  <Style ss:ID="Default" ss:Name="Normal">
+   <Alignment ss:Vertical="Bottom"/>
+   <Borders/>
+   <Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#000000"/>
+   <Interior/>
+   <NumberFormat/>
+   <Protection/>
+  </Style>
+  <Style ss:ID="Title">
+   <Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="14" ss:Color="#1E3A8A" ss:Bold="1"/>
+   <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
+  </Style>
+  <Style ss:ID="Header">
+   <Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="10" ss:Color="#FFFFFF" ss:Bold="1"/>
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#444444"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#444444"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#444444"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#444444"/>
+   </Borders>
+   <Interior ss:Color="#333333" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="Cell">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="CellLeft">
+   <Alignment ss:Horizontal="Left" ss:Vertical="Center" ss:WrapText="1"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="CellOrange">
+   <Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="10" ss:Color="#FFFFFF" ss:Bold="1"/>
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>
+   </Borders>
+   <Interior ss:Color="#F59E0B" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="Total">
+   <Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="10" ss:Color="#0F172A" ss:Bold="1"/>
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="2" ss:Color="#94A3B8"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="2" ss:Color="#94A3B8"/>
+   </Borders>
+   <Interior ss:Color="#F1F5F9" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="TotalOrange">
+   <Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="10" ss:Color="#FFFFFF" ss:Bold="1"/>
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="2" ss:Color="#94A3B8"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="2" ss:Color="#94A3B8"/>
+   </Borders>
+   <Interior ss:Color="#D97706" ss:Pattern="Solid"/>
+  </Style>
+ </Styles>
+ <Worksheet ss:Name="${sheetName.substring(0, 31)}">
+  <Table>
+   <Column ss:Width="50"/> 
+   <Column ss:Width="60"/> 
+   <Column ss:Width="250"/> 
+   <Column ss:Width="90"/> 
+   <Column ss:Width="50"/> 
+   <Column ss:Width="50"/> 
+   <Column ss:Width="40"/> 
+   <Column ss:Width="45"/> 
+   <Column ss:Width="40"/> 
+   <Column ss:Width="40"/> 
+   <Column ss:Width="40"/> 
+   <Column ss:Width="60"/> 
+   <Column ss:Width="60"/> 
+   <Column ss:Width="40"/> 
+   <Column ss:Width="40"/> 
+   <Column ss:Width="40"/> 
+   <Column ss:Width="40"/> 
+   
+   <Row ss:Height="30">
+    <Cell ss:MergeAcross="16" ss:StyleID="Title"><Data ss:Type="String">${escapedPlanTitle} - Estado de ejecución</Data></Cell>
+   </Row>
+   <Row ss:Height="10"></Row>
+   
+   <Row ss:Height="25">`;
+    headers.forEach(h => {
+        xml += `  <Cell ss:StyleID="Header"><Data ss:Type="String">${h}</Data></Cell>\n`;
+    });
+    xml += ` </Row>\n`;
+
+    rows.forEach(row => {
+        xml += ` <Row ss:Height="${row.isTotal ? '24' : '20'}">\n`;
+        row.data.forEach((val, idx) => {
+            let style = "Cell";
+            if (row.isTotal) {
+                style = (idx === 11 || idx === 12) ? "TotalOrange" : "Total";
+            } else {
+                if (idx === 2 || idx === 3) {
+                    style = "CellLeft";
+                } else if (idx === 11 || idx === 12) {
+                    style = "CellOrange";
+                }
+            }
+
+            const isNumCol = [0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16].includes(idx);
+            let type = "String";
+            let formattedVal = val;
+            
+            if (isNumCol && val !== "") {
+                const parsed = parseFloat(val);
+                if (!isNaN(parsed)) {
+                    type = "Number";
+                    formattedVal = parsed;
+                }
+            }
+
+            // XML special character escaping
+            if (type === "String" && typeof formattedVal === "string") {
+                formattedVal = formattedVal
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&apos;");
+            }
+
+            xml += `  <Cell ss:StyleID="${style}"><Data ss:Type="${type}">${formattedVal}</Data></Cell>\n`;
+        });
+        xml += ` </Row>\n`;
+    });
+
+    xml += `  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <Selected/>
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+</Workbook>`;
+    return xml;
+}
+
+function downloadFile(content, fileName, mimeType) {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+</script>
+
 </body>
 </html>
