@@ -43,6 +43,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                 $error = "Error: " . $e->getMessage();
             }
         }
+    } elseif ($_POST['action'] == 'upload_zip') {
+        $conv_id = (int)($_POST['convocatoria_zip_id'] ?? 0);
+        if ($conv_id > 0 && isset($_FILES['archivo_zip'])) {
+            $file = $_FILES['archivo_zip'];
+            if ($file['error'] === UPLOAD_ERR_OK) {
+                $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+                if ($ext === 'zip') {
+                    $upload_dir = 'uploads/evaluaciones_zip/';
+                    if (!is_dir($upload_dir)) {
+                        mkdir($upload_dir, 0777, true);
+                    }
+                    $target_path = $upload_dir . $conv_id . '.zip';
+                    if (move_uploaded_file($file['tmp_name'], $target_path)) {
+                        $success = "El archivo ZIP de evaluaciones se ha subido correctamente.";
+                        audit_log($pdo, 'SUBIDA_ZIP_EVAL', 'convocatorias', $conv_id, null, ['archivo' => basename($file['name'])]);
+                    } else {
+                        $error = "Error al guardar el archivo ZIP en el servidor.";
+                    }
+                } else {
+                    $error = "El archivo debe ser de tipo .ZIP";
+                }
+            } else {
+                $error = "Error en la subida del archivo: Código " . $file['error'];
+            }
+        }
     }
 }
 
@@ -195,6 +220,20 @@ $total_alumnos = array_sum(array_column($list, 'total_alumnos'));
             </div>
             <button class="btn-new-conv" onclick="toggleForm()" style="background: #1e3a8a; color: white; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 700; cursor: pointer; transition: all 0.2s;">+ Nueva Convocatoria</button>
         </header>
+
+        <?php if (!empty($success)): ?>
+            <div class="alert alert-success" style="background: #ecfdf5; color: #065f46; border-left: 4px solid #10b981; border: 1px solid #a7f3d0; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; font-weight: 500; display: flex; align-items: center; gap: 8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                <span><?= htmlspecialchars($success) ?></span>
+            </div>
+        <?php endif; ?>
+
+        <?php if (!empty($error)): ?>
+            <div class="alert alert-danger" style="background: #fef2f2; color: #991b1b; border-left: 4px solid #ef4444; border: 1px solid #fca5a5; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; font-weight: 500; display: flex; align-items: center; gap: 8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <span><?= htmlspecialchars($error) ?></span>
+            </div>
+        <?php endif; ?>
 
         <div class="conv-kpi-grid">
             <div class="conv-card">
@@ -380,7 +419,23 @@ $total_alumnos = array_sum(array_column($list, 'total_alumnos'));
                     </td>
                     <td style="text-align: center;">
                         <div style="display: flex; gap: 8px; justify-content: center;">
-                            <a href="descargar_actas_convocatoria.php?id=<?= $c['id'] ?>" class="btn-icon" title="Descargar Actas Evaluación (ZIP)" style="color: #8b5cf6;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></a>
+                            <?php
+                            $uploadedZipPath = 'uploads/evaluaciones_zip/' . $c['id'] . '.zip';
+                            $hasUploadedZip = file_exists($uploadedZipPath);
+                            ?>
+                            <a href="descargar_actas_convocatoria.php?id=<?= $c['id'] ?>" 
+                               class="btn-icon" 
+                               title="<?= $hasUploadedZip ? 'Descargar Actas Subidas (ZIP)' : 'Descargar Actas Generadas (ZIP)' ?>" 
+                               style="color: <?= $hasUploadedZip ? '#16a34a' : '#8b5cf6' ?>;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            </a>
+                            <a href="#" 
+                               onclick="abrirModalZip(<?= $c['id'] ?>, '<?= htmlspecialchars($c['nombre'], ENT_QUOTES) ?>')" 
+                               class="btn-icon" 
+                               title="Subir Actas Evaluación (ZIP)" 
+                               style="color: #ea580c;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                            </a>
                             <a href="editar_convocatoria.php?id=<?= $c['id'] ?>" class="btn-icon" title="Editar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></a>
                             <a href="planes.php?convocatoria_id=<?= $c['id'] ?>" class="btn-icon" title="Ver Planes" style="color: #3b82f6;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></a>
                             <a href="planes.php?convocatoria_id=<?= $c['id'] ?>&new=1" class="btn-icon" title="Añadir Plan" style="color: #10b981;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></a>
@@ -393,10 +448,57 @@ $total_alumnos = array_sum(array_column($list, 'total_alumnos'));
     </main>
 </div>
 
+<!-- Modal Subir ZIP de Evaluaciones -->
+<div id="modalSubirZip" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div style="background: white; border-radius: 12px; padding: 25px; width: 100%; max-width: 450px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); border: 1px solid #e2e8f0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">
+            <h3 style="margin: 0; color: #1e3a8a; font-weight: 800; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.5px;">Subir Evaluaciones (ZIP)</h3>
+            <button onclick="cerrarModalZip()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b;">&times;</button>
+        </div>
+        <form action="" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 18px;">
+            <input type="hidden" name="action" value="upload_zip">
+            <input type="hidden" name="convocatoria_zip_id" id="convocatoria_zip_id" value="">
+            
+            <div style="font-size: 0.85rem; color: #475569; background: #f8fafc; padding: 10px 15px; border-radius: 6px; border-left: 4px solid #ea580c;">
+                Convocatoria: <strong id="modal_convocatoria_nombre" style="color: #1e3a8a;"></strong>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <label style="font-size: 0.75rem; font-weight: 700; color: #1e3a8a; text-transform: uppercase;">Seleccionar Archivo .ZIP</label>
+                <input type="file" name="archivo_zip" accept=".zip" required style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; background: #f8fafc; font-size: 0.85rem; width: 100%; box-sizing: border-box;">
+                <span style="font-size: 0.7rem; color: #64748b; font-style: italic;">Por favor, suba el archivo consolidado en formato comprimido (.zip).</span>
+            </div>
+
+            <div style="text-align: right; margin-top: 15px; border-top: 1px solid #e2e8f0; padding-top: 15px; display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="btn btn-secondary" onclick="cerrarModalZip()" style="padding: 8px 16px; font-weight: 700; border-radius: 6px; cursor: pointer;">Cancelar</button>
+                <button type="submit" class="btn btn-primary" style="background: #ea580c; border-color: #d97706; padding: 8px 20px; font-weight: 700; border-radius: 6px; cursor: pointer; color: white;">Subir Actas</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 function toggleForm() {
     const f = document.getElementById('formNueva');
     f.style.display = (f.style.display === 'none' || f.style.display === '') ? 'block' : 'none';
+}
+
+function abrirModalZip(id, nombre) {
+    document.getElementById('convocatoria_zip_id').value = id;
+    document.getElementById('modal_convocatoria_nombre').innerText = nombre;
+    document.getElementById('modalSubirZip').style.display = 'flex';
+}
+
+function cerrarModalZip() {
+    document.getElementById('modalSubirZip').style.display = 'none';
+}
+
+// Cerrar modal al hacer clic fuera del recuadro
+window.onclick = function(event) {
+    const modal = document.getElementById('modalSubirZip');
+    if (event.target === modal) {
+        cerrarModalZip();
+    }
 }
 </script>
 

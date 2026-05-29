@@ -21,6 +21,19 @@ if (!$convocatoria) {
     die("Convocatoria no encontrada.");
 }
 
+// Verificar si existe un archivo ZIP subido de forma manual
+$uploadedZipPath = 'uploads/evaluaciones_zip/' . $convocatoria_id . '.zip';
+if (file_exists($uploadedZipPath)) {
+    $codigoLimpio = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $convocatoria['codigo_expediente']);
+    $zipName = "Actas_Evaluacion_" . $codigoLimpio . ".zip";
+    
+    header('Content-Type: application/zip');
+    header('Content-disposition: attachment; filename=' . $zipName);
+    header('Content-Length: ' . filesize($uploadedZipPath));
+    readfile($uploadedZipPath);
+    exit();
+}
+
 // Crear un archivo temporal para el ZIP
 $zipFile = tempnam(sys_get_temp_dir(), 'actas_');
 $zip = new ZipArchive();
