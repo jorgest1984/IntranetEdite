@@ -326,7 +326,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                             </span>
                                         </td>
                                         <td style="text-align: right;">
-                                            <a href="editar_plan.php?id=<?= $plan['id'] ?>&convocatoria_id=<?= $id ?>" class="icon-btn" style="color: #1e3a8a;">
+                                            <a href="informe_ejecucion_plan.php?convocatoria=<?= $id ?>&plan=<?= $plan['id'] ?>" class="icon-btn" style="color: #10b981; margin-right: 8px;" title="Ver Informe de Ejecución del Plan">
+                                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                                            </a>
+                                            <a href="editar_plan.php?id=<?= $plan['id'] ?>&convocatoria_id=<?= $id ?>" class="icon-btn" style="color: #1e3a8a;" title="Editar Plan">
                                                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                             </a>
                                         </td>
