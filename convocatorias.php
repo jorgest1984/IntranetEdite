@@ -200,6 +200,100 @@ $total_alumnos = array_sum(array_column($list, 'total_alumnos'));
         .toolbar-btn { padding: 0.25rem 0.5rem; border: 1px solid transparent; background: none; cursor:pointer; color: #475569; border-radius: 4px; }
         .toolbar-btn:hover { background: #e2e8f0; }
         .rte-textarea { width: 100%; min-height: 150px; padding: 1rem; border: none; font-family: inherit; resize: vertical; display: block; font-size: 0.95rem; }
+        
+        /* Responsive Media Queries */
+        @media (max-width: 768px) {
+            .app-container {
+                flex-direction: column !important;
+            }
+            .main-content {
+                padding: 15px !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+                overflow-x: hidden !important;
+            }
+            .page-header {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 15px !important;
+            }
+            .page-header div[style*="display: flex"] {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 10px !important;
+            }
+            .btn-new-conv {
+                width: 100% !important;
+                justify-content: center !important;
+            }
+            .conv-kpi-grid {
+                grid-template-columns: 1fr !important;
+                gap: 15px !important;
+            }
+            #formNueva form {
+                grid-template-columns: 1fr !important;
+                gap: 15px !important;
+            }
+            #formNueva form > div {
+                grid-column: span 1 !important;
+            }
+            .filter-bar {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 15px !important;
+                padding: 15px !important;
+            }
+            .filter-bar div {
+                width: 100% !important;
+            }
+            .filter-bar button {
+                width: 100% !important;
+            }
+            
+            /* Responsive Table (Cards transformation) */
+            .conv-table, .conv-table thead, .conv-table tbody, .conv-table th, .conv-table td, .conv-table tr {
+                display: block !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+            .conv-table thead {
+                display: none !important;
+            }
+            .conv-table tr {
+                margin-bottom: 20px !important;
+                border: 1px solid #e2e8f0 !important;
+                border-radius: 12px !important;
+                background: white !important;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.03) !important;
+                padding: 12px !important;
+            }
+            .conv-table td {
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                border-bottom: 1px solid #f1f5f9 !important;
+                padding: 12px 5px !important;
+                text-align: right !important;
+            }
+            .conv-table td:last-child {
+                border-bottom: none !important;
+            }
+            .conv-table td::before {
+                content: attr(data-label) !important;
+                font-weight: 700 !important;
+                color: #1e40af !important;
+                font-size: 0.75rem !important;
+                text-transform: uppercase !important;
+                text-align: left !important;
+                margin-right: 15px !important;
+            }
+            .conv-table td div {
+                text-align: right !important;
+            }
+            .conv-table td div[style*="justify-content: center"] {
+                justify-content: flex-end !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -403,21 +497,21 @@ $total_alumnos = array_sum(array_column($list, 'total_alumnos'));
             <tbody>
                 <?php foreach($list as $c): ?>
                 <tr>
-                    <td style="font-family: monospace; font-weight: 700; color: #64748b;"><?= htmlspecialchars($c['codigo_expediente']) ?></td>
-                    <td>
+                    <td data-label="Expediente" style="font-family: monospace; font-weight: 700; color: #64748b;"><?= htmlspecialchars($c['codigo_expediente']) ?></td>
+                    <td data-label="Convocatoria">
                         <div style="font-weight: 700; color: #1e3a8a;"><?= htmlspecialchars($c['nombre']) ?></div>
                         <div style="font-size: 0.7rem; color: #94a3b8;">Creada el <?= date('d/m/Y', strtotime($c['creado_en'])) ?></div>
                     </td>
-                    <td>
+                    <td data-label="Tipo / Organismo">
                         <div style="font-weight: 600; font-size: 0.8rem;"><?= str_replace('_', ' ', $c['tipo']) ?></div>
                         <div style="font-size: 0.7rem; color: #94a3b8;"><?= htmlspecialchars($c['organismo'] ?? '---') ?></div>
                     </td>
-                    <td style="text-align: center; font-weight: 700;"><?= $c['total_grupos'] ?></td>
-                    <td style="text-align: center; font-weight: 700; color: #10b981;"><?= $c['total_alumnos'] ?></td>
-                    <td style="text-align: center;">
+                    <td data-label="Grupos" style="text-align: center; font-weight: 700;"><?= $c['total_grupos'] ?></td>
+                    <td data-label="Alumnos" style="text-align: center; font-weight: 700; color: #10b981;"><?= $c['total_alumnos'] ?></td>
+                    <td data-label="Estado" style="text-align: center;">
                         <span class="badge-status status-<?= strtolower($c['estado']) ?>"><?= $c['estado'] ?></span>
                     </td>
-                    <td style="text-align: center;">
+                    <td data-label="Acciones" style="text-align: center;">
                         <div style="display: flex; gap: 8px; justify-content: center;">
                             <?php
                             $uploadedZipPath = 'uploads/evaluaciones_zip/' . $c['id'] . '.zip';
@@ -450,7 +544,7 @@ $total_alumnos = array_sum(array_column($list, 'total_alumnos'));
 
 <!-- Modal Subir ZIP de Evaluaciones -->
 <div id="modalSubirZip" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-    <div style="background: white; border-radius: 12px; padding: 25px; width: 100%; max-width: 450px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); border: 1px solid #e2e8f0;">
+    <div style="background: white; border-radius: 12px; padding: 25px; width: calc(100% - 30px); max-width: 450px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; box-sizing: border-box;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">
             <h3 style="margin: 0; color: #1e3a8a; font-weight: 800; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.5px;">Subir Evaluaciones (ZIP)</h3>
             <button onclick="cerrarModalZip()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b;">&times;</button>
