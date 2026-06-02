@@ -450,6 +450,139 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
             align-items: center;
             gap: 12px;
         }
+
+        /* Responsive Media Queries */
+        @media (max-width: 768px) {
+            .app-container {
+                flex-direction: column !important;
+            }
+            .main-content {
+                padding: 15px !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+                overflow-x: hidden !important;
+            }
+            .card-header-custom {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 12px !important;
+                padding: 15px !important;
+            }
+            .card-header-custom h2 {
+                text-align: center !important;
+            }
+            .search-form {
+                padding: 15px !important;
+            }
+            .search-row {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 12px !important;
+            }
+            .form-group {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                width: 100% !important;
+            }
+            .form-group label {
+                text-align: left !important;
+                margin-bottom: 4px !important;
+            }
+            .form-control {
+                width: 100% !important;
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+                height: 36px !important;
+            }
+            select.form-control {
+                height: 36px !important;
+            }
+            .button-bar {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 10px !important;
+            }
+            .button-bar button {
+                width: 100% !important;
+                justify-content: center !important;
+            }
+            .tabs-header-af {
+                flex-direction: column !important;
+                gap: 5px !important;
+                padding-left: 0 !important;
+            }
+            .tab-af-btn {
+                border-radius: 6px !important;
+                border: 1px solid #cbd5e1 !important;
+                text-align: center !important;
+                padding: 12px 15px !important;
+            }
+            .tab-af-btn.active {
+                border-bottom: 1px solid #cbd5e1 !important;
+            }
+            .form-card-tab {
+                padding: 15px !important;
+                border-radius: 8px !important;
+            }
+            .grid-form-tab {
+                grid-template-columns: 1fr !important;
+                gap: 12px !important;
+            }
+            .grid-form-tab > div {
+                grid-column: span 1 !important;
+            }
+            .moodle-sync-box-tab {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 8px !important;
+            }
+            
+            /* Responsive Table (Cards transformation) */
+            .table-premium, .table-premium thead, .table-premium tbody, .table-premium th, .table-premium td, .table-premium tr {
+                display: block !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+            .table-premium thead {
+                display: none !important;
+            }
+            .table-premium tr {
+                margin-bottom: 20px !important;
+                border: 1px solid #e2e8f0 !important;
+                border-radius: 12px !important;
+                background: white !important;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.03) !important;
+                padding: 12px !important;
+            }
+            .table-premium td {
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                border-bottom: 1px solid #f1f5f9 !important;
+                padding: 12px 5px !important;
+                text-align: right !important;
+                white-space: normal !important;
+            }
+            .table-premium td:last-child {
+                border-bottom: none !important;
+            }
+            .table-premium td::before {
+                content: attr(data-label) !important;
+                font-weight: 700 !important;
+                color: #1e40af !important;
+                font-size: 0.75rem !important;
+                text-transform: uppercase !important;
+                text-align: left !important;
+                margin-right: 15px !important;
+                flex-shrink: 0 !important;
+            }
+            .table-premium td div {
+                text-align: right !important;
+            }
+            .table-premium td div[style*="justify-content: center"] {
+                justify-content: flex-end !important;
+            }
+        }
     </style>
     <script>
     function syncMoodle(afId) {
@@ -668,30 +801,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
                         <?php if ($searched && count($results) > 0): ?>
                             <?php foreach ($results as $row): ?>
                                 <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.2s;">
-                                    <td style="padding: 15px;">
+                                    <td data-label="ID / Código" style="padding: 15px;">
                                         <div style="font-weight: 800; color: #1e3a8a;">#<?= $row['id'] ?></div>
                                         <small style="color: #94a3b8; font-weight: 600;"><?= htmlspecialchars($row['num_accion'] ?? '---') ?></small>
                                     </td>
-                                    <td style="padding: 15px;">
+                                    <td data-label="Nombre del Curso" style="padding: 15px;">
                                         <div style="font-weight: 700; color: #1e293b; font-size: 0.9rem;"><?= htmlspecialchars($row['titulo'] ?? '') ?></div>
                                         <small style="color: #64748b; font-weight: 600;"><?= htmlspecialchars($row['nombre_plan'] ?? 'Sin Plan') ?></small>
                                     </td>
-                                    <td style="padding: 15px; text-align: center;">
+                                    <td data-label="Modalidad" style="padding: 15px; text-align: center;">
                                         <span style="background: #eff6ff; color: #1e40af; padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 800;"><?= htmlspecialchars($row['modalidad'] ?? '') ?></span>
                                     </td>
-                                    <td style="padding: 15px; text-align: center; font-weight: 800; color: #1e293b;"><?= $row['duracion'] ?>h</td>
-                                    <td style="padding: 15px; text-align: center;">
+                                    <td data-label="Duración" style="padding: 15px; text-align: center; font-weight: 800; color: #1e293b;"><?= $row['duracion'] ?>h</td>
+                                    <td data-label="Matrículas" style="padding: 15px; text-align: center;">
                                         <div style="background: #f1f5f9; padding: 5px; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px;">
                                             <span style="font-weight: 800; color: #1e3a8a; font-size: 1rem;"><?= $row['participantes'] ?? 0 ?></span>
                                             <small style="font-weight: 700; color: #94a3b8; font-size: 0.6rem;">ALUMNOS</small>
                                         </div>
                                     </td>
-                                    <td style="padding: 15px; text-align: center;">
+                                    <td data-label="Estado" style="padding: 15px; text-align: center;">
                                         <span style="font-weight: 800; font-size: 0.7rem; color: <?= ($row['estado'] == 'ACTIVA' || $row['estado'] == 'En curso') ? '#16a34a' : '#ef4444' ?>;">
                                             ● <?= htmlspecialchars($row['estado'] ?? 'PENDIENTE') ?>
                                         </span>
                                     </td>
-                                    <td style="padding: 15px;">
+                                    <td data-label="Acciones" style="padding: 15px;">
                                         <div style="display: flex; gap: 8px; justify-content: center;">
                                             <a href="editar_af.php?id=<?= $row['id'] ?>" class="btn-action" title="Editar Parámetros">
                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
