@@ -81,6 +81,9 @@ class MoodleAPI {
         }
         
         if ($result === null) {
+            if (trim($response) === 'null') {
+                return true; // Es una respuesta exitosa tipo void (sin retorno) de Moodle
+            }
             throw new Exception("Moodle devolvió una respuesta vacía o nula.");
         }
         
