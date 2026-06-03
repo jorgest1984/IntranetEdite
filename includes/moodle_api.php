@@ -73,7 +73,11 @@ class MoodleAPI {
         }
         
         if (isset($result['exception'])) {
-            throw new Exception("Moodle API Error (" . $functionName . "): " . ($result['message'] ?? $result['exception']));
+            $msg = $result['message'] ?? $result['exception'];
+            if (!empty($result['debuginfo'])) {
+                $msg .= " (Detalles: " . $result['debuginfo'] . ")";
+            }
+            throw new Exception("Moodle API Error (" . $functionName . "): " . $msg);
         }
         
         if ($result === null) {
