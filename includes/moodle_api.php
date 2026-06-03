@@ -204,6 +204,50 @@ class MoodleAPI {
     }
 
     /**
+     * Crear una categoría de curso en Moodle
+     */
+    public function createCategory($name, $parentId = 0, $description = '') {
+        $params = [
+            'categories' => [
+                [
+                    'name' => $name,
+                    'parent' => $parentId,
+                    'description' => $description
+                ]
+            ]
+        ];
+        return $this->call('core_course_create_categories', $params);
+    }
+
+    /**
+     * Obtener o crear una categoría en Moodle por su nombre
+     */
+    public function getOrCreateCategory($name, $parentId = 0) {
+        try {
+            // Buscar si ya existe la categoría por nombre
+            $categories = $this->call('core_course_get_categories', [
+                'criteria' => [
+                    ['key' => 'name', 'value' => $name]
+                ]
+            ]);
+            if (is_array($categories) && !empty($categories)) {
+                // Devolver el ID de la primera coincidencia
+                return (int)$categories[0]['id'];
+            }
+        } catch (Exception $e) {
+            // Si la búsqueda da error o no está habilitada, procedemos a crearla
+        }
+        
+        // Si no existe, crear la categoría
+        $result = $this->createCategory($name, $parentId);
+        if (isset($result[0]['id'])) {
+            return (int)$result[0]['id'];
+        }
+        
+        throw new Exception("No se pudo obtener ni crear la categoría '$name' en Moodle.");
+    }
+
+    /**
      * Crear un curso nuevo en Moodle
      */
     public function createCourse($fullname, $shortname, $categoryId = 1, $summary = '') {

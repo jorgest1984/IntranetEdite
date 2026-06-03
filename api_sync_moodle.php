@@ -15,10 +15,12 @@ try {
         throw new Exception("Moodle no está configurado correctamente en la base de datos.");
     }
 
-    // 1. Obtener datos de la Acción Formativa y su Curso Moodle
-    $stmt = $pdo->prepare("SELECT af.*, c.moodle_id as curso_moodle_id, c.nombre_largo as titulo, c.nombre_corto 
+    // 1. Obtener datos de la Acción Formativa, su Curso Moodle y su Convocatoria
+    $stmt = $pdo->prepare("SELECT af.*, c.moodle_id as curso_moodle_id, c.nombre_largo as titulo, c.nombre_corto, conv.nombre as convocatoria_nombre
                            FROM acciones_formativas af 
                            JOIN cursos c ON af.curso_id = c.id 
+                           LEFT JOIN planes p ON af.plan_id = p.id
+                           LEFT JOIN convocatorias conv ON p.convocatoria_id = conv.id
                            WHERE af.id = ?");
     $stmt->execute([$af_id]);
     $af = $stmt->fetch();
@@ -29,9 +31,19 @@ try {
     
     // 2. Si el curso no tiene ID de Moodle, lo creamos
     if (!$courseId) {
+        $categoryId = 1; // Por defecto, Miscellaneous
+        if (!empty($af['convocatoria_nombre'])) {
+            try {
+                $categoryId = $moodle->getOrCreateCategory($af['convocatoria_nombre']);
+            } catch (Exception $ex) {
+                // Fallback gracioso si no se tienen permisos o funciones para crear categorías
+                $categoryId = 1;
+            }
+        }
+
         $fullname = $af['titulo'];
         $shortname = $af['abreviatura'] ?: 'CURSO-' . $af['id'];
-        $moodleResult = $moodle->createCourse($fullname, $shortname);
+        $moodleResult = $moodle->createCourse($fullname, $shortname, $categoryId);
         if (isset($moodleResult[0]['id'])) {
             $courseId = $moodleResult[0]['id'];
             // Guardamos el ID en nuestra base de datos local para futuros usos
