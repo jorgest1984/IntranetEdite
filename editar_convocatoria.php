@@ -38,7 +38,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                 nombre = ?, abreviatura = ?, anio = ?, 
                 fecha_inicio_prevista = ?, fecha_fin_prevista = ?, 
                 ambito = ?, solicitante = ?, url = ?, url_aula_virtual = ?, 
-                activa = ?, descripcion = ?, requisitos = ?, estado = ? 
+                activa = ?, descripcion = ?, requisitos = ?, estado = ?,
+                codigo_expediente = ?
                 WHERE id = ?";
         
         $stmtUpdate = $pdo->prepare($sql);
@@ -48,6 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             $_POST['ambito'], $_POST['solicitante'], $_POST['url'], $_POST['url_aula_virtual'],
             isset($_POST['activa']) ? 1 : 0, $_POST['descripcion'], $_POST['requisitos'],
             $_POST['estado'] ?? 'Borrador',
+            trim($_POST['codigo_expediente'] ?? ''),
             $id
         ]);
         
@@ -165,6 +167,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                         <div class="form-input-container">
                             <input type="text" name="nombre" class="form-control" value="<?= htmlspecialchars($convocatoria['nombre'] ?? '') ?>">
                             <div class="input-hint">Nombre de la convocatoria</div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <label class="form-label">Código Expediente</label>
+                        <div class="form-input-container">
+                            <input type="text" name="codigo_expediente" class="form-control" value="<?= htmlspecialchars($convocatoria['codigo_expediente'] ?? '') ?>" placeholder="Ej: F240001" required>
+                            <div class="input-hint">Código único identificador del expediente</div>
                         </div>
                     </div>
 
