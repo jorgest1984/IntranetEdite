@@ -848,8 +848,8 @@ textarea:focus,
 /* Floating Theme Toggle Button */
 .floating-theme-btn {
     position: fixed;
-    bottom: 2rem;
-    right: 2rem;
+    bottom: 0.75rem;
+    right: 1rem;
     width: 3.5rem;
     height: 3.5rem;
     border-radius: 50%;
@@ -891,8 +891,8 @@ textarea:focus,
 
 @media (max-width: 768px) {
     .floating-theme-btn {
-        bottom: 1.5rem;
-        right: 1.5rem;
+        bottom: 0.5rem;
+        right: 0.75rem;
         width: 3.2rem;
         height: 3.2rem;
     }
