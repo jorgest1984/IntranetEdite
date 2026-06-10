@@ -64,10 +64,11 @@ if (isset($_POST['add_alumno_id']) || !empty($_POST['student_search_text'])) {
 if (isset($_GET['remove_id'])) {
     $matricula_id = (int)$_GET['remove_id'];
     $moodle_error = null;
+    $moodle_status = 'skipped';
     
     // Obtener los IDs de Moodle antes de borrar la matrícula
     try {
-        $stmtMat = $pdo->prepare("SELECT m.alumno_id, a.moodle_user_id, c.moodle_id as curso_moodle_id
+        $stmtMat = $pdo->prepare("SELECT m.alumno_id, a.moodle_user_id, a.email, c.moodle_id as curso_moodle_id
                                   FROM matriculas m 
                                   JOIN alumnos a ON m.alumno_id = a.id
                                   JOIN grupos g ON m.grupo_id = g.id
@@ -77,26 +78,51 @@ if (isset($_GET['remove_id'])) {
         $stmtMat->execute([$matricula_id, $grupo_id]);
         $mat_info = $stmtMat->fetch(PDO::FETCH_ASSOC);
 
-        if ($mat_info && !empty($mat_info['moodle_user_id']) && !empty($mat_info['curso_moodle_id'])) {
+        if ($mat_info) {
+            $moodleUserId = $mat_info['moodle_user_id'];
+            $courseMoodleId = $mat_info['curso_moodle_id'];
+            $email = $mat_info['email'];
+
             require_once 'includes/moodle_api.php';
             $moodle = new MoodleAPI($pdo);
             if ($moodle->isConfigured()) {
-                try {
-                    $moodle->unenrolUser($mat_info['moodle_user_id'], $mat_info['curso_moodle_id']);
-                } catch (Exception $moodleEx) {
-                    $moodle_error = $moodleEx->getMessage();
+                // Fallback: si no tenemos el moodle_user_id guardado localmente, lo buscamos en Moodle por email
+                if (empty($moodleUserId) && !empty($email)) {
+                    try {
+                        $existingUsers = $moodle->getUsersByField('email', [$email]);
+                        if (!empty($existingUsers) && isset($existingUsers['users'][0])) {
+                            $moodleUserId = $existingUsers['users'][0]['id'];
+                            // Actualizar localmente para no repetir la búsqueda
+                            $pdo->prepare("UPDATE alumnos SET moodle_user_id = ? WHERE id = ?")->execute([$moodleUserId, $mat_info['alumno_id']]);
+                        }
+                    } catch (Exception $lookupEx) {
+                        // Silencioso
+                    }
+                }
+
+                if (!empty($moodleUserId) && !empty($courseMoodleId)) {
+                    try {
+                        $moodle->unenrolUser($moodleUserId, $courseMoodleId);
+                        $moodle_status = 'success';
+                    } catch (Exception $moodleEx) {
+                        $moodle_error = $moodleEx->getMessage();
+                        $moodle_status = 'error';
+                    }
+                } else {
+                    $moodle_status = 'missing_ids';
                 }
             }
         }
     } catch (Exception $e) {
         $moodle_error = $e->getMessage();
+        $moodle_status = 'error';
     }
 
     $pdo->prepare("DELETE FROM matriculas WHERE id = ? AND grupo_id = ?")->execute([$matricula_id, $grupo_id]);
     
-    $redirectUrl = "gestion_matriculas.php?af_id=$af_id&removed=1";
+    $redirectUrl = "gestion_matriculas.php?af_id=$af_id&removed=1&moodle_status=$moodle_status";
     if ($moodle_error) {
-        $redirectUrl .= "&error=" . urlencode("El alumno se borró localmente, pero falló la desmatriculación en Moodle: " . $moodle_error);
+        $redirectUrl .= "&error=" . urlencode("El alumno se borró de la Intranet, pero falló la desmatriculación en Moodle: " . $moodle_error);
     }
     header("Location: $redirectUrl");
     exit();
@@ -188,10 +214,24 @@ $alumnos = $matriculados->fetchAll();
             </div>
         <?php endif; ?>
 
-        <?php if (isset($_GET['success']) || (isset($_GET['removed']) && !isset($_GET['error']))): ?>
+        <?php if (isset($_GET['success'])): ?>
             <div class="alert alert-success" style="background: #ecfdf5; color: #065f46; border-left: 4px solid #10b981; border: 1px solid #a7f3d0; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; font-weight: 500; display: flex; align-items: center; gap: 8px;">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                <span><?= isset($_GET['success']) ? 'Alumno matriculado correctamente.' : 'Matrícula eliminada correctamente de la Intranet y desmatriculado de Moodle.' ?></span>
+                <span>Alumno matriculado correctamente.</span>
+            </div>
+        <?php elseif (isset($_GET['removed']) && !isset($_GET['error'])): ?>
+            <?php
+            $moodle_status = $_GET['moodle_status'] ?? '';
+            $removed_msg = 'Matrícula eliminada correctamente de la Intranet.';
+            if ($moodle_status === 'success') {
+                $removed_msg .= ' También se desmatriculó al alumno de Moodle con éxito.';
+            } elseif ($moodle_status === 'missing_ids') {
+                $removed_msg .= ' ⚠️ Nota: No se pudo desmatricular del aula virtual porque el alumno no tenía una cuenta de Moodle vinculada.';
+            }
+            ?>
+            <div class="alert alert-success" style="background: #ecfdf5; color: #065f46; border-left: 4px solid #10b981; border: 1px solid #a7f3d0; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; font-weight: 500; display: flex; align-items: center; gap: 8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                <span><?= htmlspecialchars($removed_msg) ?></span>
             </div>
         <?php endif; ?>
 
