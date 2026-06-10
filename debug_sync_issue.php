@@ -26,6 +26,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
+// Procesar vinculación con curso existente en Moodle
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'link_moodle_course') {
+    $af_id_to_link = (int)($_POST['af_id'] ?? 0);
+    $moodle_course_id = (int)($_POST['moodle_course_id'] ?? 0);
+    if ($af_id_to_link > 0 && $moodle_course_id > 0) {
+        $stmt = $pdo->prepare("SELECT curso_id FROM acciones_formativas WHERE id = ?");
+        $stmt->execute([$af_id_to_link]);
+        $row = $stmt->fetch();
+        if ($row) {
+            $curso_id = $row['curso_id'];
+            $pdo->prepare("UPDATE cursos SET moodle_id = ? WHERE id = ?")->execute([$moodle_course_id, $curso_id]);
+        }
+        header("Location: debug_sync_issue.php?id=" . $af_id_to_link . "&link_success=1");
+        exit;
+    }
+}
+
 header('Content-Type: text/html; charset=utf-8');
 ?>
 <!DOCTYPE html>
@@ -57,6 +74,12 @@ header('Content-Type: text/html; charset=utf-8');
     <?php if (isset($_GET['reset_success'])): ?>
         <div style="background: #dcfce7; border-left: 4px solid #16a34a; padding: 15px; margin-bottom: 20px; color: #15803d; border-radius: 4px; font-weight: bold;">
             ✓ Éxito: Se han limpiado los IDs de Moodle vinculados (Curso y Grupo) en la base de datos local de preproducción. Al volver a sincronizar se crearán de nuevo en pre-aulavirtual.
+        </div>
+    <?php endif; ?>
+
+    <?php if (isset($_GET['link_success'])): ?>
+        <div style="background: #dcfce7; border-left: 4px solid #16a34a; padding: 15px; margin-bottom: 20px; color: #15803d; border-radius: 4px; font-weight: bold;">
+            ✓ Éxito: Se ha vinculado correctamente la Acción Formativa al curso existente en Moodle.
         </div>
     <?php endif; ?>
 
@@ -156,6 +179,31 @@ header('Content-Type: text/html; charset=utf-8');
             }
         } else {
             echo "<p class='badge badge-warning'>El curso aún no ha sido creado o vinculado en Moodle.</p>";
+            try {
+                $moodleCourses = $moodle->getCourses();
+                $duplicateCourse = null;
+                $targetShortname = $af['abreviatura'] ?: 'CURSO-' . $af['id'];
+                foreach ($moodleCourses as $mc) {
+                    if (strcasecmp($mc['shortname'], $targetShortname) === 0) {
+                        $duplicateCourse = $mc;
+                        break;
+                    }
+                }
+                if ($duplicateCourse) {
+                    echo "<div style='margin-top: 15px; padding: 15px; background: #fffbeb; border: 1px solid #fef3c7; border-left: 4px solid #d97706; border-radius: 8px; color: #92400e; font-size: 0.95rem;'>";
+                    echo "<strong>⚠️ Conflicto detectado:</strong> Ya existe un curso en Moodle con el nombre corto/abreviatura <strong>" . htmlspecialchars($targetShortname) . "</strong> (ID: <strong>" . $duplicateCourse['id'] . "</strong>).<br>";
+                    echo "Nombre en Moodle: <em>" . htmlspecialchars($duplicateCourse['fullname']) . "</em><br><br>";
+                    echo "<form method='POST' action=''>";
+                    echo "<input type='hidden' name='action' value='link_moodle_course'>";
+                    echo "<input type='hidden' name='af_id' value='{$af['id']}'>";
+                    echo "<input type='hidden' name='moodle_course_id' value='{$duplicateCourse['id']}'>";
+                    echo "<button type='submit' class='btn' style='background: #d97706;'>🔗 Vincular a este curso existente en Moodle</button>";
+                    echo "</form>";
+                    echo "</div>";
+                }
+            } catch (Exception $ce) {
+                // Silently ignore search error
+            }
         }
         echo "</div>";
 
