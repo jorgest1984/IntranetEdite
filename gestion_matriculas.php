@@ -63,6 +63,7 @@ if (isset($_POST['add_alumno_id']) || !empty($_POST['student_search_text'])) {
 // Procesar Baja de Alumno
 if (isset($_GET['remove_id'])) {
     $matricula_id = (int)$_GET['remove_id'];
+    $moodle_error = null;
     
     // Obtener los IDs de Moodle antes de borrar la matrícula
     try {
@@ -83,16 +84,21 @@ if (isset($_GET['remove_id'])) {
                 try {
                     $moodle->unenrolUser($mat_info['moodle_user_id'], $mat_info['curso_moodle_id']);
                 } catch (Exception $moodleEx) {
-                    // Silencioso: si falla en Moodle (o ya no está matriculado), procedemos localmente
+                    $moodle_error = $moodleEx->getMessage();
                 }
             }
         }
     } catch (Exception $e) {
-        // Silencioso: ante cualquier error inesperado, procedemos con el borrado local
+        $moodle_error = $e->getMessage();
     }
 
     $pdo->prepare("DELETE FROM matriculas WHERE id = ? AND grupo_id = ?")->execute([$matricula_id, $grupo_id]);
-    header("Location: gestion_matriculas.php?af_id=$af_id&removed=1");
+    
+    $redirectUrl = "gestion_matriculas.php?af_id=$af_id&removed=1";
+    if ($moodle_error) {
+        $redirectUrl .= "&error=" . urlencode("El alumno se borró localmente, pero falló la desmatriculación en Moodle: " . $moodle_error);
+    }
+    header("Location: $redirectUrl");
     exit();
 }
 
@@ -169,11 +175,25 @@ $alumnos = $matriculados->fetchAll();
             </div>
             <div style="display: flex; gap: 15px;">
                 <button onclick="window.location.href='api_sync_moodle.php?id=<?= $af_id ?>'" class="btn btn-primary" style="background: #ea580c; border: none;">
-                    🚀 Volcar al Aula Virtual
+                     Volcar al Aula Virtual
                 </button>
                 <a href="acciones_formativas.php?plan_id=<?= $accion['plan_id'] ?>" class="btn" style="background: #f1f5f9; color: #1e3a8a; text-decoration:none; padding: 10px 20px; border-radius:8px; font-weight:700;">Volver</a>
             </div>
         </header>
+
+        <?php if (!empty($error) || !empty($_GET['error'])): ?>
+            <div class="alert alert-danger" style="background: #fef2f2; color: #991b1b; border-left: 4px solid #ef4444; border: 1px solid #fca5a5; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; font-weight: 500; display: flex; align-items: center; gap: 8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <span><?= htmlspecialchars($error ?: $_GET['error']) ?></span>
+            </div>
+        <?php endif; ?>
+
+        <?php if (isset($_GET['success']) || (isset($_GET['removed']) && !isset($_GET['error']))): ?>
+            <div class="alert alert-success" style="background: #ecfdf5; color: #065f46; border-left: 4px solid #10b981; border: 1px solid #a7f3d0; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; font-weight: 500; display: flex; align-items: center; gap: 8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                <span><?= isset($_GET['success']) ? 'Alumno matriculado correctamente.' : 'Matrícula eliminada correctamente de la Intranet y desmatriculado de Moodle.' ?></span>
+            </div>
+        <?php endif; ?>
 
         <div class="gestion-container">
             <div class="enrolled-section">

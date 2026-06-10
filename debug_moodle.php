@@ -24,6 +24,7 @@ $required_functions = [
     'core_course_get_courses' => 'Listar Cursos',
     'core_group_create_groups' => 'Crear Grupos / Convocatorias',
     'enrol_manual_enrol_users' => 'Matricular Alumnos',
+    'enrol_manual_unenrol_users' => 'Desmatricular Alumnos (Bajas)',
     'core_group_add_group_members' => 'Asignar Alumnos a Grupos',
     'gradereport_user_get_grade_items' => 'Obtener Notas',
     'core_enrol_get_enrolled_users' => 'Verificar Matriculados',

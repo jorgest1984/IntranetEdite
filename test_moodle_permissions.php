@@ -74,6 +74,7 @@ header('Content-Type: text/html; charset=utf-8');
             'core_user_get_users_by_field' => 'Búsqueda de cuentas por email/DNI',
             'core_user_update_users' => 'Actualización de datos personales del alumno',
             'enrol_manual_enrol_users' => 'Matriculación oficial del alumno en el curso',
+            'enrol_manual_unenrol_users' => 'Desmatricular al alumno del curso (bajas)',
             'core_enrol_get_enrolled_users' => 'Verificar matriculados en cursos',
             'core_course_delete_courses' => 'Eliminar cursos vinculados'
         ];
