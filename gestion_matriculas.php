@@ -200,8 +200,8 @@ $alumnos = $matriculados->fetchAll();
                 <p>Grupo ID: <strong><?= $grupo_id ?></strong> | Modalidad: <strong><?= $accion['modalidad'] ?></strong></p>
             </div>
             <div style="display: flex; gap: 15px;">
-                <button onclick="window.location.href='api_sync_moodle.php?id=<?= $af_id ?>'" class="btn btn-primary" style="background: #ea580c; border: none;">
-                     Volcar al Aula Virtual
+                <button id="btnSyncMoodle" onclick="syncMoodle(<?= $af_id ?>)" class="btn btn-primary" style="background: #ea580c; border: none;">
+                    🚀 Volcar al Aula Virtual
                 </button>
                 <a href="acciones_formativas.php?plan_id=<?= $accion['plan_id'] ?>" class="btn" style="background: #f1f5f9; color: #1e3a8a; text-decoration:none; padding: 10px 20px; border-radius:8px; font-weight:700;">Volver</a>
             </div>
@@ -218,6 +218,11 @@ $alumnos = $matriculados->fetchAll();
             <div class="alert alert-success" style="background: #ecfdf5; color: #065f46; border-left: 4px solid #10b981; border: 1px solid #a7f3d0; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; font-weight: 500; display: flex; align-items: center; gap: 8px;">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                 <span>Alumno matriculado correctamente.</span>
+            </div>
+        <?php elseif (isset($_GET['success_sync'])): ?>
+            <div class="alert alert-success" style="background: #ecfdf5; color: #065f46; border-left: 4px solid #10b981; border: 1px solid #a7f3d0; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; font-weight: 500; display: flex; align-items: center; gap: 8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                <span><?= htmlspecialchars($_GET['sync_msg'] ?? 'Sincronización con Moodle realizada correctamente.') ?></span>
             </div>
         <?php elseif (isset($_GET['removed']) && !isset($_GET['error'])): ?>
             <?php
@@ -437,6 +442,38 @@ function resetSearch() {
     searchNombre.value = '';
     dniAutocomplete.innerHTML = '';
     nombreAutocomplete.innerHTML = '';
+}
+
+function syncMoodle(afId) {
+    const btn = document.getElementById('btnSyncMoodle');
+    const originalText = btn.innerHTML;
+    
+    btn.disabled = true;
+    btn.innerHTML = '⌛ Sincronizando con Moodle...';
+    btn.style.opacity = '0.7';
+    
+    fetch(`api_sync_moodle.php?id=${afId}`)
+        .then(response => response.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            btn.style.opacity = '1';
+            
+            if (data.success) {
+                alert('✅ Sincronización exitosa:\n\n' + data.message);
+                window.location.href = `gestion_matriculas.php?af_id=${afId}&success_sync=1&sync_msg=${encodeURIComponent(data.message)}`;
+            } else {
+                alert('❌ Error al sincronizar con Moodle:\n\n' + data.error);
+                window.location.href = `gestion_matriculas.php?af_id=${afId}&error=${encodeURIComponent(data.error)}`;
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            btn.style.opacity = '1';
+            alert('❌ Error de red al comunicarse con la intranet para sincronizar.');
+            console.error('Sync error:', err);
+        });
 }
 </script>
 </body>
