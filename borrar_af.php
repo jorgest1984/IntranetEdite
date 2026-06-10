@@ -3,6 +3,7 @@
 require_once 'includes/auth.php';
 require_once 'includes/config.php';
 require_once 'includes/moodle_api.php';
+require_once 'includes/Papelera.php';
 
 if (!has_permission([ROLE_ADMIN])) {
     die("No tiene permisos para eliminar acciones formativas.");
@@ -27,8 +28,35 @@ try {
     
     $moodleCourseId = $af_data['moodle_id'];
     $cursoId = $af_data['curso_id'];
+
+    // Obtener los datos limpios para la papelera
+    $stmtAfRaw = $pdo->prepare("SELECT * FROM acciones_formativas WHERE id = ?");
+    $stmtAfRaw->execute([$id]);
+    $af_raw = $stmtAfRaw->fetch(PDO::FETCH_ASSOC);
+
+    // Obtener los grupos asociados a esta acción formativa
+    $stmtGrupos = $pdo->prepare("SELECT * FROM grupos WHERE accion_id = ?");
+    $stmtGrupos->execute([$id]);
+    $grupos_rows = $stmtGrupos->fetchAll(PDO::FETCH_ASSOC);
+
+    $grupoIds = array_column($grupos_rows, 'id');
+    $matriculas_rows = [];
+    if (!empty($grupoIds)) {
+        $inQuery = implode(',', array_fill(0, count($grupoIds), '?'));
+        $stmtMat = $pdo->prepare("SELECT * FROM matriculas WHERE grupo_id IN ($inQuery)");
+        $stmtMat->execute($grupoIds);
+        $matriculas_rows = $stmtMat->fetchAll(PDO::FETCH_ASSOC);
+    }
     
-    // 2. Eliminar del Aula Virtual (Moodle) si tiene ID asociado
+    // 2. Archivar en la papelera
+    $datos = [
+        'acciones_formativas' => $af_raw,
+        'grupos' => $grupos_rows,
+        'matriculas' => $matriculas_rows
+    ];
+    Papelera::archivar($pdo, 'acciones_formativas', $id, $af_raw['titulo'], $datos);
+
+    // 3. Eliminar del Aula Virtual (Moodle) si tiene ID asociado
     $moodleDeleted = false;
     if ($moodleCourseId) {
         $moodle = new MoodleAPI($pdo);
@@ -42,13 +70,8 @@ try {
         }
     }
     
-    // 3. Limpiar la base de datos local de forma robusta (evitando fallos de foreign keys)
+    // 4. Limpiar la base de datos local de forma robusta (evitando fallos de foreign keys)
     $pdo->beginTransaction();
-    
-    // Obtener los grupos asociados a esta acción formativa
-    $stmtGrupos = $pdo->prepare("SELECT id FROM grupos WHERE accion_id = ?");
-    $stmtGrupos->execute([$id]);
-    $grupoIds = $stmtGrupos->fetchAll(PDO::FETCH_COLUMN);
     
     if (!empty($grupoIds)) {
         // Borrar las matrículas de estos grupos
@@ -71,10 +94,10 @@ try {
     
     $pdo->commit();
     
-    // 4. Registrar log de auditoría
-    audit_log($pdo, 'DELETE_ACCION_FORMATIVA', 'acciones_formativas', $id, $af_data, null);
+    // 5. Registrar log de auditoría
+    audit_log($pdo, 'DELETE_ACCION_FORMATIVA', 'acciones_formativas', $id, $af_raw, null);
     
-    $msg = "Acción formativa eliminada correctamente" . ($moodleDeleted ? " (también eliminada de Moodle)" : "");
+    $msg = "Acción formativa enviada a la papelera correctamente" . ($moodleDeleted ? " (también eliminada de Moodle)" : "");
     header("Location: acciones_formativas.php?msg=" . urlencode($msg));
     
 } catch (Exception $e) {

@@ -64,15 +64,39 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             $error = "No puedes borrar tu propia cuenta de administrador.";
         } else {
             try {
+                $pdo->beginTransaction();
+
+                // Obtener datos del usuario antes de borrar
+                $stmtUser = $pdo->prepare("SELECT * FROM usuarios WHERE id = ?");
+                $stmtUser->execute([$id]);
+                $user_data = $stmtUser->fetch(PDO::FETCH_ASSOC);
+
+                if (!$user_data) {
+                    throw new Exception("El usuario no existe.");
+                }
+
+                // Archivar en la papelera
+                require_once 'includes/Papelera.php';
+                $datos = ['usuarios' => $user_data];
+                $titulo_papelera = $user_data['nombre'] . ' ' . $user_data['apellidos'] . ' (' . $user_data['username'] . ')';
+                Papelera::archivar($pdo, 'usuarios', $id, $titulo_papelera, $datos);
+
                 // Intentar eliminación física en BD
                 $stmt = $pdo->prepare("DELETE FROM usuarios WHERE id = ?");
                 $stmt->execute([$id]);
                 
+                $pdo->commit();
+                
                 audit_log($pdo, 'USUARIO_ELIMINADO', 'usuarios', $id, null, ['id_eliminado' => $id]);
-                $success = "Usuario eliminado de forma permanente.";
-            } catch (PDOException $e) {
+                $success = "Usuario enviado a la papelera correctamente.";
+            } catch (Exception $e) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
                 // Si falla por clave foránea (SQLSTATE 23000) - común por logs de auditoría o documentos
-                if ($e->getCode() == '23000') {
+                if (method_exists($e, 'getCode') && $e->getCode() == '23000') {
+                    $error = "No se puede eliminar este usuario porque tiene registros de actividad asociados (logs de auditoría, incidencias, etc.) para cumplir con la normativa ISO 27001. En su lugar, puedes suspender su cuenta para deshabilitar su acceso por completo.";
+                } elseif (isset($e->errorInfo) && $e->errorInfo[0] == '23000') {
                     $error = "No se puede eliminar este usuario porque tiene registros de actividad asociados (logs de auditoría, incidencias, etc.) para cumplir con la normativa ISO 27001. En su lugar, puedes suspender su cuenta para deshabilitar su acceso por completo.";
                 } else {
                     $error = "Error al eliminar el usuario: " . $e->getMessage();
