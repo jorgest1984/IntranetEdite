@@ -226,6 +226,12 @@ $alumnos = $matriculados->fetchAll();
                 <p>Grupo ID: <strong><?= $grupo_id ?></strong> | Modalidad: <strong><?= $accion['modalidad'] ?></strong></p>
             </div>
             <div style="display: flex; gap: 15px;">
+                <?php if (has_permission([ROLE_ADMIN])): ?>
+                    <a href="papelera.php" class="btn" style="background: #ef4444; color: white; text-decoration:none; padding: 10px 20px; border-radius:8px; font-weight:700; display: inline-flex; align-items: center; gap: 6px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        Papelera
+                    </a>
+                <?php endif; ?>
                 <button id="btnSyncMoodle" onclick="syncMoodle(<?= $af_id ?>)" class="btn btn-primary" style="background: #ea580c; border: none;">
                     🚀 Volcar al Aula Virtual
                 </button>
