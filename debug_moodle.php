@@ -25,7 +25,8 @@ $required_functions = [
     'core_group_create_groups' => 'Crear Grupos / Convocatorias',
     'enrol_manual_enrol_users' => 'Matricular Alumnos',
     'core_group_add_group_members' => 'Asignar Alumnos a Grupos',
-    'gradereport_user_get_grade_items' => 'Obtener Notas'
+    'gradereport_user_get_grade_items' => 'Obtener Notas',
+    'core_enrol_get_enrolled_users' => 'Verificar Matriculados'
 ];
 
 $allowed_functions = [];
