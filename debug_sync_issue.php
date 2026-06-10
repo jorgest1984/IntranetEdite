@@ -247,19 +247,23 @@ header('Content-Type: text/html; charset=utf-8');
                             
                             // Verificar si está matriculado en el curso en Moodle
                             if ($moodleCourseExists) {
-                                $enrolledUsers = $moodle->getEnrolledUsers($courseId);
-                                $isEnrolled = false;
-                                foreach ($enrolledUsers as $eu) {
-                                    if ($eu['id'] == $moodleId) {
-                                        $isEnrolled = true;
-                                        break;
+                                try {
+                                    $enrolledUsers = $moodle->getEnrolledUsers($courseId);
+                                    $isEnrolled = false;
+                                    foreach ($enrolledUsers as $eu) {
+                                        if ($eu['id'] == $moodleId) {
+                                            $isEnrolled = true;
+                                            break;
+                                        }
                                     }
-                                }
 
-                                if ($isEnrolled) {
-                                    echo "<span class='badge badge-success'>✓ Matriculado en el curso</span>";
-                                } else {
-                                    echo "<span class='badge badge-danger'>✗ NO matriculado en este curso en Moodle</span>";
+                                    if ($isEnrolled) {
+                                        echo "<span class='badge badge-success'>✓ Matriculado en el curso</span>";
+                                    } else {
+                                        echo "<span class='badge badge-danger'>✗ NO matriculado en este curso en Moodle</span>";
+                                    }
+                                } catch (Exception $enrolEx) {
+                                    echo "<span class='badge badge-warning'>⚠ Creado en Moodle (Falta permiso para verificar matriculación)</span>";
                                 }
                             } else {
                                 echo "<span class='badge badge-warning'>No se pudo verificar matriculación (Curso no existe en Moodle)</span>";
