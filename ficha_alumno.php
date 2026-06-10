@@ -207,16 +207,51 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             throw new Exception("Inscripción no válida.");
         }
         
-        // Obtener datos antes de borrar para el log
-        $stmtGetMat = $pdo->prepare("SELECT * FROM matriculas WHERE id = ? AND alumno_id = ?");
+        // Obtener datos antes de borrar para el log y para el título de la Papelera
+        $stmtGetMat = $pdo->prepare("
+            SELECT m.*, a.nombre, a.primer_apellido, a.segundo_apellido, 
+                   c.nombre as convocatoria_nombre,
+                   cur.nombre_largo as curso_titulo
+            FROM matriculas m
+            JOIN alumnos a ON m.alumno_id = a.id
+            LEFT JOIN convocatorias c ON m.convocatoria_id = c.id
+            LEFT JOIN grupos g ON m.grupo_id = g.id
+            LEFT JOIN acciones_formativas af ON g.accion_id = af.id
+            LEFT JOIN cursos cur ON af.curso_id = cur.id
+            WHERE m.id = ? AND m.alumno_id = ?
+        ");
         $stmtGetMat->execute([$matricula_id, $id]);
-        $oldMat = $stmtGetMat->fetch();
+        $oldMat = $stmtGetMat->fetch(PDO::FETCH_ASSOC);
         
         if ($oldMat) {
-            $stmtDel = $pdo->prepare("DELETE FROM matriculas WHERE id = ?");
-            $stmtDel->execute([$matricula_id]);
+            require_once 'includes/Papelera.php';
+            $alumno_nombre = trim($oldMat['nombre'] . ' ' . ($oldMat['primer_apellido'] ?? '') . ' ' . ($oldMat['segundo_apellido'] ?? ''));
+            $nombre_curso = $oldMat['curso_titulo'] ?: ($oldMat['convocatoria_nombre'] ?? 'Sin Convocatoria/Curso');
+            $titulo_papelera = $alumno_nombre . " - " . $nombre_curso;
             
-            audit_log($pdo, 'MATRICULA_ELIMINADA', 'matriculas', $matricula_id, $oldMat, null);
+            $pdo->beginTransaction();
+            try {
+                // Obtener el registro limpio de la matrícula para archivar en Papelera (solo campos de la tabla matriculas)
+                $stmtMatClean = $pdo->prepare("SELECT * FROM matriculas WHERE id = ?");
+                $stmtMatClean->execute([$matricula_id]);
+                $matricula_clean = $stmtMatClean->fetch(PDO::FETCH_ASSOC);
+
+                if ($matricula_clean) {
+                    Papelera::archivar($pdo, 'matriculas', $matricula_id, $titulo_papelera, ['matriculas' => $matricula_clean]);
+                }
+                
+                $stmtDel = $pdo->prepare("DELETE FROM matriculas WHERE id = ?");
+                $stmtDel->execute([$matricula_id]);
+                
+                audit_log($pdo, 'MATRICULA_ELIMINADA', 'matriculas', $matricula_id, $oldMat, null);
+                
+                $pdo->commit();
+            } catch (Exception $transactionEx) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                throw $transactionEx;
+            }
         }
         
         header("Location: ficha_alumno.php?id=$id&tab=inscripciones&success_delete=1");

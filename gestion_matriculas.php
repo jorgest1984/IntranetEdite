@@ -66,9 +66,9 @@ if (isset($_GET['remove_id'])) {
     $moodle_error = null;
     $moodle_status = 'skipped';
     
-    // Obtener los IDs de Moodle antes de borrar la matrícula
+    // Obtener los IDs de Moodle y datos del alumno/curso antes de borrar la matrícula
     try {
-        $stmtMat = $pdo->prepare("SELECT m.alumno_id, a.moodle_user_id, a.email, c.moodle_id as curso_moodle_id
+        $stmtMat = $pdo->prepare("SELECT m.alumno_id, a.moodle_user_id, a.email, a.nombre, a.primer_apellido, a.segundo_apellido, c.nombre_largo as curso_titulo, c.moodle_id as curso_moodle_id
                                   FROM matriculas m 
                                   JOIN alumnos a ON m.alumno_id = a.id
                                   JOIN grupos g ON m.grupo_id = g.id
@@ -118,11 +118,37 @@ if (isset($_GET['remove_id'])) {
         $moodle_status = 'error';
     }
 
-    $pdo->prepare("DELETE FROM matriculas WHERE id = ? AND grupo_id = ?")->execute([$matricula_id, $grupo_id]);
+    // Iniciar transacción de BD para archivar en Papelera y eliminar localmente
+    try {
+        $pdo->beginTransaction();
+
+        // Obtener el registro limpio de la matrícula para archivar en Papelera
+        $stmtMatClean = $pdo->prepare("SELECT * FROM matriculas WHERE id = ?");
+        $stmtMatClean->execute([$matricula_id]);
+        $matricula_clean = $stmtMatClean->fetch(PDO::FETCH_ASSOC);
+
+        if ($matricula_clean && $mat_info) {
+            require_once 'includes/Papelera.php';
+            $alumno_nombre = trim($mat_info['nombre'] . ' ' . ($mat_info['primer_apellido'] ?? '') . ' ' . ($mat_info['segundo_apellido'] ?? ''));
+            $titulo_papelera = $alumno_nombre . " - " . $mat_info['curso_titulo'];
+            
+            // Archivar en papelera
+            Papelera::archivar($pdo, 'matriculas', $matricula_id, $titulo_papelera, ['matriculas' => $matricula_clean]);
+        }
+
+        $pdo->prepare("DELETE FROM matriculas WHERE id = ? AND grupo_id = ?")->execute([$matricula_id, $grupo_id]);
+        $pdo->commit();
+    } catch (Exception $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        $moodle_error = ($moodle_error ? $moodle_error . " | " : "") . "Error al eliminar matrícula local: " . $e->getMessage();
+        $moodle_status = 'error';
+    }
     
     $redirectUrl = "gestion_matriculas.php?af_id=$af_id&removed=1&moodle_status=$moodle_status";
     if ($moodle_error) {
-        $redirectUrl .= "&error=" . urlencode("El alumno se borró de la Intranet, pero falló la desmatriculación en Moodle: " . $moodle_error);
+        $redirectUrl .= "&error=" . urlencode("La matrícula se eliminó de la Intranet, pero ocurrió un problema: " . $moodle_error);
     }
     header("Location: $redirectUrl");
     exit();

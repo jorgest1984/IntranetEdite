@@ -73,10 +73,12 @@ $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $count_af = 0;
 $count_conv = 0;
 $count_users = 0;
+$count_mat = 0;
 foreach ($items as $item) {
     if ($item['tabla'] === 'acciones_formativas') $count_af++;
     elseif ($item['tabla'] === 'convocatorias') $count_conv++;
     elseif ($item['tabla'] === 'usuarios') $count_users++;
+    elseif ($item['tabla'] === 'matriculas') $count_mat++;
 }
 ?>
 <!DOCTYPE html>
@@ -103,7 +105,7 @@ foreach ($items as $item) {
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 20px;
             margin-bottom: 30px;
         }
@@ -137,6 +139,7 @@ foreach ($items as $item) {
         .stat-card-premium.af::before { background: #3b82f6; }
         .stat-card-premium.conv::before { background: #8b5cf6; }
         .stat-card-premium.user::before { background: #10b981; }
+        .stat-card-premium.mat::before { background: #ea580c; }
 
         .stat-card-premium:hover {
             transform: translateY(-4px);
@@ -158,6 +161,7 @@ foreach ($items as $item) {
         .stat-icon-wrapper.blue { background: #eff6ff; color: #2563eb; }
         .stat-icon-wrapper.purple { background: #f5f3ff; color: #7c3aed; }
         .stat-icon-wrapper.green { background: #ecfdf5; color: #059669; }
+        .stat-icon-wrapper.orange { background: #fff7ed; color: #ea580c; }
 
         .stat-value {
             font-size: 1.5rem;
@@ -292,6 +296,7 @@ foreach ($items as $item) {
         .badge-af { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
         .badge-conv { background: #f3e8ff; color: #6d28d9; border: 1px solid #e9d5ff; }
         .badge-user { background: #d1fae5; color: #047857; border: 1px solid #a7f3d0; }
+        .badge-mat { background: #ffedd5; color: #c2410c; border: 1px solid #fed7aa; }
         .badge-default { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
 
         /* Action Buttons */
@@ -464,6 +469,16 @@ foreach ($items as $item) {
                     <div class="stat-label">Usuarios</div>
                 </div>
             </div>
+
+            <div class="stat-card-premium mat">
+                <div class="stat-icon-wrapper orange">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value"><?= $count_mat ?></div>
+                    <div class="stat-label">Matrículas</div>
+                </div>
+            </div>
         </section>
 
         <!-- Filtro / Buscador en tiempo real -->
@@ -519,6 +534,10 @@ foreach ($items as $item) {
                                     case 'usuarios':
                                         $badge_class = 'badge-user';
                                         $type_label = 'Usuario';
+                                        break;
+                                    case 'matriculas':
+                                        $badge_class = 'badge-mat';
+                                        $type_label = 'Matrícula Alumno';
                                         break;
                                 }
                                 ?>
