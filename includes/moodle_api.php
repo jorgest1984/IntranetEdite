@@ -359,6 +359,13 @@ class MoodleAPI {
     }
 
     /**
+     * Obtener los cursos en los que un usuario está matriculado
+     */
+    public function getUserCourses($userId) {
+        return $this->call('core_enrol_get_users_courses', ['userid' => (int)$userId]);
+    }
+
+    /**
      * Actualizar metadatos de un curso (ej. visibilidad, nombre)
      */
     public function updateCourse($courseId, $data) {

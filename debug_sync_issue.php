@@ -263,7 +263,25 @@ header('Content-Type: text/html; charset=utf-8');
                                         echo "<span class='badge badge-danger'>✗ NO matriculado en este curso en Moodle</span>";
                                     }
                                 } catch (Exception $enrolEx) {
-                                    echo "<span class='badge badge-warning'>⚠ Creado en Moodle (Falta permiso para verificar matriculación)</span>";
+                                    try {
+                                        $userCourses = $moodle->getUserCourses($moodleId);
+                                        $isEnrolled = false;
+                                        if (is_array($userCourses)) {
+                                            foreach ($userCourses as $uc) {
+                                                if ($uc['id'] == $courseId) {
+                                                    $isEnrolled = true;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        if ($isEnrolled) {
+                                            echo "<span class='badge badge-success'>✓ Matriculado en el curso (verificado vía cursos del alumno)</span>";
+                                        } else {
+                                            echo "<span class='badge badge-danger'>✗ NO matriculado en este curso en Moodle</span>";
+                                        }
+                                    } catch (Exception $fallbackEx) {
+                                        echo "<span class='badge badge-warning'>⚠ Creado en Moodle (Falta permiso para verificar matriculación)</span>";
+                                    }
                                 }
                             } else {
                                 echo "<span class='badge badge-warning'>No se pudo verificar matriculación (Curso no existe en Moodle)</span>";
