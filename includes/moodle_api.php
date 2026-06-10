@@ -385,5 +385,20 @@ class MoodleAPI {
         $params = ['courseids' => [(int)$courseId]];
         return $this->call('core_course_delete_courses', $params);
     }
+
+    /**
+     * Desmatricular usuario de un curso (manual unenrol)
+     */
+    public function unenrolUser($userId, $courseId) {
+        $params = [
+            'enrolments' => [
+                [
+                    'userid' => (int)$userId,
+                    'courseid' => (int)$courseId
+                ]
+            ]
+        ];
+        return $this->call('enrol_manual_unenrol_users', $params);
+    }
 }
 ?>

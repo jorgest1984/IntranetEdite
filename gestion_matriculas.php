@@ -63,6 +63,34 @@ if (isset($_POST['add_alumno_id']) || !empty($_POST['student_search_text'])) {
 // Procesar Baja de Alumno
 if (isset($_GET['remove_id'])) {
     $matricula_id = (int)$_GET['remove_id'];
+    
+    // Obtener los IDs de Moodle antes de borrar la matrícula
+    try {
+        $stmtMat = $pdo->prepare("SELECT m.alumno_id, a.moodle_user_id, c.moodle_id as curso_moodle_id
+                                  FROM matriculas m 
+                                  JOIN alumnos a ON m.alumno_id = a.id
+                                  JOIN grupos g ON m.grupo_id = g.id
+                                  JOIN acciones_formativas af ON g.accion_id = af.id
+                                  JOIN cursos c ON af.curso_id = c.id
+                                  WHERE m.id = ? AND m.grupo_id = ?");
+        $stmtMat->execute([$matricula_id, $grupo_id]);
+        $mat_info = $stmtMat->fetch(PDO::FETCH_ASSOC);
+
+        if ($mat_info && !empty($mat_info['moodle_user_id']) && !empty($mat_info['curso_moodle_id'])) {
+            require_once 'includes/moodle_api.php';
+            $moodle = new MoodleAPI($pdo);
+            if ($moodle->isConfigured()) {
+                try {
+                    $moodle->unenrolUser($mat_info['moodle_user_id'], $mat_info['curso_moodle_id']);
+                } catch (Exception $moodleEx) {
+                    // Silencioso: si falla en Moodle (o ya no está matriculado), procedemos localmente
+                }
+            }
+        }
+    } catch (Exception $e) {
+        // Silencioso: ante cualquier error inesperado, procedemos con el borrado local
+    }
+
     $pdo->prepare("DELETE FROM matriculas WHERE id = ? AND grupo_id = ?")->execute([$matricula_id, $grupo_id]);
     header("Location: gestion_matriculas.php?af_id=$af_id&removed=1");
     exit();
