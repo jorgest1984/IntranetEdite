@@ -8,6 +8,24 @@ if (!has_permission([ROLE_ADMIN])) {
     die("Acceso denegado. Se requiere ser Administrador.");
 }
 
+// Procesar el borrado de IDs de Moodle para forzar recreación
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'reset_moodle_ids') {
+    $af_id_to_reset = (int)($_POST['af_id'] ?? 0);
+    if ($af_id_to_reset > 0) {
+        $stmt = $pdo->prepare("SELECT curso_id FROM acciones_formativas WHERE id = ?");
+        $stmt->execute([$af_id_to_reset]);
+        $row = $stmt->fetch();
+        if ($row) {
+            $curso_id = $row['curso_id'];
+            $pdo->prepare("UPDATE cursos SET moodle_id = NULL WHERE id = ?")->execute([$curso_id]);
+        }
+        $pdo->prepare("UPDATE grupos SET id_plataforma = NULL WHERE accion_id = ?")->execute([$af_id_to_reset]);
+        
+        header("Location: debug_sync_issue.php?id=" . $af_id_to_reset . "&reset_success=1");
+        exit;
+    }
+}
+
 header('Content-Type: text/html; charset=utf-8');
 ?>
 <!DOCTYPE html>
@@ -28,13 +46,19 @@ header('Content-Type: text/html; charset=utf-8');
         .badge-success { background: #dcfce7; color: #16a34a; }
         .badge-danger { background: #fee2e2; color: #dc2626; }
         .badge-warning { background: #fef3c7; color: #d97706; }
-        .btn { display: inline-block; background: #1e3a8a; color: white; padding: 8px 15px; border-radius: 6px; text-decoration: none; font-size: 0.9rem; font-weight: bold; }
+        .btn { display: inline-block; background: #1e3a8a; color: white; padding: 8px 15px; border-radius: 6px; text-decoration: none; font-size: 0.9rem; font-weight: bold; border: none; cursor: pointer; }
         .btn:hover { background: #1e40af; }
     </style>
 </head>
 <body>
 <div class="container">
     <h1>🔍 Diagnóstico de Sincronización con Moodle</h1>
+
+    <?php if (isset($_GET['reset_success'])): ?>
+        <div style="background: #dcfce7; border-left: 4px solid #16a34a; padding: 15px; margin-bottom: 20px; color: #15803d; border-radius: 4px; font-weight: bold;">
+            ✓ Éxito: Se han limpiado los IDs de Moodle vinculados (Curso y Grupo) en la base de datos local de preproducción. Al volver a sincronizar se crearán de nuevo en pre-aulavirtual.
+        </div>
+    <?php endif; ?>
 
     <?php
     $af_id = (int)($_GET['id'] ?? 0);
@@ -90,6 +114,14 @@ header('Content-Type: text/html; charset=utf-8');
         echo "<p><strong>Moodle ID del Curso (en DB):</strong> " . ($af['curso_moodle_id'] ?: '<span class="badge badge-danger">VACÍO (No creado en Moodle)</span>') . "</p>";
         echo "<p><strong>ID Grupo Local:</strong> " . ($grupo_id_local ?: '<span class="badge badge-danger">SIN GRUPO LOCAL</span>') . "</p>";
         echo "<p><strong>Moodle ID Grupo (en DB):</strong> " . ($moodleGroupId ?: '<span class="badge badge-warning">VACÍO o SIN GRUPO EN MOODLE</span>') . "</p>";
+        
+        if ($af['curso_moodle_id'] || $moodleGroupId) {
+            echo "<form method='POST' action='' onsubmit=\"return confirm('¿Seguro que deseas limpiar los IDs de Moodle vinculados a este curso/grupo? Esto forzará su recreación en el Moodle de preproducción la próxima vez que sincronices.');\" style='margin-top: 15px;'>";
+            echo "<input type='hidden' name='action' value='reset_moodle_ids'>";
+            echo "<input type='hidden' name='af_id' value='{$af['id']}'>";
+            echo "<button type='submit' class='btn' style='background: #dc2626;'>🗑️ Limpiar IDs de Moodle en Local</button>";
+            echo "</form>";
+        }
         echo "</div>";
 
         // 2. Verificar existencia del curso en Moodle
