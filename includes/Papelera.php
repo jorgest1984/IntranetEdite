@@ -78,6 +78,23 @@ class Papelera {
                         self::insertRow($pdo, 'planes', $plan);
                     }
                 }
+            } elseif ($tabla === 'alumnos') {
+                // 1. Restaurar Alumno
+                if (!empty($datos['alumnos'])) {
+                    self::insertRow($pdo, 'alumnos', $datos['alumnos']);
+                }
+                // 2. Restaurar Matrículas
+                if (!empty($datos['matriculas'])) {
+                    foreach ($datos['matriculas'] as $matricula) {
+                        self::insertRow($pdo, 'matriculas', $matricula);
+                    }
+                }
+                // 3. Restaurar Documentos
+                if (!empty($datos['documentos_alumno'])) {
+                    foreach ($datos['documentos_alumno'] as $doc) {
+                        self::insertRow($pdo, 'documentos_alumno', $doc);
+                    }
+                }
             } else {
                 // Fallback genérico
                 if (isset($datos[$tabla])) {

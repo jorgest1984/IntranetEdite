@@ -473,6 +473,13 @@ $empresas = $pdo->query("SELECT id, nombre FROM empresas ORDER BY nombre ASC LIM
                 <div class="alert alert-error"><?= $error ?></div>
             <?php endif; ?>
 
+            <?php if (isset($_GET['deleted'])): ?>
+                <div class="alert alert-success" style="background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; font-weight: 500; display: flex; align-items: center; gap: 8px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    <span>Alumno eliminado correctamente y enviado a la Papelera.</span>
+                </div>
+            <?php endif; ?>
+
             <!-- Cabecera de Pestañas -->
             <nav class="tabs-header">
                 <button class="tab-btn <?= $active_tab == 'listado' ? 'active' : '' ?>" onclick="location.href='?tab=listado'">
@@ -575,11 +582,19 @@ $empresas = $pdo->query("SELECT id, nombre FROM empresas ORDER BY nombre ASC LIM
                                                 <?php endif; ?>
                                             </td>
                                             <td><?= htmlspecialchars($dateAlta) ?></td>
-                                            <td style="text-align: center;">
-                                                <a href="ficha_alumno.php?id=<?= $alumno['id'] ?>" class="btn-action" title="Ver ficha del alumno">
-                                                    <svg viewBox="0 0 24 24" width="14" height="14" style="fill: currentColor; vertical-align: middle; margin-right: 2px;"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
-                                                    Ficha
-                                                </a>
+                                            <td style="text-align: center; white-space: nowrap;">
+                                                <div style="display: flex; gap: 8px; justify-content: center; align-items: center;">
+                                                    <a href="ficha_alumno.php?id=<?= $alumno['id'] ?>" class="btn-action" title="Ver ficha del alumno">
+                                                        <svg viewBox="0 0 24 24" width="14" height="14" style="fill: currentColor; vertical-align: middle; margin-right: 2px;"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                                                        Ficha
+                                                    </a>
+                                                    <form method="POST" action="ficha_alumno.php?id=<?= $alumno['id'] ?>" style="display: inline; margin: 0;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar permanentemente a este alumno? Se archivará en la Papelera con todos sus documentos e inscripciones asociadas.');">
+                                                        <input type="hidden" name="action" value="delete_alumno">
+                                                        <button type="submit" style="background: #fee2e2; border: 1px solid #fecaca; color: #dc2626; border-radius: 6px; padding: 6px; cursor: pointer; display: inline-flex; align-items: center; transition: all 0.2s;" onmouseover="this.style.background='#fca5a5'" onmouseout="this.style.background='#fee2e2'" title="Eliminar Alumno">
+                                                            <svg style="width: 14px; height: 14px; fill: currentColor;" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                                                        </button>
+                                                    </form>
+                                                </div>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
