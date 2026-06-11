@@ -107,15 +107,14 @@ foreach ($items as $item) {
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(6, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 20px;
             margin-bottom: 30px;
         }
 
-        @media (max-width: 1400px) {
+        @media (min-width: 1600px) {
             .stats-grid {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 15px;
+                grid-template-columns: repeat(6, 1fr);
             }
         }
 
@@ -135,10 +134,10 @@ foreach ($items as $item) {
             background: white;
             border: 1px solid var(--border-gray);
             border-radius: 16px;
-            padding: 1rem 1.25rem;
+            padding: 1rem;
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 0.75rem;
             box-shadow: var(--shadow-sm);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
