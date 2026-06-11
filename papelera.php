@@ -112,13 +112,13 @@ foreach ($items as $item) {
             margin-bottom: 30px;
         }
 
-        @media (min-width: 1600px) {
+        @media (min-width: 1720px) {
             .stats-grid {
                 grid-template-columns: repeat(6, 1fr);
             }
         }
 
-        @media (max-width: 992px) {
+        @media (max-width: 1200px) {
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
@@ -143,6 +143,13 @@ foreach ($items as $item) {
             position: relative;
             overflow: hidden;
             min-width: 0;
+        }
+
+        @media (max-width: 1720px) {
+            .stat-card-premium {
+                padding: 0.75rem;
+                gap: 0.5rem;
+            }
         }
 
         .stat-card-premium::before {
@@ -186,6 +193,11 @@ foreach ($items as $item) {
         .stat-icon-wrapper.orange { background: #fff7ed; color: #ea580c; }
         .stat-icon-wrapper.fuchsia { background: #fdf4ff; color: #a21caf; }
 
+        .stat-info {
+            flex: 1;
+            min-width: 0;
+        }
+
         .stat-value {
             font-size: 1.5rem;
             font-weight: 800;
@@ -199,6 +211,9 @@ foreach ($items as $item) {
             color: #64748b;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+            word-break: break-word;
         }
 
         .search-filter-card {
