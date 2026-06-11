@@ -3,7 +3,7 @@
 require_once 'includes/auth.php';
 
 // Verificar permisos (por ejemplo, Admin, Administrativo o Comercial)
-if (!has_permission([ROLE_ADMIN, ROLE_ADMINISTRATIVO, ROLE_COMERCIAL])) {
+if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_COMERCIAL])) {
     header("Location: home.php");
     exit();
 }

@@ -778,6 +778,10 @@ $roles = $pdo->query("SELECT * FROM roles WHERE id != " . ROLE_LECTURA . " ORDER
                             $avatar_class = 'avatar-admin';
                             $badge_class = 'badge-admin';
                             break;
+                        case ROLE_COORD:
+                            $avatar_class = 'avatar-adm';
+                            $badge_class = 'badge-adm';
+                            break;
                         case ROLE_ADMINISTRATIVO:
                             $avatar_class = 'avatar-adm';
                             $badge_class = 'badge-adm';

@@ -110,18 +110,38 @@ foreach ($items as $item) {
             margin-bottom: 30px;
         }
 
+        @media (max-width: 1400px) {
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 15px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 576px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .stat-card-premium {
             background: white;
             border: 1px solid var(--border-gray);
             border-radius: 16px;
-            padding: 1.5rem;
+            padding: 1rem 1.25rem;
             display: flex;
             align-items: center;
-            gap: 1.25rem;
+            gap: 1rem;
             box-shadow: var(--shadow-sm);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
+            min-width: 0;
         }
 
         .stat-card-premium::before {

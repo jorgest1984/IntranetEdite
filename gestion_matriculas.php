@@ -3,7 +3,7 @@
 require_once 'includes/auth.php';
 require_once 'includes/config.php';
 
-if (!has_permission([ROLE_ADMIN, ROLE_TUTOR, ROLE_ADMINISTRATIVO])) {
+if (!has_permission([ROLE_ADMIN, ROLE_TUTOR, ROLE_COORD])) {
     header("Location: home.php");
     exit();
 }
@@ -364,7 +364,7 @@ const selectedIdInput = document.getElementById('selectedAlumnoId');
 const dniAutocomplete = document.getElementById('dniAutocomplete');
 const nombreAutocomplete = document.getElementById('nombreAutocomplete');
 
-function setupAutocomplete(inputEl, resultsEl) {
+function setupAutocomplete(inputEl, resultsEl, type) {
     let debounceTimer;
     
     inputEl.addEventListener('input', function() {
@@ -377,8 +377,15 @@ function setupAutocomplete(inputEl, resultsEl) {
             return;
         }
         
+        // Si es búsqueda por DNI y no contiene ningún número, no mostramos resultados predictivos
+        if (type === 'dni' && !/\d/.test(val)) {
+            resultsEl.innerHTML = '';
+            resultsEl.style.display = 'none';
+            return;
+        }
+        
         debounceTimer = setTimeout(() => {
-            fetch(`api_buscar_alumnos.php?q=${encodeURIComponent(val)}`)
+            fetch(`api_buscar_alumnos.php?q=${encodeURIComponent(val)}&type=${type}`)
                 .then(r => r.json())
                 .then(data => {
                     resultsEl.innerHTML = '';
@@ -426,8 +433,8 @@ function selectStudent(a) {
     noResultsMsg.style.display = 'none';
 }
 
-setupAutocomplete(searchDni, dniAutocomplete);
-setupAutocomplete(searchNombre, nombreAutocomplete);
+setupAutocomplete(searchDni, dniAutocomplete, 'dni');
+setupAutocomplete(searchNombre, nombreAutocomplete, 'nombre');
 
 btnBuscar.addEventListener('click', function() {
     const dni = searchDni.value.trim();

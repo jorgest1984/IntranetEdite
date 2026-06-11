@@ -3,7 +3,7 @@
 require_once 'includes/auth.php';
 require_once 'includes/config.php';
 
-if (!has_permission([ROLE_ADMIN, ROLE_TUTOR, ROLE_ADMINISTRATIVO])) {
+if (!has_permission([ROLE_ADMIN, ROLE_TUTOR, ROLE_COORD])) {
     header("Location: home.php");
     exit();
 }

@@ -2,7 +2,7 @@
 // comerciales_email.php
 require_once 'includes/auth.php';
 
-if (!has_permission([ROLE_ADMIN, ROLE_ADMINISTRATIVO, ROLE_COMERCIAL])) {
+if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_COMERCIAL])) {
     header("Location: dashboard.php");
     exit();
 }

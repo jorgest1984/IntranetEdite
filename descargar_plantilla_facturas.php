@@ -2,7 +2,7 @@
 // descargar_plantilla_facturas.php - Genera y descarga la plantilla Excel para importación de facturas
 require_once 'includes/auth.php';
 
-if (!has_permission([ROLE_ADMIN, ROLE_COORD])) {
+if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_ADMINISTRATIVO])) {
     header("Location: dashboard.php");
     exit();
 }

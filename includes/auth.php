@@ -30,17 +30,18 @@ function has_permission($required_roles) {
 
 // Roles ID (NUEVA ESTRUCTURA):
 // 1 = Administrador (Acceso total)
-// 2 = Administrativo
+// 2 = Coordinador
 // 3 = Tutor
 // 4 = Lectura (Legacy / Mantenimiento)
 // 5 = Comercial
+// 7 = Administrativo (Acceso contabilidad)
 define('ROLE_ADMIN', 1);
-define('ROLE_ADMINISTRATIVO', 2);
+define('ROLE_COORD', 2);
 define('ROLE_TUTOR', 3);
 define('ROLE_LECTURA', 4); // Legacy / Mantenimiento
 define('ROLE_COMERCIAL', 5);
+define('ROLE_ADMINISTRATIVO', 7); // Separado de Coordinador
 
 // Alias para compatibilidad con código antiguo
-define('ROLE_COORD', 2);
 define('ROLE_FORMADOR', 3);
 ?>
