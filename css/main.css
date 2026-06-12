@@ -322,6 +322,7 @@ body.is-resizing .main-content {
     min-height: 100vh;
     transition: margin-left 0.3s ease;
     width: calc(100% - var(--sidebar-width));
+    min-width: 0;
     box-sizing: border-box;
     position: relative;
 }

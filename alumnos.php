@@ -385,10 +385,13 @@ $empresas = $pdo->query("SELECT id, nombre FROM empresas ORDER BY nombre ASC LIM
             border-radius: 8px;
             border: 1px solid var(--border-color);
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+            position: relative;
         }
         .table-custom {
             width: 100%;
-            border-collapse: collapse;
+            min-width: 1100px;
+            border-collapse: separate; /* Required for sticky border styling */
+            border-spacing: 0;
             font-size: 0.85rem;
             text-align: left;
         }
@@ -404,12 +407,28 @@ $empresas = $pdo->query("SELECT id, nombre FROM empresas ORDER BY nombre ASC LIM
             border-bottom: 1px solid var(--border-color);
             color: var(--text-color);
             vertical-align: middle;
+            background-color: #ffffff;
         }
         .table-custom tr:last-child td {
             border-bottom: none;
         }
-        .table-custom tr:hover {
-            background: #f8fafc;
+        /* Sticky first column (Nombre Completo) */
+        .table-custom th:first-child,
+        .table-custom td:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 10;
+            box-shadow: 2px 0 5px -2px rgba(0, 0, 0, 0.1);
+        }
+        .table-custom th:first-child {
+            background-color: #f8fafc;
+            z-index: 11;
+        }
+        .table-custom td:first-child {
+            background-color: #ffffff;
+        }
+        .table-custom tr:hover td {
+            background-color: #f8fafc;
         }
         
         /* Badges de Sincronización */
