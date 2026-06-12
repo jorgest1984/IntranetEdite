@@ -9,6 +9,9 @@ if (!has_permission([ROLE_ADMIN, ROLE_COORD])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['archivo'])) {
+    if (empty($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'])) {
+        die("Error: Token CSRF no válido o expirado.");
+    }
     $alumno_id = isset($_POST['alumno_id']) ? (int)$_POST['alumno_id'] : 0;
     $tipo_doc = $_POST['tipo_documento'] ?? 'General';
     $usuario_id = $_SESSION['user_id'] ?? null;

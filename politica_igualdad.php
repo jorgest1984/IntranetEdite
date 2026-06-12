@@ -5,6 +5,9 @@ $enviado = false;
 $error   = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (empty($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'])) {
+        die("Error: Token CSRF no válido o expirado.");
+    }
     $asunto      = trim($_POST['asunto'] ?? '');
     $descripcion = trim($_POST['descripcion'] ?? '');
 
@@ -213,6 +216,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <?php if (!$enviado): ?>
                 <form method="POST" action="">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                     <div class="form-group">
                         <label for="asunto">Asunto</label>
                         <input type="text" id="asunto" name="asunto" placeholder="Escribe el asunto de tu mensaje" required value="<?= htmlspecialchars($_POST['asunto'] ?? '') ?>">

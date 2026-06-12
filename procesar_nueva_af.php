@@ -6,6 +6,11 @@ require_once 'includes/moodle_api.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') exit();
 
+$csrf_token = $_POST['csrf_token'] ?? '';
+if (!isset($_SESSION['csrf_token']) || empty($csrf_token) || !hash_equals($_SESSION['csrf_token'], $csrf_token)) {
+    die("Error de seguridad: Token CSRF no válido o expirado.");
+}
+
 $titulo = $_POST['titulo'] ?? '';
 $abreviatura = $_POST['abreviatura'] ?? '';
 $num_accion = $_POST['num_accion'] ?? '';

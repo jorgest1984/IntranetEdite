@@ -68,6 +68,9 @@ if (!headers_sent()) {
     header("X-Content-Type-Options: nosniff");
     header("X-XSS-Protection: 1; mode=block");
     header("Referrer-Policy: strict-origin-when-cross-origin");
+    header("Strict-Transport-Security: max-age=31536000; includeSubDomains; preload");
+    header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://api.qrserver.com; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none';");
+    header("Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=()");
 }
 
 // Inicializar Manejador de Sesiones en Base de Datos (debe hacerse ANTES de session_start)
@@ -99,6 +102,41 @@ if (session_status() === PHP_SESSION_NONE) {
     
     session_set_save_handler(new SessionHandlerDB($pdo), true);
     session_start();
+
+    // Vinculación de huella de sesión para evitar secuestro de sesión (Hijacking)
+    if (isset($_SESSION['user_id'])) {
+        $client_ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+        if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            $client_ip = trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0]);
+        } elseif (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+            $client_ip = $_SERVER['HTTP_CLIENT_IP'];
+        }
+        $client_ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
+
+        // Migración retroactiva para sesiones activas que no tengan guardada la huella
+        if (!isset($_SESSION['created_ip'])) {
+            $_SESSION['created_ip'] = $client_ip;
+        }
+        if (!isset($_SESSION['created_ua'])) {
+            $_SESSION['created_ua'] = $client_ua;
+        }
+
+        // Validar si la IP o el User-Agent han cambiado
+        if ($_SESSION['created_ip'] !== $client_ip || $_SESSION['created_ua'] !== $client_ua) {
+            session_unset();
+            session_destroy();
+            header("Location: index.php?timeout=2");
+            exit();
+        }
+
+        // Regeneración periódica de ID de sesión (cada 15 minutos - 900s)
+        if (!isset($_SESSION['session_created'])) {
+            $_SESSION['session_created'] = time();
+        } elseif (time() - $_SESSION['session_created'] > 900) {
+            session_regenerate_id(true);
+            $_SESSION['session_created'] = time();
+        }
+    }
 }
 
 // Inicializar token CSRF global para protección en formularios

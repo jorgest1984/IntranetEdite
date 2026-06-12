@@ -375,7 +375,7 @@ try {
 <script>
 function confirmDelete(id) {
     if (confirm('¿Estás seguro de que deseas eliminar esta acción formativa? Esta acción no se puede deshacer.')) {
-        window.location.href = 'borrar_asignatura.php?id=' + id;
+        window.location.href = 'borrar_asignatura.php?id=' + id + '&csrf_token=<?= urlencode($_SESSION['csrf_token'] ?? '') ?>';
     }
 }
 </script>

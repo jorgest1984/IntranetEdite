@@ -16,22 +16,27 @@ $error = '';
 
 // Procesar actualización
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $fields = ['duracion', 'modalidad', 'prioridad', 'estado', 'objetivos', 'contenidos', 'notas_gestion'];
-    $data = [];
-    $sql = "UPDATE acciones_formativas SET ";
-    $sets = [];
-    foreach ($fields as $f) {
-        $sets[] = "$f = ?";
-        $data[] = $_POST[$f] ?? '';
+    $csrf_token = $_POST['csrf_token'] ?? '';
+    if (!isset($_SESSION['csrf_token']) || empty($csrf_token) || !hash_equals($_SESSION['csrf_token'], $csrf_token)) {
+        $error = "Error de seguridad (CSRF). Por favor, refresque la página e inténtelo de nuevo.";
+    } else {
+        $fields = ['duracion', 'modalidad', 'prioridad', 'estado', 'objetivos', 'contenidos', 'notas_gestion'];
+        $data = [];
+        $sql = "UPDATE acciones_formativas SET ";
+        $sets = [];
+        foreach ($fields as $f) {
+            $sets[] = "$f = ?";
+            $data[] = $_POST[$f] ?? '';
+        }
+        $data[] = $id;
+        $sql .= implode(", ", $sets) . " WHERE id = ?";
+        
+        try {
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($data);
+            $success = "Parámetros actualizados con éxito.";
+        } catch (Exception $e) { $error = $e->getMessage(); }
     }
-    $data[] = $id;
-    $sql .= implode(", ", $sets) . " WHERE id = ?";
-    
-    try {
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($data);
-        $success = "Parámetros actualizados con éxito.";
-    } catch (Exception $e) { $error = $e->getMessage(); }
 }
 
 // Obtener datos actuales
@@ -81,6 +86,7 @@ if (!$af) die("No se encontró la Acción Formativa");
             <?php endif; ?>
 
             <form method="POST">
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                 <div class="form-grid">
                     <div class="form-group">
                         <label>Duración (Horas)</label>

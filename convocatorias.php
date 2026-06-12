@@ -12,7 +12,11 @@ $error = '';
 $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
-    if ($_POST['action'] == 'create') {
+    $csrf_token = $_POST['csrf_token'] ?? '';
+    if (!isset($_SESSION['csrf_token']) || empty($csrf_token) || !hash_equals($_SESSION['csrf_token'], $csrf_token)) {
+        $error = "Error de seguridad (CSRF). Por favor, refresque la página e inténtelo de nuevo.";
+    } else {
+        if ($_POST['action'] == 'create') {
         $codigo = trim($_POST['codigo_expediente'] ?? '');
         $nombre = trim($_POST['nombre'] ?? '');
         $tipo = $_POST['tipo'] ?? '';
@@ -67,6 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             } else {
                 $error = "Error en la subida del archivo: Código " . $file['error'];
             }
+        }
         }
     }
 }
@@ -347,6 +352,7 @@ $total_alumnos = array_sum(array_column($list, 'total_alumnos'));
         <div id="formNueva" class="form-new-card">
             <h3 style="margin-top: 0; color: #1e3a8a; font-weight: 800; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 20px;">Registrar Nueva Convocatoria</h3>
             <form action="" method="POST" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                 <input type="hidden" name="action" value="create">
                 
                 <!-- Convocatoria -->
@@ -534,7 +540,7 @@ $total_alumnos = array_sum(array_column($list, 'total_alumnos'));
                             <a href="planes.php?convocatoria_id=<?= $c['id'] ?>" class="btn-icon" title="Ver Planes" style="color: #3b82f6;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></a>
                             <a href="planes.php?convocatoria_id=<?= $c['id'] ?>&new=1" class="btn-icon" title="Añadir Plan" style="color: #10b981;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></a>
                             <?php if (has_permission([ROLE_ADMIN])): ?>
-                                 <a href="borrar_convocatoria.php?id=<?= $c['id'] ?>" 
+                                 <a href="borrar_convocatoria.php?id=<?= $c['id'] ?>&csrf_token=<?= urlencode($_SESSION['csrf_token'] ?? '') ?>" 
                                     class="btn-icon" 
                                     title="Eliminar Convocatoria" 
                                     style="color: #ef4444;"
@@ -559,6 +565,7 @@ $total_alumnos = array_sum(array_column($list, 'total_alumnos'));
             <button onclick="cerrarModalZip()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b;">&times;</button>
         </div>
         <form action="" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 18px;">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
             <input type="hidden" name="action" value="upload_zip">
             <input type="hidden" name="convocatoria_zip_id" id="convocatoria_zip_id" value="">
             

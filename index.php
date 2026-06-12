@@ -140,6 +140,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                             $_SESSION['nombre_completo'] = $user['nombre'] . ' ' . trim($apellidos);
                             $_SESSION['rol_id']          = $user['rol_id'];
                             $_SESSION['rol_nombre']      = $user['rol_nombre'];
+                            
+                            // Guardar huella de sesión para evitar secuestro (Hijacking)
+                            $_SESSION['created_ip']      = $ip_address;
+                            $_SESSION['created_ua']      = $_SERVER['HTTP_USER_AGENT'] ?? '';
+                            $_SESSION['session_created'] = time();
 
                             $pdo->prepare("UPDATE usuarios SET ultimo_acceso = NOW() WHERE id = ?")->execute([$user['id']]);
 
@@ -397,7 +402,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
         
         <?php if (isset($_GET['timeout'])) { ?>
             <div class="alert alert-info">
-                La sesión ha expirado por inactividad. Por favor, vuelva a identificarse.
+                <?php if ($_GET['timeout'] == '2') { ?>
+                    Acceso cerrado por seguridad (cambio de red o navegador detectado). Por favor, vuelva a identificarse.
+                <?php } else { ?>
+                    La sesión ha expirado por inactividad. Por favor, vuelva a identificarse.
+                <?php } ?>
             </div>
         <?php } ?>
         

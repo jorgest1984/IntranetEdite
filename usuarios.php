@@ -14,30 +14,40 @@ $error = '';
 
 // Procesar formularios
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
-    // Crear Usuario
-    if ($_POST['action'] == 'create') {
-        $username = trim($_POST['username']);
-        $password = $_POST['password'];
-        $nombre = trim($_POST['nombre']);
-        $apellidos = trim($_POST['apellidos']);
-        $email = trim($_POST['email']);
-        $rol_id = intval($_POST['rol_id']);
-        
-        if (empty($username) || empty($password) || empty($nombre) || empty($email)) {
-            $error = "Faltan campos obligatorios.";
-        } else {
-            try {
-                $password_hash = password_hash($password, PASSWORD_BCRYPT);
-                $stmt = $pdo->prepare("INSERT INTO usuarios (username, password_hash, nombre, apellidos, email, rol_id) VALUES (?, ?, ?, ?, ?, ?)");
-                $stmt->execute([$username, $password_hash, $nombre, $apellidos, $email, $rol_id]);
-                
-                audit_log($pdo, 'USUARIO_CREADO', 'usuarios', $pdo->lastInsertId(), null, ['username' => $username, 'rol' => $rol_id]);
-                $success = "Usuario '$username' creado correctamente.";
-            } catch (PDOException $e) {
-                $error = "Error: El nombre de usuario o email ya existe.";
+    $csrf_token = $_POST['csrf_token'] ?? '';
+    if (!isset($_SESSION['csrf_token']) || empty($csrf_token) || !hash_equals($_SESSION['csrf_token'], $csrf_token)) {
+        $error = "Error de seguridad (CSRF). Por favor, refresque la página e inténtelo de nuevo.";
+    } else {
+        // Crear Usuario
+        if ($_POST['action'] == 'create') {
+            $username = trim($_POST['username']);
+            $password = $_POST['password'];
+            $nombre = trim($_POST['nombre']);
+            $apellidos = trim($_POST['apellidos']);
+            $email = trim($_POST['email']);
+            $rol_id = intval($_POST['rol_id']);
+            
+            if (empty($username) || empty($password) || empty($nombre) || empty($email)) {
+                $error = "Faltan campos obligatorios.";
+            } else {
+                // Validar complejidad de contraseña (ISO 27001)
+                $complexity = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{12,}$/';
+                if (!preg_match($complexity, $password)) {
+                    $error = "La contraseña provisional debe tener al menos 12 caracteres e incluir al menos una letra mayúscula, una letra minúscula, un número y un carácter especial (@, $, !, %, *, ?, &, #).";
+                } else {
+                    try {
+                        $password_hash = password_hash($password, PASSWORD_BCRYPT);
+                        $stmt = $pdo->prepare("INSERT INTO usuarios (username, password_hash, nombre, apellidos, email, rol_id) VALUES (?, ?, ?, ?, ?, ?)");
+                        $stmt->execute([$username, $password_hash, $nombre, $apellidos, $email, $rol_id]);
+                        
+                        audit_log($pdo, 'USUARIO_CREADO', 'usuarios', $pdo->lastInsertId(), null, ['username' => $username, 'rol' => $rol_id]);
+                        $success = "Usuario '$username' creado correctamente.";
+                    } catch (PDOException $e) {
+                        $error = "Error: El nombre de usuario o email ya existe.";
+                    }
+                }
             }
         }
-    }
     
     // Cambiar Estado (Activo/Inactivo)
     if ($_POST['action'] == 'toggle_status') {
@@ -101,10 +111,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                 } else {
                     $error = "Error al eliminar el usuario: " . $e->getMessage();
                 }
+                    }
+                }
             }
         }
     }
-}
 
 // Listado de usuarios
 $stmt = $pdo->query("SELECT u.*, r.nombre as rol_nombre 
@@ -832,6 +843,7 @@ $roles = $pdo->query("SELECT * FROM roles WHERE id != " . ROLE_LECTURA . " ORDER
                                     Perfil
                                 </a>
                                 <form method="POST" style="margin: 0;" onsubmit="return confirm('¿Seguro que desea cambiar el estado de este usuario?');">
+                                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                                     <input type="hidden" name="action" value="toggle_status">
                                     <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
                                     <input type="hidden" name="status" value="<?= $u['activo'] ? '0' : '1' ?>">
@@ -850,6 +862,7 @@ $roles = $pdo->query("SELECT * FROM roles WHERE id != " . ROLE_LECTURA . " ORDER
                                 </form>
                                 <?php if ($u['id'] != $_SESSION['user_id']): ?>
                                     <form method="POST" style="margin: 0;" onsubmit="return confirm('¿Seguro que desea eliminar de forma permanente a este usuario? Esta acción no se puede deshacer.');">
+                                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                                         <input type="hidden" name="action" value="delete">
                                         <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
                                         <button type="submit" class="btn-action-premium delete-btn">
@@ -885,6 +898,7 @@ $roles = $pdo->query("SELECT * FROM roles WHERE id != " . ROLE_LECTURA . " ORDER
         </div>
         <div class="modal-body">
             <form method="POST" autocomplete="off">
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                 <input type="hidden" name="action" value="create">
                 
                 <div class="premium-field">

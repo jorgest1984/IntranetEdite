@@ -6,6 +6,10 @@ if (!has_permission([ROLE_ADMIN])) {
     die("No tiene permisos para eliminar acciones formativas.");
 }
 
+if (empty($_GET['csrf_token']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_GET['csrf_token'])) {
+    die("Error: Token CSRF no válido o expirado.");
+}
+
 $id = $_GET['id'] ?? null;
 
 if (!$id) {

@@ -8,6 +8,10 @@ if (!has_permission([ROLE_ADMIN])) {
     die("No tiene permisos para eliminar convocatorias.");
 }
 
+if (empty($_GET['csrf_token']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_GET['csrf_token'])) {
+    die("Error: Token CSRF no válido o expirado.");
+}
+
 $id = (int)($_GET['id'] ?? 0);
 
 if (!$id) {

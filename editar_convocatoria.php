@@ -33,7 +33,11 @@ $error = '';
 
 // Procesar Guardar
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'update') {
-    try {
+    $csrf_token = $_POST['csrf_token'] ?? '';
+    if (!isset($_SESSION['csrf_token']) || empty($csrf_token) || !hash_equals($_SESSION['csrf_token'], $csrf_token)) {
+        $error = "Error de seguridad (CSRF). Por favor, refresque la página e inténtelo de nuevo.";
+    } else {
+        try {
         $sql = "UPDATE convocatorias SET 
                 nombre = ?, abreviatura = ?, anio = ?, 
                 fecha_inicio_prevista = ?, fecha_fin_prevista = ?, 
@@ -57,8 +61,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         // Recargar datos
         $stmt->execute([$id]);
         $convocatoria = $stmt->fetch();
-    } catch (Exception $e) {
-        $error = "Error al actualizar: " . $e->getMessage();
+        } catch (Exception $e) {
+            $error = "Error al actualizar: " . $e->getMessage();
+        }
     }
 }
 ?>
@@ -159,6 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             </div>
 
             <form method="POST">
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                 <input type="hidden" name="action" value="update">
                 
                 <div id="datos" class="tab-pane active">

@@ -92,6 +92,12 @@ $provincias = ["Álava", "Albacete", "Alicante", "Almería", "Asturias", "Ávila
 
 $active_tab = $_GET['tab'] ?? 'personales';
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (empty($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'])) {
+        die("Error: Token CSRF no válido o expirado.");
+    }
+}
+
 // Acción: Sincronización Inteligente Moodle
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'moodle_update') {
     try {
@@ -402,12 +408,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             </div>
             <div style="display: flex; gap: 1rem; align-items: center;">
                 <form method="POST" style="margin:0;">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                     <input type="hidden" name="action" value="moodle_update">
                     <button type="submit" class="btn btn-primary" style="background: #0284c7; color:white; border:none; padding: 10px 20px; border-radius:8px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
                         🔄 Sincronizar Moodle
                     </button>
                 </form>
                 <form method="POST" style="margin:0;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar permanentemente a este alumno? Se archivará en la Papelera con todos sus documentos e inscripciones asociadas.');">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                     <input type="hidden" name="action" value="delete_alumno">
                     <button type="submit" style="background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">
                         🗑️ Eliminar Alumno
@@ -433,6 +441,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             <!-- TAB: Personales -->
             <div id="tab-personales" style="<?= $active_tab == 'personales' ? '' : 'display:none;' ?>">
                 <form method="POST" id="editForm">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                     <input type="hidden" name="action" value="update_personales">
                     
                     <!-- SECCIÓN 1: DATOS PERSONALES -->
@@ -796,6 +805,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                                 <td style="padding: 10px; font-size: 0.85rem; color: var(--text-muted);"><?= $mat['fecha_matricula'] ? date('d/m/Y', strtotime($mat['fecha_matricula'])) : 'N/A' ?></td>
                                                 <td style="padding: 10px; text-align: center;">
                                                     <form method="POST" style="display: inline; margin: 0;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta inscripción?');">
+                                                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                                                         <input type="hidden" name="action" value="delete_inscripcion">
                                                         <input type="hidden" name="matricula_id" value="<?= $mat['id'] ?>">
                                                         <button type="submit" style="background: none; border: none; cursor: pointer; color: #dc2626; padding: 4px; display: inline-flex; align-items: center; transition: opacity 0.2s;" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1" title="Eliminar inscripción">
@@ -820,6 +830,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                             </h3>
                             
                             <form method="POST">
+                                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                                 <input type="hidden" name="action" value="add_inscripcion">
                                 
                                 <div style="margin-bottom: 1rem;">
@@ -1012,6 +1023,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                             </h3>
                             
                             <form action="subir_documento.php" method="POST" enctype="multipart/form-data">
+                                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                                 <input type="hidden" name="alumno_id" value="<?= $id ?>">
                                 
                                 <div style="margin-bottom: 1.2rem;">
