@@ -68,6 +68,10 @@ if ($id) {
         // Fetch Moodle Tracking Stats
         $stmtSeguimiento = $pdo->prepare("SELECT a.id as alumno_id, a.nombre, a.primer_apellido, a.segundo_apellido, a.dni, a.email, a.moodle_user_id, 
                                             m.moodle_first_access, m.moodle_last_access, m.moodle_connected_time, m.moodle_progress, m.moodle_last_sync,
+                                            m.moodle_m1_completed, m.moodle_m2_completed, m.moodle_m3_completed,
+                                            m.moodle_e1_completed, m.moodle_e2_completed, m.moodle_e3_completed,
+                                            m.moodle_e1_grade, m.moodle_e2_grade, m.moodle_e3_grade,
+                                            m.moodle_final_grade, m.moodle_aptitud,
                                             g.numero_grupo, m.estado as matricula_estado
                                           FROM matriculas m
                                           JOIN alumnos a ON m.alumno_id = a.id
@@ -609,6 +613,28 @@ try {
         }
         .spinning {
             animation: spin 1s linear infinite;
+        }
+
+        .badge-content {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            line-height: 22px;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            border: 1px solid #cbd5e1;
+        }
+        .badge-content.completed {
+            background-color: #dcfce7;
+            color: #166534;
+            border-color: #86efac;
+        }
+        .badge-content.pending {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border-color: #fca5a5;
         }
     </style>
 </head>
@@ -1558,14 +1584,29 @@ try {
 
             <?php if ($id): ?>
             <div class="tab-content" id="seguimiento-moodle" style="display: none;">
-                <div class="form-section-title">Seguimiento de Alumnos en Moodle</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <div class="form-section-title" style="margin: 0; padding: 0; border: none;">Seguimiento de Alumnos en Moodle</div>
+                    <?php
+                    $last_sync_time = '---';
+                    foreach ($alumnos_seguimiento as $al) {
+                        if ($al['moodle_last_sync']) {
+                            if ($last_sync_time == '---' || strtotime($al['moodle_last_sync']) > strtotime($last_sync_time)) {
+                                $last_sync_time = date('d/m/Y H:i:s', strtotime($al['moodle_last_sync']));
+                            }
+                        }
+                    }
+                    ?>
+                    <span style="font-size: 0.8rem; color: #64748b; font-weight: 600; background: #e2e8f0; padding: 4px 12px; border-radius: 4px;">
+                        Última Sincronización: <strong><?= $last_sync_time ?></strong>
+                    </span>
+                </div>
 
                 <?php if ($moodle_connected): ?>
                     <div class="moodle-status-banner success">
                         <div class="status-icon">✓</div>
                         <div class="status-info">
                             <strong>Conexión Moodle Activa</strong>
-                            <span>El sistema está conectado a la base de datos de Moodle. Los tiempos se calculan a partir de los registros de acceso oficiales.</span>
+                            <span>El sistema está conectado a la base de datos de Moodle. Los tiempos y calificaciones se calculan a partir de la plataforma oficial.</span>
                         </div>
                     </div>
                 <?php else: ?>
@@ -1573,7 +1614,7 @@ try {
                         <div class="status-icon">⚠️</div>
                         <div class="status-info">
                             <strong>Modo Simulación Activo</strong>
-                            <span>No se pudo conectar a la base de datos de Moodle (<?= htmlspecialchars($moodle_error) ?>). Mostrando datos de seguimiento simulados para pruebas.</span>
+                            <span>No se pudo conectar a la base de datos de Moodle (<?= htmlspecialchars($moodle_error) ?>). Mostrando datos de seguimiento simulados para demostración.</span>
                         </div>
                     </div>
                 <?php endif; ?>
@@ -1583,17 +1624,13 @@ try {
                 $total_alumnos = count($alumnos_seguimiento);
                 $suma_progreso = 0;
                 $suma_tiempo = 0;
-                $sincronizados = 0;
-                $last_sync_time = '---';
+                $aptos_count = 0;
 
                 foreach ($alumnos_seguimiento as $al) {
                     $suma_progreso += (int)$al['moodle_progress'];
                     $suma_tiempo += (int)$al['moodle_connected_time'];
-                    if ($al['moodle_last_sync']) {
-                        $sincronizados++;
-                        if ($last_sync_time == '---' || strtotime($al['moodle_last_sync']) > strtotime($last_sync_time)) {
-                            $last_sync_time = date('d/m/Y H:i:s', strtotime($al['moodle_last_sync']));
-                        }
+                    if ($al['moodle_aptitud'] === 'APTO') {
+                        $aptos_count++;
                     }
                 }
 
@@ -1619,7 +1656,7 @@ try {
                         </div>
                         <div class="stat-card-info">
                             <span class="stat-card-value"><?= $avg_progreso ?>%</span>
-                            <span class="stat-card-label">Progreso Promedio</span>
+                            <span class="stat-card-label">Progreso Promedio (% Curso)</span>
                         </div>
                     </div>
 
@@ -1635,17 +1672,17 @@ try {
 
                     <div class="stat-card-seguimiento">
                         <div class="stat-card-icon-wrapper bg-red-corp">
-                            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
                         </div>
                         <div class="stat-card-info">
-                            <span class="stat-card-value" style="font-size: 0.95rem; white-space: nowrap; padding-top: 0.4rem; font-weight: 800;"><?= $last_sync_time ?></span>
-                            <span class="stat-card-label">Última Sincronización</span>
+                            <span class="stat-card-value"><?= $aptos_count ?> / <?= $total_alumnos ?></span>
+                            <span class="stat-card-label">Alumnos Aptos</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Tabla de Alumnos -->
-                <div style="overflow-x: auto; margin-top: 1.5rem;">
+                <div style="overflow-x: auto; margin-top: 1.5rem; border-radius: 8px;">
                     <table class="table-seguimiento-moodle">
                         <thead>
                             <tr>
@@ -1653,17 +1690,20 @@ try {
                                 <th>DNI</th>
                                 <th>Grupo</th>
                                 <th style="text-align: center;">Moodle ID</th>
-                                <th>Primer Acceso</th>
-                                <th>Último Acceso</th>
-                                <th style="text-align: center;">Tiempo Conexión</th>
-                                <th>Progreso</th>
-                                <th style="text-align: center;">Estado</th>
+                                <th>Accesos</th>
+                                <th style="text-align: center;">Horas Moodle</th>
+                                <th>% Curso</th>
+                                <th style="text-align: center;">Visualización</th>
+                                <th>Evaluaciones</th>
+                                <th>Controles %</th>
+                                <th style="text-align: center;">Nota Media</th>
+                                <th style="text-align: center;">Aptitud</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php if (empty($alumnos_seguimiento)): ?>
                                 <tr>
-                                    <td colspan="9" style="text-align:center; padding: 30px; color: #64748b;">
+                                    <td colspan="12" style="text-align:center; padding: 30px; color: #64748b;">
                                         No hay alumnos matriculados en los grupos vinculados a esta acción formativa.
                                     </td>
                                 </tr>
@@ -1674,26 +1714,36 @@ try {
                                     $iniciales = strtoupper(substr($al['nombre'], 0, 1) . substr($al['primer_apellido'], 0, 1));
                                     $avatar_class = $avatars[$idx % count($avatars)];
                                     
+                                    // % Curso color
                                     $p_color = '#ef4444'; // Red
                                     if ($al['moodle_progress'] >= 80) $p_color = '#10b981'; // Green
                                     elseif ($al['moodle_progress'] >= 40) $p_color = '#f59e0b'; // Amber
+
+                                    // Controles %
+                                    $evals_done = ($al['moodle_e1_completed'] ? 1 : 0) + ($al['moodle_e2_completed'] ? 1 : 0) + ($al['moodle_e3_completed'] ? 1 : 0);
+                                    $controles_pct = round(($evals_done / 3) * 100);
+                                    $c_color = '#ef4444';
+                                    if ($controles_pct >= 100) $c_color = '#10b981';
+                                    elseif ($controles_pct >= 33) $c_color = '#f59e0b';
                                 ?>
                                     <tr>
                                         <td>
                                             <div class="alumno-cell">
                                                 <div class="alumno-avatar <?= $avatar_class ?>"><?= $iniciales ?></div>
                                                 <div class="alumno-info">
-                                                    <span class="alumno-nombre"><?= htmlspecialchars($al['nombre'] . ' ' . $al['primer_apellido'] . ($al['segundo_apellido'] ? ' ' . $al['segundo_apellido'] : '')) ?></span>
+                                                    <span class="alumno-nombre" style="white-space: nowrap;"><?= htmlspecialchars($al['nombre'] . ' ' . $al['primer_apellido'] . ($al['segundo_apellido'] ? ' ' . $al['segundo_apellido'] : '')) ?></span>
                                                     <span class="alumno-email"><?= htmlspecialchars($al['email']) ?></span>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td style="font-family: monospace; font-weight: 600;"><?= htmlspecialchars($al['dni']) ?></td>
+                                        <td style="font-family: monospace; font-weight: 600; white-space: nowrap;"><?= htmlspecialchars($al['dni']) ?></td>
                                         <td style="font-weight: 700; color: #1e3a8a;">G<?= htmlspecialchars($al['numero_grupo']) ?></td>
                                         <td style="text-align: center; font-family: monospace; font-weight: 600;"><?= $al['moodle_user_id'] ?: '---' ?></td>
-                                        <td><?= $al['moodle_first_access'] ? date('d/m/Y H:i', strtotime($al['moodle_first_access'])) : '---' ?></td>
-                                        <td><?= $al['moodle_last_access'] ? date('d/m/Y H:i', strtotime($al['moodle_last_access'])) : '---' ?></td>
-                                        <td style="text-align: center; font-weight: 700; color: #1e293b;"><?= format_connected_time($al['moodle_connected_time']) ?></td>
+                                        <td style="font-size: 0.75rem; white-space: nowrap; line-height: 1.4;">
+                                            Prim: <?= $al['moodle_first_access'] ? date('d/m H:i', strtotime($al['moodle_first_access'])) : '---' ?><br>
+                                            Últ: <?= $al['moodle_last_access'] ? date('d/m H:i', strtotime($al['moodle_last_access'])) : '---' ?>
+                                        </td>
+                                        <td style="text-align: center; font-weight: 700; color: #1e293b; white-space: nowrap;"><?= format_connected_time($al['moodle_connected_time']) ?></td>
                                         <td>
                                             <div class="progress-container">
                                                 <div class="progress-bar-wrapper">
@@ -1702,17 +1752,42 @@ try {
                                                 <span class="progress-text"><?= (int)$al['moodle_progress'] ?>%</span>
                                             </div>
                                         </td>
-                                        <td style="text-align: center;">
-                                            <?php if ($al['moodle_last_sync']): ?>
-                                                <span class="badge-sync success">
-                                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"></path></svg>
-                                                    Sincronizado
-                                                </span>
-                                            <?php else: ?>
-                                                <span class="badge-sync pending">
-                                                    Pendiente
-                                                </span>
-                                            <?php endif; ?>
+                                        <td style="text-align: center; vertical-align: middle;">
+                                            <div style="display: flex; gap: 4px; justify-content: center; align-items: center; min-height: 24px;">
+                                                <span class="badge-content <?= $al['moodle_m1_completed'] ? 'completed' : 'pending' ?>" title="Visualización M1 (Módulo 1 / Tema 1)">M1</span>
+                                                <span class="badge-content <?= $al['moodle_m2_completed'] ? 'completed' : 'pending' ?>" title="Visualización M2 (Módulo 2 / Tema 2)">M2</span>
+                                                <span class="badge-content <?= $al['moodle_m3_completed'] ? 'completed' : 'pending' ?>" title="Visualización M3 (Módulo 3 / Tema 3)">M3</span>
+                                            </div>
+                                        </td>
+                                        <td style="font-size: 0.75rem; white-space: nowrap; line-height: 1.4; color: #475569;">
+                                            E1: <strong><?= $al['moodle_e1_completed'] && $al['moodle_e1_grade'] !== null ? number_format($al['moodle_e1_grade'], 1) : '---' ?></strong><br>
+                                            E2: <strong><?= $al['moodle_e2_completed'] && $al['moodle_e2_grade'] !== null ? number_format($al['moodle_e2_grade'], 1) : '---' ?></strong><br>
+                                            E3: <strong><?= $al['moodle_e3_completed'] && $al['moodle_e3_grade'] !== null ? number_format($al['moodle_e3_grade'], 1) : '---' ?></strong>
+                                        </td>
+                                        <td>
+                                            <div class="progress-container">
+                                                <div class="progress-bar-wrapper">
+                                                    <div class="progress-bar-fill" style="width: <?= $controles_pct ?>%; background-color: <?= $c_color ?>;"></div>
+                                                </div>
+                                                <span class="progress-text"><?= $controles_pct ?>%</span>
+                                            </div>
+                                        </td>
+                                        <td style="text-align: center; font-size: 0.95rem; font-weight: 800; color: #1e293b;">
+                                            <?= ($al['moodle_final_grade'] !== null) ? number_format($al['moodle_final_grade'], 2) : '---' ?>
+                                        </td>
+                                        <td style="text-align: center; white-space: nowrap;">
+                                            <?php 
+                                            $apt = $al['moodle_aptitud'] ?: 'PENDIENTE';
+                                            $apt_style = 'background-color: #f3f4f6; color: #4b5563; border: 1px solid #d1d5db;'; // PENDIENTE default
+                                            if ($apt === 'APTO') {
+                                                $apt_style = 'background-color: #dcfce7; color: #15803d; border: 1px solid #86efac;';
+                                            } elseif ($apt === 'NO APTO') {
+                                                $apt_style = 'background-color: #fee2e2; color: #991b1b; border: 1px solid #fca5a5;';
+                                            }
+                                            ?>
+                                            <span class="badge-sync" style="<?= $apt_style ?> font-weight: 700; text-transform: uppercase;">
+                                                <?= $apt ?>
+                                            </span>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -1731,7 +1806,7 @@ try {
                     </button>
                     <div id="sync-status-msg" class="sync-status-text">
                         <?php if (isset($_GET['sync_success'])): ?>
-                            <span style="color:#166534;">✓ ¡Sincronización finalizada correctamente!</span>
+                            <span style="color:#166534;">✓ ¡Sincronización de tiempos y calificaciones finalizada correctamente!</span>
                         <?php endif; ?>
                     </div>
                 </div>

@@ -26,7 +26,7 @@ if (!$af_id) {
 }
 
 try {
-    // 3. Obtener la Acción Formativa y su correspondiente id_plataforma (ID del curso en Moodle)
+    // 3. Obtener la Acción Formativa, su correspondiente id_plataforma (ID del curso en Moodle) y la duración en horas
     $stmt = $pdo->prepare("SELECT af.*, c.moodle_id as curso_moodle_id 
                            FROM acciones_formativas af 
                            JOIN cursos c ON af.curso_id = c.id 
@@ -41,7 +41,6 @@ try {
 
     $courseMoodleId = (int)$af['curso_moodle_id'];
     if (!$courseMoodleId) {
-        // Fallback al campo id_plataforma heredado
         $courseMoodleId = (int)$af['id_plataforma'];
     }
 
@@ -77,7 +76,6 @@ try {
     $matriculaMap = [];
     foreach ($alumnos as $al) {
         $moodleUserIds[] = (int)$al['moodle_user_id'];
-        // Si hay duplicidades extrañas, nos quedamos con el último registro
         $matriculaMap[(int)$al['moodle_user_id']] = (int)$al['matricula_id'];
     }
 
@@ -92,18 +90,48 @@ try {
                                     moodle_last_access = ?, 
                                     moodle_connected_time = ?, 
                                     moodle_progress = ?, 
+                                    moodle_m1_completed = ?,
+                                    moodle_m2_completed = ?,
+                                    moodle_m3_completed = ?,
+                                    moodle_e1_completed = ?,
+                                    moodle_e2_completed = ?,
+                                    moodle_e3_completed = ?,
+                                    moodle_e1_grade = ?,
+                                    moodle_e2_grade = ?,
+                                    moodle_e3_grade = ?,
+                                    moodle_final_grade = ?,
+                                    moodle_aptitud = ?,
                                     moodle_last_sync = NOW() 
                                  WHERE id = ?");
 
     $updatedCount = 0;
+    $courseDuration = (int)$af['duracion'] > 0 ? (int)$af['duracion'] : 60; // Duración en horas (default 60)
+
     foreach ($stats as $moodleUserId => $data) {
         if (isset($matriculaMap[$moodleUserId])) {
             $matriculaId = $matriculaMap[$moodleUserId];
+            
+            // Calcular % curso basándose en la duración de la intranet
+            $connectedSeconds = (int)$data['connected_seconds'];
+            $connectedHours = $connectedSeconds / 3600;
+            $progressPercent = min(100, max(0, round(($connectedHours / $courseDuration) * 100)));
+
             $updateStmt->execute([
                 $data['first_access'],
                 $data['last_access'],
-                $data['connected_seconds'],
-                $data['progress'],
+                $connectedSeconds,
+                $progressPercent,
+                (int)$data['m1_completed'],
+                (int)$data['m2_completed'],
+                (int)$data['m3_completed'],
+                (int)$data['e1_completed'],
+                (int)$data['e2_completed'],
+                (int)$data['e3_completed'],
+                $data['e1_grade'],
+                $data['e2_grade'],
+                $data['e3_grade'],
+                $data['final_grade'],
+                $data['aptitud'],
                 $matriculaId
             ]);
             $updatedCount++;

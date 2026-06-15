@@ -7,7 +7,6 @@ class MoodleDB {
     private $error = '';
 
     public function __construct() {
-        // Verificar que las constantes están definidas
         if (!defined('MOODLE_DB_HOST') || !defined('MOODLE_DB_NAME') || !defined('MOODLE_DB_USER')) {
             $this->error = 'Constantes de base de datos de Moodle no definidas.';
             return;
@@ -22,11 +21,10 @@ class MoodleDB {
 
             $dsn = "mysql:host={$host};port={$port};dbname={$dbname};charset=utf8mb4";
             
-            // Establecer un timeout corto para no ralentizar la carga si el servidor Moodle está apagado
             $options = [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                PDO::ATTR_TIMEOUT => 3 // 3 segundos timeout
+                PDO::ATTR_TIMEOUT => 3
             ];
 
             $this->mpdo = new PDO($dsn, $user, $pass, $options);
@@ -37,38 +35,39 @@ class MoodleDB {
         }
     }
 
-    /**
-     * Retorna si se ha conectado correctamente a la base de datos de Moodle
-     */
     public function isConnected() {
         return $this->connected;
     }
 
-    /**
-     * Retorna el mensaje de error de conexión en caso de fallo
-     */
     public function getError() {
         return $this->error;
     }
 
     /**
-     * Obtiene estadísticas de conexión y progreso para un curso y lista de usuarios Moodle
-     * 
-     * @param int $moodleCourseId ID del curso en Moodle
-     * @param array $moodleUserIds Lista de IDs de usuario de Moodle
-     * @return array Estadísticas mapeadas por moodle_user_id
+     * Obtiene estadísticas de conexión, visualización de contenidos (M1-M3) y evaluaciones (E1-E3)
      */
     public function fetchStudentStats($moodleCourseId, $moodleUserIds) {
         $stats = [];
         
-        // Inicializar estructura vacía para todos los alumnos solicitados
+        // Estructura inicial por defecto
         foreach ($moodleUserIds as $uid) {
             if (empty($uid)) continue;
             $stats[$uid] = [
                 'first_access' => null,
                 'last_access' => null,
                 'connected_seconds' => 0,
-                'progress' => 0
+                'progress' => 0, // Se calculará según las horas en api_sync_moodle_times.php
+                'm1_completed' => 0,
+                'm2_completed' => 0,
+                'm3_completed' => 0,
+                'e1_completed' => 0,
+                'e2_completed' => 0,
+                'e3_completed' => 0,
+                'e1_grade' => null,
+                'e2_grade' => null,
+                'e3_grade' => null,
+                'final_grade' => null,
+                'aptitud' => 'PENDIENTE'
             ];
         }
 
@@ -76,7 +75,6 @@ class MoodleDB {
             return $stats;
         }
 
-        // Filtrar IDs no nulos y formatear para SQL IN
         $validUserIds = array_filter($moodleUserIds, function($id) {
             return !empty($id) && is_numeric($id);
         });
@@ -88,17 +86,15 @@ class MoodleDB {
         if ($this->isConnected()) {
             try {
                 $placeholders = implode(',', array_fill(0, count($validUserIds), '?'));
-                
-                // 1. Obtener primer y último acceso del logstore estándar
+                $params = array_merge([$moodleCourseId], $validUserIds);
+
+                // 1. Primer y último acceso
                 $sqlAccess = "SELECT userid, MIN(timecreated) as first_acc, MAX(timecreated) as last_acc 
                               FROM mdl_logstore_standard_log 
                               WHERE courseid = ? AND userid IN ($placeholders) 
                               GROUP BY userid";
-                              
                 $stmtAccess = $this->mpdo->prepare($sqlAccess);
-                $params = array_merge([$moodleCourseId], $validUserIds);
                 $stmtAccess->execute($params);
-                
                 while ($row = $stmtAccess->fetch()) {
                     $uid = $row['userid'];
                     if (isset($stats[$uid])) {
@@ -107,12 +103,11 @@ class MoodleDB {
                     }
                 }
 
-                // 2. Calcular tiempo total de conexión a través de intervalos de logs
+                // 2. Tiempo de conexión por logs
                 $sqlLogs = "SELECT userid, timecreated 
                             FROM mdl_logstore_standard_log 
                             WHERE courseid = ? AND userid IN ($placeholders) 
                             ORDER BY userid ASC, timecreated ASC";
-                            
                 $stmtLogs = $this->mpdo->prepare($sqlLogs);
                 $stmtLogs->execute($params);
                 
@@ -123,94 +118,237 @@ class MoodleDB {
 
                 foreach ($userLogs as $uid => $times) {
                     if (!isset($stats[$uid])) continue;
-                    
                     $totalSeconds = 0;
                     $n = count($times);
                     if ($n > 0) {
-                        $totalSeconds += 120; // 2 minutos iniciales de cortesía por iniciar sesión
+                        $totalSeconds += 120; // 2 min cortesía
                         for ($i = 1; $i < $n; $i++) {
                             $diff = $times[$i] - $times[$i-1];
-                            if ($diff < 1800) { // Menos de 30 minutos de inactividad
+                            if ($diff < 1800) {
                                 $totalSeconds += $diff;
                             } else {
-                                $totalSeconds += 120; // Nueva sesión, otros 2 minutos de cortesía
+                                $totalSeconds += 120;
                             }
                         }
                     }
                     $stats[$uid]['connected_seconds'] = $totalSeconds;
                 }
 
-                // 3. Calcular Progreso de Finalización del Curso
-                // A. Contar módulos con finalización habilitada en el curso
-                $sqlTotalModules = "SELECT COUNT(*) as total FROM mdl_course_modules WHERE course = ? AND completion > 0";
-                $stmtTotal = $this->mpdo->prepare($sqlTotalModules);
-                $stmtTotal->execute([$moodleCourseId]);
-                $totalModules = (int)($stmtTotal->fetch()['total'] ?? 0);
+                // 3. Visualización de contenidos M1, M2, M3
+                // Consultamos todos los módulos habilitados con completitud y sus nombres en Moodle
+                $sqlModules = "SELECT cm.id as coursemoduleid, cm.section, 
+                                     COALESCE(a.name, p.name, r.name, q.name, f.name, b.name, s.name, 'Actividad') as name,
+                                     cmc.userid, cmc.completionstate
+                              FROM mdl_course_modules cm
+                              JOIN mdl_modules m ON cm.module = m.id
+                              LEFT JOIN mdl_assign a ON m.name = 'assign' AND cm.instance = a.id
+                              LEFT JOIN mdl_page p ON m.name = 'page' AND cm.instance = p.id
+                              LEFT JOIN mdl_resource r ON m.name = 'resource' AND cm.instance = r.id
+                              LEFT JOIN mdl_quiz q ON m.name = 'quiz' AND cm.instance = q.id
+                              LEFT JOIN mdl_forum f ON m.name = 'forum' AND cm.instance = f.id
+                              LEFT JOIN mdl_book b ON m.name = 'book' AND cm.instance = b.id
+                              LEFT JOIN mdl_scorm s ON m.name = 'scorm' AND cm.instance = s.id
+                              LEFT JOIN mdl_course_modules_completion cmc ON cmc.coursemoduleid = cm.id
+                              WHERE cm.course = ? AND cmc.userid IN ($placeholders)";
+                
+                $stmtMod = $this->mpdo->prepare($sqlModules);
+                $stmtMod->execute($params);
+                $moduleRows = $stmtMod->fetchAll();
 
-                if ($totalModules > 0) {
-                    // B. Contar cuántos módulos ha completado cada usuario
-                    $sqlCompletedModules = "SELECT cmc.userid, COUNT(*) as completed 
-                                            FROM mdl_course_modules_completion cmc 
-                                            JOIN mdl_course_modules cm ON cmc.coursemoduleid = cm.id 
-                                            WHERE cm.course = ? AND cmc.completionstate = 1 AND cmc.userid IN ($placeholders) 
-                                            GROUP BY cmc.userid";
-                                            
-                    $stmtCompleted = $this->mpdo->prepare($sqlCompletedModules);
-                    $stmtCompleted->execute($params);
-                    
-                    while ($row = $stmtCompleted->fetch()) {
-                        $uid = $row['userid'];
-                        if (isset($stats[$uid])) {
-                            $percent = round(($row['completed'] / $totalModules) * 100);
-                            $stats[$uid]['progress'] = min(100, max(0, (int)$percent));
+                // Analizar nombres de módulos para asociar M1, M2, M3
+                foreach ($moduleRows as $row) {
+                    $uid = $row['userid'];
+                    if (!isset($stats[$uid])) continue;
+
+                    $name = mb_strtolower($row['name']);
+                    $completed = ((int)$row['completionstate'] === 1 || (int)$row['completionstate'] === 2);
+
+                    if ($completed) {
+                        // Buscar M1 o Módulo 1 o Tema 1
+                        if (strpos($name, 'm1') !== false || strpos($name, 'módulo 1') !== false || strpos($name, 'modulo 1') !== false || strpos($name, 'tema 1') !== false) {
+                            $stats[$uid]['m1_completed'] = 1;
+                        }
+                        // Buscar M2 o Módulo 2 o Tema 2
+                        elseif (strpos($name, 'm2') !== false || strpos($name, 'módulo 2') !== false || strpos($name, 'modulo 2') !== false || strpos($name, 'tema 2') !== false) {
+                            $stats[$uid]['m2_completed'] = 1;
+                        }
+                        // Buscar M3 o Módulo 3 o Tema 3
+                        elseif (strpos($name, 'm3') !== false || strpos($name, 'módulo 3') !== false || strpos($name, 'modulo 3') !== false || strpos($name, 'tema 3') !== false) {
+                            $stats[$uid]['m3_completed'] = 1;
                         }
                     }
                 }
 
-                // C. Si el curso tiene marcas de finalización general (mdl_course_completions), forzar a 100% si finalizó
-                $sqlCompletions = "SELECT userid FROM mdl_course_completions WHERE course = ? AND timecompleted > 0 AND userid IN ($placeholders)";
-                $stmtCompletions = $this->mpdo->prepare($sqlCompletions);
-                $stmtCompletions->execute($params);
-                while ($row = $stmtCompletions->fetch()) {
+                // Fallback de M1-M3: si no se encuentran explícitos por nombre, asociar por número de sección Moodle (Sección 1, 2 y 3)
+                foreach ($moduleRows as $row) {
                     $uid = $row['userid'];
-                    if (isset($stats[$uid])) {
-                        $stats[$uid]['progress'] = 100;
+                    if (!isset($stats[$uid])) continue;
+                    
+                    $completed = ((int)$row['completionstate'] === 1 || (int)$row['completionstate'] === 2);
+                    if ($completed) {
+                        if ((int)$row['section'] === 1) $stats[$uid]['m1_completed'] = 1;
+                        if ((int)$row['section'] === 2) $stats[$uid]['m2_completed'] = 1;
+                        if ((int)$row['section'] === 3) $stats[$uid]['m3_completed'] = 1;
+                    }
+                }
+
+                // 4. Evaluaciones E1, E2, E3
+                // Obtener cuestionarios de Moodle en este curso
+                $sqlQuizzes = "SELECT id, name, grade FROM mdl_quiz WHERE course = ?";
+                $stmtQuiz = $this->mpdo->prepare($sqlQuizzes);
+                $stmtQuiz->execute([$moodleCourseId]);
+                $quizzes = $stmtQuiz->fetchAll();
+
+                $quizMap = ['e1' => null, 'e2' => null, 'e3' => null];
+                $allQuizzes = [];
+
+                foreach ($quizzes as $q) {
+                    $qName = mb_strtolower($q['name']);
+                    $qInfo = ['id' => (int)$q['id'], 'max_grade' => (float)$q['grade']];
+                    $allQuizzes[] = $qInfo;
+
+                    if (strpos($qName, 'e1') !== false || strpos($qName, 'inicial') !== false || strpos($qName, 'evaluación 1') !== false) {
+                        $quizMap['e1'] = $qInfo;
+                    } elseif (strpos($qName, 'e2') !== false || strpos($qName, 'intermedia') !== false || strpos($qName, 'evaluación 2') !== false) {
+                        $quizMap['e2'] = $qInfo;
+                    } elseif (strpos($qName, 'e3') !== false || strpos($qName, 'final') !== false || strpos($qName, 'evaluación 3') !== false) {
+                        $quizMap['e3'] = $qInfo;
+                    }
+                }
+
+                // Fallback de evaluaciones por orden de aparición si no se mapearon explícitamente
+                if (!$quizMap['e1'] && isset($allQuizzes[0])) $quizMap['e1'] = $allQuizzes[0];
+                if (!$quizMap['e2'] && isset($allQuizzes[1])) $quizMap['e2'] = $allQuizzes[1];
+                if (!$quizMap['e3'] && isset($allQuizzes[2])) $quizMap['e3'] = $allQuizzes[2];
+
+                // Consultar calificaciones en los cuestionarios mapeados
+                $targetQuizIds = [];
+                $quizReverseMap = [];
+                foreach ($quizMap as $key => $qInfo) {
+                    if ($qInfo) {
+                        $targetQuizIds[] = $qInfo['id'];
+                        $quizReverseMap[$qInfo['id']] = [
+                            'key' => $key,
+                            'max_grade' => $qInfo['max_grade']
+                        ];
+                    }
+                }
+
+                if (!empty($targetQuizIds)) {
+                    $quizPlaceholders = implode(',', array_fill(0, count($targetQuizIds), '?'));
+                    $sqlGrades = "SELECT userid, quiz, grade FROM mdl_quiz_grades 
+                                  WHERE quiz IN ($quizPlaceholders) AND userid IN ($placeholders)";
+                    
+                    $stmtGrades = $this->mpdo->prepare($sqlGrades);
+                    $gradesParams = array_merge($targetQuizIds, $validUserIds);
+                    $stmtGrades->execute($gradesParams);
+
+                    while ($row = $stmtGrades->fetch()) {
+                        $uid = $row['userid'];
+                        $quizId = (int)$row['quiz'];
+                        if (isset($stats[$uid]) && isset($quizReverseMap[$quizId])) {
+                            $key = $quizReverseMap[$quizId]['key'];
+                            $maxGrad = $quizReverseMap[$quizId]['max_grade'];
+                            $rawGrade = (float)$row['grade'];
+
+                            // Escalar la nota a base 10 de forma segura
+                            $scaledGrade = ($maxGrad > 0) ? round(($rawGrade / $maxGrad) * 10, 2) : $rawGrade;
+                            $scaledGrade = min(10.0, max(0.0, $scaledGrade));
+
+                            $stats[$uid][$key . '_completed'] = 1;
+                            $stats[$uid][$key . '_grade'] = $scaledGrade;
+                        }
+                    }
+                }
+
+                // 5. Calcular Nota Media y Aptitud
+                foreach ($stats as $uid => &$student) {
+                    if ($student['e2_completed'] && $student['e3_completed']) {
+                        $media = ($student['e2_grade'] + $student['e3_grade']) / 2;
+                        $student['final_grade'] = round($media, 2);
+                        $student['aptitud'] = ($student['final_grade'] >= 5.0) ? 'APTO' : 'NO APTO';
+                    } else {
+                        $student['final_grade'] = null;
+                        $student['aptitud'] = 'PENDIENTE';
                     }
                 }
 
             } catch (Exception $e) {
-                // Si la consulta falla por diferencias de esquema, volver a modo simulación
                 $this->connected = false;
-                $this->error = "Fallo al ejecutar consultas de Moodle (Esquema no compatible): " . $e->getMessage();
+                $this->error = "Fallo al ejecutar consultas en DB Moodle: " . $e->getMessage();
             }
         }
 
-        // Si la conexión falló o se desactivó durante las consultas, aplicar Modo Simulación
+        // Modo Simulación (Fallback)
         if (!$this->connected) {
             $now = time();
             foreach ($validUserIds as $uid) {
                 if (!isset($stats[$uid])) continue;
-                
-                // Generación determinista basada en el ID del alumno
+
+                // Generación de datos simulados realistas y estables según Moodle ID
                 $connected_seconds = (($uid * 3657) % 200000) + 7200; // Entre 2h y 57h
-                $progress = (($uid * 23) % 91) + 10; // Entre 10% y 100%
                 
-                $firstDiff = (($uid * 13) % 15); // Hace entre 0 y 14 días
+                $firstDiff = (($uid * 13) % 15);
                 $first = $now - ($firstDiff * 86400) - 43200;
-                
-                $lastDiff = (($uid * 7) % 3); // Hoy o hace 1-2 días
+                $lastDiff = (($uid * 7) % 3);
                 $last = $now - ($lastDiff * 3600 * 4) - 1800;
+                if ($last < $first) $last = $first + 3600;
+
+                // Mapear casos (APTO, NO APTO, PENDIENTE) según Moodle ID
+                $case = $uid % 4;
                 
-                // Estabilizar coherencia
-                if ($last < $first) {
-                    $last = $first + 3600;
+                $m1 = 1; $m2 = 1; $m3 = 1;
+                $e1_c = 1; $e2_c = 1; $e3_c = 1;
+                $e1_g = 7.5; $e2_g = 6.0; $e3_g = 7.0;
+                $final = 6.5;
+                $apt = 'APTO';
+
+                if ($case === 1) { // Caso NO APTO
+                    $m1 = 1; $m2 = 1; $m3 = 0;
+                    $e1_c = 1; $e2_c = 1; $e3_c = 1;
+                    $e1_g = 5.0; $e2_g = 4.0; $e3_g = 4.5;
+                    $final = 4.25;
+                    $apt = 'NO APTO';
+                } elseif ($case === 2) { // Caso PENDIENTE (falta E3)
+                    $m1 = 1; $m2 = 0; $m3 = 0;
+                    $e1_c = 1; $e2_c = 1; $e3_c = 0;
+                    $e1_g = 6.5; $e2_g = 5.5; $e3_g = null;
+                    $final = null;
+                    $apt = 'PENDIENTE';
+                } elseif ($case === 3) { // Caso PENDIENTE total
+                    $m1 = 0; $m2 = 0; $m3 = 0;
+                    $e1_c = 0; $e2_c = 0; $e3_c = 0;
+                    $e1_g = null; $e2_g = null; $e3_g = null;
+                    $final = null;
+                    $apt = 'PENDIENTE';
+                }
+
+                // Deterministas finos basados en ID
+                if ($e1_g !== null) $e1_g = min(10.0, max(1.0, round($e1_g + (($uid % 5) - 2) * 0.5, 2)));
+                if ($e2_g !== null) $e2_g = min(10.0, max(1.0, round($e2_g + (($uid % 7) - 3) * 0.3, 2)));
+                if ($e3_g !== null) $e3_g = min(10.0, max(1.0, round($e3_g + (($uid % 3) - 1) * 0.4, 2)));
+                
+                if ($e2_c && $e3_c) {
+                    $final = round(($e2_g + $e3_g) / 2, 2);
+                    $apt = ($final >= 5.0) ? 'APTO' : 'NO APTO';
                 }
 
                 $stats[$uid] = [
                     'first_access' => date('Y-m-d H:i:s', $first),
                     'last_access' => date('Y-m-d H:i:s', $last),
                     'connected_seconds' => (int)$connected_seconds,
-                    'progress' => (int)$progress
+                    'progress' => 0, // Se calcula según duración curso local
+                    'm1_completed' => $m1,
+                    'm2_completed' => $m2,
+                    'm3_completed' => $m3,
+                    'e1_completed' => $e1_c,
+                    'e2_completed' => $e2_c,
+                    'e3_completed' => $e3_c,
+                    'e1_grade' => $e1_g,
+                    'e2_grade' => $e2_g,
+                    'e3_grade' => $e3_g,
+                    'final_grade' => $final,
+                    'aptitud' => $apt
                 ];
             }
         }
