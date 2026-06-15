@@ -6,6 +6,20 @@ if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA, ROLE_FORMADOR])) {
     die("No tiene permisos suficientes. Su rol actual es: " . ($_SESSION['rol_nombre'] ?? 'Desconocido'));
 }
 
+// Moodle tracking variables
+$alumnos_seguimiento = [];
+$moodle_connected = false;
+$moodle_error = '';
+
+if (!function_exists('format_connected_time')) {
+    function format_connected_time($seconds) {
+        if (empty($seconds) || $seconds <= 0) return '---';
+        $hours = floor($seconds / 3600);
+        $minutes = floor(($seconds % 3600) / 60);
+        return "{$hours}h {$minutes}m";
+    }
+}
+
 // Fetch plans for the dropdown
 $planes = [];
 try {
@@ -50,6 +64,24 @@ if ($id) {
                                     ORDER BY g.creado_en DESC");
         $stmtGrupos->execute([$id]);
         $grupos = $stmtGrupos->fetchAll();
+
+        // Fetch Moodle Tracking Stats
+        $stmtSeguimiento = $pdo->prepare("SELECT a.id as alumno_id, a.nombre, a.primer_apellido, a.segundo_apellido, a.dni, a.email, a.moodle_user_id, 
+                                            m.moodle_first_access, m.moodle_last_access, m.moodle_connected_time, m.moodle_progress, m.moodle_last_sync,
+                                            g.numero_grupo, m.estado as matricula_estado
+                                          FROM matriculas m
+                                          JOIN alumnos a ON m.alumno_id = a.id
+                                          JOIN grupos g ON m.grupo_id = g.id
+                                          WHERE g.accion_id = ?
+                                          ORDER BY a.nombre ASC, a.primer_apellido ASC");
+        $stmtSeguimiento->execute([$id]);
+        $alumnos_seguimiento = $stmtSeguimiento->fetchAll();
+
+        // Moodle DB Connection Status check
+        require_once 'includes/moodle_db.php';
+        $moodleDb = new MoodleDB();
+        $moodle_connected = $moodleDb->isConnected();
+        $moodle_error = $moodleDb->getError();
 
     } catch (Throwable $e) { }
 }
@@ -329,21 +361,254 @@ try {
             color: #334155;
         }
 
-        .btn-add-sector {
-            padding: 0.5rem 1.5rem;
-            background: #f1f5f9;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #1e3a8a;
-            transition: all 0.2s;
-        }
-
         .btn-add-sector:hover {
             background: #e2e8f0;
             border-color: #94a3b8;
+        }
+
+        /* Moodle Tracking Report Premium Styles */
+        .moodle-status-banner {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        .moodle-status-banner.success {
+            background-color: #ecfdf5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        .moodle-status-banner.warning {
+            background-color: #fffbeb;
+            color: #92400e;
+            border: 1px solid #fde68a;
+        }
+        .moodle-status-banner .status-icon {
+            font-size: 1.5rem;
+        }
+        .moodle-status-banner .status-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .moodle-status-banner .status-info strong {
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .stats-seguimiento {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card-seguimiento {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .stat-card-seguimiento:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.08);
+        }
+        .stat-card-icon-wrapper {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+        }
+        .bg-red-corp { background-color: #b91c1c; }
+        .bg-blue-corp { background-color: #1e3a8a; }
+        .bg-green-corp { background-color: #10b981; }
+        .bg-amber-corp { background-color: #f59e0b; }
+        
+        .stat-card-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .stat-card-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        .stat-card-label {
+            font-size: 0.8rem;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-top: 0.25rem;
+        }
+
+        .table-seguimiento-moodle {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            background: #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+        .table-seguimiento-moodle th {
+            background: #f8fafc;
+            color: #475569;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            border-bottom: 2px solid #e2e8f0;
+            letter-spacing: 0.05em;
+        }
+        .table-seguimiento-moodle td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #e2e8f0;
+            color: #334155;
+            vertical-align: middle;
+        }
+        .table-seguimiento-moodle tr:hover td {
+            background-color: #f8fafc;
+        }
+        
+        .alumno-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .alumno-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #fff;
+            text-shadow: 0 1px 1px rgba(0,0,0,0.1);
+        }
+        .avatar-a { background: linear-gradient(135deg, #ec4899, #f43f5e); }
+        .avatar-b { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+        .avatar-c { background: linear-gradient(135deg, #10b981, #047857); }
+        .avatar-d { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .avatar-e { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+
+        .alumno-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .alumno-nombre {
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .alumno-email {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 0.1rem;
+        }
+        
+        .progress-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 140px;
+        }
+        .progress-bar-wrapper {
+            flex-grow: 1;
+            height: 8px;
+            background-color: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease-in-out;
+        }
+        .progress-text {
+            font-weight: 600;
+            font-size: 0.8rem;
+            min-width: 32px;
+            text-align: right;
+            color: #334155;
+        }
+        
+        .badge-sync {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .badge-sync.success {
+            background-color: #dcfce7;
+            color: #15803d;
+        }
+        .badge-sync.pending {
+            background-color: #f3f4f6;
+            color: #4b5563;
+        }
+        
+        .seguimiento-actions {
+            margin-top: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: #f8fafc;
+            padding: 1.25rem 1.5rem;
+            border-radius: 8px;
+            border: 1px dashed #cbd5e1;
+        }
+        .btn-sync-moodle {
+            padding: 0.6rem 1.5rem;
+            background-color: #b91c1c;
+            color: #fff;
+            border: 1px solid #991b1b;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .btn-sync-moodle:hover:not(:disabled) {
+            background-color: #991b1b;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        .btn-sync-moodle:disabled {
+            background-color: #cbd5e1;
+            border-color: #cbd5e1;
+            color: #64748b;
+            cursor: not-allowed;
+        }
+        
+        .sync-status-text {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .spinning {
+            animation: spin 1s linear infinite;
         }
     </style>
 </head>
@@ -386,6 +651,9 @@ try {
                 <button type="button" class="tab-btn" onclick="switchTab(event, 'gestion')">Gestión</button>
                 <button type="button" class="tab-btn" onclick="switchTab(event, 'ejecucion')">Ejecución</button>
                 <button type="button" class="tab-btn" onclick="switchTab(event, 'instalacion')">Instalación</button>
+                <?php if ($id): ?>
+                    <button type="button" class="tab-btn" onclick="switchTab(event, 'seguimiento-moodle')">Seguimiento Moodle</button>
+                <?php endif; ?>
             </div>
 
             <div class="tab-content" id="datos-generales">
@@ -1287,6 +1555,188 @@ try {
                     </div>
                 </div>
             </div>
+
+            <?php if ($id): ?>
+            <div class="tab-content" id="seguimiento-moodle" style="display: none;">
+                <div class="form-section-title">Seguimiento de Alumnos en Moodle</div>
+
+                <?php if ($moodle_connected): ?>
+                    <div class="moodle-status-banner success">
+                        <div class="status-icon">✓</div>
+                        <div class="status-info">
+                            <strong>Conexión Moodle Activa</strong>
+                            <span>El sistema está conectado a la base de datos de Moodle. Los tiempos se calculan a partir de los registros de acceso oficiales.</span>
+                        </div>
+                    </div>
+                <?php else: ?>
+                    <div class="moodle-status-banner warning">
+                        <div class="status-icon">⚠️</div>
+                        <div class="status-info">
+                            <strong>Modo Simulación Activo</strong>
+                            <span>No se pudo conectar a la base de datos de Moodle (<?= htmlspecialchars($moodle_error) ?>). Mostrando datos de seguimiento simulados para pruebas.</span>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
+                <!-- Tarjetas de Estadísticas -->
+                <?php
+                $total_alumnos = count($alumnos_seguimiento);
+                $suma_progreso = 0;
+                $suma_tiempo = 0;
+                $sincronizados = 0;
+                $last_sync_time = '---';
+
+                foreach ($alumnos_seguimiento as $al) {
+                    $suma_progreso += (int)$al['moodle_progress'];
+                    $suma_tiempo += (int)$al['moodle_connected_time'];
+                    if ($al['moodle_last_sync']) {
+                        $sincronizados++;
+                        if ($last_sync_time == '---' || strtotime($al['moodle_last_sync']) > strtotime($last_sync_time)) {
+                            $last_sync_time = date('d/m/Y H:i:s', strtotime($al['moodle_last_sync']));
+                        }
+                    }
+                }
+
+                $avg_progreso = $total_alumnos > 0 ? round($suma_progreso / $total_alumnos) : 0;
+                $avg_tiempo_seg = $total_alumnos > 0 ? round($suma_tiempo / $total_alumnos) : 0;
+                $avg_tiempo_formatted = format_connected_time($avg_tiempo_seg);
+                ?>
+
+                <div class="stats-seguimiento">
+                    <div class="stat-card-seguimiento">
+                        <div class="stat-card-icon-wrapper bg-blue-corp">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                        </div>
+                        <div class="stat-card-info">
+                            <span class="stat-card-value"><?= $total_alumnos ?></span>
+                            <span class="stat-card-label">Alumnos Matriculados</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card-seguimiento">
+                        <div class="stat-card-icon-wrapper bg-green-corp">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                        </div>
+                        <div class="stat-card-info">
+                            <span class="stat-card-value"><?= $avg_progreso ?>%</span>
+                            <span class="stat-card-label">Progreso Promedio</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card-seguimiento">
+                        <div class="stat-card-icon-wrapper bg-amber-corp">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                        </div>
+                        <div class="stat-card-info">
+                            <span class="stat-card-value"><?= $avg_tiempo_formatted ?></span>
+                            <span class="stat-card-label">Tiempo Conexión Promedio</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card-seguimiento">
+                        <div class="stat-card-icon-wrapper bg-red-corp">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                        </div>
+                        <div class="stat-card-info">
+                            <span class="stat-card-value" style="font-size: 0.95rem; white-space: nowrap; padding-top: 0.4rem; font-weight: 800;"><?= $last_sync_time ?></span>
+                            <span class="stat-card-label">Última Sincronización</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabla de Alumnos -->
+                <div style="overflow-x: auto; margin-top: 1.5rem;">
+                    <table class="table-seguimiento-moodle">
+                        <thead>
+                            <tr>
+                                <th>Alumno</th>
+                                <th>DNI</th>
+                                <th>Grupo</th>
+                                <th style="text-align: center;">Moodle ID</th>
+                                <th>Primer Acceso</th>
+                                <th>Último Acceso</th>
+                                <th style="text-align: center;">Tiempo Conexión</th>
+                                <th>Progreso</th>
+                                <th style="text-align: center;">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (empty($alumnos_seguimiento)): ?>
+                                <tr>
+                                    <td colspan="9" style="text-align:center; padding: 30px; color: #64748b;">
+                                        No hay alumnos matriculados en los grupos vinculados a esta acción formativa.
+                                    </td>
+                                </tr>
+                            <?php else: ?>
+                                <?php 
+                                $avatars = ['avatar-a', 'avatar-b', 'avatar-c', 'avatar-d', 'avatar-e'];
+                                foreach ($alumnos_seguimiento as $idx => $al): 
+                                    $iniciales = strtoupper(substr($al['nombre'], 0, 1) . substr($al['primer_apellido'], 0, 1));
+                                    $avatar_class = $avatars[$idx % count($avatars)];
+                                    
+                                    $p_color = '#ef4444'; // Red
+                                    if ($al['moodle_progress'] >= 80) $p_color = '#10b981'; // Green
+                                    elseif ($al['moodle_progress'] >= 40) $p_color = '#f59e0b'; // Amber
+                                ?>
+                                    <tr>
+                                        <td>
+                                            <div class="alumno-cell">
+                                                <div class="alumno-avatar <?= $avatar_class ?>"><?= $iniciales ?></div>
+                                                <div class="alumno-info">
+                                                    <span class="alumno-nombre"><?= htmlspecialchars($al['nombre'] . ' ' . $al['primer_apellido'] . ($al['segundo_apellido'] ? ' ' . $al['segundo_apellido'] : '')) ?></span>
+                                                    <span class="alumno-email"><?= htmlspecialchars($al['email']) ?></span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td style="font-family: monospace; font-weight: 600;"><?= htmlspecialchars($al['dni']) ?></td>
+                                        <td style="font-weight: 700; color: #1e3a8a;">G<?= htmlspecialchars($al['numero_grupo']) ?></td>
+                                        <td style="text-align: center; font-family: monospace; font-weight: 600;"><?= $al['moodle_user_id'] ?: '---' ?></td>
+                                        <td><?= $al['moodle_first_access'] ? date('d/m/Y H:i', strtotime($al['moodle_first_access'])) : '---' ?></td>
+                                        <td><?= $al['moodle_last_access'] ? date('d/m/Y H:i', strtotime($al['moodle_last_access'])) : '---' ?></td>
+                                        <td style="text-align: center; font-weight: 700; color: #1e293b;"><?= format_connected_time($al['moodle_connected_time']) ?></td>
+                                        <td>
+                                            <div class="progress-container">
+                                                <div class="progress-bar-wrapper">
+                                                    <div class="progress-bar-fill" style="width: <?= (int)$al['moodle_progress'] ?>%; background-color: <?= $p_color ?>;"></div>
+                                                </div>
+                                                <span class="progress-text"><?= (int)$al['moodle_progress'] ?>%</span>
+                                            </div>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <?php if ($al['moodle_last_sync']): ?>
+                                                <span class="badge-sync success">
+                                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"></path></svg>
+                                                    Sincronizado
+                                                </span>
+                                            <?php else: ?>
+                                                <span class="badge-sync pending">
+                                                    Pendiente
+                                                </span>
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Botón de Sincronización -->
+                <div class="seguimiento-actions">
+                    <button type="button" class="btn-sync-moodle" onclick="syncMoodleTimes(<?= $id ?>)">
+                        <svg class="sync-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="transition: transform 0.2s;">
+                            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+                        </svg>
+                        Sincronizar Tiempos Moodle
+                    </button>
+                    <div id="sync-status-msg" class="sync-status-text">
+                        <?php if (isset($_GET['sync_success'])): ?>
+                            <span style="color:#166534;">✓ ¡Sincronización finalizada correctamente!</span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
         </div>
         </form>
 
@@ -1339,6 +1789,55 @@ try {
                 event.currentTarget.classList.add('active');
             }
         }
+
+        // Moodle synchronization AJAX function
+        function syncMoodleTimes(actionId) {
+            const btn = document.querySelector('.btn-sync-moodle');
+            const icon = btn.querySelector('.sync-icon');
+            const msgDiv = document.getElementById('sync-status-msg');
+            
+            btn.disabled = true;
+            icon.classList.add('spinning');
+            msgDiv.innerHTML = '<span style="color:#475569;">Conectando con Moodle y calculando tiempos...</span>';
+            
+            const csrf = '<?= $_SESSION['csrf_token'] ?? '' ?>';
+            
+            fetch(`api_sync_moodle_times.php?id=${actionId}&csrf_token=${csrf}`)
+                .then(response => response.json())
+                .then(data => {
+                    icon.classList.remove('spinning');
+                    btn.disabled = false;
+                    
+                    if (data.success) {
+                        msgDiv.innerHTML = `<span style="color:#166534;">✓ ${data.message}</span>`;
+                        // Reload and redirect back to this tab
+                        setTimeout(() => {
+                            window.location.href = `ficha_accion_formativa.php?id=${actionId}&tab=seguimiento-moodle&sync_success=1`;
+                        }, 1200);
+                    } else {
+                        msgDiv.innerHTML = `<span style="color:#991b1b;">❌ Error: ${data.error}</span>`;
+                    }
+                })
+                .catch(error => {
+                    icon.classList.remove('spinning');
+                    btn.disabled = false;
+                    msgDiv.innerHTML = '<span style="color:#991b1b;">❌ Error de conexión de red.</span>';
+                    console.error('Error:', error);
+                });
+        }
+
+        // Initialize active tab from query param
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tabParam = urlParams.get('tab');
+            if (tabParam) {
+                // Find tab button that corresponds to this tabId
+                const tabBtn = document.querySelector(`.tab-btn[onclick*="${tabParam}"]`);
+                if (tabBtn) {
+                    tabBtn.click();
+                }
+            }
+        });
     </script>
 </body>
 </html>

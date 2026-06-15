@@ -17,6 +17,13 @@ if ($is_local) {
     define('MOODLE_URL_OVERRIDE', '');
     define('MOODLE_AULA_VIRTUAL_URL', 'https://aulavirtual.grupoefp.es/');
     
+    // Moodle Database Config (Local)
+    define('MOODLE_DB_HOST', 'localhost');
+    define('MOODLE_DB_PORT', '3306');
+    define('MOODLE_DB_USER', 'root');
+    define('MOODLE_DB_PASS', '');
+    define('MOODLE_DB_NAME', 'moodle');
+    
     try {
         $pdo = new PDO("mysql:host=".DB_HOST.";dbname=".DB_NAME.";charset=utf8mb4", DB_USER, DB_PASS);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -35,6 +42,13 @@ if ($is_local) {
     define('MOODLE_URL_OVERRIDE', 'https://pre-aulavirtual.grupoefp.es');
     define('MOODLE_AULA_VIRTUAL_URL', 'https://pre-aulavirtual.grupoefp.es/');
     
+    // Moodle Database Config (Preproduction)
+    define('MOODLE_DB_HOST', 'localhost');
+    define('MOODLE_DB_PORT', '3306');
+    define('MOODLE_DB_USER', 'pre_moodle');
+    define('MOODLE_DB_PASS', 'Oy0v?ggswFBr6d0~');
+    define('MOODLE_DB_NAME', 'pre_moodle');
+    
     try {
         $pdo = new PDO("mysql:host=".DB_HOST.";dbname=".DB_NAME.";charset=utf8mb4", DB_USER, DB_PASS);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -52,6 +66,13 @@ if ($is_local) {
     // Moodle Overrides (Production values)
     define('MOODLE_URL_OVERRIDE', 'https://aulavirtual.grupoefp.es');
     define('MOODLE_AULA_VIRTUAL_URL', 'https://aulavirtual.grupoefp.es/');
+    
+    // Moodle Database Config (Production)
+    define('MOODLE_DB_HOST', 'localhost');
+    define('MOODLE_DB_PORT', '3306');
+    define('MOODLE_DB_USER', 'moodle_prod');
+    define('MOODLE_DB_PASS', 'Oy0v?ggswFBr6d0~');
+    define('MOODLE_DB_NAME', 'moodle_prod');
     
     try {
         $pdo = new PDO("mysql:host=".DB_HOST.";dbname=".DB_NAME.";charset=utf8mb4", DB_USER, DB_PASS);
