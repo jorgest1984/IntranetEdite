@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS `alumnos` (
 -- 2. Tabla de Cursos
 CREATE TABLE IF NOT EXISTS `cursos` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `moodle_id` int(11) NOT NULL,
+  `moodle_id` bigint(20) NOT NULL,
   `nombre_corto` varchar(100) NOT NULL,
   `nombre_largo` text DEFAULT NULL,
   `categoria_id` int(11) DEFAULT NULL,

@@ -1,6 +1,6 @@
 <?php
 $_SERVER['HTTP_HOST'] = 'pre-gestion.grupoefp.es';
-require 'includes/config.php';
+require '../includes/config.php';
 header('Content-Type: text/plain; charset=utf-8');
 
 echo "=== ESTRUCTURA DE LA TABLA CURSOS ===\n";
