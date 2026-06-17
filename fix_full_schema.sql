@@ -43,7 +43,7 @@ ALTER TABLE `alumnos`
 -- 2. Estructura de Cursos y Gestión Académica
 CREATE TABLE IF NOT EXISTS `cursos` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `moodle_id` bigint(20) NOT NULL,
+  `moodle_id` bigint(20) DEFAULT NULL,
   `nombre_corto` varchar(100) NOT NULL,
   `nombre_largo` text DEFAULT NULL,
   `categoria_id` int(11) DEFAULT NULL,

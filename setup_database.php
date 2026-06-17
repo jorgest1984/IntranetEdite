@@ -5,7 +5,7 @@ try {
     // 1. Tabla de Cursos (Sincronizados de Moodle)
     $pdo->exec("CREATE TABLE IF NOT EXISTS cursos (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        moodle_id BIGINT UNIQUE NOT NULL,
+        moodle_id BIGINT UNIQUE NULL,
         nombre_corto VARCHAR(100) NOT NULL,
         nombre_largo TEXT,
         categoria_id INT,

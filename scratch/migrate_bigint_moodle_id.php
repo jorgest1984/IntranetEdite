@@ -13,7 +13,7 @@ try {
     
     // 2. Modificar la columna
     echo "\nEjecutando ALTER TABLE...\n";
-    $pdo->exec("ALTER TABLE cursos MODIFY COLUMN moodle_id BIGINT UNIQUE NOT NULL");
+    $pdo->exec("ALTER TABLE cursos MODIFY COLUMN moodle_id BIGINT UNIQUE NULL");
     echo "¡Columna modificada con éxito a BIGINT!\n";
     
     // 3. Mostrar estructura después
