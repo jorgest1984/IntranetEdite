@@ -63,6 +63,7 @@ $informes = [
         /* Ajustes específicos para igualar visualmente los informes de la captura */
         .tile {
             padding: 2.5rem 1.5rem;
+            height: 180px;
         }
         .tile-icon svg {
             width: 42px;

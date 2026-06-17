@@ -30,12 +30,12 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 1.5rem 1rem;
+    padding: 1.25rem 1rem;
     border-radius: 8px;
     text-align: center;
     text-decoration: none;
     transition: all 0.2s ease-in-out;
-    min-height: 120px;
+    height: 160px;
     color: white;
     position: relative;
     overflow: hidden;
@@ -133,7 +133,8 @@
         grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     }
     .tile {
-        min-height: 100px;
+        height: auto;
+        min-height: 110px;
         padding: 1rem 0.5rem;
     }
     .tile-title {
