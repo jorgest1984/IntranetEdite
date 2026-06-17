@@ -1727,8 +1727,15 @@ try {
                             <tbody>
                                 <?php if (empty($alumnos_seguimiento)): ?>
                                     <tr>
-                                        <td colspan="12" style="text-align:center; padding: 30px; color: #64748b;">
-                                            No hay alumnos matriculados en los grupos vinculados a esta acción formativa.
+                                        <td colspan="12" style="text-align:center; padding: 40px; color: #64748b;">
+                                            <p style="margin-bottom: 15px; font-weight: 500;">No hay alumnos matriculados en los grupos vinculados a esta acción formativa.</p>
+                                            <button type="button" class="btn-sync-moodle" id="btn-empty-import-moodle" onclick="importMoodleStudents(<?= $id ?>)" style="background-color: #1e3a8a; border-color: #172554;">
+                                                <svg class="import-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="transition: transform 0.2s; margin-right: 8px; display: inline-block; vertical-align: middle;">
+                                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                                </svg>
+                                                Importar Alumnos desde Moodle
+                                            </button>
                                         </td>
                                     </tr>
                                 <?php else: ?>
@@ -1821,16 +1828,27 @@ try {
                     </div>
 
                     <!-- Botón de Sincronización -->
-                    <div class="seguimiento-actions">
-                        <button type="button" class="btn-sync-moodle" onclick="syncMoodleTimes(<?= $id ?>)">
+                    <div class="seguimiento-actions" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
+                        <button type="button" class="btn-sync-moodle" id="btn-sync-moodle-times" onclick="syncMoodleTimes(<?= $id ?>)" <?= empty($alumnos_seguimiento) ? 'disabled' : '' ?> title="<?= empty($alumnos_seguimiento) ? 'Primero debes importar alumnos' : 'Sincronizar tiempos' ?>">
                             <svg class="sync-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="transition: transform 0.2s;">
                                 <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
                             </svg>
                             Sincronizar Tiempos Moodle
                         </button>
+                        
+                        <button type="button" class="btn-sync-moodle" id="btn-import-moodle-students" onclick="importMoodleStudents(<?= $id ?>)" style="background-color: #1e3a8a; border-color: #172554;">
+                            <svg class="import-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="transition: transform 0.2s; margin-right: 8px;">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            Importar Alumnos de Moodle
+                        </button>
+                        
                         <div id="sync-status-msg" class="sync-status-text">
                             <?php if (isset($_GET['sync_success'])): ?>
                                 <span style="color:#166534;">✓ ¡Sincronización de tiempos y calificaciones finalizada correctamente!</span>
+                            <?php elseif (isset($_GET['import_success'])): ?>
+                                <span style="color:#166534;">✓ ¡Alumnos importados y sincronizados correctamente! (<?= (int)$_GET['imported_count'] ?> alumnos)</span>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -1892,7 +1910,7 @@ try {
 
         // Moodle synchronization AJAX function
         function syncMoodleTimes(actionId) {
-            const btn = document.querySelector('.btn-sync-moodle');
+            const btn = document.getElementById('btn-sync-moodle-times') || document.querySelector('.btn-sync-moodle');
             const icon = btn.querySelector('.sync-icon');
             const msgDiv = document.getElementById('sync-status-msg');
             
@@ -1921,6 +1939,52 @@ try {
                 .catch(error => {
                     icon.classList.remove('spinning');
                     btn.disabled = false;
+                    msgDiv.innerHTML = '<span style="color:#991b1b;">❌ Error de conexión de red.</span>';
+                    console.error('Error:', error);
+                });
+        }
+
+        // Moodle student import AJAX function
+        function importMoodleStudents(actionId) {
+            const syncBtn = document.getElementById('btn-sync-moodle-times');
+            const importBtn = document.getElementById('btn-import-moodle-students');
+            const emptyBtn = document.getElementById('btn-empty-import-moodle');
+            const msgDiv = document.getElementById('sync-status-msg');
+            
+            if (syncBtn) syncBtn.disabled = true;
+            if (importBtn) importBtn.disabled = true;
+            if (emptyBtn) emptyBtn.disabled = true;
+            
+            const activeIcon = importBtn ? importBtn.querySelector('.import-icon') : (emptyBtn ? emptyBtn.querySelector('.import-icon') : null);
+            if (activeIcon) activeIcon.classList.add('spinning');
+            
+            msgDiv.innerHTML = '<span style="color:#475569;">Conectando con Moodle e importando alumnos...</span>';
+            
+            const csrf = '<?= $_SESSION['csrf_token'] ?? '' ?>';
+            
+            fetch(`api_import_moodle_students.php?id=${actionId}&csrf_token=${csrf}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (activeIcon) activeIcon.classList.remove('spinning');
+                    if (syncBtn && document.querySelectorAll('.table-seguimiento-moodle tbody tr').length > 1) syncBtn.disabled = false;
+                    if (importBtn) importBtn.disabled = false;
+                    if (emptyBtn) emptyBtn.disabled = false;
+                    
+                    if (data.success) {
+                        msgDiv.innerHTML = `<span style="color:#166534;">✓ ${data.message}</span>`;
+                        // Reload and redirect back to this tab
+                        setTimeout(() => {
+                            window.location.href = `ficha_accion_formativa.php?id=${actionId}&tab=seguimiento-moodle&import_success=1&imported_count=${data.imported_count}`;
+                        }, 1200);
+                    } else {
+                        msgDiv.innerHTML = `<span style="color:#991b1b;">❌ Error: ${data.error}</span>`;
+                    }
+                })
+                .catch(error => {
+                    if (activeIcon) activeIcon.classList.remove('spinning');
+                    if (syncBtn) syncBtn.disabled = false;
+                    if (importBtn) importBtn.disabled = false;
+                    if (emptyBtn) emptyBtn.disabled = false;
                     msgDiv.innerHTML = '<span style="color:#991b1b;">❌ Error de conexión de red.</span>';
                     console.error('Error:', error);
                 });
