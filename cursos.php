@@ -54,6 +54,69 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     }
 }
 
+// Acción: Crear y Vincular Curso
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'create_course') {
+    $nombreCorto = trim($_POST['nombre_corto'] ?? '');
+    $nombreLargo = trim($_POST['nombre_largo'] ?? '');
+    $createInMoodle = isset($_POST['create_in_moodle']) && $_POST['create_in_moodle'] == '1';
+    $moodleId = intval($_POST['moodle_id'] ?? 0);
+    
+    try {
+        if (empty($nombreCorto) || empty($nombreLargo)) {
+            throw new Exception("Los nombres corto y largo son campos obligatorios.");
+        }
+        
+        if ($createInMoodle) {
+            // Crear en Moodle vía API
+            if (!$isConfigured) {
+                throw new Exception("La API de Moodle no está configurada. No se puede crear en el aula virtual.");
+            }
+            $apiRes = $moodle->createCourse($nombreLargo, $nombreCorto);
+            if (is_array($apiRes) && isset($apiRes[0]['id'])) {
+                $moodleId = intval($apiRes[0]['id']);
+            } else {
+                throw new Exception("La API de Moodle no devolvió un ID de curso válido.");
+            }
+        } else {
+            // Vincular curso existente
+            if ($moodleId <= 0) {
+                throw new Exception("Debes proporcionar un ID de Moodle válido para la vinculación.");
+            }
+            // Verificar si ya existe en la intranet
+            $stmtCheck = $pdo->prepare("SELECT id, nombre_corto FROM cursos WHERE moodle_id = ?");
+            $stmtCheck->execute([$moodleId]);
+            $existing = $stmtCheck->fetch();
+            if ($existing) {
+                throw new Exception("El ID de Moodle ($moodleId) ya está vinculado al curso '" . $existing['nombre_corto'] . "'.");
+            }
+        }
+        
+        // Insertar en base de datos local
+        $stmtInsert = $pdo->prepare("INSERT INTO cursos (moodle_id, nombre_corto, nombre_largo, visible) VALUES (?, ?, ?, 1)");
+        $stmtInsert->execute([$moodleId, $nombreCorto, $nombreLargo]);
+        $localId = $pdo->lastInsertId();
+        
+        audit_log($pdo, 'COURSE_CREATED', 'cursos', $localId, null, [
+            'moodle_id' => $moodleId,
+            'nombre_corto' => $nombreCorto,
+            'nombre_largo' => $nombreLargo,
+            'creado_en_moodle' => $createInMoodle
+        ]);
+        
+        $success = $createInMoodle 
+            ? "Curso '$nombreCorto' creado correctamente en la Intranet y en Moodle (Moodle ID: $moodleId)." 
+            : "Curso '$nombreCorto' registrado en la Intranet y vinculado correctamente al Moodle ID $moodleId.";
+            
+        // Recargar lista local
+        $stmtLocal = $pdo->query("SELECT * FROM cursos ORDER BY id DESC");
+        $cursosLocales = $stmtLocal->fetchAll();
+        $cursos = $cursosLocales;
+        
+    } catch (Exception $e) {
+        $error = "Error al crear el curso: " . $e->getMessage();
+    }
+}
+
 // Intentar cargar cursos de Moodle en tiempo real si está configurado
 if ($isConfigured && empty($cursosLocales)) {
     try {
@@ -238,6 +301,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             border-radius: 6px; font-family: inherit; font-size: 0.95rem; box-sizing: border-box;
         }
         .form-input:focus { border-color: var(--primary-color); outline: none; box-shadow: 0 0 0 3px rgba(220,38,38,0.1); }
+        .course-card.create-card:hover {
+            border-color: #006ce4 !important;
+            background: rgba(0, 108, 228, 0.02) !important;
+            transform: translateY(-3px);
+        }
     </style>
 </head>
 <body>
@@ -260,6 +328,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                         Sincronizar con Moodle
                     </button>
                 </form>
+                <button type="button" class="btn btn-primary" onclick="openCreateCourseModal()" style="display: flex; align-items: center; justify-content: center;">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="margin-right: 0.4rem;"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                    Crear y Vincular Curso
+                </button>
                 <?php if (!$isConfigured): ?>
                     <a href="configuracion.php" class="btn btn-primary">Configurar Moodle</a>
                 <?php endif; ?>
@@ -276,9 +348,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 
         <?php if ($isConfigured && empty($error)): ?>
             <div class="course-grid">
-                <?php if (empty($cursos)): ?>
-                    <p style="color: var(--text-muted);">No hay cursos disponibles. Usa el botón "Sincronizar" para traer datos de Moodle.</p>
-                <?php else: ?>
+                <!-- Tarjeta para Crear y Vincular Curso -->
+                <div class="course-card create-card" style="border: 2px dashed var(--border-color); background: transparent; justify-content: center; align-items: center; min-height: 250px; cursor: pointer; text-align: center; transition: all 0.2s;" onclick="openCreateCourseModal()">
+                    <div style="padding: 2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem;">
+                        <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(0, 108, 228, 0.08); display: flex; align-items: center; justify-content: center; color: #006ce4;">
+                            <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                        </div>
+                        <div>
+                            <h3 style="font-size: 1.1rem; font-weight: 600; margin: 0 0 0.25rem 0; color: #006ce4;">Crear y Vincular</h3>
+                            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Enlaza un curso de Moodle o créalo de cero.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <?php if (!empty($cursos)): ?>
                     <?php foreach ($cursos as $c): 
                         // Normalizar datos (pueden venir de API o de DB local)
                         $cid = $c['id'];
@@ -354,6 +437,47 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     </div>
 </div>
 
+<!-- Modal Crear Curso -->
+<div id="createCourseModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Crear y Vincular Nuevo Curso</h2>
+            <button class="close-btn" onclick="closeCreateCourseModal()">&times;</button>
+        </div>
+        
+        <form method="POST" action="">
+            <input type="hidden" name="action" value="create_course">
+            
+            <div class="form-group">
+                <label class="form-label">Nombre Corto del Curso (Ej: PHP-101)</label>
+                <input type="text" name="nombre_corto" class="form-input" required placeholder="Nombre corto / Identificador">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Nombre Completo del Curso (Ej: Programación PHP desde Cero)</label>
+                <input type="text" name="nombre_largo" class="form-input" required placeholder="Nombre descriptivo completo">
+            </div>
+            
+            <div class="form-group" style="margin-top: 1.5rem; margin-bottom: 1.5rem;">
+                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 500; font-size: 0.95rem;">
+                    <input type="checkbox" name="create_in_moodle" id="create_in_moodle" value="1" onchange="toggleMoodleIdField()" checked style="width: 18px; height: 18px; cursor: pointer;">
+                    Crear también el curso en Moodle (Aula Virtual)
+                </label>
+            </div>
+            
+            <div class="form-group" id="moodleIdGroup" style="opacity: 0.5; transition: opacity 0.2s;">
+                <label class="form-label">Moodle ID del Curso Existente (Para interconectar)</label>
+                <input type="number" name="moodle_id" id="modalMoodleId" class="form-input" placeholder="Ej: 42" disabled>
+            </div>
+            
+            <div style="text-align: right; margin-top: 1.5rem;">
+                <button type="button" class="btn" onclick="closeCreateCourseModal()" style="background: transparent; color: var(--text-muted); border: 1px solid var(--border-color); margin-right: 0.5rem;">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Guardar y Vincular</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 function openProvisionModal(courseId, courseName) {
     document.getElementById('modalCourseId').value = courseId;
@@ -365,11 +489,40 @@ function closeModal() {
     document.getElementById('provisionModal').classList.remove('active');
 }
 
+function openCreateCourseModal() {
+    document.getElementById('createCourseModal').classList.add('active');
+    toggleMoodleIdField();
+}
+
+function closeCreateCourseModal() {
+    document.getElementById('createCourseModal').classList.remove('active');
+}
+
+function toggleMoodleIdField() {
+    var checkbox = document.getElementById('create_in_moodle');
+    var moodleIdInput = document.getElementById('modalMoodleId');
+    var moodleIdGroup = document.getElementById('moodleIdGroup');
+    if (checkbox.checked) {
+        moodleIdInput.disabled = true;
+        moodleIdInput.required = false;
+        moodleIdInput.value = '';
+        moodleIdGroup.style.opacity = '0.5';
+    } else {
+        moodleIdInput.disabled = false;
+        moodleIdInput.required = true;
+        moodleIdGroup.style.opacity = '1';
+    }
+}
+
 // Cerrar al clickar fuera
 window.onclick = function(event) {
-    var modal = document.getElementById('provisionModal');
-    if (event.target == modal) {
+    var provisionModal = document.getElementById('provisionModal');
+    var createCourseModal = document.getElementById('createCourseModal');
+    if (event.target == provisionModal) {
         closeModal();
+    }
+    if (event.target == createCourseModal) {
+        closeCreateCourseModal();
     }
 }
 </script>
