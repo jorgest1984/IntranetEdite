@@ -15,9 +15,16 @@ $success = '';
 $cursos = [];
 $isConfigured = $moodle->isConfigured();
 
-// Intentar cargar cursos locales
-$stmtLocal = $pdo->query("SELECT * FROM cursos ORDER BY id DESC");
+// Intentar cargar cursos locales con información de acciones formativas y planes
+$stmtLocal = $pdo->query("SELECT c.*, 
+                         (SELECT id FROM acciones_formativas WHERE curso_id = c.id LIMIT 1) as af_id,
+                         (SELECT p.nombre FROM acciones_formativas af JOIN planes p ON af.plan_id = p.id WHERE af.curso_id = c.id LIMIT 1) as plan_nombre
+                         FROM cursos c 
+                         ORDER BY c.id DESC");
 $cursosLocales = $stmtLocal->fetchAll();
+
+// Obtener lista de planes para el selector
+$planes = $pdo->query("SELECT id, nombre, codigo FROM planes ORDER BY nombre ASC")->fetchAll();
 
 // Acción: Sincronizar Cursos desde Moodle
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'sync_courses') {
@@ -114,6 +121,73 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         
     } catch (Exception $e) {
         $error = "Error al crear el curso: " . $e->getMessage();
+    }
+}
+
+// Acción: Asignar Curso a Plan (Crear Acción Formativa)
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'assign_plan') {
+    $cursoId = intval($_POST['curso_id'] ?? 0);
+    $planId = intval($_POST['plan_id'] ?? 0);
+    $numAccion = trim($_POST['num_accion'] ?? '');
+    $modalidad = $_POST['modalidad'] ?? 'Teleformación';
+    $duracion = intval($_POST['duracion'] ?? 60);
+    $familia = $_POST['familia_profesional'] ?? '';
+    
+    try {
+        if ($cursoId <= 0 || $planId <= 0) {
+            throw new Exception("El curso y el plan son obligatorios.");
+        }
+        
+        // Obtener detalles del curso
+        $stmtC = $pdo->prepare("SELECT * FROM cursos WHERE id = ?");
+        $stmtC->execute([$cursoId]);
+        $curso = $stmtC->fetch();
+        if (!$curso) {
+            throw new Exception("El curso seleccionado no existe.");
+        }
+        
+        // Verificar si ya tiene una acción formativa
+        $stmtCheck = $pdo->prepare("SELECT id FROM acciones_formativas WHERE curso_id = ?");
+        $stmtCheck->execute([$cursoId]);
+        if ($stmtCheck->fetch()) {
+            throw new Exception("Este curso ya está asignado a una acción formativa.");
+        }
+        
+        // Insertar en acciones_formativas
+        $sql = "INSERT INTO acciones_formativas (
+            titulo, abreviatura, num_accion, plan_id, modalidad, 
+            duracion, familia_profesional, id_plataforma, curso_id, estado
+        ) VALUES (
+            :titulo, :abreviatura, :num_accion, :plan_id, :modalidad, 
+            :duracion, :familia, :id_plataforma, :curso_id, 'Programable'
+        )";
+        
+        $stmtInsert = $pdo->prepare($sql);
+        $stmtInsert->execute([
+            'titulo' => $curso['nombre_largo'],
+            'abreviatura' => $curso['nombre_corto'],
+            'num_accion' => $numAccion,
+            'plan_id' => $planId,
+            'modalidad' => $modalidad,
+            'duracion' => $duracion,
+            'familia' => $familia,
+            'id_plataforma' => $curso['moodle_id'],
+            'curso_id' => $cursoId
+        ]);
+        
+        $newAfId = $pdo->lastInsertId();
+        
+        audit_log($pdo, 'INSERT', 'acciones_formativas', $newAfId, null, [
+            'titulo' => $curso['nombre_largo'],
+            'plan_id' => $planId,
+            'curso_id' => $cursoId
+        ]);
+        
+        header("Location: ficha_accion_formativa.php?id=$newAfId&created=1");
+        exit();
+        
+    } catch (Exception $e) {
+        $error = "Error al vincular el curso al plan: " . $e->getMessage();
     }
 }
 
@@ -365,11 +439,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                     <?php foreach ($cursos as $c): 
                         // Normalizar datos (pueden venir de API o de DB local)
                         $cid = $c['id'];
+                        $af_id = $c['af_id'] ?? null;
+                        $plan_nombre = $c['plan_nombre'] ?? null;
+                        $local_db_id = null;
                         if (isset($c['moodle_id'])) {
                             // Viene de DB Local
                             $cid = $c['moodle_id'];
                             $cname = $c['nombre_corto'];
                             $clong = $c['nombre_largo'];
+                            $local_db_id = $c['id'];
                         } else {
                             // Viene directo de API
                             $cname = $c['shortname'];
@@ -384,16 +462,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                             <h3 class="course-title" title="<?= htmlspecialchars($clong) ?>">
                                 <?= htmlspecialchars($cname) ?>
                             </h3>
-                            <div class="course-meta">
+                            <div class="course-meta" style="margin-bottom: 0.5rem;">
                                 <span>Moodle ID: <?= $cid ?></span>
-                                <span>Local ID: <?= isset($c['moodle_id']) ? $c['id'] : 'Sync pendiente' ?></span>
+                                <span>Local ID: <?= $local_db_id ? $local_db_id : 'Sync pendiente' ?></span>
+                            </div>
+                            <div class="course-meta" style="margin-bottom: 1.5rem; font-weight: 500;">
+                                <span>Plan: <?= !empty($plan_nombre) ? '<strong style="color: #006ce4;">' . htmlspecialchars($plan_nombre) . '</strong>' : '<em style="color: var(--text-muted);">No asignado</em>' ?></span>
                             </div>
                             
-                            <div class="course-actions">
-                                <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="openProvisionModal(<?= $cid ?>, '<?= htmlspecialchars(addslashes($cname)) ?>')">
-                                    <svg viewBox="0 0 24 24"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                                    Gestionar Alumnos Moodle
-                                </button>
+                            <div class="course-actions" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                <?php if (!empty($af_id)): ?>
+                                    <a href="ficha_accion_formativa.php?id=<?= $af_id ?>" class="btn" style="width: 100%; justify-content: center; background: #10b981; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; box-sizing: border-box; text-align: center; display: inline-flex; align-items: center; padding: 0.75rem;">
+                                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="margin-right: 0.4rem;"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                                        Ver Acción Formativa
+                                    </a>
+                                <?php else: ?>
+                                    <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="openProvisionModal(<?= $cid ?>, '<?= htmlspecialchars(addslashes($cname)) ?>')">
+                                        <svg viewBox="0 0 24 24"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                                        Gestionar Alumnos
+                                    </button>
+                                    <?php if ($local_db_id): ?>
+                                        <button class="btn" style="width: 100%; justify-content: center; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; display: inline-flex; align-items: center;" onclick="openAssignPlanModal(<?= $local_db_id ?>, '<?= htmlspecialchars(addslashes($clong)) ?>', '<?= htmlspecialchars(addslashes($cname)) ?>')">
+                                            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="margin-right: 0.4rem;"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                                            Asignar a Plan
+                                        </button>
+                                    <?php endif; ?>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -478,6 +572,80 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     </div>
 </div>
 
+<!-- Modal Asignar a Plan -->
+<div id="assignPlanModal" class="modal">
+    <div class="modal-content" style="max-width: 550px;">
+        <div class="modal-header">
+            <h2>Asignar Curso a Plan Estratégico</h2>
+            <button class="close-btn" onclick="closeAssignPlanModal()">&times;</button>
+        </div>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
+            Esto creará una nueva <strong>Acción Formativa</strong> en la Intranet vinculada a este curso y al plan que selecciones.
+        </p>
+        
+        <form method="POST" action="">
+            <input type="hidden" name="action" value="assign_plan">
+            <input type="hidden" name="curso_id" id="assignCursoId" value="">
+            
+            <div class="form-group">
+                <label class="form-label">Curso Seleccionado</label>
+                <input type="text" id="assignCursoName" class="form-input" disabled style="background-color: #f1f5f9; color: var(--text-muted);">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Seleccione el Plan (Obligatorio)</label>
+                <select name="plan_id" class="form-input" required style="width: 100%;">
+                    <option value="">-- Seleccionar Plan --</option>
+                    <?php foreach ($planes as $p): ?>
+                        <option value="<?= $p['id'] ?>"><?= htmlspecialchars($p['nombre']) ?> (<?= htmlspecialchars($p['codigo']) ?>)</option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Nº de Acción (Código)</label>
+                    <input type="text" name="num_accion" class="form-input" placeholder="Ej: 0001">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Duración (Horas)</label>
+                    <input type="number" name="duracion" class="form-input" value="60" required>
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Modalidad</label>
+                    <select name="modalidad" class="form-input">
+                        <option value="Teleformación">Teleformación</option>
+                        <option value="Presencial">Presencial</option>
+                        <option value="Mixta">Mixta</option>
+                        <option value="Aula Virtual">Aula Virtual</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Familia Profesional</label>
+                    <select name="familia_profesional" class="form-input">
+                        <option value=""></option>
+                        <option value="Administración y Gestión">Administración y Gestión</option>
+                        <option value="Comercio y Marketing">Comercio y Marketing</option>
+                        <option value="Hostelería y Turismo">Hostelería y Turismo</option>
+                        <option value="Informática y Comunicaciones">Informática y Comunicaciones</option>
+                        <option value="Sanidad">Sanidad</option>
+                        <option value="Servicios Socioculturales">Servicios Socioculturales</option>
+                        <option value="Transversal">Transversal</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div style="text-align: right; margin-top: 1.5rem;">
+                <button type="button" class="btn" onclick="closeAssignPlanModal()" style="background: transparent; color: var(--text-muted); border: 1px solid var(--border-color); margin-right: 0.5rem;">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Asignar y Crear Acción</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 function openProvisionModal(courseId, courseName) {
     document.getElementById('modalCourseId').value = courseId;
@@ -514,15 +682,29 @@ function toggleMoodleIdField() {
     }
 }
 
+function openAssignPlanModal(cursoId, cursoName, cursoShortname) {
+    document.getElementById('assignCursoId').value = cursoId;
+    document.getElementById('assignCursoName').value = cursoName + ' (' + cursoShortname + ')';
+    document.getElementById('assignPlanModal').classList.add('active');
+}
+
+function closeAssignPlanModal() {
+    document.getElementById('assignPlanModal').classList.remove('active');
+}
+
 // Cerrar al clickar fuera
 window.onclick = function(event) {
     var provisionModal = document.getElementById('provisionModal');
     var createCourseModal = document.getElementById('createCourseModal');
+    var assignPlanModal = document.getElementById('assignPlanModal');
     if (event.target == provisionModal) {
         closeModal();
     }
     if (event.target == createCourseModal) {
         closeCreateCourseModal();
+    }
+    if (event.target == assignPlanModal) {
+        closeAssignPlanModal();
     }
 }
 </script>
