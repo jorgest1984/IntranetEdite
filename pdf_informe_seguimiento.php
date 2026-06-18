@@ -89,7 +89,7 @@ class PDF extends FPDF {
 }
 
 $pdf = new PDF('L', 'mm', 'A4'); // Landscape
-$pdf->SetMargins(11, 10, 11); // Center the 275mm table on a 297mm page
+$pdf->SetMargins(13.5, 10, 13.5); // Center the 270mm table on a 297mm page
 $pdf->AliasNbPages();
 $pdf->AddPage();
 
@@ -130,14 +130,14 @@ $pdf->SetFont('Arial', 'B', 8);
 $pdf->SetFillColor(255, 255, 255); // Fondo blanco
 $pdf->SetTextColor(0, 0, 0);
 
-$w_alumno = 80;
-$w_horas = 30;
-$w_porc_curso = 22;
+$w_alumno = 75;
+$w_horas = 28;
+$w_porc_curso = 20;
 $w_m = 14; // x3 = 42
 $w_e = 14; // x3 = 42
 $w_porc_controles = 25;
-$w_nota = 17;
-$w_apto = 17;
+$w_nota = 15;
+$w_apto = 23;
 
 $x = $pdf->GetX();
 $y = $pdf->GetY();
