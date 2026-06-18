@@ -23,13 +23,22 @@ if (!$accion) {
 }
 
 // Fetch Plan for Expediente
-$plan = null;
+$expediente = '---';
 if (!empty($accion['plan_id'])) {
-    $stmtPlan = $pdo->prepare("SELECT numero_expediente FROM planes WHERE id = ?");
-    $stmtPlan->execute([$accion['plan_id']]);
-    $plan = $stmtPlan->fetch();
+    try {
+        $stmtPlan = $pdo->prepare("
+            SELECT co.codigo_expediente 
+            FROM planes pl
+            JOIN convocatorias co ON pl.convocatoria_id = co.id
+            WHERE pl.id = ?
+        ");
+        $stmtPlan->execute([$accion['plan_id']]);
+        $plan = $stmtPlan->fetch();
+        if ($plan && !empty($plan['codigo_expediente'])) {
+            $expediente = $plan['codigo_expediente'];
+        }
+    } catch (Throwable $e) {}
 }
-$expediente = ($plan && !empty($plan['numero_expediente'])) ? $plan['numero_expediente'] : '---';
 $num_accion = !empty($accion['num_accion']) ? $accion['num_accion'] : '---';
 $curso_nombre = ($accion['abreviatura'] ? $accion['abreviatura'] : $accion['id_plataforma']) . ' - ' . $accion['titulo'];
 $horas = !empty($accion['duracion']) ? $accion['duracion'] . ' h' : '---';
