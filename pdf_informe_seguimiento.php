@@ -1,6 +1,4 @@
 <?php
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
 require_once 'includes/auth.php';
 require_once 'includes/config.php';
 require_once 'includes/fpdf/fpdf.php';
@@ -24,6 +22,18 @@ if (!$accion) {
     die("Acción formativa no encontrada.");
 }
 
+// Fetch Plan for Expediente
+$plan = null;
+if (!empty($accion['plan_id'])) {
+    $stmtPlan = $pdo->prepare("SELECT numero_expediente FROM planes WHERE id = ?");
+    $stmtPlan->execute([$accion['plan_id']]);
+    $plan = $stmtPlan->fetch();
+}
+$expediente = ($plan && !empty($plan['numero_expediente'])) ? $plan['numero_expediente'] : '---';
+$num_accion = !empty($accion['num_accion']) ? $accion['num_accion'] : '---';
+$curso_nombre = ($accion['abreviatura'] ? $accion['abreviatura'] : $accion['id_plataforma']) . ' - ' . $accion['titulo'];
+$horas = !empty($accion['duracion']) ? $accion['duracion'] . ' h' : '---';
+
 // Fetch Students
 $stmtSeguimiento = $pdo->prepare("SELECT a.id as alumno_id, a.nombre, a.primer_apellido, a.segundo_apellido, a.dni, a.email, a.moodle_user_id, 
                                     m.moodle_first_access, m.moodle_last_access, m.moodle_connected_time, m.moodle_progress, m.moodle_last_sync,
@@ -40,154 +50,152 @@ $stmtSeguimiento = $pdo->prepare("SELECT a.id as alumno_id, a.nombre, a.primer_a
 $stmtSeguimiento->execute([$id]);
 $alumnos = $stmtSeguimiento->fetchAll();
 
+$grupo_num = !empty($alumnos) ? $alumnos[0]['numero_grupo'] : '---';
+
 function format_connected_time($seconds) {
-    if (!$seconds) return '0h 0m';
+    if (!$seconds) return '0 h 0 min 0 s';
     $hours = floor($seconds / 3600);
     $minutes = floor(($seconds % 3600) / 60);
-    return "{$hours}h {$minutes}m";
+    $secs = $seconds % 60;
+    return "{$hours} h {$minutes} min {$secs} s";
 }
 
 class PDF extends FPDF {
     function Header() {
-        // Logo
-        if (file_exists('img/logo_efp.png')) {
-            $this->Image('img/logo_efp.png', 10, 8, 30);
-        }
+        // Arial bold 11
+        $this->SetFont('Arial', 'B', 11);
+        $this->SetTextColor(0, 0, 0);
         
-        // Arial bold 15
-        $this->SetFont('Arial', 'B', 15);
-        $this->SetTextColor(30, 58, 138); // #1e3a8a
-        
-        // Title
-        $this->Cell(40); // Espaciado para el logo
-        $this->Cell(0, 10, utf8_decode('INFORME DE SEGUIMIENTO MOODLE'), 0, 1, 'L');
-        
+        // Title centered
+        $this->Cell(0, 10, utf8_decode('INFORME GRUPO'), 0, 1, 'C');
         $this->Ln(5);
     }
     
     function Footer() {
-        // Position at 1.5 cm from bottom
         $this->SetY(-15);
-        // Arial italic 8
-        $this->SetFont('Arial', 'I', 8);
-        $this->SetTextColor(128, 128, 128);
-        // Page number
-        $this->Cell(0, 10, utf8_decode('Página ') . $this->PageNo() . '/{nb}', 0, 0, 'C');
+        $this->SetFont('Arial', '', 8);
+        $this->SetTextColor(150, 150, 150);
+        $this->Cell(0, 10, utf8_decode('Informe generado el ' . date('Y-m-d') . ' a las ' . date('H:i:s') . '.'), 0, 0, 'L');
     }
 }
 
-$pdf = new PDF('L', 'mm', 'A4'); // Landscape mode para que quepan las columnas
+$pdf = new PDF('L', 'mm', 'A4'); // Landscape
 $pdf->AliasNbPages();
 $pdf->AddPage();
 
-// Datos del curso
-$pdf->SetFont('Arial', 'B', 12);
-$pdf->SetTextColor(0, 0, 0);
-$pdf->Cell(35, 8, utf8_decode('Curso: '), 0, 0);
-$pdf->SetFont('Arial', '', 12);
-$pdf->Cell(0, 8, utf8_decode($accion['titulo']), 0, 1);
-
-$pdf->SetFont('Arial', 'B', 12);
-$pdf->Cell(35, 8, utf8_decode('ID Plataforma: '), 0, 0);
-$pdf->SetFont('Arial', '', 12);
-$pdf->Cell(0, 8, utf8_decode($accion['id_plataforma'] ? $accion['id_plataforma'] : 'No vinculado'), 0, 1);
-
-$pdf->SetFont('Arial', 'B', 12);
-$pdf->Cell(35, 8, utf8_decode('Fecha Impresión: '), 0, 0);
-$pdf->SetFont('Arial', '', 12);
-$pdf->Cell(0, 8, date('d/m/Y H:i'), 0, 1);
-
-$pdf->Ln(10);
-
-// Cabeceras de tabla
+// Cabecera de datos
 $pdf->SetFont('Arial', 'B', 9);
-$pdf->SetFillColor(30, 58, 138); // Azul corporativo
-$pdf->SetTextColor(255, 255, 255);
-
-$w = array(60, 22, 15, 30, 25, 20, 25, 25, 20, 25); // Suma: 267 (Max 277 en A4 Landscape)
-$header = array('Alumno', 'DNI', 'Grupo', 'Acceso (Prim/Ult)', 'Tiempo', '% Curso', 'Visualiz (M1-M3)', 'Eval (E1-E3)', 'Nota Media', 'Aptitud');
-
-foreach($header as $i => $h) {
-    $pdf->Cell($w[$i], 8, utf8_decode($h), 1, 0, 'C', true);
-}
-$pdf->Ln();
-
-// Datos
-$pdf->SetFont('Arial', '', 8);
 $pdf->SetTextColor(0, 0, 0);
-$fill = false;
+
+// Row 1
+$pdf->Cell(20, 6, utf8_decode('Expediente:'), 0, 0);
+$pdf->SetFont('Arial', '', 9);
+$pdf->Cell(40, 6, utf8_decode($expediente), 0, 0);
+
+$pdf->SetFont('Arial', 'B', 9);
+$pdf->Cell(20, 6, utf8_decode('Nº Acción:'), 0, 0);
+$pdf->SetFont('Arial', '', 9);
+$pdf->Cell(30, 6, utf8_decode($num_accion), 0, 0);
+
+$pdf->SetFont('Arial', 'B', 9);
+$pdf->Cell(15, 6, utf8_decode('Grupo:'), 0, 0);
+$pdf->SetFont('Arial', '', 9);
+$pdf->Cell(40, 6, utf8_decode($grupo_num), 0, 1);
+
+// Row 2
+$pdf->SetFont('Arial', 'B', 9);
+$pdf->Cell(15, 6, utf8_decode('Curso:'), 0, 0);
+$pdf->SetFont('Arial', '', 9);
+$pdf->Cell(135, 6, utf8_decode($curso_nombre), 0, 0);
+
+$pdf->SetFont('Arial', 'B', 9);
+$pdf->Cell(18, 6, utf8_decode('Nº horas:'), 0, 0);
+$pdf->SetFont('Arial', '', 9);
+$pdf->Cell(30, 6, utf8_decode($horas), 0, 1);
+
+$pdf->Ln(5);
+
+// Tabla Cabeceras
+$pdf->SetFont('Arial', 'B', 8);
+$pdf->SetFillColor(255, 255, 255); // Fondo blanco
+$pdf->SetTextColor(0, 0, 0);
+
+$w_alumno = 65;
+$w_horas = 24;
+$w_porc_curso = 18;
+$w_m = 12; // x3 = 36
+$w_e = 12; // x3 = 36
+$w_porc_controles = 22;
+$w_nota = 14;
+$w_apto = 15;
+
+$x = $pdf->GetX();
+$y = $pdf->GetY();
+
+// Nivel 1
+$pdf->Cell($w_alumno, 10, utf8_decode('ALUMNOS'), 1, 0, 'C');
+$pdf->Cell($w_horas + $w_porc_curso, 5, utf8_decode('TIEMPO CONEXIONES'), 1, 0, 'C');
+$pdf->Cell($w_m * 3, 5, utf8_decode('VISUALIZACIÓN DE CONTENIDOS'), 1, 0, 'C');
+$pdf->Cell($w_e * 3 + $w_porc_controles, 5, utf8_decode('CONTROLES'), 1, 0, 'C');
+$pdf->Cell($w_nota + $w_apto, 5, utf8_decode('CALIFICACIÓN'), 'LTR', 1, 'C');
+
+// Nivel 2
+$pdf->SetXY($x + $w_alumno, $y + 5);
+$pdf->Cell($w_horas, 5, utf8_decode('Nº HORAS'), 1, 0, 'C');
+$pdf->Cell($w_porc_curso, 5, utf8_decode('% CURSO'), 1, 0, 'C');
+$pdf->Cell($w_m, 5, 'M1', 1, 0, 'C');
+$pdf->Cell($w_m, 5, 'M2', 1, 0, 'C');
+$pdf->Cell($w_m, 5, 'M3', 1, 0, 'C');
+$pdf->Cell($w_e, 5, 'E1', 1, 0, 'C');
+$pdf->Cell($w_e, 5, 'E2', 1, 0, 'C');
+$pdf->Cell($w_e, 5, 'E3', 1, 0, 'C');
+$pdf->Cell($w_porc_controles, 5, utf8_decode('% CONTROLES'), 1, 0, 'C');
+$pdf->Cell($w_nota + $w_apto, 5, utf8_decode('FINAL'), 'LBR', 1, 'C');
+
+// Filas
+$pdf->SetFont('Arial', '', 8);
 
 if (empty($alumnos)) {
-    $pdf->Cell(array_sum($w), 10, utf8_decode('No hay alumnos matriculados.'), 1, 0, 'C');
+    $pdf->Cell(array_sum([$w_alumno, $w_horas, $w_porc_curso, $w_m*3, $w_e*3, $w_porc_controles, $w_nota, $w_apto]), 10, utf8_decode('No hay alumnos matriculados.'), 1, 0, 'C');
 } else {
     foreach($alumnos as $al) {
-        $nombreCompleto = $al['primer_apellido'] . ' ' . $al['segundo_apellido'] . ', ' . $al['nombre'];
-        if (strlen($nombreCompleto) > 35) {
-            $nombreCompleto = substr($nombreCompleto, 0, 32) . '...';
+        $nombreCompleto = $al['nombre'] . ' ' . $al['primer_apellido'] . ' ' . $al['segundo_apellido'];
+        $nombreCompleto = strtoupper($nombreCompleto);
+        if (strlen($nombreCompleto) > 36) {
+            $nombreCompleto = substr($nombreCompleto, 0, 34) . '...';
         }
         
-        $acceso = "";
-        if ($al['moodle_first_access']) {
-            $acceso = date('d/m H:i', strtotime($al['moodle_first_access'])) . "\n" . date('d/m H:i', strtotime($al['moodle_last_access']));
-        } else {
-            $acceso = "---";
-        }
+        $tiempo = format_connected_time($al['moodle_connected_time']);
+        $porc_curso = number_format((float)$al['moodle_progress'], 2) . '%';
         
-        $m_text = ($al['moodle_m1_completed']?'V':'X') . "-" . ($al['moodle_m2_completed']?'V':'X') . "-" . ($al['moodle_m3_completed']?'V':'X');
+        $m1 = $al['moodle_m1_completed'] ? 'X' : '';
+        $m2 = $al['moodle_m2_completed'] ? 'X' : '';
+        $m3 = $al['moodle_m3_completed'] ? 'X' : '';
         
-        $e1 = $al['moodle_e1_grade'] !== null ? number_format($al['moodle_e1_grade'],1) : '-';
-        $e2 = $al['moodle_e2_grade'] !== null ? number_format($al['moodle_e2_grade'],1) : '-';
-        $e3 = $al['moodle_e3_grade'] !== null ? number_format($al['moodle_e3_grade'],1) : '-';
-        $e_text = "$e1 / $e2 / $e3";
+        $e1 = $al['moodle_e1_grade'] !== null ? number_format((float)$al['moodle_e1_grade'], 2) : '';
+        $e2 = $al['moodle_e2_grade'] !== null ? number_format((float)$al['moodle_e2_grade'], 2) : '';
+        $e3 = $al['moodle_e3_grade'] !== null ? number_format((float)$al['moodle_e3_grade'], 2) : '';
         
-        $nota = $al['moodle_final_grade'] !== null ? number_format($al['moodle_final_grade'],2) : '---';
-        $aptitud = $al['moodle_aptitud'] ? $al['moodle_aptitud'] : 'PENDIENTE';
+        // % Controles calculation
+        $c_total = 3;
+        $c_done = ($e1 !== '' ? 1 : 0) + ($e2 !== '' ? 1 : 0) + ($e3 !== '' ? 1 : 0);
+        $porc_controles = number_format(($c_done / $c_total) * 100, 2) . '%';
         
-        // Usaremos MultiCell para el acceso (porque tiene 2 líneas), así que calculamos la altura (Y) máxima
-        $x = $pdf->GetX();
-        $y = $pdf->GetY();
+        $nota = $al['moodle_final_grade'] !== null ? number_format((float)$al['moodle_final_grade'], 2) : '';
+        $aptitud = strtoupper($al['moodle_aptitud'] ? $al['moodle_aptitud'] : '');
         
-        $pdf->SetFillColor(245, 245, 245);
-        
-        $pdf->Cell($w[0], 10, utf8_decode($nombreCompleto), 1, 0, 'L', $fill);
-        $pdf->Cell($w[1], 10, utf8_decode($al['dni']), 1, 0, 'C', $fill);
-        $pdf->Cell($w[2], 10, utf8_decode('G'.$al['numero_grupo']), 1, 0, 'C', $fill);
-        
-        $pdf->SetXY($x + $w[0] + $w[1] + $w[2], $y);
-        if ($acceso === '---') {
-            $pdf->Cell($w[3], 10, $acceso, 1, 0, 'C', $fill);
-        } else {
-            // MultiCell for Access
-            $pdf->MultiCell($w[3], 5, utf8_decode($acceso), 1, 'C', $fill);
-            $pdf->SetXY($x + $w[0] + $w[1] + $w[2] + $w[3], $y);
-        }
-        
-        $pdf->Cell($w[4], 10, utf8_decode(format_connected_time($al['moodle_connected_time'])), 1, 0, 'C', $fill);
-        $pdf->Cell($w[5], 10, utf8_decode((int)$al['moodle_progress'] . '%'), 1, 0, 'C', $fill);
-        $pdf->Cell($w[6], 10, utf8_decode($m_text), 1, 0, 'C', $fill);
-        $pdf->Cell($w[7], 10, utf8_decode($e_text), 1, 0, 'C', $fill);
-        
-        // Font bold for note and aptitud
-        $pdf->SetFont('Arial', 'B', 8);
-        $pdf->Cell($w[8], 10, utf8_decode($nota), 1, 0, 'C', $fill);
-        
-        // Color based on aptitud
-        if ($aptitud === 'APTO') {
-            $pdf->SetTextColor(21, 128, 61);
-        } elseif ($aptitud === 'NO APTO') {
-            $pdf->SetTextColor(153, 27, 27);
-        } else {
-            $pdf->SetTextColor(75, 85, 99);
-        }
-        
-        $pdf->Cell($w[9], 10, utf8_decode($aptitud), 1, 0, 'C', $fill);
-        
-        // Reset color and font for next row
-        $pdf->SetTextColor(0, 0, 0);
-        $pdf->SetFont('Arial', '', 8);
-        
-        $pdf->Ln(10);
-        $fill = !$fill;
+        $pdf->Cell($w_alumno, 6, utf8_decode($nombreCompleto), 1, 0, 'L');
+        $pdf->Cell($w_horas, 6, utf8_decode($tiempo), 1, 0, 'R');
+        $pdf->Cell($w_porc_curso, 6, utf8_decode($porc_curso), 1, 0, 'R');
+        $pdf->Cell($w_m, 6, utf8_decode($m1), 1, 0, 'C');
+        $pdf->Cell($w_m, 6, utf8_decode($m2), 1, 0, 'C');
+        $pdf->Cell($w_m, 6, utf8_decode($m3), 1, 0, 'C');
+        $pdf->Cell($w_e, 6, utf8_decode($e1), 1, 0, 'R');
+        $pdf->Cell($w_e, 6, utf8_decode($e2), 1, 0, 'R');
+        $pdf->Cell($w_e, 6, utf8_decode($e3), 1, 0, 'R');
+        $pdf->Cell($w_porc_controles, 6, utf8_decode($porc_controles), 1, 0, 'R');
+        $pdf->Cell($w_nota, 6, utf8_decode($nota), 'LBT', 0, 'R');
+        $pdf->Cell($w_apto, 6, utf8_decode($aptitud), 'RBT', 1, 'C');
     }
 }
 
