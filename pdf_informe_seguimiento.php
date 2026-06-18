@@ -89,6 +89,7 @@ class PDF extends FPDF {
 }
 
 $pdf = new PDF('L', 'mm', 'A4'); // Landscape
+$pdf->SetMargins(11, 10, 11); // Center the 275mm table on a 297mm page
 $pdf->AliasNbPages();
 $pdf->AddPage();
 
@@ -99,12 +100,12 @@ $pdf->SetTextColor(0, 0, 0);
 // Row 1
 $pdf->Cell(20, 6, utf8_decode('Expediente:'), 0, 0);
 $pdf->SetFont('Arial', '', 9);
-$pdf->Cell(40, 6, utf8_decode($expediente), 0, 0);
+$pdf->Cell(45, 6, utf8_decode($expediente), 0, 0);
 
 $pdf->SetFont('Arial', 'B', 9);
 $pdf->Cell(20, 6, utf8_decode('Nº Acción:'), 0, 0);
 $pdf->SetFont('Arial', '', 9);
-$pdf->Cell(30, 6, utf8_decode($num_accion), 0, 0);
+$pdf->Cell(35, 6, utf8_decode($num_accion), 0, 0);
 
 $pdf->SetFont('Arial', 'B', 9);
 $pdf->Cell(15, 6, utf8_decode('Grupo:'), 0, 0);
@@ -115,7 +116,7 @@ $pdf->Cell(40, 6, utf8_decode($grupo_num), 0, 1);
 $pdf->SetFont('Arial', 'B', 9);
 $pdf->Cell(15, 6, utf8_decode('Curso:'), 0, 0);
 $pdf->SetFont('Arial', '', 9);
-$pdf->Cell(135, 6, utf8_decode($curso_nombre), 0, 0);
+$pdf->Cell(140, 6, utf8_decode($curso_nombre), 0, 0);
 
 $pdf->SetFont('Arial', 'B', 9);
 $pdf->Cell(18, 6, utf8_decode('Nº horas:'), 0, 0);
@@ -129,14 +130,14 @@ $pdf->SetFont('Arial', 'B', 8);
 $pdf->SetFillColor(255, 255, 255); // Fondo blanco
 $pdf->SetTextColor(0, 0, 0);
 
-$w_alumno = 65;
-$w_horas = 24;
-$w_porc_curso = 18;
-$w_m = 12; // x3 = 36
-$w_e = 12; // x3 = 36
-$w_porc_controles = 22;
-$w_nota = 14;
-$w_apto = 15;
+$w_alumno = 80;
+$w_horas = 30;
+$w_porc_curso = 22;
+$w_m = 14; // x3 = 42
+$w_e = 14; // x3 = 42
+$w_porc_controles = 25;
+$w_nota = 17;
+$w_apto = 17;
 
 $x = $pdf->GetX();
 $y = $pdf->GetY();
