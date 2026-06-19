@@ -869,6 +869,7 @@ try {
                                         <td>
                                             <div style="display:flex; gap:5px;">
                                                 <a href="ficha_grupo_edicion.php?id=<?= $g['id'] ?>" style="color:#64748b;" title="Ver/Editar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></a>
+                                                <button type="button" onclick="deleteGrupo(<?= $g['id'] ?>, '<?= htmlspecialchars(addslashes($g['numero_grupo'])) ?>')" style="background:none; border:none; padding:0; cursor:pointer; color:#ef4444;" title="Eliminar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
                                             </div>
                                         </td>
                                     </tr>
@@ -2033,6 +2034,36 @@ try {
                     msgDiv.innerHTML = '<span style="color:#991b1b;">❌ Error de conexión de red.</span>';
                     console.error('Error:', error);
                 });
+        }
+
+        // Borrar grupo AJAX
+        function deleteGrupo(grupoId, numeroGrupo) {
+            if (!confirm(`¿Estás seguro de que deseas eliminar el Grupo ${numeroGrupo}? Esta acción no se puede deshacer.`)) {
+                return;
+            }
+            
+            const csrf = '<?= $_SESSION['csrf_token'] ?? '' ?>';
+            const formData = new FormData();
+            formData.append('id', grupoId);
+            formData.append('csrf_token', csrf);
+            
+            fetch('api_delete_grupo.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Grupo borrado correctamente.');
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('Error de red al intentar borrar el grupo.');
+                console.error('Error:', error);
+            });
         }
 
         // Initialize active tab from query param
