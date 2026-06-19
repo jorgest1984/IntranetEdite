@@ -204,8 +204,12 @@ if (empty($alumnos)) {
         $pdf->Cell($w_e, 6, utf8_decode($e2), 1, 0, 'C');
         $pdf->Cell($w_e, 6, utf8_decode($e3), 1, 0, 'C');
         $pdf->Cell($w_porc_controles, 6, utf8_decode($porc_controles), 1, 0, 'C');
-        $pdf->Cell($w_nota, 6, utf8_decode($nota), 'LBT', 0, 'C');
-        $pdf->Cell($w_apto, 6, utf8_decode($aptitud), 'RBT', 1, 'C');
+        if ($aptitud === 'PENDIENTE') {
+            $pdf->Cell($w_nota + $w_apto, 6, utf8_decode('PENDIENTE'), 1, 1, 'C');
+        } else {
+            $pdf->Cell($w_nota, 6, utf8_decode($nota), 'LBT', 0, 'C');
+            $pdf->Cell($w_apto, 6, utf8_decode($aptitud), 'RBT', 1, 'C');
+        }
     }
 }
 
