@@ -28,7 +28,7 @@ if (!hash_equals($_SESSION['csrf_token'], $csrf_token)) {
 
 try {
     // Verificar si hay matriculas asociadas
-    $stmtCheck = $pdo->prepare("SELECT COUNT(*) as num_matriculas FROM matriculas WHERE id_grupo = ?");
+    $stmtCheck = $pdo->prepare("SELECT COUNT(*) as num_matriculas FROM matriculas WHERE grupo_id = ?");
     $stmtCheck->execute([$id]);
     $row = $stmtCheck->fetch();
     if ($row && $row['num_matriculas'] > 0) {
