@@ -90,7 +90,7 @@ class MoodleDB {
 
                 // 1. Primer y último acceso
                 $sqlAccess = "SELECT userid, MIN(timecreated) as first_acc, MAX(timecreated) as last_acc 
-                              FROM mdl_logstore_standard_log 
+                              FROM " . MOODLE_DB_PREFIX . "logstore_standard_log 
                               WHERE courseid = ? AND userid IN ($placeholders) 
                               GROUP BY userid";
                 $stmtAccess = $this->mpdo->prepare($sqlAccess);
@@ -105,7 +105,7 @@ class MoodleDB {
 
                 // 2. Tiempo de conexión por logs
                 $sqlLogs = "SELECT userid, timecreated 
-                            FROM mdl_logstore_standard_log 
+                            FROM " . MOODLE_DB_PREFIX . "logstore_standard_log 
                             WHERE courseid = ? AND userid IN ($placeholders) 
                             ORDER BY userid ASC, timecreated ASC";
                 $stmtLogs = $this->mpdo->prepare($sqlLogs);
@@ -139,16 +139,16 @@ class MoodleDB {
                 $sqlModules = "SELECT cm.id as coursemoduleid, cm.section, 
                                      COALESCE(a.name, p.name, r.name, q.name, f.name, b.name, s.name, 'Actividad') as name,
                                      cmc.userid, cmc.completionstate
-                              FROM mdl_course_modules cm
-                              JOIN mdl_modules m ON cm.module = m.id
-                              LEFT JOIN mdl_assign a ON m.name = 'assign' AND cm.instance = a.id
-                              LEFT JOIN mdl_page p ON m.name = 'page' AND cm.instance = p.id
-                              LEFT JOIN mdl_resource r ON m.name = 'resource' AND cm.instance = r.id
-                              LEFT JOIN mdl_quiz q ON m.name = 'quiz' AND cm.instance = q.id
-                              LEFT JOIN mdl_forum f ON m.name = 'forum' AND cm.instance = f.id
-                              LEFT JOIN mdl_book b ON m.name = 'book' AND cm.instance = b.id
-                              LEFT JOIN mdl_scorm s ON m.name = 'scorm' AND cm.instance = s.id
-                              LEFT JOIN mdl_course_modules_completion cmc ON cmc.coursemoduleid = cm.id
+                              FROM " . MOODLE_DB_PREFIX . "course_modules cm
+                              JOIN " . MOODLE_DB_PREFIX . "modules m ON cm.module = m.id
+                              LEFT JOIN " . MOODLE_DB_PREFIX . "assign a ON m.name = 'assign' AND cm.instance = a.id
+                              LEFT JOIN " . MOODLE_DB_PREFIX . "page p ON m.name = 'page' AND cm.instance = p.id
+                              LEFT JOIN " . MOODLE_DB_PREFIX . "resource r ON m.name = 'resource' AND cm.instance = r.id
+                              LEFT JOIN " . MOODLE_DB_PREFIX . "quiz q ON m.name = 'quiz' AND cm.instance = q.id
+                              LEFT JOIN " . MOODLE_DB_PREFIX . "forum f ON m.name = 'forum' AND cm.instance = f.id
+                              LEFT JOIN " . MOODLE_DB_PREFIX . "book b ON m.name = 'book' AND cm.instance = b.id
+                              LEFT JOIN " . MOODLE_DB_PREFIX . "scorm s ON m.name = 'scorm' AND cm.instance = s.id
+                              LEFT JOIN " . MOODLE_DB_PREFIX . "course_modules_completion cmc ON cmc.coursemoduleid = cm.id
                               WHERE cm.course = ? AND cmc.userid IN ($placeholders)";
                 
                 $stmtMod = $this->mpdo->prepare($sqlModules);
@@ -194,7 +194,7 @@ class MoodleDB {
 
                 // 4. Evaluaciones E1, E2, E3
                 // Obtener cuestionarios de Moodle en este curso
-                $sqlQuizzes = "SELECT id, name, grade FROM mdl_quiz WHERE course = ?";
+                $sqlQuizzes = "SELECT id, name, grade FROM " . MOODLE_DB_PREFIX . "quiz WHERE course = ?";
                 $stmtQuiz = $this->mpdo->prepare($sqlQuizzes);
                 $stmtQuiz->execute([$moodleCourseId]);
                 $quizzes = $stmtQuiz->fetchAll();
@@ -236,7 +236,7 @@ class MoodleDB {
 
                 if (!empty($targetQuizIds)) {
                     $quizPlaceholders = implode(',', array_fill(0, count($targetQuizIds), '?'));
-                    $sqlGrades = "SELECT userid, quiz, grade FROM mdl_quiz_grades 
+                    $sqlGrades = "SELECT userid, quiz, grade FROM " . MOODLE_DB_PREFIX . "quiz_grades 
                                   WHERE quiz IN ($quizPlaceholders) AND userid IN ($placeholders)";
                     
                     $stmtGrades = $this->mpdo->prepare($sqlGrades);

@@ -23,6 +23,7 @@ if ($is_local) {
     define('MOODLE_DB_USER', 'root');
     define('MOODLE_DB_PASS', '');
     define('MOODLE_DB_NAME', 'moodle');
+    define('MOODLE_DB_PREFIX', 'mdl_');
     
     try {
         $pdo = new PDO("mysql:host=".DB_HOST.";dbname=".DB_NAME.";charset=utf8mb4", DB_USER, DB_PASS);
@@ -48,6 +49,7 @@ if ($is_local) {
     define('MOODLE_DB_USER', 'pre-aulavirtual');
     define('MOODLE_DB_PASS', 'Js7~29e1t');
     define('MOODLE_DB_NAME', 'pre-bdaulavirtual');
+    define('MOODLE_DB_PREFIX', 'avefp_');
     
     try {
         $pdo = new PDO("mysql:host=".DB_HOST.";dbname=".DB_NAME.";charset=utf8mb4", DB_USER, DB_PASS);
@@ -73,6 +75,7 @@ if ($is_local) {
     define('MOODLE_DB_USER', 'moodle_prod');
     define('MOODLE_DB_PASS', 'Oy0v?ggswFBr6d0~');
     define('MOODLE_DB_NAME', 'moodle_prod');
+    define('MOODLE_DB_PREFIX', 'mdl_');
     
     try {
         $pdo = new PDO("mysql:host=".DB_HOST.";dbname=".DB_NAME.";charset=utf8mb4", DB_USER, DB_PASS);
