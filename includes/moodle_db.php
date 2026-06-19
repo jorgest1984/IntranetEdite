@@ -207,11 +207,11 @@ class MoodleDB {
                     $qInfo = ['id' => (int)$q['id'], 'max_grade' => (float)$q['grade']];
                     $allQuizzes[] = $qInfo;
 
-                    if (strpos($qName, 'e1') !== false || strpos($qName, 'inicial') !== false || strpos($qName, 'evaluación 1') !== false) {
+                    if (strpos($qName, 'ev0') !== false || strpos($qName, 'e1') !== false || strpos($qName, 'inicial') !== false || strpos($qName, 'evaluación 1') !== false) {
                         $quizMap['e1'] = $qInfo;
-                    } elseif (strpos($qName, 'e2') !== false || strpos($qName, 'intermedia') !== false || strpos($qName, 'evaluación 2') !== false) {
+                    } elseif (strpos($qName, 'ev1') !== false || strpos($qName, 'e2') !== false || strpos($qName, 'intermedia') !== false || strpos($qName, 'evaluación 2') !== false) {
                         $quizMap['e2'] = $qInfo;
-                    } elseif (strpos($qName, 'e3') !== false || strpos($qName, 'final') !== false || strpos($qName, 'evaluación 3') !== false) {
+                    } elseif (strpos($qName, 'ev2') !== false || strpos($qName, 'e3') !== false || strpos($qName, 'final') !== false || strpos($qName, 'evaluación 3') !== false) {
                         $quizMap['e3'] = $qInfo;
                     }
                 }
