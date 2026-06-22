@@ -320,6 +320,25 @@ try {
         }
     }
 
+    // 9. Marcar como 'Baja' las matrículas locales que ya no están en Moodle (ej. profesores o bajas)
+    if (!empty($syncedUserIds)) {
+        $placeholders = implode(',', array_fill(0, count($syncedUserIds), '?'));
+        $params = array_merge([$grupo_id], $syncedUserIds);
+        
+        $sqlNotInMoodle = "SELECT m.id 
+                           FROM matriculas m 
+                           JOIN alumnos a ON m.alumno_id = a.id
+                           WHERE m.grupo_id = ? AND (a.moodle_user_id NOT IN ($placeholders) OR a.moodle_user_id IS NULL)";
+        $stmtNotIn = $pdo->prepare($sqlNotInMoodle);
+        $stmtNotIn->execute($params);
+        $toUpdate = $stmtNotIn->fetchAll(PDO::FETCH_COLUMN);
+        
+        if (!empty($toUpdate)) {
+            $inPlaceholders = implode(',', array_fill(0, count($toUpdate), '?'));
+            $pdo->prepare("UPDATE matriculas SET estado = 'Baja' WHERE id IN ($inPlaceholders)")->execute($toUpdate);
+        }
+    }
+
     // Registrar en auditoría
     audit_log($pdo, 'IMPORT_MOODLE_STUDENTS', 'acciones_formativas', $af_id, null, ['imported_count' => $importedCount]);
 
