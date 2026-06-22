@@ -352,7 +352,7 @@ class MoodleAPI {
         $params = [
             'courseid' => $courseId,
             'options' => [
-                ['name' => 'userfields', 'value' => 'id,username,firstname,lastname,email,lastaccess']
+                ['name' => 'userfields', 'value' => 'id,username,firstname,lastname,email,lastaccess,roles']
             ]
         ];
         return $this->call('core_enrol_get_enrolled_users', $params);

@@ -76,7 +76,7 @@ if ($id) {
                                           FROM matriculas m
                                           JOIN alumnos a ON m.alumno_id = a.id
                                           JOIN grupos g ON m.grupo_id = g.id
-                                          WHERE g.accion_id = ?
+                                          WHERE g.accion_id = ? AND m.estado != 'Baja'
                                           ORDER BY a.nombre ASC, a.primer_apellido ASC");
         $stmtSeguimiento->execute([$id]);
         $alumnos_seguimiento = $stmtSeguimiento->fetchAll();

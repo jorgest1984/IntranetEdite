@@ -54,7 +54,7 @@ $stmtSeguimiento = $pdo->prepare("SELECT a.id as alumno_id, a.nombre, a.primer_a
                                   FROM matriculas m
                                   JOIN alumnos a ON m.alumno_id = a.id
                                   JOIN grupos g ON m.grupo_id = g.id
-                                  WHERE g.accion_id = ?
+                                  WHERE g.accion_id = ? AND m.estado != 'Baja'
                                   ORDER BY a.primer_apellido ASC, a.nombre ASC");
 $stmtSeguimiento->execute([$id]);
 $alumnos = $stmtSeguimiento->fetchAll();
