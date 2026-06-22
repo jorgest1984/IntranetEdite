@@ -120,7 +120,7 @@ if (!$af) die("No se encontró la Acción Formativa");
                     </div>
                     <div class="form-group full-width">
                         <label>Objetivos Generales</label>
-                        <textarea name="objetivos" class="form-control" rows="3"><?= htmlspecialchars($af['objetivos'] ?? '') ?></textarea>
+                        <textarea name="objetivos" class="form-control rte-textarea" rows="6"><?= htmlspecialchars($af['objetivos'] ?? '') ?></textarea>
                     </div>
                     <div class="form-group full-width">
                         <label>Contenidos Completos</label>
@@ -150,14 +150,15 @@ if (!$af) die("No se encontró la Acción Formativa");
 <script>
     tinymce.init({
         selector: '.rte-textarea',
-        height: 300,
-        menubar: false,
+        height: 350,
+        menubar: true,
         plugins: [
             'advlist', 'autolink', 'lists', 'link', 'charmap', 'preview',
             'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
             'insertdatetime', 'table', 'help', 'wordcount'
         ],
-        toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat',
+        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat',
+        font_size_formats: '8pt 10pt 12pt 14pt 18pt 24pt 36pt',
         content_style: 'body { font-family:Inter,Arial,sans-serif; font-size:14px }'
     });
 </script>
