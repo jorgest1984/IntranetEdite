@@ -585,29 +585,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
         }
     </style>
     <script>
-    function syncMoodle(afId) {
-        if (!confirm('¿Deseas sincronizar esta Acción Formativa y sus alumnos con el Aula Virtual?')) return;
-        
-        const btn = event.currentTarget;
-        const originalContent = btn.innerHTML;
-        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="syncing"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>';
-        btn.disabled = true;
-
-        fetch('api_sync_moodle.php?id=' + afId)
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('✓ Sincronización completada: ' + data.message);
-                } else {
-                    alert('✕ Error: ' + data.error);
-                }
-            })
-            .catch(err => alert('✕ Error de conexión con el servidor.'))
-            .finally(() => {
-                btn.innerHTML = originalContent;
-                btn.disabled = false;
-            });
-    }
 
     function switchTab(tabId) {
         document.querySelectorAll('.tab-af-btn').forEach(btn => btn.classList.remove('active'));
@@ -846,9 +823,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
                                             <a href="gestion_matriculas.php?af_id=<?= $row['id'] ?>" class="btn-action" style="color: #16a34a;" title="Matricular Alumnos">
                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="17" y1="11" x2="23" y2="11"></line></svg>
                                             </a>
-                                            <button onclick="syncMoodle(<?= $row['id'] ?>)" class="btn-action" style="color: #ea580c; border:none; background:none; cursor:pointer;" title="Sincronizar Aula Virtual">
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17.5 19a3.5 3.5 0 0 1-3.5-3.5c0-1.57 1.03-2.9 2.45-3.3a3.5 3.5 0 0 1 5.05-3.2c.46.22.86.54 1.18.94A5 5 0 0 1 21 19h-3.5z"></path><path d="M12 13l-3 3 3 3"></path><path d="M9 16h9"></path></svg>
-                                            </button>
                                             <a href="borrar_af.php?id=<?= $row['id'] ?>&csrf_token=<?= urlencode($_SESSION['csrf_token'] ?? '') ?>" class="btn-action" style="color: #ef4444;" title="Borrar Acción Formativa" onclick="return confirm('¿Seguro que deseas eliminar esta Acción Formativa? Esta acción no se puede deshacer y eliminará sus grupos y matrículas.');">
                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                                             </a>
