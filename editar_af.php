@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!isset($_SESSION['csrf_token']) || empty($csrf_token) || !hash_equals($_SESSION['csrf_token'], $csrf_token)) {
         $error = "Error de seguridad (CSRF). Por favor, refresque la página e inténtelo de nuevo.";
     } else {
-        $fields = ['duracion', 'modalidad', 'prioridad', 'estado', 'objetivos', 'contenidos', 'notas_gestion'];
+        $fields = ['duracion', 'modalidad', 'prioridad', 'estado', 'objetivos', 'contenidos', 'contenidos_breves', 'notas_gestion'];
         $data = [];
         $sql = "UPDATE acciones_formativas SET ";
         $sets = [];
@@ -123,8 +123,12 @@ if (!$af) die("No se encontró la Acción Formativa");
                         <textarea name="objetivos" class="form-control" rows="3"><?= htmlspecialchars($af['objetivos'] ?? '') ?></textarea>
                     </div>
                     <div class="form-group full-width">
-                        <label>Contenidos</label>
-                        <textarea name="contenidos" class="form-control" rows="5"><?= htmlspecialchars($af['contenidos'] ?? '') ?></textarea>
+                        <label>Contenidos Completos</label>
+                        <textarea name="contenidos" class="form-control rte-textarea" rows="10"><?= htmlspecialchars($af['contenidos'] ?? '') ?></textarea>
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Contenidos Resumidos</label>
+                        <textarea name="contenidos_breves" class="form-control rte-textarea" rows="8"><?= htmlspecialchars($af['contenidos_breves'] ?? '') ?></textarea>
                     </div>
                     <div class="form-group full-width">
                         <label>Notas de Gestión</label>
@@ -142,5 +146,20 @@ if (!$af) die("No se encontró la Acción Formativa");
         </div>
     </main>
 </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+    tinymce.init({
+        selector: '.rte-textarea',
+        height: 300,
+        menubar: false,
+        plugins: [
+            'advlist', 'autolink', 'lists', 'link', 'charmap', 'preview',
+            'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+            'insertdatetime', 'table', 'help', 'wordcount'
+        ],
+        toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat',
+        content_style: 'body { font-family:Inter,Arial,sans-serif; font-size:14px }'
+    });
+</script>
 </body>
 </html>
