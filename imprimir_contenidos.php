@@ -260,7 +260,11 @@ if (empty($acciones)) {
     <div class="content-heading">CONTENIDOS</div>
 
     <div class="content">
-        <?= $af['contenidos'] ?>
+        <?php if (isset($_GET['tipo']) && $_GET['tipo'] === 'resumido'): ?>
+            <?= $af['contenidos_breves'] ?>
+        <?php else: ?>
+            <?= $af['contenidos'] ?>
+        <?php endif; ?>
     </div>
 
     <div class="footer">
