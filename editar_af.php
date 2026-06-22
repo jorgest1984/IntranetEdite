@@ -146,7 +146,7 @@ if (!$af) die("No se encontró la Acción Formativa");
         </div>
     </main>
 </div>
-<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<script src="/js/tinymce/tinymce.min.js"></script>
 <script>
     if (typeof tinymce !== 'undefined') {
         tinymce.init({
@@ -164,7 +164,7 @@ if (!$af) die("No se encontró la Acción Formativa");
         });
     } else {
         console.error("TinyMCE no pudo cargar.");
-        alert("El editor avanzado no pudo cargar. Si usa un bloqueador de anuncios (AdBlock, uBlock), intente desactivarlo para esta página o recargue forzadamente con Ctrl+F5.");
+        alert("El editor avanzado no pudo cargar. Compruebe los permisos o recargue forzadamente con Ctrl+F5.");
     }
 </script>
 </body>
