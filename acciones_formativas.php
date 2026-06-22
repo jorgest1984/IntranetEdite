@@ -766,7 +766,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
 
                 <div class="button-bar">
                     <button type="submit" class="btn-buscar">Buscar</button>
-                    <button type="button" class="btn-print" onclick="alert('Funcionalidad en desarrollo')">
+                    <?php
+                    $queryString = $_SERVER['QUERY_STRING'];
+                    ?>
+                    <button type="button" class="btn-print" onclick="window.open('imprimir_contenidos.php?<?= htmlspecialchars($queryString) ?>', '_blank')">
                         <img src="https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg" width="14" alt="PDF">
                         Imprimir Contenidos
                     </button>
