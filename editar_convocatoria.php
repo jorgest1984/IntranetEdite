@@ -348,6 +348,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                             <a href="editar_plan.php?id=<?= $plan['id'] ?>&convocatoria_id=<?= $id ?>" class="icon-btn" style="color: #1e3a8a;" title="Editar Plan">
                                                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                             </a>
+                                            <button type="button" class="icon-btn" onclick="deletePlan(<?= $plan['id'] ?>, '<?= htmlspecialchars(addslashes($plan['nombre'] ?? '')) ?>')" style="color: #ef4444; border:none; background:none; cursor:pointer;" title="Borrar Plan">
+                                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                            </button>
                                         </td>
                                     </tr>
                                     <?php endforeach; ?>
@@ -382,6 +385,30 @@ function updateStatusVisuals(radio) {
     cards.forEach(card => card.classList.remove('selected'));
     if (radio.checked) {
         radio.closest('.status-card').classList.add('selected');
+    }
+}
+
+async function deletePlan(id, nombre) {
+    if (!confirm(`¿Estás seguro de que deseas eliminar el plan "${nombre}"? Esta acción no se puede deshacer.`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch('api_delete_plan.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: id })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            window.location.reload();
+        } else {
+            alert('Error: ' + (result.error || 'Error desconocido'));
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error de conexión al intentar borrar el plan.');
     }
 }
 </script>
