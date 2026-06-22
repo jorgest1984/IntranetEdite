@@ -146,21 +146,26 @@ if (!$af) die("No se encontró la Acción Formativa");
         </div>
     </main>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js" referrerpolicy="origin"></script>
+<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
 <script>
-    tinymce.init({
-        selector: '.rte-textarea',
-        height: 350,
-        menubar: true,
-        plugins: [
-            'advlist', 'autolink', 'lists', 'link', 'charmap', 'preview',
-            'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-            'insertdatetime', 'table', 'help', 'wordcount'
-        ],
-        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat',
-        font_size_formats: '8pt 10pt 12pt 14pt 18pt 24pt 36pt',
-        content_style: 'body { font-family:Inter,Arial,sans-serif; font-size:14px }'
-    });
+    if (typeof tinymce !== 'undefined') {
+        tinymce.init({
+            selector: '.rte-textarea',
+            height: 350,
+            menubar: true,
+            plugins: [
+                'advlist', 'autolink', 'lists', 'link', 'charmap', 'preview',
+                'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                'insertdatetime', 'table', 'help', 'wordcount'
+            ],
+            toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat',
+            font_size_formats: '8pt 10pt 12pt 14pt 18pt 24pt 36pt',
+            content_style: 'body { font-family:Inter,Arial,sans-serif; font-size:14px }'
+        });
+    } else {
+        console.error("TinyMCE no pudo cargar.");
+        alert("El editor avanzado no pudo cargar. Si usa un bloqueador de anuncios (AdBlock, uBlock), intente desactivarlo para esta página o recargue forzadamente con Ctrl+F5.");
+    }
 </script>
 </body>
 </html>
