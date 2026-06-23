@@ -1,1 +1,1 @@
-<?php require 'includes/config.php'; print_r(json_encode(\->query('DESCRIBE alumnos')->fetchAll(PDO::FETCH_ASSOC)));
+<?php require 'includes/config.php'; print_r(json_encode(\->query('SELECT * FROM matriculas WHERE id=47')->fetch(PDO::FETCH_ASSOC)));
