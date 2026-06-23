@@ -13,9 +13,8 @@ if (!$id) {
 
 // 1. Obtener datos masivos de la matrícula
 $stmtMatricula = $pdo->prepare("
-    SELECT m.*, 
-           a.nombre as alumno_nombre, a.primer_apellido, a.segundo_apellido, a.dni, a.fecha_nacimiento, a.sexo, 
-           a.tipo_via, a.nombre_via, a.num_domicilio, a.escalera, a.planta, a.puerta, a.cp as codigo_postal, a.provincia, a.localidad, a.telefono, a.email, a.seguridad_social as ss, a.estudios, a.profesion,
+    SELECT m.*, m.id as matricula_id,
+           a.*,
            c.nombre as convocatoria_nombre, c.codigo_expediente,
            p.nombre as plan_nombre, 
            e.nombre as empresa_nombre,
@@ -46,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $sql = "UPDATE alumnos SET 
             dni = ?, seguridad_social = ?, fecha_nacimiento = ?, 
             nombre = ?, primer_apellido = ?, segundo_apellido = ?, 
-            profesion = ?, estudios = ?, sexo = ?,
+            sexo = ?,
             tipo_via = ?, nombre_via = ?, num_domicilio = ?, escalera = ?, planta = ?, puerta = ?,
             cp = ?, provincia = ?, localidad = ?,
             telefono = ?, email = ?
@@ -57,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $stmtUpdate->execute([
             $_POST['dni'] ?? null, $_POST['ss'] ?? null, $_POST['fecha_nacimiento'] ?? null,
             $_POST['nombre'] ?? null, $_POST['primer_apellido'] ?? null, $_POST['segundo_apellido'] ?? null,
-            $_POST['profesion'] ?? null, $_POST['estudios'] ?? null, $_POST['sexo'] ?? null,
+            $_POST['sexo'] ?? null,
             $_POST['tipo_via'] ?? null, $_POST['nombre_via'] ?? null, $_POST['num_domicilio'] ?? null, $_POST['escalera'] ?? null, $_POST['planta'] ?? null, $_POST['puerta'] ?? null,
             $_POST['codigo_postal'] ?? null, $_POST['provincia'] ?? null, $_POST['localidad'] ?? null,
             $_POST['telefono'] ?? null, $_POST['email'] ?? null,
@@ -74,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Ficha Matrícula - <?= htmlspecialchars($matricula['alumno_nombre'] ?? '') ?></title>
+    <title>Ficha Matrícula - <?= htmlspecialchars($matricula['nombre'] ?? '') ?></title>
     <style>
         body {
             font-family: Arial, Helvetica, sans-serif;
@@ -245,7 +244,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 <div class="info-header">
     <div class="info-header-row">
         <span><span class="label">Usuario:</span> 557 <span class="label">COD:</span> 09836</span>
-        <span><span class="label">Alumno:</span> <?= mb_strtoupper($matricula['alumno_nombre'] . ' ' . $matricula['primer_apellido'] . ' ' . $matricula['segundo_apellido']) ?></span>
+        <span><span class="label">Alumno:</span> <?= mb_strtoupper(($matricula['nombre'] ?? '') . ' ' . ($matricula['primer_apellido'] ?? '') . ' ' . ($matricula['segundo_apellido'] ?? '')) ?></span>
         <span><span class="label">ACCION:</span> <?= htmlspecialchars($matricula['af_abreviatura'] ?? '0386') ?> <span class="label">GRUPO:</span> <?= htmlspecialchars($matricula['numero_grupo'] ?? '1') ?></span>
     </div>
     <div class="info-header-row" style="margin-top: 8px;">
@@ -281,7 +280,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 </div>
                 <div class="form-row">
                     <label>Seguridad Social:</label>
-                    <input type="text" name="ss" class="w-medium" value="<?= htmlspecialchars($matricula['ss'] ?? '00000000000') ?>">
+                    <input type="text" name="ss" class="w-medium" value="<?= htmlspecialchars($matricula['seguridad_social'] ?? '00000000000') ?>">
                 </div>
                 <div class="form-row">
                     <label>Fecha de nacimiento:</label>
@@ -289,7 +288,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 </div>
                 <div class="form-row">
                     <label>Nombre:</label>
-                    <input type="text" name="nombre" class="w-medium" value="<?= htmlspecialchars($matricula['alumno_nombre'] ?? '') ?>">
+                    <input type="text" name="nombre" class="w-medium" value="<?= htmlspecialchars($matricula['nombre'] ?? '') ?>">
                     <label style="width: auto; margin-left: 10px;">Apellido 1:</label>
                     <input type="text" name="primer_apellido" class="w-medium" value="<?= htmlspecialchars($matricula['primer_apellido'] ?? '') ?>">
                     <label style="width: auto; margin-left: 10px;">Apellido 2:</label>
@@ -382,7 +381,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 </div>
                 <div class="form-row">
                     <label>CP:</label>
-                    <input type="text" name="codigo_postal" class="w-small" value="<?= htmlspecialchars($matricula['codigo_postal'] ?? '') ?>">
+                    <input type="text" name="codigo_postal" class="w-small" value="<?= htmlspecialchars($matricula['cp'] ?? '') ?>">
                     <label style="width: auto; margin-left: 10px;">Localidad:</label>
                     <input type="text" name="localidad" class="w-medium" value="<?= htmlspecialchars($matricula['localidad'] ?? '') ?>">
                     <label style="width: auto; margin-left: 10px;">Provincia:</label>
