@@ -75,9 +75,21 @@ $documentos = $stmtDocs->fetchAll();
 
 // Cargar matrículas/inscripciones asociadas
 $stmtMatriculas = $pdo->prepare("
-    SELECT m.*, c.nombre as convocatoria_nombre, c.codigo_expediente
+    SELECT m.*, c.nombre as convocatoria_nombre, c.codigo_expediente,
+           p.nombre as plan_nombre, e.nombre as empresa_nombre,
+           g.numero_grupo, g.codigo_plataforma as grupo_cod, g.fecha_inicio as grupo_inicio, g.fecha_fin as grupo_fin, g.horas,
+           af.abreviatura as af_abreviatura, af.prioridad as af_prioridad, cu.nombre_corto as curso_nombre,
+           u_tutor.nombre as tutor_nombre, u_tutor.apellidos as tutor_apellidos,
+           COALESCE(af.modalidad, g.modalidad) as modalidad_real
     FROM matriculas m
     LEFT JOIN convocatorias c ON m.convocatoria_id = c.id
+    LEFT JOIN planes p ON c.id = p.convocatoria_id
+    LEFT JOIN grupos g ON m.grupo_id = g.id
+    LEFT JOIN acciones_formativas af ON g.accion_id = af.id
+    LEFT JOIN cursos cu ON af.curso_id = cu.id
+    LEFT JOIN usuarios u_tutor ON g.tutor_id = u_tutor.id
+    LEFT JOIN alumnos a ON m.alumno_id = a.id
+    LEFT JOIN empresas e ON a.ultima_empresa_id = e.id
     WHERE m.alumno_id = ?
     ORDER BY m.creado_en DESC
 ");
@@ -756,122 +768,126 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 
             <!-- TAB: Inscripciones -->
             <div id="tab-inscripciones" style="<?= $active_tab == 'inscripciones' ? '' : 'display:none;' ?>">
-                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
-                    
-                    <!-- Columna Izquierda: Listado de Inscripciones Existentes -->
-                    <div>
-                        <h3 style="margin-top: 0; display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem; color: var(--text-color);">
-                            <svg style="width: 20px; height: 20px; fill: var(--primary-color);" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-                            Cursos e Inscripciones Actuales
-                        </h3>
-                        
-                        <?php if (empty($matriculas)): ?>
-                            <div class="empty-state" style="border: 1px dashed var(--border-color); padding: 3rem; text-align: center; border-radius: 8px; background: #fafafa; margin-top: 1rem;">
-                                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0;">Este alumno no tiene ninguna inscripción registrada todavía.</p>
-                            </div>
-                        <?php else: ?>
-                            <div class="table-responsive" style="margin-top: 1rem;">
-                                <table class="table-custom" style="width: 100%; border-collapse: collapse; text-align: left;">
-                                    <thead>
-                                        <tr style="border-bottom: 2px solid var(--border-color); background: #f8fafc;">
-                                            <th style="padding: 10px; font-weight: 600; font-size: 0.8rem; color: var(--text-muted);">Cod. Expediente</th>
-                                            <th style="padding: 10px; font-weight: 600; font-size: 0.8rem; color: var(--text-muted);">Convocatoria / Curso</th>
-                                            <th style="padding: 10px; font-weight: 600; font-size: 0.8rem; color: var(--text-muted);">Estado</th>
-                                            <th style="padding: 10px; font-weight: 600; font-size: 0.8rem; color: var(--text-muted);">F. Matrícula</th>
-                                            <th style="padding: 10px; font-weight: 600; font-size: 0.8rem; color: var(--text-muted); text-align: center;">Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php foreach ($matriculas as $mat): ?>
-                                            <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s;">
-                                                <td style="padding: 10px; font-weight: 600; font-size: 0.85rem; color: var(--text-color);"><?= htmlspecialchars($mat['codigo_expediente'] ?? 'N/A') ?></td>
-                                                <td style="padding: 10px; font-size: 0.85rem; color: var(--text-color); font-weight: 500;"><?= htmlspecialchars($mat['convocatoria_nombre'] ?? 'Curso Desconocido') ?></td>
-                                                <td style="padding: 10px; font-size: 0.8rem;">
-                                                    <?php
-                                                    $statusColors = [
-                                                        'Inscrito' => ['bg' => '#eff6ff', 'text' => '#1e40af'],
-                                                        'Activo' => ['bg' => '#d1fae5', 'text' => '#065f46'],
-                                                        'Finalizada' => ['bg' => '#ecfdf5', 'text' => '#047857'],
-                                                        'Finalizado' => ['bg' => '#ecfdf5', 'text' => '#047857'],
-                                                        'Baja' => ['bg' => '#fee2e2', 'text' => '#991b1b'],
-                                                        'Cancelada' => ['bg' => '#f3f4f6', 'text' => '#374151']
-                                                    ];
-                                                    $color = $statusColors[$mat['estado']] ?? ['bg' => '#f3f4f6', 'text' => '#374151'];
-                                                    ?>
-                                                    <span style="background-color: <?= $color['bg'] ?>; color: <?= $color['text'] ?>; padding: 2px 8px; border-radius: 9999px; font-weight: 600; font-size: 0.75rem;">
-                                                        <?= htmlspecialchars($mat['estado']) ?>
-                                                    </span>
-                                                </td>
-                                                <td style="padding: 10px; font-size: 0.85rem; color: var(--text-muted);"><?= $mat['fecha_matricula'] ? date('d/m/Y', strtotime($mat['fecha_matricula'])) : 'N/A' ?></td>
-                                                <td style="padding: 10px; text-align: center;">
-                                                    <form method="POST" style="display: inline; margin: 0;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta inscripción?');">
-                                                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
-                                                        <input type="hidden" name="action" value="delete_inscripcion">
-                                                        <input type="hidden" name="matricula_id" value="<?= $mat['id'] ?>">
-                                                        <button type="submit" style="background: none; border: none; cursor: pointer; color: #dc2626; padding: 4px; display: inline-flex; align-items: center; transition: opacity 0.2s;" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1" title="Eliminar inscripción">
-                                                            <svg style="width: 18px; height: 18px; fill: currentColor;" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
-                                                        </button>
-                                                    </form>
-                                                </td>
-                                            </tr>
-                                        <?php endforeach; ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                        <?php endif; ?>
+                
+                <div style="text-align: center; margin-bottom: 10px;">
+                    <button style="font-size: 0.7rem; padding: 2px 5px; border: 1px solid #999; background: #eee; cursor: pointer;">Guardar registro</button>
+                    <h2 style="color: #b91c1c; font-size: 1rem; font-weight: bold; margin: 10px 0;">CURSOS CONTRATOS-PROGRAMA</h2>
+                    <div style="color: #1e3a8a; font-size: 0.8rem; font-weight: bold;">
+                        Se muestran cursos de todas las convocatorias. <a href="#" style="color: #1e3a8a; text-decoration: underline;">VER SÓLO CURSOS DE CONVOCATORIA ACTUAL</a>
                     </div>
-                    
-                    <!-- Columna Derecha: Formulario para Añadir Nueva Inscripción -->
-                    <div>
-                        <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
-                            <h3 style="margin-top: 0; display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem; color: var(--text-color); margin-bottom: 1.2rem;">
-                                <svg style="width: 20px; height: 20px; fill: var(--primary-color);" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-                                Añadir Inscripción
-                            </h3>
+                </div>
+
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.75rem; text-align: left; background: #fff; min-width: 1000px; font-family: Arial, sans-serif;">
+                        <thead>
+                            <tr>
+                                <th style="border: 1px solid #999; padding: 4px; background: #f0f0f0; color: #1e3a8a; font-weight: bold;">Empresa</th>
+                                <th style="border: 1px solid #999; padding: 4px; background: #f0f0f0; color: #1e3a8a; font-weight: bold;">Plan</th>
+                                <th style="border: 1px solid #999; padding: 4px; background: #f0f0f0; color: #1e3a8a; font-weight: bold;">Nº Acción</th>
+                                <th style="border: 1px solid #999; padding: 4px; background: #f0f0f0; color: #1e3a8a; font-weight: bold;">Nº Grupo</th>
+                                <th style="border: 1px solid #999; padding: 4px; background: #f0f0f0; color: #1e3a8a; font-weight: bold;">Modalidad</th>
+                                <th style="border: 1px solid #999; padding: 4px; background: #f0f0f0; color: #1e3a8a; font-weight: bold;">Horas</th>
+                                <th style="border: 1px solid #999; padding: 4px; background: #f0f0f0; color: #1e3a8a; font-weight: bold;">Curso</th>
+                                <th style="border: 1px solid #999; padding: 4px; background: #f0f0f0; color: #1e3a8a; font-weight: bold;">Tutor</th>
+                                <th style="border: 1px solid #999; padding: 4px; background: #f0f0f0; color: #1e3a8a; font-weight: bold;">Situación</th>
+                                <th style="border: 1px solid #999; padding: 4px; background: #f0f0f0; color: #1e3a8a; font-weight: bold;">Inicio</th>
+                                <th style="border: 1px solid #999; padding: 4px; background: #f0f0f0; color: #1e3a8a; font-weight: bold;">Fin</th>
+                                <th style="border: 1px solid #999; padding: 4px; background: #f0f0f0;"></th>
+                                <th style="border: 1px solid #999; padding: 4px; background: #f0f0f0;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($matriculas as $mat): ?>
+                                <tr>
+                                    <td style="border: 1px solid #999; padding: 4px; color: #1e3a8a;"><?= htmlspecialchars($mat['empresa_nombre'] ?? 'DESEMPLEADO') ?></td>
+                                    <td style="border: 1px solid #999; padding: 4px; color: #1e3a8a;"><?= htmlspecialchars($mat['plan_nombre'] ?? 'Formacion 2025') ?></td>
+                                    <td style="border: 1px solid #999; padding: 4px; color: #1e3a8a;"><?= htmlspecialchars($mat['af_abreviatura'] ?? '2PRL') ?></td>
+                                    <td style="border: 1px solid #999; padding: 4px; color: #1e3a8a;"><?= htmlspecialchars($mat['numero_grupo'] ?? '1') ?></td>
+                                    <td style="border: 1px solid #999; padding: 4px; color: #1e3a8a;"><?= htmlspecialchars($mat['modalidad_real'] ?? 'T') ?></td>
+                                    <td style="border: 1px solid #999; padding: 4px; color: #1e3a8a;"><?= htmlspecialchars($mat['horas'] ?? '30') ?></td>
+                                    <td style="border: 1px solid #999; padding: 4px; color: #1e3a8a;"><?= htmlspecialchars($mat['curso_nombre'] ?? $mat['convocatoria_nombre'] ?? '') ?></td>
+                                    <td style="border: 1px solid #999; padding: 4px; color: #1e3a8a;"><?= htmlspecialchars(trim(($mat['tutor_nombre'] ?? '') . ' ' . ($mat['tutor_apellidos'] ?? ''))) ?></td>
+                                    <td style="border: 1px solid #999; padding: 4px; color: #1e3a8a;"><?= htmlspecialchars($mat['estado'] ?? 'Finalizado') ?></td>
+                                    <td style="border: 1px solid #999; padding: 4px; color: #1e3a8a;"><?= !empty($mat['grupo_inicio']) && $mat['grupo_inicio'] != '0000-00-00' ? date('d/m/Y', strtotime($mat['grupo_inicio'])) : '' ?></td>
+                                    <td style="border: 1px solid #999; padding: 4px; color: #1e3a8a;"><?= !empty($mat['grupo_fin']) && $mat['grupo_fin'] != '0000-00-00' ? date('d/m/Y', strtotime($mat['grupo_fin'])) : '' ?></td>
+                                    <td style="border: 1px solid #999; padding: 4px; text-align: center;">
+                                        <a href="#" style="text-decoration: none;">📝</a>
+                                    </td>
+                                    <td style="border: 1px solid #999; padding: 4px; text-align: center;">
+                                        <form method="POST" style="display: inline; margin: 0;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta inscripción?');">
+                                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
+                                            <input type="hidden" name="action" value="delete_inscripcion">
+                                            <input type="hidden" name="matricula_id" value="<?= $mat['id'] ?>">
+                                            <button type="submit" style="background: none; border: none; cursor: pointer; color: #b91c1c; font-weight: bold; padding: 0;">❌</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
                             
-                            <form method="POST">
-                                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
-                                <input type="hidden" name="action" value="add_inscripcion">
-                                
-                                <div style="margin-bottom: 1rem;">
-                                    <label style="display: block; font-weight: 600; font-size: 0.85rem; color: var(--text-color); margin-bottom: 0.4rem;">Convocatoria / Curso *</label>
-                                    <select name="convocatoria_id" required style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background-color: white;">
-                                        <option value="">-- Seleccionar Convocatoria --</option>
-                                        <?php foreach ($convocatorias as $c): ?>
-                                            <option value="<?= $c['id'] ?>">
-                                                <?= htmlspecialchars(($c['codigo_expediente'] ? '['.$c['codigo_expediente'].'] ' : '') . $c['nombre']) ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                                
-                                <div style="margin-bottom: 1rem;">
-                                    <label style="display: block; font-weight: 600; font-size: 0.85rem; color: var(--text-color); margin-bottom: 0.4rem;">Estado *</label>
-                                    <select name="estado" required style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background-color: white;">
-                                        <option value="Inscrito" selected>Inscrito</option>
-                                        <option value="Activo">Activo</option>
-                                        <option value="Finalizada">Finalizada</option>
-                                        <option value="Baja">Baja</option>
-                                        <option value="Cancelada">Cancelada</option>
-                                    </select>
-                                </div>
-                                
-                                <div style="margin-bottom: 1.5rem;">
-                                    <label style="display: block; font-weight: 600; font-size: 0.85rem; color: var(--text-color); margin-bottom: 0.4rem;">Fecha de Matrícula</label>
-                                    <input type="date" name="fecha_matricula" value="<?= date('Y-m-d') ?>" style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; box-sizing: border-box; background-color: white;">
-                                </div>
-                                
-                                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.75rem;">
-                                    <svg style="width: 16px; height: 16px; fill: currentColor;" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-                                    Registrar Inscripción
-                                </button>
-                            </form>
+                            <!-- Añadir nueva inscripcion row -->
+                            <tr>
+                                <td colspan="13" style="border: 1px solid #999; padding: 4px; text-align: center;">
+                                    <a href="#" onclick="document.getElementById('form-nueva-inscripcion').style.display='block'; return false;" style="color: #1e3a8a; text-decoration: none;">Nueva inscripción</a>
+                                </td>
+                            </tr>
+                            
+                            <!-- Bonificados Header -->
+                            <tr>
+                                <td colspan="13" style="border: 1px solid #999; padding: 4px; background: #f0f0f0; text-align: center; color: #b91c1c; font-weight: bold;">CURSOS BONIFICADOS</td>
+                            </tr>
+                            <!-- Bonificados Empty row -->
+                            <tr>
+                                <td colspan="13" style="border: 1px solid #999; padding: 4px; text-align: center; color: #1e3a8a; font-weight: bold;">No hay inscripciones bonificadas</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Formulario Añadir Inscripcion (Oculto inicialmente) -->
+                <div id="form-nueva-inscripcion" style="display: none; margin-top: 20px; border: 1px solid #999; padding: 15px; background: #f8fafc;">
+                    <h3 style="margin-top: 0; color: #1e3a8a; font-family: Arial, sans-serif; font-size: 1rem;">Añadir Inscripción</h3>
+                    <form method="POST" style="font-family: Arial, sans-serif;">
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
+                        <input type="hidden" name="action" value="add_inscripcion">
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label style="display: block; font-weight: bold; font-size: 0.85rem; color: #1e3a8a; margin-bottom: 0.4rem;">Convocatoria / Curso *</label>
+                            <select name="convocatoria_id" required style="width: 100%; max-width: 400px; padding: 0.4rem; border: 1px solid #999;">
+                                <option value="">-- Seleccionar Convocatoria --</option>
+                                <?php foreach ($convocatorias as $c): ?>
+                                    <option value="<?= $c['id'] ?>">
+                                        <?= htmlspecialchars(($c['codigo_expediente'] ? '['.$c['codigo_expediente'].'] ' : '') . $c['nombre']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
-                    </div>
-                    
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label style="display: block; font-weight: bold; font-size: 0.85rem; color: #1e3a8a; margin-bottom: 0.4rem;">Estado *</label>
+                            <select name="estado" required style="width: 100%; max-width: 200px; padding: 0.4rem; border: 1px solid #999;">
+                                <option value="Inscrito" selected>Inscrito</option>
+                                <option value="Activo">Activo</option>
+                                <option value="Finalizada">Finalizada</option>
+                                <option value="Baja">Baja</option>
+                                <option value="Cancelada">Cancelada</option>
+                            </select>
+                        </div>
+                        
+                        <div style="margin-bottom: 1.5rem;">
+                            <label style="display: block; font-weight: bold; font-size: 0.85rem; color: #1e3a8a; margin-bottom: 0.4rem;">Fecha de Matrícula</label>
+                            <input type="date" name="fecha_matricula" value="<?= date('Y-m-d') ?>" style="width: 100%; max-width: 150px; padding: 0.4rem; border: 1px solid #999;">
+                        </div>
+                        
+                        <button type="submit" style="padding: 5px 15px; border: 1px solid #999; background: #eee; cursor: pointer; color: #1e3a8a; font-weight: bold;">
+                            Registrar Inscripción
+                        </button>
+                        <button type="button" onclick="document.getElementById('form-nueva-inscripcion').style.display='none';" style="padding: 5px 15px; border: 1px solid #999; background: #eee; cursor: pointer; color: #b91c1c; font-weight: bold; margin-left: 10px;">
+                            Cancelar
+                        </button>
+                    </form>
                 </div>
             </div>
-
+            
             <!-- TAB: Documentación -->
             <div id="tab-documentacion" style="<?= $active_tab == 'documentacion' ? '' : 'display:none;' ?>">
                 
