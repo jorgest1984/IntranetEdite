@@ -91,6 +91,7 @@ $stmtMatriculas = $pdo->prepare("
     LEFT JOIN alumnos a ON m.alumno_id = a.id
     LEFT JOIN empresas e ON a.ultima_empresa_id = e.id
     WHERE m.alumno_id = ?
+    GROUP BY m.id
     ORDER BY m.creado_en DESC
 ");
 $stmtMatriculas->execute([$id]);

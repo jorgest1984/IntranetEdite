@@ -85,6 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
             LEFT JOIN cursos cu ON af.curso_id = cu.id
             LEFT JOIN usuarios u_com ON m.comercial_id = u_com.id
             WHERE " . implode(" AND ", $where) . "
+            GROUP BY m.id
             LIMIT 100";
 
     try {
