@@ -811,7 +811,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                     <td style="border: 1px solid #999; padding: 4px; color: #1e3a8a;"><?= !empty($mat['grupo_inicio']) && $mat['grupo_inicio'] != '0000-00-00' ? date('d/m/Y', strtotime($mat['grupo_inicio'])) : '' ?></td>
                                     <td style="border: 1px solid #999; padding: 4px; color: #1e3a8a;"><?= !empty($mat['grupo_fin']) && $mat['grupo_fin'] != '0000-00-00' ? date('d/m/Y', strtotime($mat['grupo_fin'])) : '' ?></td>
                                     <td style="border: 1px solid #999; padding: 4px; text-align: center;">
-                                        <a href="#" style="text-decoration: none;">📝</a>
+                                        <a href="ficha_matricula.php?id=<?= $mat['id'] ?>" style="text-decoration: none;">📝</a>
                                     </td>
                                     <td style="border: 1px solid #999; padding: 4px; text-align: center;">
                                         <form method="POST" style="display: inline; margin: 0;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta inscripción?');">
