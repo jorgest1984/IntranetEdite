@@ -584,6 +584,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     </div>
                 </div>
             </form>
+        </div>
+
         <div id="tab-curso" class="tab-panel hidden">
             <form method="POST">
                 <input type="hidden" name="action" value="update_datos_curso">
