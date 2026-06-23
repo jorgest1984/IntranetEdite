@@ -20,7 +20,7 @@ $stmtMatricula = $pdo->prepare("
            e.nombre as empresa_nombre,
            g.numero_grupo, g.codigo_plataforma as grupo_cod, g.fecha_inicio as grupo_inicio, g.fecha_fin as grupo_fin,
            af.abreviatura as af_abreviatura, af.prioridad as af_prioridad, 
-           cu.nombre_corto as curso_nombre, cu.titulo as curso_titulo
+           cu.nombre_corto as curso_nombre, cu.nombre_largo as curso_titulo
     FROM matriculas m
     LEFT JOIN alumnos a ON m.alumno_id = a.id
     LEFT JOIN convocatorias c ON m.convocatoria_id = c.id
