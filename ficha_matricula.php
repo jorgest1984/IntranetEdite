@@ -38,6 +38,8 @@ if (!$matricula) {
     die("Matrícula no encontrada.");
 }
 
+$empresas = $pdo->query("SELECT id, cif, nombre FROM empresas ORDER BY nombre ASC")->fetchAll(PDO::FETCH_ASSOC);
+
 // 2. Procesar formulario (Si el usuario guarda datos)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_datos_personales') {
     // Aquí actualizaríamos la tabla alumnos. Como algunos campos de la imagen podrían no existir, 
@@ -225,6 +227,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             background: #f1f5f9;
             border-color: #94a3b8;
         }
+        
+        .tab-panel.hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -296,13 +302,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         <!-- TABS MODERNOS -->
         <div class="tabs-header">
-            <a href="#" class="tab-btn active">Datos Personales</a>
-            <a href="#" class="tab-btn">Datos Laborales</a>
-            <a href="#" class="tab-btn">Datos Curso</a>
-            <a href="#" class="tab-btn">Material y doc.</a>
+            <button class="tab-btn active" data-target="tab-personales">Datos Personales</button>
+            <button class="tab-btn" data-target="tab-laborales">Datos Laborales</button>
+            <button class="tab-btn" data-target="tab-curso">Datos Curso</button>
+            <button class="tab-btn" data-target="tab-docs">Material y doc.</button>
         </div>
 
-        <div class="tab-panel">
+        <div id="tab-personales" class="tab-panel">
             <form method="POST">
                 <input type="hidden" name="action" value="update_datos_personales">
                 
@@ -443,8 +449,171 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             </form>
         </div>
 
+        <div id="tab-laborales" class="tab-panel hidden">
+            <form method="POST">
+                <input type="hidden" name="action" value="update_datos_laborales">
+                
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 1.5rem;">
+                    <button type="button" class="btn-modern btn-outline" style="margin-right: 10px;">
+                        Ficha Seguimiento
+                    </button>
+                    <button type="submit" class="btn-modern btn-primary-modern">
+                        💾 Guardar Registro
+                    </button>
+                </div>
+
+                <h3 class="form-section-title">Datos de la Empresa</h3>
+                <div class="grid-form" style="grid-template-columns: 1fr 2fr;">
+                    <div class="form-group">
+                        <label>Buscar CIF</label>
+                        <input type="text" id="buscar_cif" class="form-control" placeholder="Introduzca CIF...">
+                    </div>
+                    <div class="form-group">
+                        <label>Empresa</label>
+                        <select name="ultima_empresa_id" id="empresa_select" class="form-control">
+                            <option value="">DESEMPLEADO [D00000001]</option>
+                            <?php foreach($empresas as $emp): ?>
+                                <option value="<?= $emp['id'] ?>" <?= ($matricula['ultima_empresa_id'] ?? '') == $emp['id'] ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($emp['nombre'] . ' [' . ($emp['cif'] ?? 'Sin CIF') . ']') ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid-form" style="grid-template-columns: 1fr 1fr;">
+                    <div class="form-group">
+                        <label>Centro de trabajo</label>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="text" name="centro_trabajo" class="form-control" value="<?= htmlspecialchars($matricula['centro_trabajo'] ?? '1') ?>" style="width: 100px;">
+                            <span style="font-size: 1.2rem; cursor: pointer;">📋</span>
+                        </div>
+                    </div>
+                    <div class="form-group" style="display: flex; align-items: flex-end; padding-bottom: 0.6rem;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0;">
+                            <input type="checkbox" name="no_valido" value="1" style="width: 16px; height: 16px;">
+                            <span style="font-weight: 600; color: #475569;">No válido</span>
+                        </label>
+                    </div>
+                </div>
+
+                <h3 class="form-section-title" style="margin-top: 2rem;">Situación Laboral</h3>
+                <div class="grid-form" style="grid-template-columns: 1fr;">
+                    <div class="form-group">
+                        <label>Colectivo</label>
+                        <select name="colectivo" class="form-control">
+                            <option value=""></option>
+                            <option value="Trabajador por cuenta ajena" <?= ($matricula['colectivo'] ?? '') == 'Trabajador por cuenta ajena' ? 'selected' : '' ?>>Trabajador por cuenta ajena</option>
+                            <option value="Desempleado" <?= ($matricula['colectivo'] ?? '') == 'Desempleado' ? 'selected' : '' ?>>Desempleado</option>
+                            <option value="Autónomo" <?= ($matricula['colectivo'] ?? '') == 'Autónomo' ? 'selected' : '' ?>>Autónomo</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid-form" style="grid-template-columns: repeat(3, 1fr);">
+                    <div class="form-group">
+                        <label>Desempleado larga duración</label>
+                        <select name="desempleado_larga_duracion" class="form-control">
+                            <option value="NO">NO</option>
+                            <option value="SI">SI</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Parado selección SEPE</label>
+                        <select name="parado_sepe" class="form-control">
+                            <option value="NO">NO</option>
+                            <option value="SI">SI</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Conductor</label>
+                        <select name="conductor" class="form-control">
+                            <option value="NO">NO</option>
+                            <option value="SI">SI</option>
+                        </select>
+                    </div>
+                </div>
+
+                <h3 class="form-section-title" style="margin-top: 2rem;">Ocupación y Puesto</h3>
+                <div class="grid-form" style="grid-template-columns: 1fr;">
+                    <div class="form-group">
+                        <label>Ocupación</label>
+                        <select name="ocupacion" class="form-control">
+                            <option value=""></option>
+                            <!-- Lista de ocupaciones iría aquí -->
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid-form" style="grid-template-columns: 2fr 1fr 1fr 1fr;">
+                    <div class="form-group">
+                        <label>Puesto de trabajo SEPE</label>
+                        <input type="text" name="puesto_sepe" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Categoría Profesional</label>
+                        <select name="categoria_profesional" class="form-control">
+                            <option value=""></option>
+                            <!-- Lista de categorías -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Área Funcional</label>
+                        <select name="area_funcional" class="form-control">
+                            <option value=""></option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Antigüedad</label>
+                        <input type="date" name="antiguedad" class="form-control">
+                    </div>
+                </div>
+
+                <div class="grid-form" style="grid-template-columns: 1fr 1fr;">
+                    <div class="form-group">
+                        <label>Grupo Cotización</label>
+                        <select name="grupo_cotizacion" class="form-control">
+                            <option value=""></option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Contrato</label>
+                        <select name="contrato" class="form-control">
+                            <option value=""></option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+
     </main>
 </div>
+
+<script>
+    // Tab Switching Logic
+    document.addEventListener('DOMContentLoaded', () => {
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabPanels = document.querySelectorAll('.tab-panel');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // Remove active from all
+                tabBtns.forEach(b => b.classList.remove('active'));
+                tabPanels.forEach(p => p.classList.add('hidden'));
+
+                // Add active to current
+                btn.classList.add('active');
+                const targetId = btn.getAttribute('data-target');
+                const targetPanel = document.getElementById(targetId);
+                if (targetPanel) {
+                    targetPanel.classList.remove('hidden');
+                }
+            });
+        });
+    });
+</script>
 
 </body>
 </html>
