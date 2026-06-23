@@ -15,7 +15,7 @@ if (!$id) {
 $stmtMatricula = $pdo->prepare("
     SELECT m.*, 
            a.nombre as alumno_nombre, a.primer_apellido, a.segundo_apellido, a.dni, a.fecha_nacimiento, a.sexo, 
-           a.tipo_via, a.nombre_via, a.num_domicilio, a.escalera, a.planta, a.puerta, a.codigo_postal, a.provincia, a.localidad, a.telefono, a.movil, a.email, a.ss, a.estudios, a.profesion, a.discapacitado,
+           a.tipo_via, a.nombre_via, a.num_domicilio, a.escalera, a.planta, a.puerta, a.cp as codigo_postal, a.provincia, a.localidad, a.telefono, a.email, a.seguridad_social as ss, a.estudios, a.profesion,
            c.nombre as convocatoria_nombre, c.codigo_expediente,
            p.nombre as plan_nombre, 
            e.nombre as empresa_nombre,
@@ -44,12 +44,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     // Aquí actualizaríamos la tabla alumnos. Como algunos campos de la imagen podrían no existir, 
     // hacemos un try-catch o actualizamos solo los seguros por ahora.
     $sql = "UPDATE alumnos SET 
-            dni = ?, ss = ?, fecha_nacimiento = ?, 
+            dni = ?, seguridad_social = ?, fecha_nacimiento = ?, 
             nombre = ?, primer_apellido = ?, segundo_apellido = ?, 
-            profesion = ?, estudios = ?, discapacitado = ?, sexo = ?,
+            profesion = ?, estudios = ?, sexo = ?,
             tipo_via = ?, nombre_via = ?, num_domicilio = ?, escalera = ?, planta = ?, puerta = ?,
-            codigo_postal = ?, provincia = ?, localidad = ?,
-            telefono = ?, movil = ?, email = ?
+            cp = ?, provincia = ?, localidad = ?,
+            telefono = ?, email = ?
             WHERE id = ?";
             
     try {
@@ -57,10 +57,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $stmtUpdate->execute([
             $_POST['dni'] ?? null, $_POST['ss'] ?? null, $_POST['fecha_nacimiento'] ?? null,
             $_POST['nombre'] ?? null, $_POST['primer_apellido'] ?? null, $_POST['segundo_apellido'] ?? null,
-            $_POST['profesion'] ?? null, $_POST['estudios'] ?? null, $_POST['discapacitado'] ?? null, $_POST['sexo'] ?? null,
+            $_POST['profesion'] ?? null, $_POST['estudios'] ?? null, $_POST['sexo'] ?? null,
             $_POST['tipo_via'] ?? null, $_POST['nombre_via'] ?? null, $_POST['num_domicilio'] ?? null, $_POST['escalera'] ?? null, $_POST['planta'] ?? null, $_POST['puerta'] ?? null,
             $_POST['codigo_postal'] ?? null, $_POST['provincia'] ?? null, $_POST['localidad'] ?? null,
-            $_POST['telefono'] ?? null, $_POST['movil'] ?? null, $_POST['email'] ?? null,
+            $_POST['telefono'] ?? null, $_POST['email'] ?? null,
             $matricula['alumno_id']
         ]);
         header("Location: ficha_matricula.php?id=$id&success=1");
