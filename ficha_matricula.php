@@ -584,6 +584,211 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     </div>
                 </div>
             </form>
+        <div id="tab-curso" class="tab-panel hidden">
+            <form method="POST">
+                <input type="hidden" name="action" value="update_datos_curso">
+                
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 1.5rem;">
+                    <button type="submit" class="btn-modern btn-primary-modern">
+                        💾 Guardar Registro
+                    </button>
+                </div>
+
+                <h3 class="form-section-title">Asignación de Curso</h3>
+                <div class="grid-form" style="grid-template-columns: 1fr auto;">
+                    <div class="form-group" style="grid-column: 1;">
+                        <label>Plan</label>
+                        <select name="plan_id" class="form-control">
+                            <option value=""><?= htmlspecialchars($matricula['plan_nombre'] ?? 'Seleccione Plan') ?></option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="display: flex; align-items: flex-end; padding-bottom: 0.6rem; grid-column: 2;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0;">
+                            <input type="checkbox" name="validar_plan" value="1" style="width: 16px; height: 16px;">
+                            <span style="font-weight: 600; color: #475569;">Validar Plan</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="grid-form" style="grid-template-columns: 1fr;">
+                    <div class="form-group">
+                        <label>Curso</label>
+                        <select name="curso_id" class="form-control">
+                            <option value=""><?= htmlspecialchars($matricula['curso_titulo'] ?? 'Seleccione Curso') ?></option>
+                        </select>
+                    </div>
+                </div>
+
+                <h3 class="form-section-title" style="margin-top: 2rem;">Seguimiento y Estado</h3>
+                <div class="grid-form" style="grid-template-columns: repeat(3, 1fr);">
+                    <div class="form-group">
+                        <label>Comercial</label>
+                        <select name="comercial_id" class="form-control">
+                            <option value="">Seleccione Comercial...</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="display: flex; align-items: flex-end; padding-bottom: 0.6rem;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0;">
+                            <input type="checkbox" name="captado_ugt" value="1" style="width: 16px; height: 16px;">
+                            <span style="font-weight: 600; color: #475569;">Captado UGT</span>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>Estados Anteriores</label>
+                        <select name="estados_anteriores" class="form-control">
+                            <option value="">Seleccione...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid-form" style="grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;">
+                    <div class="form-group" style="grid-column: span 1;">
+                        <label style="font-size: 0.75rem;">Estados anteriores SEPE</label>
+                        <select name="estados_anteriores_sepe" class="form-control">
+                            <option value=""></option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="grid-column: span 1;">
+                        <label>Estado nuevo</label>
+                        <select name="estado_nuevo" class="form-control">
+                            <option value="Inscrito" <?= ($matricula['estado'] ?? '') == 'Inscrito' ? 'selected' : '' ?>>Inscrito</option>
+                            <option value="Activo" <?= ($matricula['estado'] ?? '') == 'Activo' ? 'selected' : '' ?>>Activo</option>
+                            <option value="Finalizada" <?= ($matricula['estado'] ?? '') == 'Finalizada' ? 'selected' : '' ?>>Finalizada</option>
+                            <option value="Baja" <?= ($matricula['estado'] ?? '') == 'Baja' ? 'selected' : '' ?>>Baja</option>
+                            <option value="Cancelada" <?= ($matricula['estado'] ?? '') == 'Cancelada' ? 'selected' : '' ?>>Cancelada</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="grid-column: span 1;">
+                        <label>Prioridad</label>
+                        <input type="text" name="prioridad" class="form-control" value="<?= htmlspecialchars($matricula['af_prioridad'] ?? '1') ?>">
+                    </div>
+                    <div class="form-group" style="grid-column: span 1;">
+                        <label>Estado para SEPE</label>
+                        <select name="estado_sepe" class="form-control">
+                            <option value=""></option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="grid-column: span 1;">
+                        <label>Fecha abandono</label>
+                        <input type="date" name="fecha_abandono" class="form-control">
+                    </div>
+                    <div class="form-group" style="grid-column: span 1;">
+                        <label>Exento prácticas</label>
+                        <select name="exento_practicas" class="form-control">
+                            <option value=""></option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Flags / Switches -->
+                <div class="actions-bar" style="background: #f8fafc; padding: 1rem; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; align-items: center; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 2rem;">
+                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; margin: 0; color: #1e40af; font-weight: 600;">
+                        <input type="checkbox" name="enviar_mail" <?= !empty($matricula['enviar_emails']) ? 'checked' : '' ?> style="width: 16px; height: 16px;"> Enviar mail automáticos
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; margin: 0; color: #b91c1c; font-weight: 600;">
+                        <input type="checkbox" name="no_preinscrito" style="width: 16px; height: 16px;"> No volver preinscrito
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; margin: 0; color: #b91c1c; font-weight: 600;">
+                        <input type="checkbox" name="bloqueado" <?= !empty($matricula['bloqueado']) ? 'checked' : '' ?> style="width: 16px; height: 16px;"> BLOQUEADO
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; margin: 0; color: #b91c1c; font-weight: 600;">
+                        <input type="checkbox" name="no_desmatricular" style="width: 16px; height: 16px;"> NO DESMATRICULAR
+                    </label>
+                    
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label style="font-weight: 600; font-size: 0.85rem;">CERTIFICABLES:</label>
+                        <select name="certificables" class="form-control" style="width: auto; padding: 0.3rem;">
+                            <option value="SI">SI</option><option value="NO">NO</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label style="font-weight: 600; font-size: 0.85rem;">FACTURABLES:</label>
+                        <select name="facturables" class="form-control" style="width: auto; padding: 0.3rem;">
+                            <option value=""></option>
+                        </select>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label style="font-weight: 600; font-size: 0.85rem;">ANULAR para SEPE:</label>
+                        <select name="anular_sepe" class="form-control" style="width: auto; padding: 0.3rem;">
+                            <option value="NO">NO</option><option value="SI">SI</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label style="font-weight: 600; font-size: 0.85rem;">Evaluación TIC:</label>
+                        <select name="evaluacion_tic" class="form-control" style="width: auto; padding: 0.3rem;">
+                            <option value=""></option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <button type="button" class="btn-modern btn-outline" style="color: #b91c1c; border-color: #fca5a5;">
+                        Baja Plataforma
+                    </button>
+                </div>
+
+                <!-- Info Box -->
+                <div style="background: #f1f5f9; padding: 1rem; border-left: 4px solid #3b82f6; border-radius: 4px; margin-bottom: 2rem; font-weight: 500; color: #334155;">
+                    Este alumno ha realizado <span style="background: white; padding: 2px 6px; border: 1px solid #cbd5e1; border-radius: 4px;">--</span> h de formación en esta convocatoria, distribuidas en <span style="background: white; padding: 2px 6px; border: 1px solid #cbd5e1; border-radius: 4px;">--</span> cursos. (Máximo permitido: 5000 h) || Inscrito el <?= !empty($matricula['creado_en']) ? date('d/m/Y', strtotime($matricula['creado_en'])) : date('d/m/Y') ?>
+                </div>
+
+                <h3 class="form-section-title">Comentarios y Observaciones</h3>
+                <div class="grid-form" style="grid-template-columns: 1fr;">
+                    <div class="form-group">
+                        <label>Prefiere las fechas:</label>
+                        <textarea name="preferencia_fechas" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Observaciones:</label>
+                        <textarea name="observaciones" class="form-control" rows="3"><?= htmlspecialchars($matricula['observaciones'] ?? '') ?></textarea>
+                    </div>
+                </div>
+
+                <h3 class="form-section-title" style="margin-top: 2rem;">Grupo y Bajas</h3>
+                <div class="grid-form" style="grid-template-columns: 1fr 2fr;">
+                    <div class="form-group">
+                        <label>Código grupo</label>
+                        <select name="grupo_id" class="form-control">
+                            <option value="<?= $matricula['grupo_id'] ?? '' ?>"><?= htmlspecialchars($matricula['numero_grupo'] ?? 'Seleccione Grupo') ?></option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="display: flex; align-items: center; padding-top: 1.5rem; font-weight: 600; color: #2563eb;">
+                        <?= htmlspecialchars($matricula['af_abreviatura'] ?? '') ?>-G<?= htmlspecialchars($matricula['numero_grupo'] ?? '') ?>
+                    </div>
+                </div>
+
+                <div class="grid-form" style="grid-template-columns: 1fr 1fr;">
+                    <div class="form-group">
+                        <label>Si el alumno causa baja o abandono en el curso, indica aquí el motivo:</label>
+                        <select name="motivo_baja" class="form-control"><option value=""></option></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Motivo abandono para el SEPE:</label>
+                        <select name="motivo_sepe" class="form-control"><option value=""></option></select>
+                    </div>
+                </div>
+                
+                <div class="grid-form" style="grid-template-columns: 1fr;">
+                    <div class="form-group">
+                        <label>Otros motivos:</label>
+                        <textarea name="otros_motivos" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+
+                <div class="grid-form" style="grid-template-columns: 1fr 1fr;">
+                    <div class="form-group">
+                        <label>Tutor:</label>
+                        <select name="tutor_id" class="form-control">
+                            <option value=""></option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Responsable seguimiento:</label>
+                        <select name="responsable_seguimiento" class="form-control">
+                            <option value=""></option>
+                        </select>
+                    </div>
+                </div>
+            </form>
         </div>
 
     </main>
