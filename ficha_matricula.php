@@ -793,6 +793,117 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             </form>
         </div>
 
+        <div id="tab-docs" class="tab-panel hidden">
+            <form method="POST">
+                <input type="hidden" name="action" value="update_datos_docs">
+                
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 1.5rem;">
+                    <button type="button" class="btn-modern btn-outline" style="margin-right: 10px;">
+                        Ficha Seguimiento
+                    </button>
+                    <button type="submit" class="btn-modern btn-primary-modern">
+                        💾 Guardar Registro
+                    </button>
+                </div>
+
+                <div style="background: #f8fafc; padding: 1.5rem; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 1.5rem;">
+                    <div class="grid-form" style="grid-template-columns: auto auto 1fr; align-items: center; margin-bottom: 0;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; color: #1e3a8a;">
+                            <input type="checkbox" name="entrega_mat_1" style="width: 16px; height: 16px;"> Entrega mat 1 :
+                        </label>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label style="font-weight: 600; color: #475569;">Fechas envío:</label>
+                            <select name="fechas_envio" class="form-control" style="width: auto;"><option value=""></option></select>
+                        </div>
+                        <div>
+                            <button type="button" class="btn-modern" style="background: #fbbf24; color: #92400e; font-weight: 700; border: 1px solid #f59e0b; padding: 0.4rem 1rem;">
+                                📦 Enviar Material
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: #ffedd5; padding: 1.5rem; border-radius: 8px; border: 1px solid #fdba74; margin-bottom: 2rem;">
+                    <div class="grid-form" style="grid-template-columns: auto auto auto auto 1fr; align-items: center; margin-bottom: 0;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; color: #9a3412;">
+                            <input type="checkbox" name="diploma_entregado" <?= !empty($matricula['diploma_entregado']) ? 'checked' : '' ?> style="width: 16px; height: 16px;"> Diploma:
+                        </label>
+                        <select name="diploma_tipo" class="form-control" style="width: auto;"><option value=""></option></select>
+                        <button type="button" class="btn-modern" style="background: #fbbf24; color: #92400e; font-weight: 700; border: 1px solid #f59e0b; padding: 0.4rem 1rem;">
+                            🎓 Enviar Diploma
+                        </button>
+                        
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; color: #431407; margin-left: 1rem;">
+                            <input type="checkbox" name="comunicado" style="width: 16px; height: 16px;"> Comunicado:
+                        </label>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label style="font-weight: 600; color: #431407;">Fecha comunicación:</label>
+                            <input type="date" name="fecha_comunicacion" class="form-control" style="width: auto;">
+                        </div>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; color: #431407; margin-left: 1rem;">
+                            <input type="checkbox" name="comunicado_ugt" style="width: 16px; height: 16px;"> Comunicado UGT:
+                        </label>
+                    </div>
+                </div>
+
+                <h3 class="form-section-title" style="color: #b91c1c;">Documentación general alumno:</h3>
+                <div style="background: #fef08a; padding: 1.5rem; border-radius: 8px; border: 1px solid #fde047; margin-bottom: 2rem;">
+                    <div class="grid-form" style="grid-template-columns: auto auto auto 1fr; align-items: center; margin-bottom: 0;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 700; color: #1e3a8a;">
+                            <input type="checkbox" name="nomina_entregada" <?= !empty($matricula['nomina_entregada']) ? 'checked' : '' ?> style="width: 16px; height: 16px;"> Validar nómina atrasada:
+                        </label>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-left: 1rem;">
+                            <label style="font-weight: 700; color: #1e3a8a;">Anexo 1:</label>
+                            <select name="anexo1_entregado" class="form-control" style="width: 150px;">
+                                <option value=""></option>
+                            </select>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-left: 1rem;">
+                            <label style="font-weight: 700; color: #1e3a8a;">Matrícula:</label>
+                            <select name="matricula_doc" class="form-control" style="width: 150px;">
+                                <option value=""></option>
+                            </select>
+                        </div>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 700; color: #1e3a8a; margin-left: 1rem;">
+                            <input type="checkbox" name="correcto" checked style="width: 16px; height: 16px;"> Correcto:
+                        </label>
+                    </div>
+                </div>
+
+                <h3 class="form-section-title" style="color: #b91c1c;">Curso presencial:</h3>
+                <div class="grid-form" style="grid-template-columns: auto auto auto auto auto auto auto; align-items: center; gap: 1rem;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; color: #1e3a8a;">
+                        <input type="checkbox" name="recibi_material" style="width: 16px; height: 16px;"> Recibí material:
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; color: #1e3a8a;">
+                        <input type="checkbox" name="asistencia" style="width: 16px; height: 16px;"> Asistencia:
+                    </label>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label style="font-weight: 600; color: #1e3a8a;">Días que asiste:</label>
+                        <input type="text" name="dias_asiste" class="form-control" value="0.0" style="width: 60px; text-align: right;">
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label style="font-weight: 600; color: #1e3a8a;">Recibí diploma:</label>
+                        <select name="recibi_diploma" class="form-control" style="width: 100px;"><option value=""></option></select>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label style="font-weight: 600; color: #1e3a8a;">Copia diploma:</label>
+                        <select name="copia_diploma" class="form-control" style="width: 100px;"><option value=""></option></select>
+                    </div>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; color: #1e3a8a;">
+                        <input type="checkbox" name="evaluacion_docente" style="width: 16px; height: 16px;"> Evaluación Docente:
+                    </label>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label style="font-weight: 600; color: #1e3a8a;">Apto:</label>
+                        <select name="apto" class="form-control" style="width: 80px;">
+                            <option value="NO">NO</option><option value="SI">SI</option>
+                        </select>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+
     </main>
 </div>
 
