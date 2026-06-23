@@ -69,13 +69,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
         $params[] = "%" . $_GET['provincia'] . "%";
     }
 
-    $sql = "SELECT m.*, a.nombre as alumno_nombre, a.primer_apellido, a.segundo_apellido, a.dni, a.provincia, 
-                   c.nombre as convocatoria_nombre, p.nombre as plan_nombre, e.nombre as empresa_nombre
+    $sql = "SELECT m.*, a.nombre as alumno_nombre, a.primer_apellido, a.segundo_apellido, a.dni, a.provincia, a.pref_presencial, 
+                   c.nombre as convocatoria_nombre, p.nombre as plan_nombre, e.nombre as empresa_nombre, e.sector as empresa_sector,
+                   g.numero_grupo, g.codigo_plataforma as grupo_cod, g.fecha_inicio as grupo_inicio, g.fecha_mitad as grupo_mitad, g.fecha_fin as grupo_fin,
+                   af.abreviatura as af_abreviatura, af.prioridad as af_prioridad, cu.nombre_corto as curso_nombre,
+                   u_com.nombre as comercial_nombre, u_com.apellidos as comercial_apellidos,
+                   COALESCE(af.modalidad, g.modalidad) as modalidad_real
             FROM matriculas m
             INNER JOIN alumnos a ON m.alumno_id = a.id
             LEFT JOIN convocatorias c ON m.convocatoria_id = c.id
             LEFT JOIN planes p ON c.id = p.convocatoria_id
-            LEFT JOIN empresas e ON a.id = e.id -- Ajustar segun relacion real alumno-empresa si existe
+            LEFT JOIN empresas e ON a.ultima_empresa_id = e.id
+            LEFT JOIN grupos g ON m.grupo_id = g.id
+            LEFT JOIN acciones_formativas af ON g.accion_id = af.id
+            LEFT JOIN cursos cu ON af.curso_id = cu.id
+            LEFT JOIN usuarios u_com ON m.comercial_id = u_com.id
             WHERE " . implode(" AND ", $where) . "
             LIMIT 100";
 
@@ -721,42 +729,76 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
                             <tr>
                                 <th>Plan</th>
                                 <th>Modal.</th>
+                                <th>Nº Acc.</th>
+                                <th>Nº gr.</th>
                                 <th>Cod Grupo</th>
                                 <th>Curso</th>
                                 <th>Alumno</th>
                                 <th>Empresa</th>
+                                <th>Sector empresa</th>
                                 <th>Provincia</th>
+                                <th>Comercial</th>
+                                <th>Inicio</th>
+                                <th>Mitad</th>
+                                <th>Fin</th>
                                 <th>Estado</th>
+                                <th>No admision</th>
                                 <th>Fecha Ins.</th>
+                                <th>Cambio estado</th>
+                                <th>Doc pte</th>
+                                <th>Prioridad</th>
+                                <th>Prefiere</th>
+                                <th>Numero</th>
                                 <th style="background: #f1f5f9; text-align: center;">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php if (empty($resultados)): ?>
                                 <tr>
-                                    <td colspan="10" style="text-align: center; padding: 3rem; color: #64748b; font-style: italic;">
+                                    <td colspan="23" style="text-align: center; padding: 3rem; color: #64748b; font-style: italic;">
                                         <?= $buscando ? 'No se han encontrado resultados para los criterios seleccionados.' : 'Utilice los filtros para realizar una búsqueda.' ?>
                                     </td>
                                 </tr>
                             <?php else: ?>
                                 <?php foreach ($resultados as $res): ?>
                                     <tr>
-                                        <td><?= htmlspecialchars($res['plan_nombre'] ?? 'N/A') ?></td>
-                                        <td><?= htmlspecialchars($res['modalidad'] ?? 'N/A') ?></td>
-                                        <td><?= htmlspecialchars($res['id']) ?></td>
-                                        <td><?= htmlspecialchars($res['convocatoria_nombre'] ?? 'N/A') ?></td>
+                                        <td><?= htmlspecialchars($res['plan_nombre'] ?? '') ?></td>
+                                        <td><?= htmlspecialchars($res['modalidad_real'] ?? '') ?></td>
+                                        <td><?= htmlspecialchars($res['af_abreviatura'] ?? '') ?></td>
+                                        <td><?= htmlspecialchars($res['numero_grupo'] ?? '') ?></td>
+                                        <td><?= htmlspecialchars($res['grupo_cod'] ?? '') ?></td>
+                                        <td><?= htmlspecialchars($res['curso_nombre'] ?? $res['convocatoria_nombre'] ?? '') ?></td>
                                         <td>
                                             <div style="font-weight: 600;"><?= htmlspecialchars($res['primer_apellido'] . ' ' . $res['segundo_apellido'] . ', ' . $res['alumno_nombre']) ?></div>
                                             <div style="font-size: 0.65rem; color: #64748b;"><?= htmlspecialchars($res['dni']) ?></div>
                                         </td>
-                                        <td><?= htmlspecialchars($res['empresa_nombre'] ?? '-') ?></td>
-                                        <td><?= htmlspecialchars($res['provincia'] ?? '-') ?></td>
+                                        <td><?= htmlspecialchars($res['empresa_nombre'] ?? '') ?></td>
+                                        <td><?= htmlspecialchars($res['empresa_sector'] ?? '') ?></td>
+                                        <td><?= htmlspecialchars($res['provincia'] ?? '') ?></td>
+                                        <td><?= htmlspecialchars(trim(($res['comercial_nombre'] ?? '') . ' ' . ($res['comercial_apellidos'] ?? ''))) ?></td>
+                                        <td><?= !empty($res['grupo_inicio']) && $res['grupo_inicio'] != '0000-00-00' ? date('d/m/Y', strtotime($res['grupo_inicio'])) : '' ?></td>
+                                        <td><?= !empty($res['grupo_mitad']) && $res['grupo_mitad'] != '0000-00-00' ? date('d/m/Y', strtotime($res['grupo_mitad'])) : '' ?></td>
+                                        <td><?= !empty($res['grupo_fin']) && $res['grupo_fin'] != '0000-00-00' ? date('d/m/Y', strtotime($res['grupo_fin'])) : '' ?></td>
                                         <td>
                                             <span style="padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; background: #e2e8f0;">
                                                 <?= htmlspecialchars($res['estado']) ?>
                                             </span>
                                         </td>
-                                        <td><?= date('d/m/Y', strtotime($res['fecha_matricula'])) ?></td>
+                                        <td></td> <!-- No admision -->
+                                        <td><?= !empty($res['fecha_matricula']) && $res['fecha_matricula'] != '0000-00-00' ? date('d/m/Y', strtotime($res['fecha_matricula'])) : '' ?></td>
+                                        <td></td> <!-- Cambio estado -->
+                                        <td style="font-size: 0.65rem; color: #b91c1c;">
+                                            <?php 
+                                            $doc_pte = [];
+                                            if (empty($res['dni_entregado'])) $doc_pte[] = 'DNI';
+                                            if (empty($res['nomina_entregada'])) $doc_pte[] = 'Nómina';
+                                            if (empty($res['anexo1_entregado'])) $doc_pte[] = 'Anexo';
+                                            echo empty($doc_pte) ? '' : 'Falta: ' . implode(', ', $doc_pte);
+                                            ?>
+                                        </td>
+                                        <td style="text-align: center;"><?= htmlspecialchars($res['af_prioridad'] ?? '') ?></td>
+                                        <td style="text-align: center;"><?= htmlspecialchars($res['pref_presencial'] ?? '') ?></td>
+                                        <td style="text-align: center;">1</td> <!-- Numero -->
                                         <td style="text-align: center;">
                                             <a href="ficha_alumno.php?id=<?= $res['alumno_id'] ?>" class="btn-edit-student" title="Ver/Modificar ficha del alumno">
                                                 <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
