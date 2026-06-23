@@ -205,8 +205,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
         .table-custom {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.75rem;
-            min-width: 1000px;
+            font-size: 0.65rem;
+            min-width: 2000px; /* Force horizontal scroll for 23 columns */
+        }
+
+        .table-custom th, .table-custom td {
+            padding: 3px 6px;
+            border: 1px solid #cbd5e1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .table-custom th {
+            background-color: #e2e8f0;
+            color: #1e293b;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .table-custom tbody tr:hover {
+            background-color: #f1f5f9;
         }
 
         .results-header-fp {
