@@ -913,6 +913,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <label>Contrato</label>
                         <select name="contrato" class="form-control">
                             <option value=""></option>
+                            <option value="Contrato en prácticas" <?= ($matricula['contrato'] ?? '') == 'Contrato en prácticas' ? 'selected' : '' ?>>Contrato en prácticas</option>
+                            <option value="Contrato formación" <?= ($matricula['contrato'] ?? '') == 'Contrato formación' ? 'selected' : '' ?>>Contrato formación</option>
+                            <option value="Fijo-discontinuo" <?= ($matricula['contrato'] ?? '') == 'Fijo-discontinuo' ? 'selected' : '' ?>>Fijo-discontinuo</option>
+                            <option value="Indefinido tiempo completo" <?= ($matricula['contrato'] ?? '') == 'Indefinido tiempo completo' ? 'selected' : '' ?>>Indefinido tiempo completo</option>
+                            <option value="Indefinido tiempo parcial" <?= ($matricula['contrato'] ?? '') == 'Indefinido tiempo parcial' ? 'selected' : '' ?>>Indefinido tiempo parcial</option>
+                            <option value="Otro" <?= ($matricula['contrato'] ?? '') == 'Otro' ? 'selected' : '' ?>>Otro</option>
+                            <option value="Temporal circunstancias producc." <?= ($matricula['contrato'] ?? '') == 'Temporal circunstancias producc.' ? 'selected' : '' ?>>Temporal circunstancias producc.</option>
+                            <option value="Temporal media jornada" <?= ($matricula['contrato'] ?? '') == 'Temporal media jornada' ? 'selected' : '' ?>>Temporal media jornada</option>
+                            <option value="Temporal obra-servicio" <?= ($matricula['contrato'] ?? '') == 'Temporal obra-servicio' ? 'selected' : '' ?>>Temporal obra-servicio</option>
                         </select>
                     </div>
                 </div>
