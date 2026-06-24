@@ -369,9 +369,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <label>Nivel de Estudios</label>
                         <select name="estudios" class="form-control">
                             <option value=""></option>
-                            <option value="Secundaria" <?= ($matricula['estudios'] ?? '') == 'Secundaria' ? 'selected' : '' ?>>Secundaria</option>
-                            <option value="Bachillerato" <?= ($matricula['estudios'] ?? '') == 'Bachillerato' ? 'selected' : '' ?>>Bachillerato</option>
-                            <option value="Grado" <?= ($matricula['estudios'] ?? '') == 'Grado' ? 'selected' : '' ?>>Grado</option>
+                            <option value="Bachillerato, BUP" <?= ($matricula['estudios'] ?? '') == 'Bachillerato, BUP' ? 'selected' : '' ?>>Bachillerato, BUP</option>
+                            <option value="Carnet profesional" <?= ($matricula['estudios'] ?? '') == 'Carnet profesional' ? 'selected' : '' ?>>Carnet profesional</option>
+                            <option value="Certificados de Profesionalidad nivel 1" <?= ($matricula['estudios'] ?? '') == 'Certificados de Profesionalidad nivel 1' ? 'selected' : '' ?>>Certificados de Profesionalidad nivel 1</option>
+                            <option value="Certificados de profesionalidad nivel 2" <?= ($matricula['estudios'] ?? '') == 'Certificados de profesionalidad nivel 2' ? 'selected' : '' ?>>Certificados de profesionalidad nivel 2</option>
+                            <option value="Certificados de profesionalidad nivel 3" <?= ($matricula['estudios'] ?? '') == 'Certificados de profesionalidad nivel 3' ? 'selected' : '' ?>>Certificados de profesionalidad nivel 3</option>
+                            <option value="Educación primaria" <?= ($matricula['estudios'] ?? '') == 'Educación primaria' ? 'selected' : '' ?>>Educación primaria</option>
+                            <option value="Enseñanzas de escuelas oficiales de idiomas" <?= ($matricula['estudios'] ?? '') == 'Enseñanzas de escuelas oficiales de idiomas' ? 'selected' : '' ?>>Enseñanzas de escuelas oficiales de idiomas</option>
+                            <option value="Especialidades en CC. Salud (residentes)" <?= ($matricula['estudios'] ?? '') == 'Especialidades en CC. Salud (residentes)' ? 'selected' : '' ?>>Especialidades en CC. Salud (residentes)</option>
+                            <option value="Estudios Universitarios 1er ciclo (Diplomatura - Grados)" <?= ($matricula['estudios'] ?? '') == 'Estudios Universitarios 1er ciclo (Diplomatura - Grados)' ? 'selected' : '' ?>>Estudios Universitarios 1er ciclo (Diplomatura - Grados)</option>
+                            <option value="Estudios Universitarios 2º ciclo (Licenciatura - Máster)" <?= ($matricula['estudios'] ?? '') == 'Estudios Universitarios 2º ciclo (Licenciatura - Máster)' ? 'selected' : '' ?>>Estudios Universitarios 2º ciclo (Licenciatura - Máster)</option>
+                            <option value="Estudios Universitarios 3er ciclo (Doctorado)" <?= ($matricula['estudios'] ?? '') == 'Estudios Universitarios 3er ciclo (Doctorado)' ? 'selected' : '' ?>>Estudios Universitarios 3er ciclo (Doctorado)</option>
+                            <option value="Formación Profesional Básica/Cualificación Profesional Inicial" <?= ($matricula['estudios'] ?? '') == 'Formación Profesional Básica/Cualificación Profesional Inicial' ? 'selected' : '' ?>>Formación Profesional Básica/Cualificación Profesional Inicial</option>
+                            <option value="FP grado medio, FPI" <?= ($matricula['estudios'] ?? '') == 'FP grado medio, FPI' ? 'selected' : '' ?>>FP grado medio, FPI</option>
+                            <option value="FPII" <?= ($matricula['estudios'] ?? '') == 'FPII' ? 'selected' : '' ?>>FPII</option>
+                            <option value="Grados Universitarios de hasta 240 créditos" <?= ($matricula['estudios'] ?? '') == 'Grados Universitarios de hasta 240 créditos' ? 'selected' : '' ?>>Grados Universitarios de hasta 240 créditos</option>
+                            <option value="Grados Universitarios de más 240 créditos" <?= ($matricula['estudios'] ?? '') == 'Grados Universitarios de más 240 créditos' ? 'selected' : '' ?>>Grados Universitarios de más 240 créditos</option>
+                            <option value="Másteres Oficiales Universitarios" <?= ($matricula['estudios'] ?? '') == 'Másteres Oficiales Universitarios' ? 'selected' : '' ?>>Másteres Oficiales Universitarios</option>
                         </select>
                     </div>
                 </div>
