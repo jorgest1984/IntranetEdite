@@ -418,10 +418,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                             <option value="Arroyo" <?= ($matricula['tipo_via'] ?? '') == 'Arroyo' ? 'selected' : '' ?>>Arroyo</option>
                             <option value="Avenida" <?= ($matricula['tipo_via'] ?? '') == 'Avenida' ? 'selected' : '' ?>>Avenida</option>
                             <option value="Bajada" <?= ($matricula['tipo_via'] ?? '') == 'Bajada' ? 'selected' : '' ?>>Bajada</option>
+                            <option value="Barranco" <?= ($matricula['tipo_via'] ?? '') == 'Barranco' ? 'selected' : '' ?>>Barranco</option>
                             <option value="Barrio" <?= ($matricula['tipo_via'] ?? '') == 'Barrio' ? 'selected' : '' ?>>Barrio</option>
                             <option value="Bloque" <?= ($matricula['tipo_via'] ?? '') == 'Bloque' ? 'selected' : '' ?>>Bloque</option>
                             <option value="Calle" <?= ($matricula['tipo_via'] ?? '') == 'Calle' ? 'selected' : '' ?>>Calle</option>
+                            <option value="Calleja" <?= ($matricula['tipo_via'] ?? '') == 'Calleja' ? 'selected' : '' ?>>Calleja</option>
                             <option value="Camino" <?= ($matricula['tipo_via'] ?? '') == 'Camino' ? 'selected' : '' ?>>Camino</option>
+                            <option value="Campa" <?= ($matricula['tipo_via'] ?? '') == 'Campa' ? 'selected' : '' ?>>Campa</option>
+                            <option value="Carretera" <?= ($matricula['tipo_via'] ?? '') == 'Carretera' ? 'selected' : '' ?>>Carretera</option>
+                            <option value="Caserio" <?= ($matricula['tipo_via'] ?? '') == 'Caserio' ? 'selected' : '' ?>>Caserio</option>
+                            <option value="Chalet" <?= ($matricula['tipo_via'] ?? '') == 'Chalet' ? 'selected' : '' ?>>Chalet</option>
+                            <option value="Colegio" <?= ($matricula['tipo_via'] ?? '') == 'Colegio' ? 'selected' : '' ?>>Colegio</option>
+                            <option value="Colonia" <?= ($matricula['tipo_via'] ?? '') == 'Colonia' ? 'selected' : '' ?>>Colonia</option>
+                            <option value="Conjunto" <?= ($matricula['tipo_via'] ?? '') == 'Conjunto' ? 'selected' : '' ?>>Conjunto</option>
+                            <option value="Corregidor" <?= ($matricula['tipo_via'] ?? '') == 'Corregidor' ? 'selected' : '' ?>>Corregidor</option>
+                            <option value="Cuesta" <?= ($matricula['tipo_via'] ?? '') == 'Cuesta' ? 'selected' : '' ?>>Cuesta</option>
+                            <option value="Diputación" <?= ($matricula['tipo_via'] ?? '') == 'Diputación' ? 'selected' : '' ?>>Diputación</option>
                             <option value="Edificio" <?= ($matricula['tipo_via'] ?? '') == 'Edificio' ? 'selected' : '' ?>>Edificio</option>
                             <option value="Glorieta" <?= ($matricula['tipo_via'] ?? '') == 'Glorieta' ? 'selected' : '' ?>>Glorieta</option>
                             <option value="Manzana" <?= ($matricula['tipo_via'] ?? '') == 'Manzana' ? 'selected' : '' ?>>Manzana</option>
