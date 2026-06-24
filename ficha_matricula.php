@@ -39,7 +39,20 @@ if (!$matricula) {
 }
 
 $empresas = $pdo->query("SELECT id, nombre FROM empresas ORDER BY nombre ASC")->fetchAll(PDO::FETCH_ASSOC);
-$planes = $pdo->query("SELECT id, nombre, codigo_expediente FROM planes ORDER BY nombre ASC")->fetchAll(PDO::FETCH_ASSOC);
+$planes = $pdo->query("SELECT id, nombre FROM planes ORDER BY nombre ASC")->fetchAll(PDO::FETCH_ASSOC);
+
+// Cargar Comerciales, Tutores y lista de Grupos
+$comerciales = $pdo->query("SELECT u.id, u.nombre, u.apellidos FROM usuarios u JOIN roles r ON u.rol_id = r.id WHERE r.nombre LIKE '%Comercial%' AND u.activo = 1 ORDER BY u.nombre ASC")->fetchAll(PDO::FETCH_ASSOC);
+$tutores = $pdo->query("SELECT u.id, u.nombre, u.apellidos FROM usuarios u JOIN roles r ON u.rol_id = r.id WHERE (r.nombre LIKE '%Formador%' OR r.nombre LIKE '%Tutor%') AND u.activo = 1 ORDER BY u.nombre ASC")->fetchAll(PDO::FETCH_ASSOC);
+$todos_grupos = $pdo->query("
+    SELECT g.id, g.numero_grupo, c.nombre_corto as curso_codigo
+    FROM grupos g
+    LEFT JOIN acciones_formativas af ON g.accion_id = af.id
+    LEFT JOIN cursos c ON af.curso_id = c.id
+    ORDER BY c.nombre_corto ASC, g.numero_grupo ASC
+")->fetchAll(PDO::FETCH_ASSOC);
+
+$active_tab = $_GET['active_tab'] ?? 'tab-personales';
 
 // 2. Procesar formulario (Si el usuario guarda datos)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_datos_personales') {
@@ -65,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $_POST['telefono'] ?? null, $_POST['email'] ?? null,
             $matricula['alumno_id']
         ]);
-        header("Location: ficha_matricula.php?id=$id&success=1");
+        header("Location: ficha_matricula.php?id=$id&success=1&active_tab=tab-personales");
         exit();
     } catch (Exception $e) {
         $error = "Error al actualizar (es posible que algunos campos como SS o Profesion no estén en la base de datos aún): " . $e->getMessage();
@@ -117,10 +130,141 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $_POST['contrato'] ?? null,
             $matricula['alumno_id']
         ]);
-        header("Location: ficha_matricula.php?id=$id&success=1");
+        header("Location: ficha_matricula.php?id=$id&success=1&active_tab=tab-laborales");
         exit();
     } catch (Exception $e) {
         $error = "Error al actualizar datos laborales: " . $e->getMessage();
+    }
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && in_array($_POST['action'], ['update_datos_curso', 'update_datos_docs'])) {
+    try {
+        $action = $_POST['action'];
+        
+        // 1. Obtener columnas existentes en matriculas y alumnos
+        $stmtM = $pdo->query("DESCRIBE matriculas");
+        $matriculas_columns = $stmtM->fetchAll(PDO::FETCH_COLUMN);
+        
+        $stmtA = $pdo->query("DESCRIBE alumnos");
+        $alumnos_columns = $stmtA->fetchAll(PDO::FETCH_COLUMN);
+        
+        // Mapeo de campos a columnas de la base de datos
+        $matriculas_mapping = [
+            'grupo_id' => 'grupo_id',
+            'estado_nuevo' => 'estado',
+            'observaciones' => 'observaciones',
+            'comercial_id' => 'comercial_id',
+            'captado_ugt' => 'captado_ugt',
+            'prioridad' => 'prioridad',
+            'fecha_abandono' => 'fecha_abandono',
+            'no_preinscrito' => 'no_preinscrito',
+            'no_desmatricular' => 'no_desmatricular',
+            'certificables' => 'certificables',
+            'facturables' => 'facturables',
+            'anular_sepe' => 'anular_sepe',
+            'evaluacion_tic' => 'evaluacion_tic',
+            'preferencia_fechas' => 'preferencia_fechas',
+            'motivo_baja' => 'motivo_baja',
+            'motivo_sepe' => 'motivo_sepe',
+            'otros_motivos' => 'otros_motivos',
+            'tutor_id' => 'tutor_id',
+            'responsable_seguimiento' => 'responsable_seguimiento',
+            'diploma_entregado' => 'diploma_entregado',
+            'diploma_tipo' => 'diploma_tipo',
+            'comunicado' => 'comunicado',
+            'fecha_comunicacion' => 'fecha_comunicacion',
+            'comunicado_ugt' => 'comunicado_ugt',
+            'nomina_entregada' => 'nomina_entregada',
+            'anexo1_entregado' => 'anexo1_entregado',
+            'matricula_doc' => 'matricula_doc',
+            'correcto' => 'correcto',
+            'recibi_material' => 'recibi_material',
+            'asistencia' => 'asistencia',
+            'dias_asiste' => 'dias_asiste',
+            'recibi_diploma' => 'recibi_diploma',
+            'copia_diploma' => 'copia_diploma',
+            'evaluacion_docente' => 'evaluacion_docente',
+            'apto' => 'apto',
+            'entrega_mat_1' => 'entrega_mat_1',
+            'fechas_envio' => 'fechas_envio'
+        ];
+        
+        $alumnos_mapping = [
+            'enviar_mail' => 'enviar_emails',
+            'bloqueado' => 'bloqueado'
+        ];
+        
+        // 2. Resolver convocatoria_id a partir de plan_id si aplica
+        $convocatoria_id = null;
+        if (isset($_POST['plan_id']) && !empty($_POST['plan_id'])) {
+            $stmtPlan = $pdo->prepare("SELECT convocatoria_id FROM planes WHERE id = ?");
+            $stmtPlan->execute([$_POST['plan_id']]);
+            $convocatoria_id = $stmtPlan->fetchColumn();
+        }
+        
+        // 3. Preparar consulta de matrículas
+        $update_matriculas = [];
+        $update_matriculas_params = [];
+        
+        if ($convocatoria_id && in_array('convocatoria_id', $matriculas_columns)) {
+            $update_matriculas[] = "`convocatoria_id` = ?";
+            $update_matriculas_params[] = $convocatoria_id;
+        }
+        
+        foreach ($matriculas_mapping as $post_key => $col_name) {
+            if (in_array($col_name, $matriculas_columns)) {
+                if (isset($_POST[$post_key])) {
+                    $val = $_POST[$post_key];
+                    $update_matriculas[] = "`$col_name` = ?";
+                    $update_matriculas_params[] = ($val === '') ? null : $val;
+                } elseif (in_array($col_name, ['captado_ugt', 'no_preinscrito', 'no_desmatricular', 'diploma_entregado', 'comunicado', 'comunicado_ugt', 'nomina_entregada', 'correcto', 'recibi_material', 'asistencia', 'evaluacion_docente', 'entrega_mat_1'])) {
+                    // Checkbox no enviado = 0
+                    $update_matriculas[] = "`$col_name` = ?";
+                    $update_matriculas_params[] = 0;
+                }
+            }
+        }
+        
+        // 4. Preparar consulta de alumnos
+        $update_alumnos = [];
+        $update_alumnos_params = [];
+        foreach ($alumnos_mapping as $post_key => $col_name) {
+            if (in_array($col_name, $alumnos_columns)) {
+                if (isset($_POST[$post_key])) {
+                    $val = $_POST[$post_key];
+                    $update_alumnos[] = "`$col_name` = ?";
+                    $update_alumnos_params[] = ($val === '') ? null : $val;
+                } elseif (in_array($col_name, ['enviar_emails', 'bloqueado'])) {
+                    // Checkbox no enviado = 0
+                    $update_alumnos[] = "`$col_name` = ?";
+                    $update_alumnos_params[] = 0;
+                }
+            }
+        }
+        
+        // 5. Ejecutar actualizaciones
+        $pdo->beginTransaction();
+        
+        if (!empty($update_matriculas)) {
+            $update_matriculas_params[] = $id;
+            $sqlM = "UPDATE matriculas SET " . implode(', ', $update_matriculas) . " WHERE id = ?";
+            $pdo->prepare($sqlM)->execute($update_matriculas_params);
+        }
+        
+        if (!empty($update_alumnos)) {
+            $update_alumnos_params[] = $matricula['alumno_id'];
+            $sqlA = "UPDATE alumnos SET " . implode(', ', $update_alumnos) . " WHERE id = ?";
+            $pdo->prepare($sqlA)->execute($update_alumnos_params);
+        }
+        
+        $pdo->commit();
+        
+        $target_tab = ($action === 'update_datos_curso') ? 'tab-curso' : 'tab-docs';
+        header("Location: ficha_matricula.php?id=$id&success=1&active_tab=$target_tab");
+        exit();
+    } catch (Exception $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        $error = "Error al actualizar la inscripción: " . $e->getMessage();
     }
 }
 ?>
@@ -355,13 +499,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         <!-- TABS MODERNOS -->
         <div class="tabs-header">
-            <button class="tab-btn active" data-target="tab-personales">Datos Personales</button>
-            <button class="tab-btn" data-target="tab-laborales">Datos Laborales</button>
-            <button class="tab-btn" data-target="tab-curso">Datos Curso</button>
-            <button class="tab-btn" data-target="tab-docs">Material y doc.</button>
+            <button class="tab-btn <?= $active_tab === 'tab-personales' ? 'active' : '' ?>" data-target="tab-personales">Datos Personales</button>
+            <button class="tab-btn <?= $active_tab === 'tab-laborales' ? 'active' : '' ?>" data-target="tab-laborales">Datos Laborales</button>
+            <button class="tab-btn <?= $active_tab === 'tab-curso' ? 'active' : '' ?>" data-target="tab-curso">Datos Curso</button>
+            <button class="tab-btn <?= $active_tab === 'tab-docs' ? 'active' : '' ?>" data-target="tab-docs">Material y doc.</button>
         </div>
 
-        <div id="tab-personales" class="tab-panel">
+        <div id="tab-personales" class="tab-panel <?= $active_tab === 'tab-personales' ? '' : 'hidden' ?>">
             <form method="POST">
                 <input type="hidden" name="action" value="update_datos_personales">
                 
@@ -638,7 +782,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             </form>
         </div>
 
-        <div id="tab-laborales" class="tab-panel hidden">
+        <div id="tab-laborales" class="tab-panel <?= $active_tab === 'tab-laborales' ? '' : 'hidden' ?>">
             <form method="POST">
                 <input type="hidden" name="action" value="update_datos_laborales">
                 
@@ -981,7 +1125,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             </form>
         </div>
 
-        <div id="tab-curso" class="tab-panel hidden">
+        <div id="tab-curso" class="tab-panel <?= $active_tab === 'tab-curso' ? '' : 'hidden' ?>">
             <form method="POST">
                 <input type="hidden" name="action" value="update_datos_curso">
                 
@@ -999,7 +1143,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                             <option value="">Seleccione Plan</option>
                             <?php foreach($planes as $p): ?>
                                 <option value="<?= $p['id'] ?>" <?= ($matricula['matricula_plan_id'] ?? '') == $p['id'] ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($p['codigo_expediente'] ? $p['codigo_expediente'] . ' - ' . $p['nombre'] : $p['nombre']) ?>
+                                    <?= htmlspecialchars($p['nombre']) ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
@@ -1026,11 +1170,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <label>Comercial</label>
                         <select name="comercial_id" class="form-control">
                             <option value="">Seleccione Comercial...</option>
+                            <?php foreach ($comerciales as $c): ?>
+                                <option value="<?= $c['id'] ?>" <?= ($matricula['comercial_id'] ?? '') == $c['id'] ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($c['nombre'] . ' ' . $c['apellidos']) ?>
+                                </option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                     <div class="form-group" style="display: flex; align-items: flex-end; padding-bottom: 0.6rem;">
                         <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0;">
-                            <input type="checkbox" name="captado_ugt" value="1" style="width: 16px; height: 16px;">
+                            <input type="checkbox" name="captado_ugt" value="1" <?= !empty($matricula['captado_ugt']) ? 'checked' : '' ?> style="width: 16px; height: 16px;">
                             <span style="font-weight: 600; color: #475569;">Captado UGT</span>
                         </label>
                     </div>
@@ -1061,7 +1210,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     </div>
                     <div class="form-group" style="grid-column: span 1;">
                         <label>Prioridad</label>
-                        <input type="text" name="prioridad" class="form-control" value="<?= htmlspecialchars($matricula['af_prioridad'] ?? '1') ?>">
+                        <input type="text" name="prioridad" class="form-control" value="<?= htmlspecialchars($matricula['prioridad'] ?? $matricula['af_prioridad'] ?? '1') ?>">
                     </div>
                     <div class="form-group" style="grid-column: span 1;">
                         <label>Estado para SEPE</label>
@@ -1071,7 +1220,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     </div>
                     <div class="form-group" style="grid-column: span 1;">
                         <label>Fecha abandono</label>
-                        <input type="date" name="fecha_abandono" class="form-control">
+                        <input type="date" name="fecha_abandono" class="form-control" value="<?= htmlspecialchars($matricula['fecha_abandono'] ?? '') ?>">
                     </div>
                     <div class="form-group" style="grid-column: span 1;">
                         <label>Exento prácticas</label>
@@ -1087,37 +1236,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <input type="checkbox" name="enviar_mail" <?= !empty($matricula['enviar_emails']) ? 'checked' : '' ?> style="width: 16px; height: 16px;"> Enviar mail automáticos
                     </label>
                     <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; margin: 0; color: #b91c1c; font-weight: 600;">
-                        <input type="checkbox" name="no_preinscrito" style="width: 16px; height: 16px;"> No volver preinscrito
+                        <input type="checkbox" name="no_preinscrito" value="1" <?= !empty($matricula['no_preinscrito']) ? 'checked' : '' ?> style="width: 16px; height: 16px;"> No volver preinscrito
                     </label>
                     <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; margin: 0; color: #b91c1c; font-weight: 600;">
                         <input type="checkbox" name="bloqueado" <?= !empty($matricula['bloqueado']) ? 'checked' : '' ?> style="width: 16px; height: 16px;"> BLOQUEADO
                     </label>
                     <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; margin: 0; color: #b91c1c; font-weight: 600;">
-                        <input type="checkbox" name="no_desmatricular" style="width: 16px; height: 16px;"> NO DESMATRICULAR
+                        <input type="checkbox" name="no_desmatricular" value="1" <?= !empty($matricula['no_desmatricular']) ? 'checked' : '' ?> style="width: 16px; height: 16px;"> NO DESMATRICULAR
                     </label>
                     
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <label style="font-weight: 600; font-size: 0.85rem;">CERTIFICABLES:</label>
                         <select name="certificables" class="form-control" style="width: auto; padding: 0.3rem;">
-                            <option value="SI">SI</option><option value="NO">NO</option>
+                            <option value="SI" <?= ($matricula['certificables'] ?? '') == 'SI' ? 'selected' : '' ?>>SI</option>
+                            <option value="NO" <?= ($matricula['certificables'] ?? '') == 'NO' ? 'selected' : '' ?>>NO</option>
                         </select>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <label style="font-weight: 600; font-size: 0.85rem;">FACTURABLES:</label>
                         <select name="facturables" class="form-control" style="width: auto; padding: 0.3rem;">
                             <option value=""></option>
+                            <option value="SI" <?= ($matricula['facturables'] ?? '') == 'SI' ? 'selected' : '' ?>>SI</option>
+                            <option value="NO" <?= ($matricula['facturables'] ?? '') == 'NO' ? 'selected' : '' ?>>NO</option>
                         </select>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <label style="font-weight: 600; font-size: 0.85rem;">ANULAR para SEPE:</label>
                         <select name="anular_sepe" class="form-control" style="width: auto; padding: 0.3rem;">
-                            <option value="NO">NO</option><option value="SI">SI</option>
+                            <option value="NO" <?= ($matricula['anular_sepe'] ?? '') == 'NO' ? 'selected' : '' ?>>NO</option>
+                            <option value="SI" <?= ($matricula['anular_sepe'] ?? '') == 'SI' ? 'selected' : '' ?>>SI</option>
                         </select>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <label style="font-weight: 600; font-size: 0.85rem;">Evaluación TIC:</label>
                         <select name="evaluacion_tic" class="form-control" style="width: auto; padding: 0.3rem;">
                             <option value=""></option>
+                            <option value="SI" <?= ($matricula['evaluacion_tic'] ?? '') == 'SI' ? 'selected' : '' ?>>SI</option>
+                            <option value="NO" <?= ($matricula['evaluacion_tic'] ?? '') == 'NO' ? 'selected' : '' ?>>NO</option>
                         </select>
                     </div>
                 </div>
@@ -1137,7 +1292,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 <div class="grid-form" style="grid-template-columns: 1fr;">
                     <div class="form-group">
                         <label>Prefiere las fechas:</label>
-                        <textarea name="preferencia_fechas" class="form-control" rows="2"></textarea>
+                        <textarea name="preferencia_fechas" class="form-control" rows="2"><?= htmlspecialchars($matricula['preferencia_fechas'] ?? '') ?></textarea>
                     </div>
                     <div class="form-group">
                         <label>Observaciones:</label>
@@ -1150,7 +1305,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     <div class="form-group">
                         <label>Código grupo</label>
                         <select name="grupo_id" class="form-control">
-                            <option value="<?= $matricula['grupo_id'] ?? '' ?>"><?= htmlspecialchars($matricula['numero_grupo'] ?? 'Seleccione Grupo') ?></option>
+                            <option value="">Seleccione Grupo...</option>
+                            <?php foreach ($todos_grupos as $g): ?>
+                                <option value="<?= $g['id'] ?>" <?= ($matricula['grupo_id'] ?? '') == $g['id'] ? 'selected' : '' ?>>
+                                    [<?= htmlspecialchars($g['curso_codigo'] ?? '') ?>] Grupo <?= htmlspecialchars($g['numero_grupo'] ?? '') ?>
+                                </option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                     <div class="form-group" style="display: flex; align-items: center; padding-top: 1.5rem; font-weight: 600; color: #2563eb;">
@@ -1161,18 +1321,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 <div class="grid-form" style="grid-template-columns: 1fr 1fr;">
                     <div class="form-group">
                         <label>Si el alumno causa baja o abandono en el curso, indica aquí el motivo:</label>
-                        <select name="motivo_baja" class="form-control"><option value=""></option></select>
+                        <select name="motivo_baja" class="form-control">
+                            <option value=""></option>
+                            <?php
+                            $motivos = ["Voluntaria", "Incompatibilidad horaria", "Trabajo", "Enfermedad", "Otros"];
+                            if (!empty($matricula['motivo_baja']) && !in_array($matricula['motivo_baja'], $motivos)) {
+                                $motivos[] = $matricula['motivo_baja'];
+                            }
+                            foreach ($motivos as $m):
+                            ?>
+                                <option value="<?= htmlspecialchars($m) ?>" <?= ($matricula['motivo_baja'] ?? '') == $m ? 'selected' : '' ?>><?= htmlspecialchars($m) ?></option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label>Motivo abandono para el SEPE:</label>
-                        <select name="motivo_sepe" class="form-control"><option value=""></option></select>
+                        <select name="motivo_sepe" class="form-control">
+                            <option value=""></option>
+                            <?php
+                            $motivos_sepe = ["Baja voluntaria", "Colocación", "Incomparecencia", "Otras causas"];
+                            if (!empty($matricula['motivo_sepe']) && !in_array($matricula['motivo_sepe'], $motivos_sepe)) {
+                                $motivos_sepe[] = $matricula['motivo_sepe'];
+                            }
+                            foreach ($motivos_sepe as $ms):
+                            ?>
+                                <option value="<?= htmlspecialchars($ms) ?>" <?= ($matricula['motivo_sepe'] ?? '') == $ms ? 'selected' : '' ?>><?= htmlspecialchars($ms) ?></option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
                 </div>
                 
                 <div class="grid-form" style="grid-template-columns: 1fr;">
                     <div class="form-group">
                         <label>Otros motivos:</label>
-                        <textarea name="otros_motivos" class="form-control" rows="2"></textarea>
+                        <textarea name="otros_motivos" class="form-control" rows="2"><?= htmlspecialchars($matricula['otros_motivos'] ?? '') ?></textarea>
                     </div>
                 </div>
 
@@ -1180,20 +1362,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     <div class="form-group">
                         <label>Tutor:</label>
                         <select name="tutor_id" class="form-control">
-                            <option value=""></option>
+                            <option value="">Seleccione Tutor...</option>
+                            <?php foreach ($tutores as $t): ?>
+                                <option value="<?= $t['id'] ?>" <?= ($matricula['tutor_id'] ?? '') == $t['id'] ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($t['nombre'] . ' ' . $t['apellidos']) ?>
+                                </option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                     <div class="form-group">
                         <label>Responsable seguimiento:</label>
                         <select name="responsable_seguimiento" class="form-control">
-                            <option value=""></option>
+                            <option value="">Seleccione Responsable...</option>
+                            <?php foreach ($tutores as $t): ?>
+                                <option value="<?= $t['id'] ?>" <?= ($matricula['responsable_seguimiento'] ?? '') == $t['id'] ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($t['nombre'] . ' ' . $t['apellidos']) ?>
+                                </option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                 </div>
             </form>
         </div>
 
-        <div id="tab-docs" class="tab-panel hidden">
+        <div id="tab-docs" class="tab-panel <?= $active_tab === 'tab-docs' ? '' : 'hidden' ?>">
             <form method="POST">
                 <input type="hidden" name="action" value="update_datos_docs">
                 
@@ -1209,11 +1401,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 <div style="background: #f8fafc; padding: 1.5rem; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 1.5rem;">
                     <div class="grid-form" style="grid-template-columns: auto auto 1fr; align-items: center; margin-bottom: 0;">
                         <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; color: #1e3a8a;">
-                            <input type="checkbox" name="entrega_mat_1" style="width: 16px; height: 16px;"> Entrega mat 1 :
+                            <input type="checkbox" name="entrega_mat_1" value="1" <?= !empty($matricula['entrega_mat_1']) ? 'checked' : '' ?> style="width: 16px; height: 16px;"> Entrega mat 1 :
                         </label>
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <label style="font-weight: 600; color: #475569;">Fechas envío:</label>
-                            <select name="fechas_envio" class="form-control" style="width: auto;"><option value=""></option></select>
+                            <select name="fechas_envio" class="form-control" style="width: auto;">
+                                <option value=""></option>
+                                <?php
+                                $fechas_opt = [];
+                                if (!empty($matricula['fechas_envio'])) {
+                                    $fechas_opt[] = $matricula['fechas_envio'];
+                                }
+                                $today = date('Y-m-d');
+                                if (!in_array($today, $fechas_opt)) {
+                                    $fechas_opt[] = $today;
+                                }
+                                foreach ($fechas_opt as $fo):
+                                ?>
+                                    <option value="<?= htmlspecialchars($fo) ?>" <?= ($matricula['fechas_envio'] ?? '') == $fo ? 'selected' : '' ?>><?= htmlspecialchars($fo) ?></option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
                         <div>
                             <button type="button" class="btn-modern" style="background: #fbbf24; color: #92400e; font-weight: 700; border: 1px solid #f59e0b; padding: 0.4rem 1rem;">
@@ -1226,22 +1433,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 <div style="background: #ffedd5; padding: 1.5rem; border-radius: 8px; border: 1px solid #fdba74; margin-bottom: 2rem;">
                     <div class="grid-form" style="grid-template-columns: auto auto auto auto 1fr; align-items: center; margin-bottom: 0;">
                         <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; color: #9a3412;">
-                            <input type="checkbox" name="diploma_entregado" <?= !empty($matricula['diploma_entregado']) ? 'checked' : '' ?> style="width: 16px; height: 16px;"> Diploma:
+                            <input type="checkbox" name="diploma_entregado" value="1" <?= !empty($matricula['diploma_entregado']) ? 'checked' : '' ?> style="width: 16px; height: 16px;"> Diploma:
                         </label>
-                        <select name="diploma_tipo" class="form-control" style="width: auto;"><option value=""></option></select>
+                        <select name="diploma_tipo" class="form-control" style="width: auto;">
+                            <option value=""></option>
+                            <?php
+                            $tipos = ["Aprovechamiento", "Asistencia"];
+                            if (!empty($matricula['diploma_tipo']) && !in_array($matricula['diploma_tipo'], $tipos)) {
+                                $tipos[] = $matricula['diploma_tipo'];
+                            }
+                            foreach ($tipos as $t):
+                            ?>
+                                <option value="<?= htmlspecialchars($t) ?>" <?= ($matricula['diploma_tipo'] ?? '') == $t ? 'selected' : '' ?>><?= htmlspecialchars($t) ?></option>
+                            <?php endforeach; ?>
+                        </select>
                         <button type="button" class="btn-modern" style="background: #fbbf24; color: #92400e; font-weight: 700; border: 1px solid #f59e0b; padding: 0.4rem 1rem;">
                             🎓 Enviar Diploma
                         </button>
                         
                         <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; color: #431407; margin-left: 1rem;">
-                            <input type="checkbox" name="comunicado" style="width: 16px; height: 16px;"> Comunicado:
+                            <input type="checkbox" name="comunicado" value="1" <?= !empty($matricula['comunicado']) ? 'checked' : '' ?> style="width: 16px; height: 16px;"> Comunicado:
                         </label>
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <label style="font-weight: 600; color: #431407;">Fecha comunicación:</label>
-                            <input type="date" name="fecha_comunicacion" class="form-control" style="width: auto;">
+                            <input type="date" name="fecha_comunicacion" class="form-control" value="<?= htmlspecialchars($matricula['fecha_comunicacion'] ?? '') ?>" style="width: auto;">
                         </div>
                         <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; color: #431407; margin-left: 1rem;">
-                            <input type="checkbox" name="comunicado_ugt" style="width: 16px; height: 16px;"> Comunicado UGT:
+                            <input type="checkbox" name="comunicado_ugt" value="1" <?= !empty($matricula['comunicado_ugt']) ? 'checked' : '' ?> style="width: 16px; height: 16px;"> Comunicado UGT:
                         </label>
                     </div>
                 </div>
@@ -1250,22 +1468,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 <div style="background: #fef08a; padding: 1.5rem; border-radius: 8px; border: 1px solid #fde047; margin-bottom: 2rem;">
                     <div class="grid-form" style="grid-template-columns: auto auto auto 1fr; align-items: center; margin-bottom: 0;">
                         <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 700; color: #1e3a8a;">
-                            <input type="checkbox" name="nomina_entregada" <?= !empty($matricula['nomina_entregada']) ? 'checked' : '' ?> style="width: 16px; height: 16px;"> Validar nómina atrasada:
+                            <input type="checkbox" name="nomina_entregada" value="1" <?= !empty($matricula['nomina_entregada']) ? 'checked' : '' ?> style="width: 16px; height: 16px;"> Validar nómina atrasada:
                         </label>
                         <div style="display: flex; align-items: center; gap: 8px; margin-left: 1rem;">
                             <label style="font-weight: 700; color: #1e3a8a;">Anexo 1:</label>
                             <select name="anexo1_entregado" class="form-control" style="width: 150px;">
                                 <option value=""></option>
+                                <option value="SI" <?= ($matricula['anexo1_entregado'] ?? '') == 'SI' ? 'selected' : '' ?>>SI</option>
+                                <option value="NO" <?= ($matricula['anexo1_entregado'] ?? '') == 'NO' ? 'selected' : '' ?>>NO</option>
+                                <option value="PENDIENTE" <?= ($matricula['anexo1_entregado'] ?? '') == 'PENDIENTE' ? 'selected' : '' ?>>PENDIENTE</option>
                             </select>
                         </div>
                         <div style="display: flex; align-items: center; gap: 8px; margin-left: 1rem;">
                             <label style="font-weight: 700; color: #1e3a8a;">Matrícula:</label>
                             <select name="matricula_doc" class="form-control" style="width: 150px;">
                                 <option value=""></option>
+                                <option value="SI" <?= ($matricula['matricula_doc'] ?? '') == 'SI' ? 'selected' : '' ?>>SI</option>
+                                <option value="NO" <?= ($matricula['matricula_doc'] ?? '') == 'NO' ? 'selected' : '' ?>>NO</option>
+                                <option value="PENDIENTE" <?= ($matricula['matricula_doc'] ?? '') == 'PENDIENTE' ? 'selected' : '' ?>>PENDIENTE</option>
                             </select>
                         </div>
                         <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 700; color: #1e3a8a; margin-left: 1rem;">
-                            <input type="checkbox" name="correcto" checked style="width: 16px; height: 16px;"> Correcto:
+                            <input type="checkbox" name="correcto" value="1" <?= !empty($matricula['correcto']) ? 'checked' : '' ?> style="width: 16px; height: 16px;"> Correcto:
                         </label>
                     </div>
                 </div>
@@ -1273,30 +1497,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 <h3 class="form-section-title" style="color: #b91c1c;">Curso presencial:</h3>
                 <div class="grid-form" style="grid-template-columns: auto auto auto auto auto auto auto; align-items: center; gap: 1rem;">
                     <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; color: #1e3a8a;">
-                        <input type="checkbox" name="recibi_material" style="width: 16px; height: 16px;"> Recibí material:
+                        <input type="checkbox" name="recibi_material" value="1" <?= !empty($matricula['recibi_material']) ? 'checked' : '' ?> style="width: 16px; height: 16px;"> Recibí material:
                     </label>
                     <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; color: #1e3a8a;">
-                        <input type="checkbox" name="asistencia" style="width: 16px; height: 16px;"> Asistencia:
+                        <input type="checkbox" name="asistencia" value="1" <?= !empty($matricula['asistencia']) ? 'checked' : '' ?> style="width: 16px; height: 16px;"> Asistencia:
                     </label>
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <label style="font-weight: 600; color: #1e3a8a;">Días que asiste:</label>
-                        <input type="text" name="dias_asiste" class="form-control" value="0.0" style="width: 60px; text-align: right;">
+                        <input type="text" name="dias_asiste" class="form-control" value="<?= htmlspecialchars($matricula['dias_asiste'] ?? '0.0') ?>" style="width: 60px; text-align: right;">
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <label style="font-weight: 600; color: #1e3a8a;">Recibí diploma:</label>
-                        <select name="recibi_diploma" class="form-control" style="width: 100px;"><option value=""></option></select>
+                        <select name="recibi_diploma" class="form-control" style="width: 100px;">
+                            <option value=""></option>
+                            <option value="SI" <?= ($matricula['recibi_diploma'] ?? '') == 'SI' ? 'selected' : '' ?>>SI</option>
+                            <option value="NO" <?= ($matricula['recibi_diploma'] ?? '') == 'NO' ? 'selected' : '' ?>>NO</option>
+                        </select>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <label style="font-weight: 600; color: #1e3a8a;">Copia diploma:</label>
-                        <select name="copia_diploma" class="form-control" style="width: 100px;"><option value=""></option></select>
+                        <select name="copia_diploma" class="form-control" style="width: 100px;">
+                            <option value=""></option>
+                            <option value="SI" <?= ($matricula['copia_diploma'] ?? '') == 'SI' ? 'selected' : '' ?>>SI</option>
+                            <option value="NO" <?= ($matricula['copia_diploma'] ?? '') == 'NO' ? 'selected' : '' ?>>NO</option>
+                        </select>
                     </div>
                     <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; color: #1e3a8a;">
-                        <input type="checkbox" name="evaluacion_docente" style="width: 16px; height: 16px;"> Evaluación Docente:
+                        <input type="checkbox" name="evaluacion_docente" value="1" <?= !empty($matricula['evaluacion_docente']) ? 'checked' : '' ?> style="width: 16px; height: 16px;"> Evaluación Docente:
                     </label>
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <label style="font-weight: 600; color: #1e3a8a;">Apto:</label>
                         <select name="apto" class="form-control" style="width: 80px;">
-                            <option value="NO">NO</option><option value="SI">SI</option>
+                            <option value=""></option>
+                            <option value="SI" <?= ($matricula['apto'] ?? '') == 'SI' ? 'selected' : '' ?>>SI</option>
+                            <option value="NO" <?= ($matricula['apto'] ?? '') == 'NO' ? 'selected' : '' ?>>NO</option>
                         </select>
                     </div>
                 </div>
