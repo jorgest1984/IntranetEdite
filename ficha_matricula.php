@@ -38,7 +38,7 @@ if (!$matricula) {
     die("Matrícula no encontrada.");
 }
 
-$empresas = $pdo->query("SELECT id, cif, nombre FROM empresas ORDER BY nombre ASC")->fetchAll(PDO::FETCH_ASSOC);
+$empresas = $pdo->query("SELECT id, nombre FROM empresas ORDER BY nombre ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 // 2. Procesar formulario (Si el usuario guarda datos)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_datos_personales') {
@@ -610,7 +610,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                             <option value="">DESEMPLEADO [D00000001]</option>
                             <?php foreach($empresas as $emp): ?>
                                 <option value="<?= $emp['id'] ?>" <?= ($matricula['ultima_empresa_id'] ?? '') == $emp['id'] ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($emp['nombre'] . ' [' . ($emp['cif'] ?? 'Sin CIF') . ']') ?>
+                                    <?= htmlspecialchars($emp['nombre']) ?>
                                 </option>
                             <?php endforeach; ?>
                             <option value="A. F. C. CONSULTING DEPORTIVO" <?= ($matricula['ultima_empresa_id'] ?? '') == 'A. F. C. CONSULTING DEPORTIVO' ? 'selected' : '' ?>>A. F. C. CONSULTING DEPORTIVO</option>
