@@ -26,48 +26,51 @@ try {
     $destinatarios = $stmtDest->fetchAll();
 } catch (Exception $e) {}
 
-// LÓGICA DE BÚSQUEDA (Placeholder para implementación real)
+// LÓGICA DE BÚSQUEDA REAL
 $llamadas = [];
 $searchPerformed = false;
 
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && (!empty($_GET['fecha_desde']) || !empty($_GET['comercial_id']))) {
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && (!empty($_GET['fecha_desde']) || !empty($_GET['fecha_hasta']) || !empty($_GET['comercial_id']) || !empty($_GET['destinatario_id']) || !empty($_GET['resultado']))) {
     $searchPerformed = true;
-    // Mock data según la imagen enviada por el usuario
-    $llamadas = [
-        [
-            'empresa' => 'Brian Bueno Guerrero',
-            'contacto' => '',
-            'fecha' => '',
-            'hora' => '09:58:00',
-            'asunto' => 'Turismo',
-            'notas' => 'No le interesa, está trabajando',
-            'enviada_info' => '',
-            'fecha_envio' => '',
-            'resultado' => ''
-        ],
-        [
-            'empresa' => 'Celia Muñoz Rodriguez',
-            'contacto' => '',
-            'fecha' => '',
-            'hora' => '10:00:00',
-            'asunto' => 'Turismo',
-            'notas' => 'Hablo con ella y me dice que en este momento no le interesa',
-            'enviada_info' => '',
-            'fecha_envio' => '',
-            'resultado' => ''
-        ],
-        [
-            'empresa' => 'Carlos Garcia Torrijos',
-            'contacto' => '',
-            'fecha' => '',
-            'hora' => '10:03:00',
-            'asunto' => 'Turismo',
-            'notas' => 'No contesta',
-            'enviada_info' => '',
-            'fecha_envio' => '',
-            'resultado' => ''
-        ]
-    ];
+    try {
+        $where = ["1=1"];
+        $params = [];
+        
+        if (!empty($_GET['fecha_desde'])) {
+            $where[] = "ts.fecha >= ?";
+            $params[] = $_GET['fecha_desde'];
+        }
+        if (!empty($_GET['fecha_hasta'])) {
+            $where[] = "ts.fecha <= ?";
+            $params[] = $_GET['fecha_hasta'];
+        }
+        if (!empty($_GET['comercial_id'])) {
+            $where[] = "ts.usuario_id = ?";
+            $params[] = $_GET['comercial_id'];
+        }
+        if (!empty($_GET['destinatario_id'])) {
+            $where[] = "ts.empresa_id = ?";
+            $params[] = $_GET['destinatario_id'];
+        }
+        if (!empty($_GET['resultado'])) {
+            $where[] = "ts.resultado = ?";
+            $params[] = $_GET['resultado'];
+        }
+
+        $sql = "SELECT ts.*, a.nombre as alumno_nombre, a.primer_apellido as alumno_apellido, e.nombre as empresa_nombre, c.nombre as curso_nombre
+                FROM tutorias_seguimiento ts
+                LEFT JOIN alumnos a ON ts.alumno_id = a.id
+                LEFT JOIN empresas e ON ts.empresa_id = e.id
+                LEFT JOIN cursos c ON ts.curso_id = c.id
+                WHERE " . implode(" AND ", $where) . " 
+                ORDER BY ts.fecha DESC, ts.hora DESC LIMIT 100";
+                
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        $llamadas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+        $error = "Error al realizar la búsqueda: " . $e->getMessage();
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -421,19 +424,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && (!empty($_GET['fecha_desde']) || !em
                                     </td>
                                 </tr>
                             <?php else: ?>
-                                <?php foreach ($llamadas as $index => $ll): ?>
+                                <?php foreach ($llamadas as $index => $ll): 
+                                    $display_name = $ll['empresa'] ?: ($ll['alumno_nombre'] ? trim($ll['alumno_nombre'] . ' ' . $ll['alumno_apellido']) : ($ll['empresa_nombre'] ?: 'DESEMPLEADO'));
+                                ?>
                                     <tr class="<?= ($index % 2 == 0) ? 'row-odd' : 'row-even' ?>">
-                                        <td class="cell-bold-blue"><?= htmlspecialchars($ll['empresa']) ?></td>
+                                        <td class="cell-bold-blue"><?= htmlspecialchars($display_name) ?></td>
                                         <td><?= $ll['fecha'] ? date('d/m/Y', strtotime($ll['fecha'])) : '' ?></td>
                                         <td class="cell-bold-blue"><?= htmlspecialchars($ll['hora']) ?></td>
                                         <td class="cell-bold-blue"><?= htmlspecialchars($ll['asunto']) ?></td>
                                         <td class="cell-bold-blue"><?= htmlspecialchars($ll['notas']) ?></td>
-                                        <td style="text-align: center;"><?= htmlspecialchars($ll['enviada_info']) ?></td>
-                                        <td><?= $ll['fecha_envio'] ? date('d/m/Y', strtotime($ll['fecha_envio'])) : '' ?></td>
-                                        <td><?= htmlspecialchars($ll['resultado']) ?></td>
+                                        <td style="text-align: center;"><?= htmlspecialchars($ll['enviada_info'] ?? '') ?></td>
+                                        <td><?= (!empty($ll['fecha_envio'])) ? date('d/m/Y', strtotime($ll['fecha_envio'])) : '' ?></td>
+                                        <td><?= htmlspecialchars($ll['resultado'] ?? '') ?></td>
                                         <td>
                                             <div class="action-icons">
-                                                <a href="ficha_llamada.php?id=<?= $index ?>" class="icon-edit" title="Editar">
+                                                <a href="ficha_llamada.php?call_id=<?= $ll['id'] ?>" class="icon-edit" title="Editar">
                                                     <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 000-1.41l-2.34-2.34a.996.996 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
                                                 </a>
                                                 <span class="icon-delete" title="Eliminar">✕</span>

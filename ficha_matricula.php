@@ -1804,7 +1804,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
                     <!-- Botones/Enlaces inferiores -->
                     <div style="display: flex; gap: 1rem; border-top: 1px solid #bfdbfe; padding-top: 1.2rem;">
-                        <a href="ficha_llamada.php?id=<?= $id ?>" class="btn-modern" style="background: white; border: 1px solid #bfdbfe; color: #1e40af; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; padding: 0.5rem 1.2rem;">
+                        <a href="ficha_llamada.php?matricula_id=<?= $id ?>" class="btn-modern" style="background: white; border: 1px solid #bfdbfe; color: #1e40af; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; padding: 0.5rem 1.2rem;">
                             📞 Listado de llamadas
                         </a>
                         <a href="tutorias.php?view=llamadas&alumno_id=<?= $matricula['alumno_id'] ?>" class="btn-modern" style="background: white; border: 1px solid #bfdbfe; color: #1e40af; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; padding: 0.5rem 1.2rem;">

@@ -7,7 +7,12 @@ if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_COMERCIAL])) {
     exit();
 }
 
+$call_id = $_GET['call_id'] ?? null;
+$matricula_id = $_GET['matricula_id'] ?? null;
+$alumno_id = $_GET['alumno_id'] ?? null;
+$type = $_GET['type'] ?? null;
 $id = $_GET['id'] ?? null;
+
 $success_msg = '';
 $error_msg = '';
 
@@ -23,12 +28,13 @@ $alumno_db = null;
 $curso_db = null;
 $empresa_db = null;
 $grupo_db = null;
+$matricula_db = null;
 $fecha_25 = '';
 
-if ($id) {
-    // 1. Check if $id is a call in tutorias_seguimiento
+if ($call_id || ($id && $type === 'call')) {
+    $target_call_id = $call_id ?? $id;
     $stmt = $pdo->prepare("SELECT * FROM tutorias_seguimiento WHERE id = ?");
-    $stmt->execute([$id]);
+    $stmt->execute([$target_call_id]);
     $llamada_db = $stmt->fetch();
 
     if ($llamada_db) {
@@ -57,7 +63,7 @@ if ($id) {
             $empresa_db = $stmt->fetch();
         }
 
-        // Load latest/associated group to calculate dates
+        // Load latest/associated group & matricula to calculate dates and docs
         if ($alumno_id && $curso_id) {
             $stmt = $pdo->prepare("SELECT m.*, g.fecha_inicio, g.fecha_fin 
                                    FROM matriculas m 
@@ -67,16 +73,53 @@ if ($id) {
                                    ORDER BY m.id DESC LIMIT 1");
             $stmt->execute([$alumno_id, $curso_id]);
             $grupo_db = $stmt->fetch();
+            $matricula_db = $grupo_db ?: null;
         }
     } else {
+        die("Llamada no encontrada en el sistema.");
+    }
+} else {
+    // Determine if we load a matricula or alumno
+    $target_matricula_id = $matricula_id ?? (($id && $type === 'matricula') ? $id : null);
+    $target_alumno_id = $alumno_id ?? (($id && $type === 'alumno') ? $id : null);
+
+    // Fallback waterfall logic if only id is passed without type
+    if (!$target_matricula_id && !$target_alumno_id && $id) {
+        // 1. Check if $id is a call in tutorias_seguimiento
+        $stmt = $pdo->prepare("SELECT id FROM tutorias_seguimiento WHERE id = ?");
+        $stmt->execute([$id]);
+        if ($stmt->fetch()) {
+            // It is actually a call_id! Redirect to itself with explicit call_id
+            header("Location: ficha_llamada.php?call_id=" . $id);
+            exit();
+        }
+
         // 2. Check if $id is a matricula_id
+        $stmt = $pdo->prepare("SELECT id FROM matriculas WHERE id = ?");
+        $stmt->execute([$id]);
+        if ($stmt->fetch()) {
+            $target_matricula_id = $id;
+        } else {
+            // 3. Check if $id is an alumno_id
+            $stmt = $pdo->prepare("SELECT id FROM alumnos WHERE id = ?");
+            $stmt->execute([$id]);
+            if ($stmt->fetch()) {
+                $target_alumno_id = $id;
+            } else {
+                die("ID no válido o no encontrado en el sistema.");
+            }
+        }
+    }
+
+    if ($target_matricula_id) {
+        // Load details by matricula_id
         $stmt = $pdo->prepare("SELECT m.*, cu.id as curso_id, cu.nombre_largo as curso_nombre 
                                FROM matriculas m 
                                LEFT JOIN grupos g ON m.grupo_id = g.id 
                                LEFT JOIN acciones_formativas af ON g.accion_id = af.id 
                                LEFT JOIN cursos cu ON af.curso_id = cu.id 
                                WHERE m.id = ?");
-        $stmt->execute([$id]);
+        $stmt->execute([$target_matricula_id]);
         $matricula_db = $stmt->fetch();
 
         if ($matricula_db) {
@@ -109,51 +152,53 @@ if ($id) {
                 $grupo_db = $stmt->fetch();
             }
         } else {
-            // 3. Check if $id is an alumno_id (like 39)
-            $stmt = $pdo->prepare("SELECT * FROM alumnos WHERE id = ?");
-            $stmt->execute([$id]);
-            $alumno_db = $stmt->fetch();
-
-            if ($alumno_db) {
-                $alumno_id = $alumno_db['id'];
-
-                // Try to find the latest matricula of this alumno to prefill course and group
-                $stmt = $pdo->prepare("SELECT m.*, cu.id as curso_id, cu.nombre_largo as curso_nombre 
-                                       FROM matriculas m 
-                                       LEFT JOIN grupos g ON m.grupo_id = g.id 
-                                       LEFT JOIN acciones_formativas af ON g.accion_id = af.id 
-                                       LEFT JOIN cursos cu ON af.curso_id = cu.id 
-                                       WHERE m.alumno_id = ? 
-                                       ORDER BY m.id DESC LIMIT 1");
-                $stmt->execute([$alumno_id]);
-                $matricula_db = $stmt->fetch();
-
-                if ($matricula_db) {
-                    $curso_id = $matricula_db['curso_id'];
-                    if ($curso_id) {
-                        $stmt = $pdo->prepare("SELECT * FROM cursos WHERE id = ?");
-                        $stmt->execute([$curso_id]);
-                        $curso_db = $stmt->fetch();
-                    }
-                    if ($matricula_db['grupo_id']) {
-                        $stmt = $pdo->prepare("SELECT * FROM grupos WHERE id = ?");
-                        $stmt->execute([$matricula_db['grupo_id']]);
-                        $grupo_db = $stmt->fetch();
-                    }
-                }
-
-                if ($alumno_db['ultima_empresa_id']) {
-                    $stmt = $pdo->prepare("SELECT * FROM empresas WHERE id = ?");
-                    $stmt->execute([$alumno_db['ultima_empresa_id']]);
-                    $empresa_db = $stmt->fetch();
-                }
-            } else {
-                die("ID no válido o no encontrado en el sistema.");
-            }
+            die("Matrícula no encontrada.");
         }
+    } elseif ($target_alumno_id) {
+        // Load details by alumno_id
+        $stmt = $pdo->prepare("SELECT * FROM alumnos WHERE id = ?");
+        $stmt->execute([$target_alumno_id]);
+        $alumno_db = $stmt->fetch();
+
+        if ($alumno_db) {
+            $alumno_id = $alumno_db['id'];
+
+            // Try to find the latest matricula of this alumno to prefill course and group
+            $stmt = $pdo->prepare("SELECT m.*, cu.id as curso_id, cu.nombre_largo as curso_nombre 
+                                   FROM matriculas m 
+                                   LEFT JOIN grupos g ON m.grupo_id = g.id 
+                                   LEFT JOIN acciones_formativas af ON g.accion_id = af.id 
+                                   LEFT JOIN cursos cu ON af.curso_id = cu.id 
+                                   WHERE m.alumno_id = ? 
+                                   ORDER BY m.id DESC LIMIT 1");
+            $stmt->execute([$alumno_id]);
+            $matricula_db = $stmt->fetch();
+
+            if ($matricula_db) {
+                $curso_id = $matricula_db['curso_id'];
+                if ($curso_id) {
+                    $stmt = $pdo->prepare("SELECT * FROM cursos WHERE id = ?");
+                    $stmt->execute([$curso_id]);
+                    $curso_db = $stmt->fetch();
+                }
+                if ($matricula_db['grupo_id']) {
+                    $stmt = $pdo->prepare("SELECT * FROM grupos WHERE id = ?");
+                    $stmt->execute([$matricula_db['grupo_id']]);
+                    $grupo_db = $stmt->fetch();
+                }
+            }
+
+            if ($alumno_db['ultima_empresa_id']) {
+                $stmt = $pdo->prepare("SELECT * FROM empresas WHERE id = ?");
+                $stmt->execute([$alumno_db['ultima_empresa_id']]);
+                $empresa_db = $stmt->fetch();
+            }
+        } else {
+            die("Alumno no encontrado.");
+        }
+    } else {
+        die("ID no especificado.");
     }
-} else {
-    die("ID no especificado.");
 }
 
 // Calculate 25% date
@@ -282,6 +327,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_send_email']))
 // PROCESAR GUARDADO DE LLAMADA
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_save_call'])) {
     try {
+        $target_call_id = $llamada_db ? $llamada_db['id'] : null;
         if ($llamada_db) {
             // Update existing call
             $stmt = $pdo->prepare("UPDATE tutorias_seguimiento SET 
@@ -309,12 +355,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_save_call'])) 
                 $_POST['asunto'],
                 $_POST['notas'],
                 $_POST['notas'],
-                $id
+                $target_call_id
             ]);
             $success_msg = "Registro de llamada guardado correctamente.";
             // Reload record
             $stmt = $pdo->prepare("SELECT * FROM tutorias_seguimiento WHERE id = ?");
-            $stmt->execute([$id]);
+            $stmt->execute([$target_call_id]);
             $llamada_db = $stmt->fetch();
         } else {
             // Insert new call
@@ -340,7 +386,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_save_call'])) 
                 $_POST['notas']
             ]);
             $new_id = $pdo->lastInsertId();
-            header("Location: ficha_llamada.php?id=" . $new_id . "&saved=1");
+            header("Location: ficha_llamada.php?call_id=" . $new_id . "&saved=1");
             exit();
         }
     } catch (Exception $e) {
@@ -350,10 +396,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_save_call'])) 
 
 // PROCESAR BORRADO DE LLAMADA
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_delete_call'])) {
+    $target_call_id = $llamada_db ? $llamada_db['id'] : null;
     if ($puede_editar && $llamada_db) {
         try {
             $stmt = $pdo->prepare("DELETE FROM tutorias_seguimiento WHERE id = ?");
-            $stmt->execute([$id]);
+            $stmt->execute([$target_call_id]);
             header("Location: comerciales_llamadas.php?deleted=1");
             exit();
         } catch (Exception $e) {
@@ -367,6 +414,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_delete_call'])
 // PROCESAR PROGRAMACIÓN DE CITA
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_schedule'])) {
     try {
+        $target_call_id = $llamada_db ? $llamada_db['id'] : null;
         if ($llamada_db) {
             $stmt = $pdo->prepare("UPDATE tutorias_seguimiento SET 
                 cita_fecha = ?, cita_hora = ?, cita_asunto = ?, cita_descripcion = ? 
@@ -376,12 +424,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_schedule'])) {
                 $_POST['cita_hora'],
                 $_POST['cita_asunto'],
                 $_POST['cita_descripcion'],
-                $id
+                $target_call_id
             ]);
             $success_msg = "Cita programada correctamente.";
             // Reload record
             $stmt = $pdo->prepare("SELECT * FROM tutorias_seguimiento WHERE id = ?");
-            $stmt->execute([$id]);
+            $stmt->execute([$target_call_id]);
             $llamada_db = $stmt->fetch();
         } else {
             // New call with appointment
@@ -400,7 +448,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_schedule'])) {
                 $_POST['cita_descripcion']
             ]);
             $new_id = $pdo->lastInsertId();
-            header("Location: ficha_llamada.php?id=" . $new_id . "&scheduled=1");
+            header("Location: ficha_llamada.php?call_id=" . $new_id . "&scheduled=1");
             exit();
         }
     } catch (Exception $e) {
