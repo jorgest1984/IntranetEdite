@@ -1,0 +1,1 @@
+<?php require "../includes/config.php"; header("Content-Type: application/json"); $out = []; $out["alumnos"] = $pdo->query("DESCRIBE alumnos")->fetchAll(PDO::FETCH_ASSOC); $out["matriculas"] = $pdo->query("DESCRIBE matriculas")->fetchAll(PDO::FETCH_ASSOC); echo json_encode($out); ?>
