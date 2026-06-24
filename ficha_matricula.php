@@ -613,6 +613,156 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                     <?= htmlspecialchars($emp['nombre'] . ' [' . ($emp['cif'] ?? 'Sin CIF') . ']') ?>
                                 </option>
                             <?php endforeach; ?>
+                            <option value="A. F. C. CONSULTING DEPORTIVO" <?= ($matricula['ultima_empresa_id'] ?? '') == 'A. F. C. CONSULTING DEPORTIVO' ? 'selected' : '' ?>>A. F. C. CONSULTING DEPORTIVO</option>
+                            <option value="ACADEMIA CERVANTES , CARLOS AMEZ LAIZ CB" <?= ($matricula['ultima_empresa_id'] ?? '') == 'ACADEMIA CERVANTES , CARLOS AMEZ LAIZ CB' ? 'selected' : '' ?>>ACADEMIA CERVANTES , CARLOS AMEZ LAIZ CB</option>
+                            <option value="ACADEMIA FIPP" <?= ($matricula['ultima_empresa_id'] ?? '') == 'ACADEMIA FIPP' ? 'selected' : '' ?>>ACADEMIA FIPP</option>
+                            <option value="ACADEMIA SOCE S.L.U." <?= ($matricula['ultima_empresa_id'] ?? '') == 'ACADEMIA SOCE S.L.U.' ? 'selected' : '' ?>>ACADEMIA SOCE S.L.U.</option>
+                            <option value="ACADEMIA TECNAS" <?= ($matricula['ultima_empresa_id'] ?? '') == 'ACADEMIA TECNAS' ? 'selected' : '' ?>>ACADEMIA TECNAS</option>
+                            <option value="ACADEMIA VIGILANT S.L." <?= ($matricula['ultima_empresa_id'] ?? '') == 'ACADEMIA VIGILANT S.L.' ? 'selected' : '' ?>>ACADEMIA VIGILANT S.L.</option>
+                            <option value="ACADEMIA VISAN" <?= ($matricula['ultima_empresa_id'] ?? '') == 'ACADEMIA VISAN' ? 'selected' : '' ?>>ACADEMIA VISAN</option>
+                            <option value="ADAMS" <?= ($matricula['ultima_empresa_id'] ?? '') == 'ADAMS' ? 'selected' : '' ?>>ADAMS</option>
+                            <option value="AE S. MARTIN" <?= ($matricula['ultima_empresa_id'] ?? '') == 'AE S. MARTIN' ? 'selected' : '' ?>>AE S. MARTIN</option>
+                            <option value="AEFOL EXPOELEARNING S.L." <?= ($matricula['ultima_empresa_id'] ?? '') == 'AEFOL EXPOELEARNING S.L.' ? 'selected' : '' ?>>AEFOL EXPOELEARNING S.L.</option>
+                            <option value="AESS" <?= ($matricula['ultima_empresa_id'] ?? '') == 'AESS' ? 'selected' : '' ?>>AESS</option>
+                            <option value="AFA-FORMACION CONTINUA S.L." <?= ($matricula['ultima_empresa_id'] ?? '') == 'AFA-FORMACION CONTINUA S.L.' ? 'selected' : '' ?>>AFA-FORMACION CONTINUA S.L.</option>
+                            <option value="AGE" <?= ($matricula['ultima_empresa_id'] ?? '') == 'AGE' ? 'selected' : '' ?>>AGE</option>
+                            <option value="AMUSAL" <?= ($matricula['ultima_empresa_id'] ?? '') == 'AMUSAL' ? 'selected' : '' ?>>AMUSAL</option>
+                            <option value="AREA FORMACION AULAS" <?= ($matricula['ultima_empresa_id'] ?? '') == 'AREA FORMACION AULAS' ? 'selected' : '' ?>>AREA FORMACION AULAS</option>
+                            <option value="asimag servicios empresariales, s.l" <?= ($matricula['ultima_empresa_id'] ?? '') == 'asimag servicios empresariales, s.l' ? 'selected' : '' ?>>asimag servicios empresariales, s.l</option>
+                            <option value="ASIMAG SERVICIOS EMPRESARIALES, S.L." <?= ($matricula['ultima_empresa_id'] ?? '') == 'ASIMAG SERVICIOS EMPRESARIALES, S.L.' ? 'selected' : '' ?>>ASIMAG SERVICIOS EMPRESARIALES, S.L.</option>
+                            <option value="Association Puerta de Alcalá" <?= ($matricula['ultima_empresa_id'] ?? '') == 'Association Puerta de Alcalá' ? 'selected' : '' ?>>Association Puerta de Alcalá</option>
+                            <option value="ATENTO TELESERVICIOS ESPAÑA, S.A." <?= ($matricula['ultima_empresa_id'] ?? '') == 'ATENTO TELESERVICIOS ESPAÑA, S.A.' ? 'selected' : '' ?>>ATENTO TELESERVICIOS ESPAÑA, S.A.</option>
+                            <option value="AUDEMA" <?= ($matricula['ultima_empresa_id'] ?? '') == 'AUDEMA' ? 'selected' : '' ?>>AUDEMA</option>
+                            <option value="AUTOESCUELA EMERITA S.L." <?= ($matricula['ultima_empresa_id'] ?? '') == 'AUTOESCUELA EMERITA S.L.' ? 'selected' : '' ?>>AUTOESCUELA EMERITA S.L.</option>
+                            <option value="AVEFOR ARAGÓN DAIDA PEREZ HERNANDEZ" <?= ($matricula['ultima_empresa_id'] ?? '') == 'AVEFOR ARAGÓN DAIDA PEREZ HERNANDEZ' ? 'selected' : '' ?>>AVEFOR ARAGÓN DAIDA PEREZ HERNANDEZ</option>
+                            <option value="AVIZOR, CENTRO SUPERIOR DE FORMACIÓN EN ESTUDIOS D" <?= ($matricula['ultima_empresa_id'] ?? '') == 'AVIZOR, CENTRO SUPERIOR DE FORMACIÓN EN ESTUDIOS D' ? 'selected' : '' ?>>AVIZOR, CENTRO SUPERIOR DE FORMACIÓN EN ESTUDIOS D</option>
+                            <option value="Ayuntamiento de Cajar" <?= ($matricula['ultima_empresa_id'] ?? '') == 'Ayuntamiento de Cajar' ? 'selected' : '' ?>>Ayuntamiento de Cajar</option>
+                            <option value="AZUVIS S.C.A" <?= ($matricula['ultima_empresa_id'] ?? '') == 'AZUVIS S.C.A' ? 'selected' : '' ?>>AZUVIS S.C.A</option>
+                            <option value="BODYFACTORY SOMOSAGUAS" <?= ($matricula['ultima_empresa_id'] ?? '') == 'BODYFACTORY SOMOSAGUAS' ? 'selected' : '' ?>>BODYFACTORY SOMOSAGUAS</option>
+                            <option value="BOROXSPORT CLUB SPORT" <?= ($matricula['ultima_empresa_id'] ?? '') == 'BOROXSPORT CLUB SPORT' ? 'selected' : '' ?>>BOROXSPORT CLUB SPORT</option>
+                            <option value="C/ CORCEGA,371" <?= ($matricula['ultima_empresa_id'] ?? '') == 'C/ CORCEGA,371' ? 'selected' : '' ?>>C/ CORCEGA,371</option>
+                            <option value="CAD-SEGURIDAD" <?= ($matricula['ultima_empresa_id'] ?? '') == 'CAD-SEGURIDAD' ? 'selected' : '' ?>>CAD-SEGURIDAD</option>
+                            <option value="CENTRO DE ENSEÑANZAS PROFESIONALES Y TECNOLOGICAS" <?= ($matricula['ultima_empresa_id'] ?? '') == 'CENTRO DE ENSEÑANZAS PROFESIONALES Y TECNOLOGICAS' ? 'selected' : '' ?>>CENTRO DE ENSEÑANZAS PROFESIONALES Y TECNOLOGICAS</option>
+                            <option value="Centro de Estudio Arsenio Toral S.A.L." <?= ($matricula['ultima_empresa_id'] ?? '') == 'Centro de Estudio Arsenio Toral S.A.L.' ? 'selected' : '' ?>>Centro de Estudio Arsenio Toral S.A.L.</option>
+                            <option value="Centro de Estudio Arsenio Toral S.A.L.. 2012" <?= ($matricula['ultima_empresa_id'] ?? '') == 'Centro de Estudio Arsenio Toral S.A.L.. 2012' ? 'selected' : '' ?>>Centro de Estudio Arsenio Toral S.A.L.. 2012</option>
+                            <option value="CENTRO DE ESTUDIOS APPA SCL" <?= ($matricula['ultima_empresa_id'] ?? '') == 'CENTRO DE ESTUDIOS APPA SCL' ? 'selected' : '' ?>>CENTRO DE ESTUDIOS APPA SCL</option>
+                            <option value="CENTRO DE ESTUDIOS DE FORMACION ALFER" <?= ($matricula['ultima_empresa_id'] ?? '') == 'CENTRO DE ESTUDIOS DE FORMACION ALFER' ? 'selected' : '' ?>>CENTRO DE ESTUDIOS DE FORMACION ALFER</option>
+                            <option value="CENTRO DE ESTUDIOS DE FORMACION ALFER S.L." <?= ($matricula['ultima_empresa_id'] ?? '') == 'CENTRO DE ESTUDIOS DE FORMACION ALFER S.L.' ? 'selected' : '' ?>>CENTRO DE ESTUDIOS DE FORMACION ALFER S.L.</option>
+                            <option value="CENTRO DE ESTUDIOS LA ACADEMIA CB" <?= ($matricula['ultima_empresa_id'] ?? '') == 'CENTRO DE ESTUDIOS LA ACADEMIA CB' ? 'selected' : '' ?>>CENTRO DE ESTUDIOS LA ACADEMIA CB</option>
+                            <option value="Centro de Estudios y Experimentación de Obras Públ" <?= ($matricula['ultima_empresa_id'] ?? '') == 'Centro de Estudios y Experimentación de Obras Públ' ? 'selected' : '' ?>>Centro de Estudios y Experimentación de Obras Públ</option>
+                            <option value="CENTRO DE FORMACION ALFER" <?= ($matricula['ultima_empresa_id'] ?? '') == 'CENTRO DE FORMACION ALFER' ? 'selected' : '' ?>>CENTRO DE FORMACION ALFER</option>
+                            <option value="CENTRO DE FORMACION ARSENIO JIMENO" <?= ($matricula['ultima_empresa_id'] ?? '') == 'CENTRO DE FORMACION ARSENIO JIMENO' ? 'selected' : '' ?>>CENTRO DE FORMACION ARSENIO JIMENO</option>
+                            <option value="centro de formación oasis" <?= ($matricula['ultima_empresa_id'] ?? '') == 'centro de formación oasis' ? 'selected' : '' ?>>centro de formación oasis</option>
+                            <option value="CENTRO DE FORMACION PRAXIS" <?= ($matricula['ultima_empresa_id'] ?? '') == 'CENTRO DE FORMACION PRAXIS' ? 'selected' : '' ?>>CENTRO DE FORMACION PRAXIS</option>
+                            <option value="CENTRO DE FORMACION PRAXIS II" <?= ($matricula['ultima_empresa_id'] ?? '') == 'CENTRO DE FORMACION PRAXIS II' ? 'selected' : '' ?>>CENTRO DE FORMACION PRAXIS II</option>
+                            <option value="CENTRO EMPRESARIAL CEMEI" <?= ($matricula['ultima_empresa_id'] ?? '') == 'CENTRO EMPRESARIAL CEMEI' ? 'selected' : '' ?>>CENTRO EMPRESARIAL CEMEI</option>
+                            <option value="CEPAL" <?= ($matricula['ultima_empresa_id'] ?? '') == 'CEPAL' ? 'selected' : '' ?>>CEPAL</option>
+                            <option value="CFI SEGURIDAD" <?= ($matricula['ultima_empresa_id'] ?? '') == 'CFI SEGURIDAD' ? 'selected' : '' ?>>CFI SEGURIDAD</option>
+                            <option value="CICE S.A" <?= ($matricula['ultima_empresa_id'] ?? '') == 'CICE S.A' ? 'selected' : '' ?>>CICE S.A</option>
+                            <option value="CIS-FORMACION ESPECIALIZADA SEGURIDAD-SALUD S.L." <?= ($matricula['ultima_empresa_id'] ?? '') == 'CIS-FORMACION ESPECIALIZADA SEGURIDAD-SALUD S.L.' ? 'selected' : '' ?>>CIS-FORMACION ESPECIALIZADA SEGURIDAD-SALUD S.L.</option>
+                            <option value="Ciudad Escuela de Formacion" <?= ($matricula['ultima_empresa_id'] ?? '') == 'Ciudad Escuela de Formacion' ? 'selected' : '' ?>>Ciudad Escuela de Formacion</option>
+                            <option value="CLUB DE GOLF GUADALMINA" <?= ($matricula['ultima_empresa_id'] ?? '') == 'CLUB DE GOLF GUADALMINA' ? 'selected' : '' ?>>CLUB DE GOLF GUADALMINA</option>
+                            <option value="CLUB DE TENIS Y PADEL MONTEVERDE" <?= ($matricula['ultima_empresa_id'] ?? '') == 'CLUB DE TENIS Y PADEL MONTEVERDE' ? 'selected' : '' ?>>CLUB DE TENIS Y PADEL MONTEVERDE</option>
+                            <option value="Club Natació Barcelona" <?= ($matricula['ultima_empresa_id'] ?? '') == 'Club Natació Barcelona' ? 'selected' : '' ?>>Club Natació Barcelona</option>
+                            <option value="CLUB NAUTICO DE GANDIA" <?= ($matricula['ultima_empresa_id'] ?? '') == 'CLUB NAUTICO DE GANDIA' ? 'selected' : '' ?>>CLUB NAUTICO DE GANDIA</option>
+                            <option value="COMERCIANTES DEL PONIENTE, S.A." <?= ($matricula['ultima_empresa_id'] ?? '') == 'COMERCIANTES DEL PONIENTE, S.A.' ? 'selected' : '' ?>>COMERCIANTES DEL PONIENTE, S.A.</option>
+                            <option value="Consultores de Formacion" <?= ($matricula['ultima_empresa_id'] ?? '') == 'Consultores de Formacion' ? 'selected' : '' ?>>Consultores de Formacion</option>
+                            <option value="CONSULTORIA Y FORMACION BALBO S.L" <?= ($matricula['ultima_empresa_id'] ?? '') == 'CONSULTORIA Y FORMACION BALBO S.L' ? 'selected' : '' ?>>CONSULTORIA Y FORMACION BALBO S.L</option>
+                            <option value="CONTROL DE FORMACION" <?= ($matricula['ultima_empresa_id'] ?? '') == 'CONTROL DE FORMACION' ? 'selected' : '' ?>>CONTROL DE FORMACION</option>
+                            <option value="CREATI MOMENTUM" <?= ($matricula['ultima_empresa_id'] ?? '') == 'CREATI MOMENTUM' ? 'selected' : '' ?>>CREATI MOMENTUM</option>
+                            <option value="D.D. SPORT FG S.L. (CIS)" <?= ($matricula['ultima_empresa_id'] ?? '') == 'D.D. SPORT FG S.L. (CIS)' ? 'selected' : '' ?>>D.D. SPORT FG S.L. (CIS)</option>
+                            <option value="Dedalo Proyectos XYZ (Vicar)" <?= ($matricula['ultima_empresa_id'] ?? '') == 'Dedalo Proyectos XYZ (Vicar)' ? 'selected' : '' ?>>Dedalo Proyectos XYZ (Vicar)</option>
+                            <option value="EDIFICIO SINDICATOS (A CORUÑA)" <?= ($matricula['ultima_empresa_id'] ?? '') == 'EDIFICIO SINDICATOS (A CORUÑA)' ? 'selected' : '' ?>>EDIFICIO SINDICATOS (A CORUÑA)</option>
+                            <option value="EDITEFORMACION (Madrid)" <?= ($matricula['ultima_empresa_id'] ?? '') == 'EDITEFORMACION (Madrid)' ? 'selected' : '' ?>>EDITEFORMACION (Madrid)</option>
+                            <option value="EDITEFORMACION-MERCAOLID" <?= ($matricula['ultima_empresa_id'] ?? '') == 'EDITEFORMACION-MERCAOLID' ? 'selected' : '' ?>>EDITEFORMACION-MERCAOLID</option>
+                            <option value="EDITRAIN SL" <?= ($matricula['ultima_empresa_id'] ?? '') == 'EDITRAIN SL' ? 'selected' : '' ?>>EDITRAIN SL</option>
+                            <option value="EDITRAIN, S.L. (P.E.LA FINCA)" <?= ($matricula['ultima_empresa_id'] ?? '') == 'EDITRAIN, S.L. (P.E.LA FINCA)' ? 'selected' : '' ?>>EDITRAIN, S.L. (P.E.LA FINCA)</option>
+                            <option value="El Ser Creativo SL" <?= ($matricula['ultima_empresa_id'] ?? '') == 'El Ser Creativo SL' ? 'selected' : '' ?>>El Ser Creativo SL</option>
+                            <option value="EL VENTAL DE OCASION S.L." <?= ($matricula['ultima_empresa_id'] ?? '') == 'EL VENTAL DE OCASION S.L.' ? 'selected' : '' ?>>EL VENTAL DE OCASION S.L.</option>
+                            <option value="ELOGOS, S.L." <?= ($matricula['ultima_empresa_id'] ?? '') == 'ELOGOS, S.L.' ? 'selected' : '' ?>>ELOGOS, S.L.</option>
+                            <option value="EMPRESA MIXTA DE SERVICIOS FUNERARIOS DE MADRID" <?= ($matricula['ultima_empresa_id'] ?? '') == 'EMPRESA MIXTA DE SERVICIOS FUNERARIOS DE MADRID' ? 'selected' : '' ?>>EMPRESA MIXTA DE SERVICIOS FUNERARIOS DE MADRID</option>
+                            <option value="ENSEÑANZAS ORTHOS" <?= ($matricula['ultima_empresa_id'] ?? '') == 'ENSEÑANZAS ORTHOS' ? 'selected' : '' ?>>ENSEÑANZAS ORTHOS</option>
+                            <option value="ESCUELA DE FORMACIÓN PROFESIONAL" <?= ($matricula['ultima_empresa_id'] ?? '') == 'ESCUELA DE FORMACIÓN PROFESIONAL' ? 'selected' : '' ?>>ESCUELA DE FORMACIÓN PROFESIONAL</option>
+                            <option value="ESCUELA DE FORMACIÓN PROFESIONAL (Vícar)" <?= ($matricula['ultima_empresa_id'] ?? '') == 'ESCUELA DE FORMACIÓN PROFESIONAL (Vícar)' ? 'selected' : '' ?>>ESCUELA DE FORMACIÓN PROFESIONAL (Vícar)</option>
+                            <option value="Escuela Internacional de Gerencia" <?= ($matricula['ultima_empresa_id'] ?? '') == 'Escuela Internacional de Gerencia' ? 'selected' : '' ?>>Escuela Internacional de Gerencia</option>
+                            <option value="ESTACION DISEÑO" <?= ($matricula['ultima_empresa_id'] ?? '') == 'ESTACION DISEÑO' ? 'selected' : '' ?>>ESTACION DISEÑO</option>
+                            <option value="ESTACION DISEÑO (Antiguo)" <?= ($matricula['ultima_empresa_id'] ?? '') == 'ESTACION DISEÑO (Antiguo)' ? 'selected' : '' ?>>ESTACION DISEÑO (Antiguo)</option>
+                            <option value="EUROPEANQUALITY S.L." <?= ($matricula['ultima_empresa_id'] ?? '') == 'EUROPEANQUALITY S.L.' ? 'selected' : '' ?>>EUROPEANQUALITY S.L.</option>
+                            <option value="F.I.P.P" <?= ($matricula['ultima_empresa_id'] ?? '') == 'F.I.P.P' ? 'selected' : '' ?>>F.I.P.P</option>
+                            <option value="FEDERAC. PROV. DE MINUSVALIDOS FISICOS DE CORDOBA" <?= ($matricula['ultima_empresa_id'] ?? '') == 'FEDERAC. PROV. DE MINUSVALIDOS FISICOS DE CORDOBA' ? 'selected' : '' ?>>FEDERAC. PROV. DE MINUSVALIDOS FISICOS DE CORDOBA</option>
+                            <option value="FESS LA SALLE" <?= ($matricula['ultima_empresa_id'] ?? '') == 'FESS LA SALLE' ? 'selected' : '' ?>>FESS LA SALLE</option>
+                            <option value="FONDO DE PROMOCION Y DESARROLLO PROFESIONAL" <?= ($matricula['ultima_empresa_id'] ?? '') == 'FONDO DE PROMOCION Y DESARROLLO PROFESIONAL' ? 'selected' : '' ?>>FONDO DE PROMOCION Y DESARROLLO PROFESIONAL</option>
+                            <option value="FPDP" <?= ($matricula['ultima_empresa_id'] ?? '') == 'FPDP' ? 'selected' : '' ?>>FPDP</option>
+                            <option value="FPDP-VALENCIA" <?= ($matricula['ultima_empresa_id'] ?? '') == 'FPDP-VALENCIA' ? 'selected' : '' ?>>FPDP-VALENCIA</option>
+                            <option value="FUNDACIÓN SAN VALERO" <?= ($matricula['ultima_empresa_id'] ?? '') == 'FUNDACIÓN SAN VALERO' ? 'selected' : '' ?>>FUNDACIÓN SAN VALERO</option>
+                            <option value="GENERAL PLAN" <?= ($matricula['ultima_empresa_id'] ?? '') == 'GENERAL PLAN' ? 'selected' : '' ?>>GENERAL PLAN</option>
+                            <option value="GESTIÓN DE LA EXCELENCIA Y COACHING APLICADO A LOS" <?= ($matricula['ultima_empresa_id'] ?? '') == 'GESTIÓN DE LA EXCELENCIA Y COACHING APLICADO A LOS' ? 'selected' : '' ?>>GESTIÓN DE LA EXCELENCIA Y COACHING APLICADO A LOS</option>
+                            <option value="Gimnasio Triunfo S.A." <?= ($matricula['ultima_empresa_id'] ?? '') == 'Gimnasio Triunfo S.A.' ? 'selected' : '' ?>>Gimnasio Triunfo S.A.</option>
+                            <option value="Green Apple School" <?= ($matricula['ultima_empresa_id'] ?? '') == 'Green Apple School' ? 'selected' : '' ?>>Green Apple School</option>
+                            <option value="GREEN TAL S.A." <?= ($matricula['ultima_empresa_id'] ?? '') == 'GREEN TAL S.A.' ? 'selected' : '' ?>>GREEN TAL S.A.</option>
+                            <option value="Grupo Coremsa" <?= ($matricula['ultima_empresa_id'] ?? '') == 'Grupo Coremsa' ? 'selected' : '' ?>>Grupo Coremsa</option>
+                            <option value="GRUPO DTM CONSULTING S.L.U." <?= ($matricula['ultima_empresa_id'] ?? '') == 'GRUPO DTM CONSULTING S.L.U.' ? 'selected' : '' ?>>GRUPO DTM CONSULTING S.L.U.</option>
+                            <option value="GRUPO EDNE, S.L." <?= ($matricula['ultima_empresa_id'] ?? '') == 'GRUPO EDNE, S.L.' ? 'selected' : '' ?>>GRUPO EDNE, S.L.</option>
+                            <option value="GRUPO SUR RECICLAJE Y FORMACIÓN S.L." <?= ($matricula['ultima_empresa_id'] ?? '') == 'GRUPO SUR RECICLAJE Y FORMACIÓN S.L.' ? 'selected' : '' ?>>GRUPO SUR RECICLAJE Y FORMACIÓN S.L.</option>
+                            <option value="Hotel Avenida" <?= ($matricula['ultima_empresa_id'] ?? '') == 'Hotel Avenida' ? 'selected' : '' ?>>Hotel Avenida</option>
+                            <option value="IDFO" <?= ($matricula['ultima_empresa_id'] ?? '') == 'IDFO' ? 'selected' : '' ?>>IDFO</option>
+                            <option value="IFES" <?= ($matricula['ultima_empresa_id'] ?? '') == 'IFES' ? 'selected' : '' ?>>IFES</option>
+                            <option value="IFES ( ZARAGOZA)" <?= ($matricula['ultima_empresa_id'] ?? '') == 'IFES ( ZARAGOZA)' ? 'selected' : '' ?>>IFES ( ZARAGOZA)</option>
+                            <option value="IFES (EUSKADI)" <?= ($matricula['ultima_empresa_id'] ?? '') == 'IFES (EUSKADI)' ? 'selected' : '' ?>>IFES (EUSKADI)</option>
+                            <option value="IFES NAVARRA" <?= ($matricula['ultima_empresa_id'] ?? '') == 'IFES NAVARRA' ? 'selected' : '' ?>>IFES NAVARRA</option>
+                            <option value="IFES UGT" <?= ($matricula['ultima_empresa_id'] ?? '') == 'IFES UGT' ? 'selected' : '' ?>>IFES UGT</option>
+                            <option value="IFES-CENTRO DE FORMACION ARSENIO JIMENO" <?= ($matricula['ultima_empresa_id'] ?? '') == 'IFES-CENTRO DE FORMACION ARSENIO JIMENO' ? 'selected' : '' ?>>IFES-CENTRO DE FORMACION ARSENIO JIMENO</option>
+                            <option value="IFES-SEVILLA" <?= ($matricula['ultima_empresa_id'] ?? '') == 'IFES-SEVILLA' ? 'selected' : '' ?>>IFES-SEVILLA</option>
+                            <option value="IFES-UGT (ALICANTE)" <?= ($matricula['ultima_empresa_id'] ?? '') == 'IFES-UGT (ALICANTE)' ? 'selected' : '' ?>>IFES-UGT (ALICANTE)</option>
+                            <option value="INGAFOR" <?= ($matricula['ultima_empresa_id'] ?? '') == 'INGAFOR' ? 'selected' : '' ?>>INGAFOR</option>
+                            <option value="INSFORCAN, S.L CENTRO DE ESTUDIOS EMPRESARIALES" <?= ($matricula['ultima_empresa_id'] ?? '') == 'INSFORCAN, S.L CENTRO DE ESTUDIOS EMPRESARIALES' ? 'selected' : '' ?>>INSFORCAN, S.L CENTRO DE ESTUDIOS EMPRESARIALES</option>
+                            <option value="Instituto Educacion Secundaria Elaios" <?= ($matricula['ultima_empresa_id'] ?? '') == 'Instituto Educacion Secundaria Elaios' ? 'selected' : '' ?>>Instituto Educacion Secundaria Elaios</option>
+                            <option value="INSTITUTO FORMACION ESTUDIOS SOCIALES" <?= ($matricula['ultima_empresa_id'] ?? '') == 'INSTITUTO FORMACION ESTUDIOS SOCIALES' ? 'selected' : '' ?>>INSTITUTO FORMACION ESTUDIOS SOCIALES</option>
+                            <option value="INSTITUTO MADRILEÑO DE FORMACION S.L" <?= ($matricula['ultima_empresa_id'] ?? '') == 'INSTITUTO MADRILEÑO DE FORMACION S.L' ? 'selected' : '' ?>>INSTITUTO MADRILEÑO DE FORMACION S.L</option>
+                            <option value="LA MIRADA DIGITAL" <?= ($matricula['ultima_empresa_id'] ?? '') == 'LA MIRADA DIGITAL' ? 'selected' : '' ?>>LA MIRADA DIGITAL</option>
+                            <option value="LA MIRADA DIGITAL, S.L." <?= ($matricula['ultima_empresa_id'] ?? '') == 'LA MIRADA DIGITAL, S.L.' ? 'selected' : '' ?>>LA MIRADA DIGITAL, S.L.</option>
+                            <option value="MAREN" <?= ($matricula['ultima_empresa_id'] ?? '') == 'MAREN' ? 'selected' : '' ?>>MAREN</option>
+                            <option value="MARSDIGITAL S.L (antiguo)" <?= ($matricula['ultima_empresa_id'] ?? '') == 'MARSDIGITAL S.L (antiguo)' ? 'selected' : '' ?>>MARSDIGITAL S.L (antiguo)</option>
+                            <option value="Marsdigital S.L (Granada )" <?= ($matricula['ultima_empresa_id'] ?? '') == 'Marsdigital S.L (Granada )' ? 'selected' : '' ?>>Marsdigital S.L (Granada )</option>
+                            <option value="Marsdigital S.L. (Barcelona)" <?= ($matricula['ultima_empresa_id'] ?? '') == 'Marsdigital S.L. (Barcelona)' ? 'selected' : '' ?>>Marsdigital S.L. (Barcelona)</option>
+                            <option value="Marsdigital S.L. (la Mirada)" <?= ($matricula['ultima_empresa_id'] ?? '') == 'Marsdigital S.L. (la Mirada)' ? 'selected' : '' ?>>Marsdigital S.L. (la Mirada)</option>
+                            <option value="MASTER (CENTRO DE ESTUDIOS - TIENDA DE INFORMATICA" <?= ($matricula['ultima_empresa_id'] ?? '') == 'MASTER (CENTRO DE ESTUDIOS - TIENDA DE INFORMATICA' ? 'selected' : '' ?>>MASTER (CENTRO DE ESTUDIOS - TIENDA DE INFORMATICA</option>
+                            <option value="MBNA EUROPE BANK LIMITED ESPAÑA" <?= ($matricula['ultima_empresa_id'] ?? '') == 'MBNA EUROPE BANK LIMITED ESPAÑA' ? 'selected' : '' ?>>MBNA EUROPE BANK LIMITED ESPAÑA</option>
+                            <option value="Método Consultores, S.L" <?= ($matricula['ultima_empresa_id'] ?? '') == 'Método Consultores, S.L' ? 'selected' : '' ?>>Método Consultores, S.L</option>
+                            <option value="METODO ESTUDIOS CONSULTORES ( ARENAL)" <?= ($matricula['ultima_empresa_id'] ?? '') == 'METODO ESTUDIOS CONSULTORES ( ARENAL)' ? 'selected' : '' ?>>METODO ESTUDIOS CONSULTORES ( ARENAL)</option>
+                            <option value="METODO ESTUDIOS CONSULTORES, S.L." <?= ($matricula['ultima_empresa_id'] ?? '') == 'METODO ESTUDIOS CONSULTORES, S.L.' ? 'selected' : '' ?>>METODO ESTUDIOS CONSULTORES, S.L.</option>
+                            <option value="METODO ESTUDIOS CONSULTORES,S.L (C/DIEGO)" <?= ($matricula['ultima_empresa_id'] ?? '') == 'METODO ESTUDIOS CONSULTORES,S.L (C/DIEGO)' ? 'selected' : '' ?>>METODO ESTUDIOS CONSULTORES,S.L (C/DIEGO)</option>
+                            <option value="MGI NEVA CENTROS DE FORMACION" <?= ($matricula['ultima_empresa_id'] ?? '') == 'MGI NEVA CENTROS DE FORMACION' ? 'selected' : '' ?>>MGI NEVA CENTROS DE FORMACION</option>
+                            <option value="MORTUALBA SCL ( TANATORIO MUNICIPAL ALBACETE)" <?= ($matricula['ultima_empresa_id'] ?? '') == 'MORTUALBA SCL ( TANATORIO MUNICIPAL ALBACETE)' ? 'selected' : '' ?>>MORTUALBA SCL ( TANATORIO MUNICIPAL ALBACETE)</option>
+                            <option value="OROVIDA S.L." <?= ($matricula['ultima_empresa_id'] ?? '') == 'OROVIDA S.L.' ? 'selected' : '' ?>>OROVIDA S.L.</option>
+                            <option value="PARCESA, PARQUES DE LA PAZ S.A" <?= ($matricula['ultima_empresa_id'] ?? '') == 'PARCESA, PARQUES DE LA PAZ S.A' ? 'selected' : '' ?>>PARCESA, PARQUES DE LA PAZ S.A</option>
+                            <option value="PARCESA, PARQUES DE LA PAZ S.A ( segundo centro)" <?= ($matricula['ultima_empresa_id'] ?? '') == 'PARCESA, PARQUES DE LA PAZ S.A ( segundo centro)' ? 'selected' : '' ?>>PARCESA, PARQUES DE LA PAZ S.A ( segundo centro)</option>
+                            <option value="PARCESA, PARQUES DE LA PAZ S.A ( tercer centro)" <?= ($matricula['ultima_empresa_id'] ?? '') == 'PARCESA, PARQUES DE LA PAZ S.A ( tercer centro)' ? 'selected' : '' ?>>PARCESA, PARQUES DE LA PAZ S.A ( tercer centro)</option>
+                            <option value="POLIDEPORTIVO LAS CRUCES" <?= ($matricula['ultima_empresa_id'] ?? '') == 'POLIDEPORTIVO LAS CRUCES' ? 'selected' : '' ?>>POLIDEPORTIVO LAS CRUCES</option>
+                            <option value="PRODUCCIONES HINOJOSA BECERRA MEDIA2 S.L" <?= ($matricula['ultima_empresa_id'] ?? '') == 'PRODUCCIONES HINOJOSA BECERRA MEDIA2 S.L' ? 'selected' : '' ?>>PRODUCCIONES HINOJOSA BECERRA MEDIA2 S.L</option>
+                            <option value="PROINTEC S.A." <?= ($matricula['ultima_empresa_id'] ?? '') == 'PROINTEC S.A.' ? 'selected' : '' ?>>PROINTEC S.A.</option>
+                            <option value="PROMAX S.L.L" <?= ($matricula['ultima_empresa_id'] ?? '') == 'PROMAX S.L.L' ? 'selected' : '' ?>>PROMAX S.L.L</option>
+                            <option value="Remo RCNGandia" <?= ($matricula['ultima_empresa_id'] ?? '') == 'Remo RCNGandia' ? 'selected' : '' ?>>Remo RCNGandia</option>
+                            <option value="SANTAGADEA GESTIÓN S.L. ( CENTRO DE DEPORTIVO DEHESA" <?= ($matricula['ultima_empresa_id'] ?? '') == 'SANTAGADEA GESTIÓN S.L. ( CENTRO DE DEPORTIVO DEHESA' ? 'selected' : '' ?>>SANTAGADEA GESTIÓN S.L. ( CENTRO DE DEPORTIVO DEHESA</option>
+                            <option value="SEGURIDAD CERES S.A." <?= ($matricula['ultima_empresa_id'] ?? '') == 'SEGURIDAD CERES S.A.' ? 'selected' : '' ?>>SEGURIDAD CERES S.A.</option>
+                            <option value="SERVICIOS FUNERARIOS DE BARCELONA" <?= ($matricula['ultima_empresa_id'] ?? '') == 'SERVICIOS FUNERARIOS DE BARCELONA' ? 'selected' : '' ?>>SERVICIOS FUNERARIOS DE BARCELONA</option>
+                            <option value="SERVICIOS SECURITAS S.A." <?= ($matricula['ultima_empresa_id'] ?? '') == 'SERVICIOS SECURITAS S.A.' ? 'selected' : '' ?>>SERVICIOS SECURITAS S.A.</option>
+                            <option value="Soom Management S.L" <?= ($matricula['ultima_empresa_id'] ?? '') == 'Soom Management S.L' ? 'selected' : '' ?>>Soom Management S.L</option>
+                            <option value="SQUASH GYM SIERRA S.L." <?= ($matricula['ultima_empresa_id'] ?? '') == 'SQUASH GYM SIERRA S.L.' ? 'selected' : '' ?>>SQUASH GYM SIERRA S.L.</option>
+                            <option value="Swiss Sports Club" <?= ($matricula['ultima_empresa_id'] ?? '') == 'Swiss Sports Club' ? 'selected' : '' ?>>Swiss Sports Club</option>
+                            <option value="TALKING ENGLISH" <?= ($matricula['ultima_empresa_id'] ?? '') == 'TALKING ENGLISH' ? 'selected' : '' ?>>TALKING ENGLISH</option>
+                            <option value="TANATORIO MONTSERRAT TRUYOLS" <?= ($matricula['ultima_empresa_id'] ?? '') == 'TANATORIO MONTSERRAT TRUYOLS' ? 'selected' : '' ?>>TANATORIO MONTSERRAT TRUYOLS</option>
+                            <option value="TANATORIO MUNICIPAL CIUDAD DE VALENCIA" <?= ($matricula['ultima_empresa_id'] ?? '') == 'TANATORIO MUNICIPAL CIUDAD DE VALENCIA' ? 'selected' : '' ?>>TANATORIO MUNICIPAL CIUDAD DE VALENCIA</option>
+                            <option value="TANATORIO SAN LAZARO S.L." <?= ($matricula['ultima_empresa_id'] ?? '') == 'TANATORIO SAN LAZARO S.L.' ? 'selected' : '' ?>>TANATORIO SAN LAZARO S.L.</option>
+                            <option value="TANATORIO SERVICIOS FUNERARIOS SAGUNTO. FUALRUB S." <?= ($matricula['ultima_empresa_id'] ?? '') == 'TANATORIO SERVICIOS FUNERARIOS SAGUNTO. FUALRUB S.' ? 'selected' : '' ?>>TANATORIO SERVICIOS FUNERARIOS SAGUNTO. FUALRUB S.</option>
+                            <option value="TANATORIO TORRERO" <?= ($matricula['ultima_empresa_id'] ?? '') == 'TANATORIO TORRERO' ? 'selected' : '' ?>>TANATORIO TORRERO</option>
+                            <option value="TANATORIO VELATORIO LUCENSES" <?= ($matricula['ultima_empresa_id'] ?? '') == 'TANATORIO VELATORIO LUCENSES' ? 'selected' : '' ?>>TANATORIO VELATORIO LUCENSES</option>
+                            <option value="Tecnas" <?= ($matricula['ultima_empresa_id'] ?? '') == 'Tecnas' ? 'selected' : '' ?>>Tecnas</option>
+                            <option value="TWENTY4HELP KNOWLEDGE SERVICE ESPAÑA" <?= ($matricula['ultima_empresa_id'] ?? '') == 'TWENTY4HELP KNOWLEDGE SERVICE ESPAÑA' ? 'selected' : '' ?>>TWENTY4HELP KNOWLEDGE SERVICE ESPAÑA</option>
+                            <option value="ULTRAGYM/BODY FACTORY" <?= ($matricula['ultima_empresa_id'] ?? '') == 'ULTRAGYM/BODY FACTORY' ? 'selected' : '' ?>>ULTRAGYM/BODY FACTORY</option>
+                            <option value="Universidad de Granada" <?= ($matricula['ultima_empresa_id'] ?? '') == 'Universidad de Granada' ? 'selected' : '' ?>>Universidad de Granada</option>
+                            <option value="VALLADOLID 1402 S.L. ESCUELA DE SEGURIDAD" <?= ($matricula['ultima_empresa_id'] ?? '') == 'VALLADOLID 1402 S.L. ESCUELA DE SEGURIDAD' ? 'selected' : '' ?>>VALLADOLID 1402 S.L. ESCUELA DE SEGURIDAD</option>
+                            <option value="vigilantes" <?= ($matricula['ultima_empresa_id'] ?? '') == 'vigilantes' ? 'selected' : '' ?>>vigilantes</option>
                         </select>
                     </div>
                 </div>
