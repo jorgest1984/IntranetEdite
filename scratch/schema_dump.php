@@ -1,1 +1,1 @@
-<?php require "../includes/config.php"; header("Content-Type: application/json"); $out = []; $out["alumnos"] = $pdo->query("DESCRIBE alumnos")->fetchAll(PDO::FETCH_ASSOC); $out["matriculas"] = $pdo->query("DESCRIBE matriculas")->fetchAll(PDO::FETCH_ASSOC); echo json_encode($out); ?>
+<?php require "../includes/config.php"; header("Content-Type: application/json"); $tables = $pdo->query("SHOW TABLES")->fetchAll(PDO::FETCH_COLUMN); $out = []; foreach($tables as $t){ $out[$t] = $pdo->query("DESCRIBE $t")->fetchAll(PDO::FETCH_ASSOC); } echo json_encode($out); ?>
