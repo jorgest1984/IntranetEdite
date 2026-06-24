@@ -516,12 +516,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <label>Provincia</label>
                         <select name="provincia" class="form-control">
                             <option value=""></option>
-                            <option value="MADRID" <?= ($matricula['provincia'] ?? '') == 'MADRID' ? 'selected' : '' ?>>MADRID</option>
+                            <option value="A CORUÑA" <?= ($matricula['provincia'] ?? '') == 'A CORUÑA' ? 'selected' : '' ?>>A CORUÑA</option>
+                            <option value="ALAVA" <?= ($matricula['provincia'] ?? '') == 'ALAVA' ? 'selected' : '' ?>>ALAVA</option>
+                            <option value="ALBACETE" <?= ($matricula['provincia'] ?? '') == 'ALBACETE' ? 'selected' : '' ?>>ALBACETE</option>
+                            <option value="ALICANTE" <?= ($matricula['provincia'] ?? '') == 'ALICANTE' ? 'selected' : '' ?>>ALICANTE</option>
+                            <option value="ALMERIA" <?= ($matricula['provincia'] ?? '') == 'ALMERIA' ? 'selected' : '' ?>>ALMERIA</option>
+                            <option value="ASTURIAS" <?= ($matricula['provincia'] ?? '') == 'ASTURIAS' ? 'selected' : '' ?>>ASTURIAS</option>
+                            <option value="AVILA" <?= ($matricula['provincia'] ?? '') == 'AVILA' ? 'selected' : '' ?>>AVILA</option>
+                            <option value="BADAJOZ" <?= ($matricula['provincia'] ?? '') == 'BADAJOZ' ? 'selected' : '' ?>>BADAJOZ</option>
+                            <option value="BALEARES" <?= ($matricula['provincia'] ?? '') == 'BALEARES' ? 'selected' : '' ?>>BALEARES</option>
                             <option value="BARCELONA" <?= ($matricula['provincia'] ?? '') == 'BARCELONA' ? 'selected' : '' ?>>BARCELONA</option>
-                            <option value="VALENCIA" <?= ($matricula['provincia'] ?? '') == 'VALENCIA' ? 'selected' : '' ?>>VALENCIA</option>
+                            <option value="BURGOS" <?= ($matricula['provincia'] ?? '') == 'BURGOS' ? 'selected' : '' ?>>BURGOS</option>
+                            <option value="CACERES" <?= ($matricula['provincia'] ?? '') == 'CACERES' ? 'selected' : '' ?>>CACERES</option>
+                            <option value="CADIZ" <?= ($matricula['provincia'] ?? '') == 'CADIZ' ? 'selected' : '' ?>>CADIZ</option>
+                            <option value="CANTABRIA" <?= ($matricula['provincia'] ?? '') == 'CANTABRIA' ? 'selected' : '' ?>>CANTABRIA</option>
+                            <option value="CASTELLON" <?= ($matricula['provincia'] ?? '') == 'CASTELLON' ? 'selected' : '' ?>>CASTELLON</option>
+                            <option value="CEUTA" <?= ($matricula['provincia'] ?? '') == 'CEUTA' ? 'selected' : '' ?>>CEUTA</option>
+                            <option value="CIUDAD REAL" <?= ($matricula['provincia'] ?? '') == 'CIUDAD REAL' ? 'selected' : '' ?>>CIUDAD REAL</option>
+                            <option value="CORDOBA" <?= ($matricula['provincia'] ?? '') == 'CORDOBA' ? 'selected' : '' ?>>CORDOBA</option>
+                            <option value="CUENCA" <?= ($matricula['provincia'] ?? '') == 'CUENCA' ? 'selected' : '' ?>>CUENCA</option>
+                            <option value="GIRONA" <?= ($matricula['provincia'] ?? '') == 'GIRONA' ? 'selected' : '' ?>>GIRONA</option>
+                            <option value="GRANADA" <?= ($matricula['provincia'] ?? '') == 'GRANADA' ? 'selected' : '' ?>>GRANADA</option>
+                            <option value="GUADALAJARA" <?= ($matricula['provincia'] ?? '') == 'GUADALAJARA' ? 'selected' : '' ?>>GUADALAJARA</option>
+                            <option value="GUIPUZCOA" <?= ($matricula['provincia'] ?? '') == 'GUIPUZCOA' ? 'selected' : '' ?>>GUIPUZCOA</option>
+                            <option value="HUELVA" <?= ($matricula['provincia'] ?? '') == 'HUELVA' ? 'selected' : '' ?>>HUELVA</option>
+                            <option value="HUESCA" <?= ($matricula['provincia'] ?? '') == 'HUESCA' ? 'selected' : '' ?>>HUESCA</option>
+                            <option value="JAEN" <?= ($matricula['provincia'] ?? '') == 'JAEN' ? 'selected' : '' ?>>JAEN</option>
+                            <option value="LA RIOJA" <?= ($matricula['provincia'] ?? '') == 'LA RIOJA' ? 'selected' : '' ?>>LA RIOJA</option>
+                            <option value="LAS PALMAS" <?= ($matricula['provincia'] ?? '') == 'LAS PALMAS' ? 'selected' : '' ?>>LAS PALMAS</option>
+                            <option value="LEON" <?= ($matricula['provincia'] ?? '') == 'LEON' ? 'selected' : '' ?>>LEON</option>
+                            <option value="LLEIDA" <?= ($matricula['provincia'] ?? '') == 'LLEIDA' ? 'selected' : '' ?>>LLEIDA</option>
+                            <option value="LUGO" <?= ($matricula['provincia'] ?? '') == 'LUGO' ? 'selected' : '' ?>>LUGO</option>
+                            <option value="MADRID" <?= ($matricula['provincia'] ?? '') == 'MADRID' ? 'selected' : '' ?>>MADRID</option>
+                            <option value="MALAGA" <?= ($matricula['provincia'] ?? '') == 'MALAGA' ? 'selected' : '' ?>>MALAGA</option>
+                            <option value="MELILLA" <?= ($matricula['provincia'] ?? '') == 'MELILLA' ? 'selected' : '' ?>>MELILLA</option>
+                            <option value="MURCIA" <?= ($matricula['provincia'] ?? '') == 'MURCIA' ? 'selected' : '' ?>>MURCIA</option>
+                            <option value="NAVARRA" <?= ($matricula['provincia'] ?? '') == 'NAVARRA' ? 'selected' : '' ?>>NAVARRA</option>
+                            <option value="OURENSE" <?= ($matricula['provincia'] ?? '') == 'OURENSE' ? 'selected' : '' ?>>OURENSE</option>
+                            <option value="PALENCIA" <?= ($matricula['provincia'] ?? '') == 'PALENCIA' ? 'selected' : '' ?>>PALENCIA</option>
+                            <option value="PONTEVEDRA" <?= ($matricula['provincia'] ?? '') == 'PONTEVEDRA' ? 'selected' : '' ?>>PONTEVEDRA</option>
+                            <option value="SALAMANCA" <?= ($matricula['provincia'] ?? '') == 'SALAMANCA' ? 'selected' : '' ?>>SALAMANCA</option>
+                            <option value="SANTA CRUZ DE TENERIFE" <?= ($matricula['provincia'] ?? '') == 'SANTA CRUZ DE TENERIFE' ? 'selected' : '' ?>>SANTA CRUZ DE TENERIFE</option>
+                            <option value="SEGOVIA" <?= ($matricula['provincia'] ?? '') == 'SEGOVIA' ? 'selected' : '' ?>>SEGOVIA</option>
                             <option value="SEVILLA" <?= ($matricula['provincia'] ?? '') == 'SEVILLA' ? 'selected' : '' ?>>SEVILLA</option>
+                            <option value="SORIA" <?= ($matricula['provincia'] ?? '') == 'SORIA' ? 'selected' : '' ?>>SORIA</option>
+                            <option value="TARRAGONA" <?= ($matricula['provincia'] ?? '') == 'TARRAGONA' ? 'selected' : '' ?>>TARRAGONA</option>
+                            <option value="TERUEL" <?= ($matricula['provincia'] ?? '') == 'TERUEL' ? 'selected' : '' ?>>TERUEL</option>
+                            <option value="TOLEDO" <?= ($matricula['provincia'] ?? '') == 'TOLEDO' ? 'selected' : '' ?>>TOLEDO</option>
+                            <option value="VALENCIA" <?= ($matricula['provincia'] ?? '') == 'VALENCIA' ? 'selected' : '' ?>>VALENCIA</option>
                             <option value="VALLADOLID" <?= ($matricula['provincia'] ?? '') == 'VALLADOLID' ? 'selected' : '' ?>>VALLADOLID</option>
-                            <!-- Idealmente rellenar con un array PHP -->
+                            <option value="VIZCAYA" <?= ($matricula['provincia'] ?? '') == 'VIZCAYA' ? 'selected' : '' ?>>VIZCAYA</option>
+                            <option value="ZAMORA" <?= ($matricula['provincia'] ?? '') == 'ZAMORA' ? 'selected' : '' ?>>ZAMORA</option>
+                            <option value="ZARAGOZA" <?= ($matricula['provincia'] ?? '') == 'ZARAGOZA' ? 'selected' : '' ?>>ZARAGOZA</option>
                         </select>
                     </div>
                 </div>
