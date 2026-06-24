@@ -866,7 +866,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <label>Categoría Profesional</label>
                         <select name="categoria_profesional" class="form-control">
                             <option value=""></option>
-                            <!-- Lista de categorías -->
+                            <option value="Directivo" <?= ($matricula['categoria_profesional'] ?? '') == 'Directivo' ? 'selected' : '' ?>>Directivo</option>
+                            <option value="Mando Intermedio" <?= ($matricula['categoria_profesional'] ?? '') == 'Mando Intermedio' ? 'selected' : '' ?>>Mando Intermedio</option>
+                            <option value="Técnico especializado" <?= ($matricula['categoria_profesional'] ?? '') == 'Técnico especializado' ? 'selected' : '' ?>>Técnico especializado</option>
+                            <option value="Trabajador cualificado" <?= ($matricula['categoria_profesional'] ?? '') == 'Trabajador cualificado' ? 'selected' : '' ?>>Trabajador cualificado</option>
+                            <option value="Trabajador no cualificado" <?= ($matricula['categoria_profesional'] ?? '') == 'Trabajador no cualificado' ? 'selected' : '' ?>>Trabajador no cualificado</option>
                         </select>
                     </div>
                     <div class="form-group">
