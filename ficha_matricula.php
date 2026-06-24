@@ -386,6 +386,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                             <option value="Grados Universitarios de hasta 240 créditos" <?= ($matricula['estudios'] ?? '') == 'Grados Universitarios de hasta 240 créditos' ? 'selected' : '' ?>>Grados Universitarios de hasta 240 créditos</option>
                             <option value="Grados Universitarios de más 240 créditos" <?= ($matricula['estudios'] ?? '') == 'Grados Universitarios de más 240 créditos' ? 'selected' : '' ?>>Grados Universitarios de más 240 créditos</option>
                             <option value="Másteres Oficiales Universitarios" <?= ($matricula['estudios'] ?? '') == 'Másteres Oficiales Universitarios' ? 'selected' : '' ?>>Másteres Oficiales Universitarios</option>
+                            <option value="Nivel de idioma A1 del MCER" <?= ($matricula['estudios'] ?? '') == 'Nivel de idioma A1 del MCER' ? 'selected' : '' ?>>Nivel de idioma A1 del MCER</option>
+                            <option value="Nivel de idioma A2 del MCER" <?= ($matricula['estudios'] ?? '') == 'Nivel de idioma A2 del MCER' ? 'selected' : '' ?>>Nivel de idioma A2 del MCER</option>
+                            <option value="Nivel de idioma B1 del MCER" <?= ($matricula['estudios'] ?? '') == 'Nivel de idioma B1 del MCER' ? 'selected' : '' ?>>Nivel de idioma B1 del MCER</option>
+                            <option value="Nivel de idioma B2 del MCER" <?= ($matricula['estudios'] ?? '') == 'Nivel de idioma B2 del MCER' ? 'selected' : '' ?>>Nivel de idioma B2 del MCER</option>
+                            <option value="Nivel de idioma C1 del MCER" <?= ($matricula['estudios'] ?? '') == 'Nivel de idioma C1 del MCER' ? 'selected' : '' ?>>Nivel de idioma C1 del MCER</option>
+                            <option value="Nivel de idioma C2 del MCER" <?= ($matricula['estudios'] ?? '') == 'Nivel de idioma C2 del MCER' ? 'selected' : '' ?>>Nivel de idioma C2 del MCER</option>
+                            <option value="Otras titulaciones" <?= ($matricula['estudios'] ?? '') == 'Otras titulaciones' ? 'selected' : '' ?>>Otras titulaciones</option>
+                            <option value="Segunda etapa de educación secundaria (Bachillerato, FP Grado Medio, BUP, FPI y FPII)" <?= ($matricula['estudios'] ?? '') == 'Segunda etapa de educación secundaria (Bachillerato, FP Grado Medio, BUP, FPI y FPII)' ? 'selected' : '' ?>>Segunda etapa de educación secundaria (Bachillerato, FP Grado Medio, BUP, FPI y FPII)</option>
+                            <option value="Sin titulación" <?= ($matricula['estudios'] ?? '') == 'Sin titulación' ? 'selected' : '' ?>>Sin titulación</option>
+                            <option value="Técnico Superior / FP grado superior y equivalente" <?= ($matricula['estudios'] ?? '') == 'Técnico Superior / FP grado superior y equivalente' ? 'selected' : '' ?>>Técnico Superior / FP grado superior y equivalente</option>
+                            <option value="Título de Doctor" <?= ($matricula['estudios'] ?? '') == 'Título de Doctor' ? 'selected' : '' ?>>Título de Doctor</option>
+                            <option value="Título de ESO, EGB, Graduado Escolar" <?= ($matricula['estudios'] ?? '') == 'Título de ESO, EGB, Graduado Escolar' ? 'selected' : '' ?>>Título de ESO, EGB, Graduado Escolar</option>
+                            <option value="Título profesional enseñanzas música/danza; artes plásticas - diseño" <?= ($matricula['estudios'] ?? '') == 'Título profesional enseñanzas música/danza; artes plásticas - diseño' ? 'selected' : '' ?>>Título profesional enseñanzas música/danza; artes plásticas - diseño</option>
                         </select>
                     </div>
                 </div>
