@@ -877,6 +877,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <label>Área Funcional</label>
                         <select name="area_funcional" class="form-control">
                             <option value=""></option>
+                            <option value="Administración" <?= ($matricula['area_funcional'] ?? '') == 'Administración' ? 'selected' : '' ?>>Administración</option>
+                            <option value="Comercial" <?= ($matricula['area_funcional'] ?? '') == 'Comercial' ? 'selected' : '' ?>>Comercial</option>
+                            <option value="Dirección" <?= ($matricula['area_funcional'] ?? '') == 'Dirección' ? 'selected' : '' ?>>Dirección</option>
+                            <option value="Mantenimiento" <?= ($matricula['area_funcional'] ?? '') == 'Mantenimiento' ? 'selected' : '' ?>>Mantenimiento</option>
+                            <option value="Producción" <?= ($matricula['area_funcional'] ?? '') == 'Producción' ? 'selected' : '' ?>>Producción</option>
                         </select>
                     </div>
                     <div class="form-group">
