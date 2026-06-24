@@ -86,9 +86,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             WHERE id = ?";
             
     try {
+        $empresa_id = empty($_POST['ultima_empresa_id']) ? null : $_POST['ultima_empresa_id'];
+        if ($empresa_id && !is_numeric($empresa_id)) {
+            $stmtEmp = $pdo->prepare("SELECT id FROM empresas WHERE nombre = ?");
+            $stmtEmp->execute([$empresa_id]);
+            $emp = $stmtEmp->fetchColumn();
+            if ($emp) {
+                $empresa_id = $emp;
+            } else {
+                $stmtInst = $pdo->prepare("INSERT INTO empresas (nombre) VALUES (?)");
+                $stmtInst->execute([$empresa_id]);
+                $empresa_id = $pdo->lastInsertId();
+            }
+        }
+
         $stmtUpdate = $pdo->prepare($sql);
         $stmtUpdate->execute([
-            empty($_POST['ultima_empresa_id']) ? null : $_POST['ultima_empresa_id'],
+            $empresa_id,
             $_POST['colectivo'] ?? null,
             $_POST['desempleado_larga_duracion'] ?? null,
             $_POST['parado_sepe'] ?? null,
