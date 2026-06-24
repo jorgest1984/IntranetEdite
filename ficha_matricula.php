@@ -135,7 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     } catch (Exception $e) {
         $error = "Error al actualizar datos laborales: " . $e->getMessage();
     }
-} elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && in_array($_POST['action'], ['update_datos_curso', 'update_datos_docs'])) {
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && in_array($_POST['action'], ['update_datos_curso', 'update_datos_docs', 'update_datos_seguimiento'])) {
     try {
         $action = $_POST['action'];
         
@@ -184,7 +184,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             'evaluacion_docente' => 'evaluacion_docente',
             'apto' => 'apto',
             'entrega_mat_1' => 'entrega_mat_1',
-            'fechas_envio' => 'fechas_envio'
+            'fechas_envio' => 'fechas_envio',
+            'envio_claves' => 'envio_claves',
+            'fecha_claves' => 'fecha_claves',
+            'email_admision_enviado' => 'email_admision_enviado',
+            'encuesta' => 'encuesta',
+            'conectado' => 'conectado',
+            'fecha_conectado' => 'fecha_conectado',
+            'email_1_check' => 'email_1_check',
+            'email_1_fecha' => 'email_1_fecha',
+            'email_2_check' => 'email_2_check',
+            'email_2_fecha' => 'email_2_fecha',
+            'email_3_check' => 'email_3_check',
+            'email_3_fecha' => 'email_3_fecha',
+            'email_4_check' => 'email_4_check',
+            'email_4_fecha' => 'email_4_fecha',
+            'email_5_check' => 'email_5_check',
+            'email_5_fecha' => 'email_5_fecha',
+            'email_6_check' => 'email_6_check',
+            'email_6_fecha' => 'email_6_fecha',
+            'email_7_check' => 'email_7_check',
+            'email_7_fecha' => 'email_7_fecha',
+            'eval_inicial' => 'eval_inicial',
+            'fecha_eval_inicial' => 'fecha_eval_inicial',
+            'eval_final' => 'eval_final',
+            'fecha_eval_final' => 'fecha_eval_final',
+            'nota_media' => 'nota_media',
+            'observaciones_solicitante' => 'observaciones_solicitante',
+            'llamada_inicio' => 'llamada_inicio',
+            'llamada_mitad' => 'llamada_mitad',
+            'llamada_7dias' => 'llamada_7dias',
+            'llamada_cierre' => 'llamada_cierre',
+            'llamada_4_fecha' => 'llamada_4_fecha',
+            'llamada_5_fecha' => 'llamada_5_fecha',
+            'llamada_6_fecha' => 'llamada_6_fecha',
+            'llamada_8_fecha' => 'llamada_8_fecha',
+            'no_pedir_nomina' => 'no_pedir_nomina'
         ];
         
         $alumnos_mapping = [
@@ -215,7 +250,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     $val = $_POST[$post_key];
                     $update_matriculas[] = "`$col_name` = ?";
                     $update_matriculas_params[] = ($val === '') ? null : $val;
-                } elseif (in_array($col_name, ['captado_ugt', 'no_preinscrito', 'no_desmatricular', 'diploma_entregado', 'comunicado', 'comunicado_ugt', 'nomina_entregada', 'correcto', 'recibi_material', 'asistencia', 'evaluacion_docente', 'entrega_mat_1'])) {
+                } elseif (in_array($col_name, [
+                    'captado_ugt', 'no_preinscrito', 'no_desmatricular', 'diploma_entregado', 'comunicado', 'comunicado_ugt', 
+                    'nomina_entregada', 'correcto', 'recibi_material', 'asistencia', 'evaluacion_docente', 'entrega_mat_1',
+                    'envio_claves', 'email_admision_enviado', 'encuesta', 'conectado', 'email_1_check', 'email_2_check', 
+                    'email_3_check', 'email_4_check', 'email_5_check', 'email_6_check', 'email_7_check', 'llamada_inicio', 
+                    'llamada_mitad', 'llamada_7dias', 'llamada_cierre', 'no_pedir_nomina'
+                ])) {
                     // Checkbox no enviado = 0
                     $update_matriculas[] = "`$col_name` = ?";
                     $update_matriculas_params[] = 0;
@@ -257,7 +298,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         
         $pdo->commit();
         
-        $target_tab = ($action === 'update_datos_curso') ? 'tab-curso' : 'tab-docs';
+        $target_tab = ($action === 'update_datos_curso') ? 'tab-curso' : (($action === 'update_datos_docs') ? 'tab-docs' : 'tab-seguimiento');
         header("Location: ficha_matricula.php?id=$id&success=1&active_tab=$target_tab");
         exit();
     } catch (Exception $e) {
@@ -503,6 +544,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             <button class="tab-btn <?= $active_tab === 'tab-laborales' ? 'active' : '' ?>" data-target="tab-laborales">Datos Laborales</button>
             <button class="tab-btn <?= $active_tab === 'tab-curso' ? 'active' : '' ?>" data-target="tab-curso">Datos Curso</button>
             <button class="tab-btn <?= $active_tab === 'tab-docs' ? 'active' : '' ?>" data-target="tab-docs">Material y doc.</button>
+            <button class="tab-btn <?= $active_tab === 'tab-seguimiento' ? 'active' : '' ?>" data-target="tab-seguimiento">Seguimiento</button>
         </div>
 
         <div id="tab-personales" class="tab-panel <?= $active_tab === 'tab-personales' ? '' : 'hidden' ?>">
@@ -1535,6 +1577,248 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     </div>
                 </div>
 
+            </form>
+        </div>
+
+        <div id="tab-seguimiento" class="tab-panel <?= $active_tab === 'tab-seguimiento' ? '' : 'hidden' ?>">
+            <form method="POST">
+                <input type="hidden" name="action" value="update_datos_seguimiento">
+                
+                <!-- Botón de guardado y ficha de seguimiento -->
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 1.5rem;">
+                    <button type="submit" class="btn-modern btn-primary-modern">
+                        💾 Guardar registro
+                    </button>
+                    <button type="button" class="btn-modern btn-outline" onclick="window.open('pdf_informe_seguimiento.php?id=<?= $id ?>', '_blank')" style="border-color: #cbd5e1; color: #475569;">
+                        📄 Ficha Seguimiento
+                    </button>
+                </div>
+
+                <!-- SECCIÓN VERDE: Envío de Claves -->
+                <div style="background: #e6f4ea; border: 1px solid #a8dab5; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 1.5rem;">
+                        <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #137333; margin: 0; cursor: pointer;">
+                            <input type="checkbox" name="envio_claves" value="1" <?= !empty($matricula['envio_claves']) ? 'checked' : '' ?> style="width: 16px; height: 16px;">
+                            Envío claves:
+                        </label>
+                        
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label style="font-weight: 600; color: #137333; margin: 0;">Fecha claves:</label>
+                            <input type="date" name="fecha_claves" class="form-control" value="<?= htmlspecialchars($matricula['fecha_claves'] ?? '') ?>" style="width: auto; height: 30px;">
+                        </div>
+
+                        <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #137333; margin: 0; cursor: pointer;">
+                            <input type="checkbox" name="email_admision_enviado" value="1" <?= !empty($matricula['email_admision_enviado']) ? 'checked' : '' ?> style="width: 16px; height: 16px;">
+                            E-mail admisión enviado:
+                        </label>
+
+                        <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #137333; margin: 0; cursor: pointer;">
+                            <input type="checkbox" name="encuesta" value="1" <?= !empty($matricula['encuesta']) ? 'checked' : '' ?> style="width: 16px; height: 16px;">
+                            Encuesta:
+                        </label>
+
+                        <div style="margin-left: auto;">
+                            <button type="button" class="btn-modern" onclick="window.open('envio_claves.php?id=<?= $id ?>', '_blank')" style="background: #f59e0b; color: white; border: 1px solid #d97706; font-weight: 700; padding: 0.4rem 1.2rem;">
+                                Enviar Claves
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN AMARILLA: Seguimiento distancia o teleformación -->
+                <div style="background: #fffbeb; border: 1px solid #fde68a; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; color: #78350f;">
+                    <h4 style="margin-top: 0; margin-bottom: 1rem; color: #b91c1c; font-size: 0.95rem; font-weight: 700; border-bottom: 1px solid #fde68a; padding-bottom: 0.5rem;">
+                        Seguimiento distancia o teleformación:
+                    </h4>
+                    
+                    <!-- Fila Conectado -->
+                    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 1.5rem; margin-bottom: 1.2rem;">
+                        <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; margin: 0; cursor: pointer;">
+                            <input type="checkbox" name="conectado" value="1" <?= !empty($matricula['conectado']) ? 'checked' : '' ?> style="width: 16px; height: 16px;">
+                            Conectado:
+                        </label>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label style="font-weight: 600; margin: 0;">Fecha:</label>
+                            <input type="date" name="fecha_conectado" class="form-control" value="<?= htmlspecialchars($matricula['fecha_conectado'] ?? '') ?>" style="width: auto; height: 30px;">
+                        </div>
+                    </div>
+
+                    <!-- Filas E-mails -->
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.2rem;">
+                        <!-- Email 1 -->
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label style="display: flex; align-items: center; gap: 6px; font-weight: 600; margin: 0; min-width: 80px; cursor: pointer;">
+                                <input type="checkbox" name="email_1_check" value="1" <?= !empty($matricula['email_1_check']) ? 'checked' : '' ?> style="width: 15px; height: 15px;">
+                                E-mail1:
+                            </label>
+                            <input type="date" name="email_1_fecha" class="form-control" value="<?= htmlspecialchars($matricula['email_1_fecha'] ?? '') ?>" style="flex: 1; height: 28px;">
+                        </div>
+                        <!-- Email 2 -->
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label style="display: flex; align-items: center; gap: 6px; font-weight: 600; margin: 0; min-width: 80px; cursor: pointer;">
+                                <input type="checkbox" name="email_2_check" value="1" <?= !empty($matricula['email_2_check']) ? 'checked' : '' ?> style="width: 15px; height: 15px;">
+                                E-mail2:
+                            </label>
+                            <input type="date" name="email_2_fecha" class="form-control" value="<?= htmlspecialchars($matricula['email_2_fecha'] ?? '') ?>" style="flex: 1; height: 28px;">
+                        </div>
+                        <!-- Email 3 -->
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label style="display: flex; align-items: center; gap: 6px; font-weight: 600; margin: 0; min-width: 80px; cursor: pointer;">
+                                <input type="checkbox" name="email_3_check" value="1" <?= !empty($matricula['email_3_check']) ? 'checked' : '' ?> style="width: 15px; height: 15px;">
+                                E-mail3:
+                            </label>
+                            <input type="date" name="email_3_fecha" class="form-control" value="<?= htmlspecialchars($matricula['email_3_fecha'] ?? '') ?>" style="flex: 1; height: 28px;">
+                        </div>
+                        <!-- Email 4 -->
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label style="display: flex; align-items: center; gap: 6px; font-weight: 600; margin: 0; min-width: 80px; cursor: pointer;">
+                                <input type="checkbox" name="email_4_check" value="1" <?= !empty($matricula['email_4_check']) ? 'checked' : '' ?> style="width: 15px; height: 15px;">
+                                E-mail4:
+                            </label>
+                            <input type="date" name="email_4_fecha" class="form-control" value="<?= htmlspecialchars($matricula['email_4_fecha'] ?? '') ?>" style="flex: 1; height: 28px;">
+                        </div>
+                        <!-- Email 5 -->
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label style="display: flex; align-items: center; gap: 6px; font-weight: 600; margin: 0; min-width: 80px; cursor: pointer;">
+                                <input type="checkbox" name="email_5_check" value="1" <?= !empty($matricula['email_5_check']) ? 'checked' : '' ?> style="width: 15px; height: 15px;">
+                                E-mail5:
+                            </label>
+                            <input type="date" name="email_5_fecha" class="form-control" value="<?= htmlspecialchars($matricula['email_5_fecha'] ?? '') ?>" style="flex: 1; height: 28px;">
+                        </div>
+                        <!-- Email 6 -->
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label style="display: flex; align-items: center; gap: 6px; font-weight: 600; margin: 0; min-width: 80px; cursor: pointer;">
+                                <input type="checkbox" name="email_6_check" value="1" <?= !empty($matricula['email_6_check']) ? 'checked' : '' ?> style="width: 15px; height: 15px;">
+                                E-mail6:
+                            </label>
+                            <input type="date" name="email_6_fecha" class="form-control" value="<?= htmlspecialchars($matricula['email_6_fecha'] ?? '') ?>" style="flex: 1; height: 28px;">
+                        </div>
+                    </div>
+
+                    <!-- Email 7 & Evals -->
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.2rem;">
+                        <!-- Email 7 -->
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label style="display: flex; align-items: center; gap: 6px; font-weight: 600; margin: 0; min-width: 80px; cursor: pointer;">
+                                <input type="checkbox" name="email_7_check" value="1" <?= !empty($matricula['email_7_check']) ? 'checked' : '' ?> style="width: 15px; height: 15px;">
+                                E-mail7:
+                            </label>
+                            <input type="date" name="email_7_fecha" class="form-control" value="<?= htmlspecialchars($matricula['email_7_fecha'] ?? '') ?>" style="flex: 1; height: 28px;">
+                        </div>
+                        
+                        <!-- Eval Inicial -->
+                        <div style="display: flex; align-items: center; gap: 8px; grid-column: span 1;">
+                            <label style="font-weight: 600; margin: 0; min-width: 50px;">Eval I:</label>
+                            <input type="text" name="eval_inicial" class="form-control" value="<?= htmlspecialchars($matricula['eval_inicial'] ?? '') ?>" style="width: 50px; height: 28px; text-align: center;">
+                            <label style="font-weight: 500; margin: 0; font-size: 0.85rem; white-space: nowrap;">Realizada el</label>
+                            <input type="date" name="fecha_eval_inicial" class="form-control" value="<?= htmlspecialchars($matricula['fecha_eval_inicial'] ?? '') ?>" style="flex: 1; height: 28px;">
+                        </div>
+
+                        <!-- Eval Final -->
+                        <div style="display: flex; align-items: center; gap: 8px; grid-column: span 1;">
+                            <label style="font-weight: 600; margin: 0; min-width: 50px;">Eval F:</label>
+                            <input type="text" name="eval_final" class="form-control" value="<?= htmlspecialchars($matricula['eval_final'] ?? '') ?>" style="width: 50px; height: 28px; text-align: center;">
+                            <label style="font-weight: 500; margin: 0; font-size: 0.85rem; white-space: nowrap;">Realizada el</label>
+                            <input type="date" name="fecha_eval_final" class="form-control" value="<?= htmlspecialchars($matricula['fecha_eval_final'] ?? '') ?>" style="flex: 1; height: 28px;">
+                        </div>
+                    </div>
+
+                    <!-- Nota Media -->
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 1.2rem;">
+                        <label style="font-weight: 600; margin: 0;">Nota media:</label>
+                        <input type="text" name="nota_media" class="form-control" value="<?= htmlspecialchars($matricula['nota_media'] ?? '0') ?>" style="width: 60px; height: 28px; text-align: center;">
+                    </div>
+
+                    <!-- Connection Time Stats -->
+                    <?php
+                        $conn_hours = number_format(($matricula['moodle_connected_time'] ?? 0) / 3600, 2);
+                        $conn_progress = number_format($matricula['moodle_progress'] ?? 0, 2);
+                    ?>
+                    <div style="background: #fef3c7; border: 1px solid #fcd34d; padding: 0.8rem 1rem; border-radius: 4px; font-weight: 700; margin-bottom: 1.2rem; color: #92400e;">
+                        Tiempo total de conexión: <?= $conn_hours ?> h (<?= $conn_progress ?>%)
+                    </div>
+
+                    <!-- Observaciones solicitante -->
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <label style="font-weight: 700; color: #1e3a8a;">Observaciones para el solicitante:</label>
+                        <textarea name="observaciones_solicitante" class="form-control" rows="3" style="background: #f0f7ff; border: 1px solid #b9ddff; color: #1e3a8a; padding: 8px; font-size: 0.85rem;"><?= htmlspecialchars($matricula['observaciones_solicitante'] ?? '') ?></textarea>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN AZUL: Llamadas de seguimiento -->
+                <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; color: #1e3a8a;">
+                    <h4 style="margin-top: 0; margin-bottom: 1rem; color: #b91c1c; font-size: 0.95rem; font-weight: 700; border-bottom: 1px solid #bfdbfe; padding-bottom: 0.5rem;">
+                        Llamadas de seguimiento:
+                    </h4>
+
+                    <!-- Checks & Inputs de Llamadas -->
+                    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 1.2rem; margin-bottom: 1.2rem; font-size: 0.85rem;">
+                        <label style="display: flex; align-items: center; gap: 6px; font-weight: 700; margin: 0; cursor: pointer;">
+                            <input type="checkbox" name="llamada_inicio" value="1" <?= !empty($matricula['llamada_inicio']) ? 'checked' : '' ?> style="width: 15px; height: 15px;">
+                            Inicio curso:
+                        </label>
+
+                        <label style="display: flex; align-items: center; gap: 6px; font-weight: 700; margin: 0; cursor: pointer;">
+                            <input type="checkbox" name="llamada_mitad" value="1" <?= !empty($matricula['llamada_mitad']) ? 'checked' : '' ?> style="width: 15px; height: 15px;">
+                            Mitad curso:
+                        </label>
+
+                        <label style="display: flex; align-items: center; gap: 6px; font-weight: 700; margin: 0; cursor: pointer;">
+                            <input type="checkbox" name="llamada_7dias" value="1" <?= !empty($matricula['llamada_7dias']) ? 'checked' : '' ?> style="width: 15px; height: 15px;">
+                            7 dias fin:
+                        </label>
+
+                        <label style="display: flex; align-items: center; gap: 6px; font-weight: 700; margin: 0; cursor: pointer;">
+                            <input type="checkbox" name="llamada_cierre" value="1" <?= !empty($matricula['llamada_cierre']) ? 'checked' : '' ?> style="width: 15px; height: 15px;">
+                            Llamada cierre:
+                        </label>
+
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <label style="font-weight: 700; margin: 0;">Llamada4:</label>
+                            <input type="date" name="llamada_4_fecha" class="form-control" value="<?= htmlspecialchars($matricula['llamada_4_fecha'] ?? '') ?>" style="width: auto; height: 26px; font-size: 0.8rem; padding: 2px 4px;">
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <label style="font-weight: 700; margin: 0;">Llamada5:</label>
+                            <input type="date" name="llamada_5_fecha" class="form-control" value="<?= htmlspecialchars($matricula['llamada_5_fecha'] ?? '') ?>" style="width: auto; height: 26px; font-size: 0.8rem; padding: 2px 4px;">
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <label style="font-weight: 700; margin: 0;">Llamada6:</label>
+                            <input type="date" name="llamada_6_fecha" class="form-control" value="<?= htmlspecialchars($matricula['llamada_6_fecha'] ?? '') ?>" style="width: auto; height: 26px; font-size: 0.8rem; padding: 2px 4px;">
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <label style="font-weight: 700; margin: 0;">Llamada8:</label>
+                            <input type="date" name="llamada_8_fecha" class="form-control" value="<?= htmlspecialchars($matricula['llamada_8_fecha'] ?? '') ?>" style="width: auto; height: 26px; font-size: 0.8rem; padding: 2px 4px;">
+                        </div>
+                    </div>
+
+                    <!-- NO PEDIR NÓMINA check -->
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: flex; flex-direction: column; font-weight: 700; color: #1e3a8a; margin: 0; cursor: pointer;">
+                            <span>NO PEDIR NÓMINA:</span>
+                            <input type="checkbox" name="no_pedir_nomina" value="1" <?= !empty($matricula['no_pedir_nomina']) ? 'checked' : '' ?> style="width: 16px; height: 16px; margin-top: 4px;">
+                        </label>
+                    </div>
+
+                    <!-- Botones/Enlaces inferiores -->
+                    <div style="display: flex; gap: 1rem; border-top: 1px solid #bfdbfe; padding-top: 1.2rem;">
+                        <a href="ficha_llamada.php?id=<?= $id ?>" class="btn-modern" style="background: white; border: 1px solid #bfdbfe; color: #1e40af; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; padding: 0.5rem 1.2rem;">
+                            📞 Listado de llamadas
+                        </a>
+                        <a href="tutorias.php?view=llamadas&alumno_id=<?= $matricula['alumno_id'] ?>" class="btn-modern" style="background: white; border: 1px solid #bfdbfe; color: #1e40af; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; padding: 0.5rem 1.2rem;">
+                            💬 Comunicación con el tutor
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Botón de guardado inferior -->
+                <div style="display: flex; justify-content: center; margin-top: 2rem;">
+                    <button type="submit" class="btn-modern btn-primary-modern" style="padding: 0.6rem 3rem; font-size: 1rem;">
+                        Guardar registro
+                    </button>
+                </div>
             </form>
         </div>
 
