@@ -11,84 +11,240 @@ $id = $_GET['id'] ?? null;
 $success_msg = '';
 $error_msg = '';
 
-// Mock data basado en la imagen proporcionada
+if (isset($_GET['saved'])) {
+    $success_msg = "Registro de llamada guardado correctamente.";
+}
+if (isset($_GET['scheduled'])) {
+    $success_msg = "Cita programada correctamente.";
+}
+
+$llamada_db = null;
+$alumno_db = null;
+$curso_db = null;
+$empresa_db = null;
+$grupo_db = null;
+$fecha_25 = '';
+
+if ($id) {
+    // 1. Check if $id is a call in tutorias_seguimiento
+    $stmt = $pdo->prepare("SELECT * FROM tutorias_seguimiento WHERE id = ?");
+    $stmt->execute([$id]);
+    $llamada_db = $stmt->fetch();
+
+    if ($llamada_db) {
+        $alumno_id = $llamada_db['alumno_id'];
+        $curso_id = $llamada_db['curso_id'];
+        $empresa_id = $llamada_db['empresa_id'];
+
+        // Load Alumno
+        if ($alumno_id) {
+            $stmt = $pdo->prepare("SELECT * FROM alumnos WHERE id = ?");
+            $stmt->execute([$alumno_id]);
+            $alumno_db = $stmt->fetch();
+        }
+
+        // Load Curso
+        if ($curso_id) {
+            $stmt = $pdo->prepare("SELECT * FROM cursos WHERE id = ?");
+            $stmt->execute([$curso_id]);
+            $curso_db = $stmt->fetch();
+        }
+
+        // Load Empresa
+        if ($empresa_id) {
+            $stmt = $pdo->prepare("SELECT * FROM empresas WHERE id = ?");
+            $stmt->execute([$empresa_id]);
+            $empresa_db = $stmt->fetch();
+        }
+
+        // Load latest/associated group to calculate dates
+        if ($alumno_id && $curso_id) {
+            $stmt = $pdo->prepare("SELECT m.*, g.fecha_inicio, g.fecha_fin 
+                                   FROM matriculas m 
+                                   JOIN grupos g ON m.grupo_id = g.id 
+                                   JOIN acciones_formativas af ON g.accion_id = af.id 
+                                   WHERE m.alumno_id = ? AND af.curso_id = ? 
+                                   ORDER BY m.id DESC LIMIT 1");
+            $stmt->execute([$alumno_id, $curso_id]);
+            $grupo_db = $stmt->fetch();
+        }
+    } else {
+        // 2. Check if $id is a matricula_id
+        $stmt = $pdo->prepare("SELECT m.*, cu.id as curso_id, cu.nombre_largo as curso_nombre 
+                               FROM matriculas m 
+                               LEFT JOIN grupos g ON m.grupo_id = g.id 
+                               LEFT JOIN acciones_formativas af ON g.accion_id = af.id 
+                               LEFT JOIN cursos cu ON af.curso_id = cu.id 
+                               WHERE m.id = ?");
+        $stmt->execute([$id]);
+        $matricula_db = $stmt->fetch();
+
+        if ($matricula_db) {
+            $alumno_id = $matricula_db['alumno_id'];
+            $curso_id = $matricula_db['curso_id'];
+
+            // Load Alumno
+            $stmt = $pdo->prepare("SELECT * FROM alumnos WHERE id = ?");
+            $stmt->execute([$alumno_id]);
+            $alumno_db = $stmt->fetch();
+
+            // Load Curso
+            if ($curso_id) {
+                $stmt = $pdo->prepare("SELECT * FROM cursos WHERE id = ?");
+                $stmt->execute([$curso_id]);
+                $curso_db = $stmt->fetch();
+            }
+
+            // Load Empresa from alumno's ultima_empresa_id
+            if ($alumno_db && $alumno_db['ultima_empresa_id']) {
+                $stmt = $pdo->prepare("SELECT * FROM empresas WHERE id = ?");
+                $stmt->execute([$alumno_db['ultima_empresa_id']]);
+                $empresa_db = $stmt->fetch();
+            }
+
+            // Fetch group info for dates
+            if ($matricula_db['grupo_id']) {
+                $stmt = $pdo->prepare("SELECT * FROM grupos WHERE id = ?");
+                $stmt->execute([$matricula_db['grupo_id']]);
+                $grupo_db = $stmt->fetch();
+            }
+        } else {
+            // 3. Check if $id is an alumno_id (like 39)
+            $stmt = $pdo->prepare("SELECT * FROM alumnos WHERE id = ?");
+            $stmt->execute([$id]);
+            $alumno_db = $stmt->fetch();
+
+            if ($alumno_db) {
+                $alumno_id = $alumno_db['id'];
+
+                // Try to find the latest matricula of this alumno to prefill course and group
+                $stmt = $pdo->prepare("SELECT m.*, cu.id as curso_id, cu.nombre_largo as curso_nombre 
+                                       FROM matriculas m 
+                                       LEFT JOIN grupos g ON m.grupo_id = g.id 
+                                       LEFT JOIN acciones_formativas af ON g.accion_id = af.id 
+                                       LEFT JOIN cursos cu ON af.curso_id = cu.id 
+                                       WHERE m.alumno_id = ? 
+                                       ORDER BY m.id DESC LIMIT 1");
+                $stmt->execute([$alumno_id]);
+                $matricula_db = $stmt->fetch();
+
+                if ($matricula_db) {
+                    $curso_id = $matricula_db['curso_id'];
+                    if ($curso_id) {
+                        $stmt = $pdo->prepare("SELECT * FROM cursos WHERE id = ?");
+                        $stmt->execute([$curso_id]);
+                        $curso_db = $stmt->fetch();
+                    }
+                    if ($matricula_db['grupo_id']) {
+                        $stmt = $pdo->prepare("SELECT * FROM grupos WHERE id = ?");
+                        $stmt->execute([$matricula_db['grupo_id']]);
+                        $grupo_db = $stmt->fetch();
+                    }
+                }
+
+                if ($alumno_db['ultima_empresa_id']) {
+                    $stmt = $pdo->prepare("SELECT * FROM empresas WHERE id = ?");
+                    $stmt->execute([$alumno_db['ultima_empresa_id']]);
+                    $empresa_db = $stmt->fetch();
+                }
+            } else {
+                die("ID no válido o no encontrado en el sistema.");
+            }
+        }
+    }
+} else {
+    die("ID no especificado.");
+}
+
+// Calculate 25% date
+if ($grupo_db && !empty($grupo_db['fecha_inicio']) && !empty($grupo_db['fecha_fin'])) {
+    $inicio = strtotime($grupo_db['fecha_inicio']);
+    $fin = strtotime($grupo_db['fecha_fin']);
+    if ($fin > $inicio) {
+        $duracion = $fin - $inicio;
+        $fecha_25 = date('d/m/Y', $inicio + round($duracion * 0.25));
+    }
+}
+
+// Map database values to $llamada array for existing HTML bindings
 $llamada = [
     'alumno' => [
-        'nombre' => 'BRIAN BUENO GUERRERO',
-        'alias' => '',
-        'usuario' => 'bue51709',
-        'clave' => '45614999',
-        'domicilio' => 'Calle ESPAÑA nº 32',
-        'cp' => '18100',
-        'localidad' => 'ARMILLA',
-        'provincia' => 'GRANADA',
-        'telefono' => '',
-        'movil' => '601 31 62 47',
-        'email' => 'brian32plas@gmail.com',
-        'email2' => '',
+        'id' => $alumno_db['id'] ?? '',
+        'nombre' => trim(($alumno_db['nombre'] ?? '') . ' ' . ($alumno_db['primer_apellido'] ?? '') . ' ' . ($alumno_db['segundo_apellido'] ?? '')),
+        'alias' => $alumno_db['alias'] ?? '',
+        'usuario' => $alumno_db['plat_usuario'] ?? '',
+        'clave' => $alumno_db['plat_clave'] ?? '',
+        'domicilio' => $alumno_db['domicilio'] ?? '',
+        'cp' => $alumno_db['cp'] ?? '',
+        'localidad' => $alumno_db['localidad'] ?? '',
+        'provincia' => $alumno_db['provincia'] ?? '',
+        'telefono' => $alumno_db['telefono_empresa'] ?? '',
+        'movil' => $alumno_db['telefono'] ?? '',
+        'email' => $alumno_db['email'] ?? '',
+        'email2' => $alumno_db['email_2'] ?? '',
         'horario' => [
-            'manana_desde' => '',
-            'manana_hasta' => '',
-            'tarde_desde' => '',
-            'tarde_hasta' => '',
-            'solo_dias' => ''
+            'manana_desde' => $alumno_db['mananas_desde'] ?? '',
+            'manana_hasta' => $alumno_db['mananas_hasta'] ?? '',
+            'tarde_desde' => $alumno_db['tardes_desde'] ?? '',
+            'tarde_hasta' => $alumno_db['tardes_hasta'] ?? '',
+            'solo_dias' => $alumno_db['solo_los'] ?? ''
         ]
     ],
     'empresa' => [
-        'nombre' => 'DESEMPLEADO',
-        'sector' => 'Seguridad Privada',
+        'nombre' => $empresa_db['nombre'] ?? 'DESEMPLEADO',
+        'sector' => $empresa_db['sector'] ?? '',
         'direccion' => '',
-        'cp' => '',
-        'localidad' => '',
-        'provincia' => 'DESCONOCIDA'
+        'cp' => $empresa_db['cp'] ?? '',
+        'localidad' => $empresa_db['localidad'] ?? '',
+        'provincia' => $empresa_db['provincia'] ?? ''
     ],
     'envio' => [
-        'direccion' => '',
-        'cp' => '',
-        'localidad' => '',
-        'provincia' => 'DESCONOCIDA',
-        'telefono' => '',
+        'direccion' => $alumno_db['entrega_domicilio'] ?? '',
+        'cp' => $alumno_db['entrega_cp'] ?? '',
+        'localidad' => $alumno_db['entrega_localidad'] ?? '',
+        'provincia' => $alumno_db['entrega_provincia'] ?? '',
+        'telefono' => $alumno_db['telefono'] ?? '',
         'fax' => ''
     ],
     'curso' => [
-        'nombre' => 'COMT0007 - ATENCIÓN AL CLIENTE CON DISCAPACIDAD EN TRANSPORTE DE VIAJEROS',
-        'inicio' => '',
-        'fin' => '',
-        'fecha_25' => ''
+        'nombre' => $curso_db['nombre_largo'] ?? '',
+        'inicio' => ($grupo_db && !empty($grupo_db['fecha_inicio'])) ? date('d/m/Y', strtotime($grupo_db['fecha_inicio'])) : '',
+        'fin' => ($grupo_db && !empty($grupo_db['fecha_fin'])) ? date('d/m/Y', strtotime($grupo_db['fecha_fin'])) : '',
+        'fecha_25' => $fecha_25
     ],
-    'notas_importantes' => ''
+    'notas_importantes' => $alumno_db['observaciones'] ?? ''
 ];
 
-// MOCK: ID del usuario que supuestamente creó esta llamada/nota
-$llamada_usuario_id = 1; 
-$puede_editar = ($_SESSION['user_id'] == $llamada_usuario_id) || has_permission([ROLE_ADMIN]);
+// Determine permissions
+$puede_editar = true;
+if ($llamada_db) {
+    $llamada_usuario_id = $llamada_db['usuario_id'];
+    $puede_editar = (($_SESSION['user_id'] ?? null) == $llamada_usuario_id) || has_permission([ROLE_ADMIN]);
+}
 
 // PROCESAR GUARDADO DE NOTA IMPORTANTE
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_save_nota'])) {
     $nota_texto = trim($_POST['nota_texto'] ?? '');
-    
-    // Aquí guardaríamos en la DB, por ejemplo en alumnos.observaciones o una tabla de notas
-    /*
-    $stmt = $pdo->prepare("UPDATE alumnos SET observaciones = ? WHERE id = ?");
-    $stmt->execute([$nota_texto, $alumno_id]);
-    */
-    
-    // Simulamos el guardado para la vista
-    $llamada['notas_importantes'] = $nota_texto;
-    $success_msg = "Nota guardada correctamente.";
+    try {
+        $stmt = $pdo->prepare("UPDATE alumnos SET observaciones = ? WHERE id = ?");
+        $stmt->execute([$nota_texto, $alumno_id]);
+        $llamada['notas_importantes'] = $nota_texto;
+        $success_msg = "Nota guardada correctamente.";
+    } catch (Exception $e) {
+        $error_msg = "Error al guardar la nota: " . $e->getMessage();
+    }
 }
 
 // PROCESAR BORRADO DE NOTA IMPORTANTE
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_delete_nota'])) {
-    // Aquí borraríamos en la DB
-    /*
-    $stmt = $pdo->prepare("UPDATE alumnos SET observaciones = '' WHERE id = ?");
-    $stmt->execute([$alumno_id]);
-    */
-    
-    // Simulamos el borrado para la vista
-    $llamada['notas_importantes'] = '';
-    $success_msg = "Nota eliminada correctamente.";
+    try {
+        $stmt = $pdo->prepare("UPDATE alumnos SET observaciones = '' WHERE id = ?");
+        $stmt->execute([$alumno_id]);
+        $llamada['notas_importantes'] = '';
+        $success_msg = "Nota eliminada correctamente.";
+    } catch (Exception $e) {
+        $error_msg = "Error al eliminar la nota: " . $e->getMessage();
+    }
 }
 
 // PROCESAR ENVÍO DE EMAIL
@@ -126,27 +282,67 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_send_email']))
 // PROCESAR GUARDADO DE LLAMADA
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_save_call'])) {
     try {
-        $stmt = $pdo->prepare("INSERT INTO tutorias_seguimiento 
-            (alumno_id, empresa_id, curso_id, usuario_id, fecha, hora, motivo, quien_contacta, forma, modulacion, horarios_pref, resultado, asunto, notas) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        
-        $stmt->execute([
-            1, // Alumno ID (Mock)
-            1, // Empresa ID (Mock)
-            1, // Curso ID (Mock)
-            $_SESSION['user_id'] ?? null,
-            $_POST['fecha'],
-            $_POST['hora'],
-            $_POST['motivo'],
-            $_POST['quien_contacta'],
-            $_POST['forma'],
-            $_POST['modulacion'],
-            $_POST['horarios_pref'],
-            $_POST['resultado'],
-            $_POST['asunto'],
-            $_POST['notas']
-        ]);
-        $success_msg = "Registro de llamada guardado correctamente.";
+        if ($llamada_db) {
+            // Update existing call
+            $stmt = $pdo->prepare("UPDATE tutorias_seguimiento SET 
+                fecha = ?, 
+                hora = ?, 
+                motivo = ?, 
+                quien_contacta = ?, 
+                forma = ?, 
+                modulacion = ?, 
+                horarios_pref = ?, 
+                resultado = ?, 
+                asunto = ?, 
+                notas = ?, 
+                observaciones_internas = ? 
+                WHERE id = ?");
+            $stmt->execute([
+                $_POST['fecha'],
+                $_POST['hora'],
+                $_POST['motivo'],
+                $_POST['quien_contacta'],
+                $_POST['forma'],
+                $_POST['modulacion'],
+                $_POST['horarios_pref'],
+                $_POST['resultado'],
+                $_POST['asunto'],
+                $_POST['notas'],
+                $_POST['notas'],
+                $id
+            ]);
+            $success_msg = "Registro de llamada guardado correctamente.";
+            // Reload record
+            $stmt = $pdo->prepare("SELECT * FROM tutorias_seguimiento WHERE id = ?");
+            $stmt->execute([$id]);
+            $llamada_db = $stmt->fetch();
+        } else {
+            // Insert new call
+            $stmt = $pdo->prepare("INSERT INTO tutorias_seguimiento 
+                (alumno_id, empresa_id, empresa, curso_id, usuario_id, fecha, hora, motivo, quien_contacta, forma, modulacion, horarios_pref, resultado, asunto, notas, observaciones_internas) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([
+                $alumno_id,
+                $empresa_db['id'] ?? null,
+                $empresa_db ? $empresa_db['nombre'] : 'DESEMPLEADO',
+                $curso_id ?? null,
+                $_SESSION['user_id'] ?? null,
+                $_POST['fecha'],
+                $_POST['hora'],
+                $_POST['motivo'],
+                $_POST['quien_contacta'],
+                $_POST['forma'],
+                $_POST['modulacion'],
+                $_POST['horarios_pref'],
+                $_POST['resultado'],
+                $_POST['asunto'],
+                $_POST['notas'],
+                $_POST['notas']
+            ]);
+            $new_id = $pdo->lastInsertId();
+            header("Location: ficha_llamada.php?id=" . $new_id . "&saved=1");
+            exit();
+        }
     } catch (Exception $e) {
         $error_msg = "Error al guardar la llamada: " . $e->getMessage();
     }
@@ -154,9 +350,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_save_call'])) 
 
 // PROCESAR BORRADO DE LLAMADA
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_delete_call'])) {
-    if ($puede_editar) {
-        // Lógica de borrado en DB
-        $success_msg = "Llamada eliminada correctamente.";
+    if ($puede_editar && $llamada_db) {
+        try {
+            $stmt = $pdo->prepare("DELETE FROM tutorias_seguimiento WHERE id = ?");
+            $stmt->execute([$id]);
+            header("Location: comerciales_llamadas.php?deleted=1");
+            exit();
+        } catch (Exception $e) {
+            $error_msg = "Error al eliminar la llamada: " . $e->getMessage();
+        }
     } else {
         $error_msg = "No tienes permiso para eliminar esta llamada.";
     }
@@ -165,34 +367,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_delete_call'])
 // PROCESAR PROGRAMACIÓN DE CITA
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_schedule'])) {
     try {
-        $stmt = $pdo->prepare("UPDATE tutorias_seguimiento SET 
-            cita_fecha = ?, cita_hora = ?, cita_asunto = ?, cita_descripcion = ? 
-            WHERE id = ?");
-        
-        // Si es una nueva cita sin haber guardado la llamada primero, 
-        // en un sistema real buscaríamos el último ID o crearíamos uno.
-        // Por simplicidad en este mock, asumimos que se actualiza el último insertado si existe.
-        $last_id = $pdo->lastInsertId();
-        if ($last_id) {
+        if ($llamada_db) {
+            $stmt = $pdo->prepare("UPDATE tutorias_seguimiento SET 
+                cita_fecha = ?, cita_hora = ?, cita_asunto = ?, cita_descripcion = ? 
+                WHERE id = ?");
             $stmt->execute([
                 $_POST['cita_fecha'],
                 $_POST['cita_hora'],
                 $_POST['cita_asunto'],
                 $_POST['cita_descripcion'],
-                $last_id
+                $id
             ]);
             $success_msg = "Cita programada correctamente.";
+            // Reload record
+            $stmt = $pdo->prepare("SELECT * FROM tutorias_seguimiento WHERE id = ?");
+            $stmt->execute([$id]);
+            $llamada_db = $stmt->fetch();
         } else {
-            // Si no hay ID previo, insertamos uno nuevo mínimo
-            $stmtIns = $pdo->prepare("INSERT INTO tutorias_seguimiento (alumno_id, cita_fecha, cita_hora, cita_asunto, cita_descripcion) VALUES (?, ?, ?, ?, ?)");
-            $stmtIns->execute([1, $_POST['cita_fecha'], $_POST['cita_hora'], $_POST['cita_asunto'], $_POST['cita_descripcion']]);
-            $success_msg = "Cita programada correctamente.";
+            // New call with appointment
+            $stmt = $pdo->prepare("INSERT INTO tutorias_seguimiento 
+                (alumno_id, empresa_id, empresa, curso_id, usuario_id, cita_fecha, cita_hora, cita_asunto, cita_descripcion) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([
+                $alumno_id,
+                $empresa_db['id'] ?? null,
+                $empresa_db ? $empresa_db['nombre'] : 'DESEMPLEADO',
+                $curso_id ?? null,
+                $_SESSION['user_id'] ?? null,
+                $_POST['cita_fecha'],
+                $_POST['cita_hora'],
+                $_POST['cita_asunto'],
+                $_POST['cita_descripcion']
+            ]);
+            $new_id = $pdo->lastInsertId();
+            header("Location: ficha_llamada.php?id=" . $new_id . "&scheduled=1");
+            exit();
         }
     } catch (Exception $e) {
         $error_msg = "Error al programar la cita: " . $e->getMessage();
     }
 }
 
+// Bind variables for values input pre-filling in HTML
+$llamada_fecha = $llamada_db['fecha'] ?? date('Y-m-d');
+$llamada_hora = $llamada_db['hora'] ?? date('H:i');
+$llamada_motivo = $llamada_db['motivo'] ?? 'Seguimiento';
+$llamada_quien = $llamada_db['quien_contacta'] ?? 'Nosotros';
+$llamada_forma = $llamada_db['forma'] ?? 'Teléfono';
+$llamada_modulacion = $llamada_db['modulacion'] ?? '';
+$llamada_horarios = $llamada_db['horarios_pref'] ?? '';
+$llamada_resultado = $llamada_db['resultado'] ?? '';
+$llamada_asunto = $llamada_db['asunto'] ?? 'TURISMO';
+$llamada_notas = $llamada_db['observaciones_internas'] ?? ($llamada_db['notas'] ?? '');
+
+$cita_fecha = $llamada_db['cita_fecha'] ?? date('Y-m-d');
+$cita_hora = $llamada_db['cita_hora'] ?? '10:00';
+$cita_asunto = $llamada_db['cita_asunto'] ?? ('Llamar a ' . ($llamada['alumno']['nombre'] ?? ''));
+$cita_descripcion = $llamada_db['cita_descripcion'] ?? '';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -709,34 +940,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_schedule'])) {
                                     <div class="data-row" style="gap: 15px;">
                                         <div class="data-item">
                                             <label class="label">Fecha contacto:</label>
-                                            <input type="date" name="fecha" class="form-control" value="<?= date('Y-m-d') ?>">
+                                            <input type="date" name="fecha" class="form-control" value="<?= htmlspecialchars($llamada_fecha) ?>">
                                         </div>
                                         <div class="data-item">
                                             <label class="label">Hora contacto:</label>
-                                            <input type="time" name="hora" class="form-control" value="<?= date('H:i') ?>">
+                                            <input type="time" name="hora" class="form-control" value="<?= htmlspecialchars($llamada_hora) ?>">
                                         </div>
                                         <div class="data-item">
                                             <label class="label">Motivo ():</label>
                                             <select name="motivo" class="form-control">
-                                                <option value="Información">Información</option>
-                                                <option value="Seguimiento" selected>Seguimiento</option>
-                                                <option value="Reclamación">Reclamación</option>
+                                                <option value="Información" <?= ($llamada_motivo === 'Información') ? 'selected' : '' ?>>Información</option>
+                                                <option value="Seguimiento" <?= ($llamada_motivo === 'Seguimiento') ? 'selected' : '' ?>>Seguimiento</option>
+                                                <option value="Reclamación" <?= ($llamada_motivo === 'Reclamación') ? 'selected' : '' ?>>Reclamación</option>
                                             </select>
                                         </div>
                                         <div class="data-item" style="flex-direction: row; align-items: center; gap: 10px; margin-top: 20px;">
                                             <label style="font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 4px;">
-                                                <input type="radio" name="quien_contacta" value="Nosotros" checked> Contactamos nosotros
+                                                <input type="radio" name="quien_contacta" value="Nosotros" <?= ($llamada_quien === 'Nosotros') ? 'checked' : '' ?>> Contactamos nosotros
                                             </label>
                                             <label style="font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 4px;">
-                                                <input type="radio" name="quien_contacta" value="Ellos"> Contactan ellos
+                                                <input type="radio" name="quien_contacta" value="Ellos" <?= ($llamada_quien === 'Ellos') ? 'checked' : '' ?>> Contactan ellos
                                             </label>
                                         </div>
                                         <div class="data-item">
                                             <label class="label">Forma:</label>
                                             <select name="forma" class="form-control">
-                                                <option value="Teléfono" selected>Teléfono</option>
-                                                <option value="Email">Email</option>
-                                                <option value="Presencial">Presencial</option>
+                                                <option value="Teléfono" <?= ($llamada_forma === 'Teléfono') ? 'selected' : '' ?>>Teléfono</option>
+                                                <option value="Email" <?= ($llamada_forma === 'Email') ? 'selected' : '' ?>>Email</option>
+                                                <option value="Presencial" <?= ($llamada_forma === 'Presencial') ? 'selected' : '' ?>>Presencial</option>
                                             </select>
                                         </div>
                                     </div>
@@ -749,37 +980,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_schedule'])) {
                                             <label class="label">Modulación:</label>
                                             <select name="modulacion" class="form-control" style="width: 120px;">
                                                 <option value="">---</option>
-                                                <option value="Mañana">Mañana</option>
-                                                <option value="Tarde">Tarde</option>
+                                                <option value="Mañana" <?= ($llamada_modulacion === 'Mañana') ? 'selected' : '' ?>>Mañana</option>
+                                                <option value="Tarde" <?= ($llamada_modulacion === 'Tarde') ? 'selected' : '' ?>>Tarde</option>
                                             </select>
                                         </div>
                                         <div class="data-item">
                                             <label class="label">Horarios:</label>
                                             <select name="horarios_pref" class="form-control" style="width: 120px;">
                                                 <option value="">---</option>
-                                                <option value="L-V">L-V</option>
-                                                <option value="Sábados">Sábados</option>
+                                                <option value="L-V" <?= ($llamada_horarios === 'L-V') ? 'selected' : '' ?>>L-V</option>
+                                                <option value="Sábados" <?= ($llamada_horarios === 'Sábados') ? 'selected' : '' ?>>Sábados</option>
                                             </select>
                                         </div>
                                         <div class="data-item">
                                             <label class="label">Resultado llamada:</label>
                                             <select name="resultado" class="form-control" style="width: 180px;">
                                                 <option value="">---</option>
-                                                <option value="Interesado">Interesado</option>
-                                                <option value="No interesa">No interesa</option>
-                                                <option value="Pendiente">Pendiente</option>
+                                                <option value="Interesado" <?= ($llamada_resultado === 'Interesado') ? 'selected' : '' ?>>Interesado</option>
+                                                <option value="No interesa" <?= ($llamada_resultado === 'No interesa') ? 'selected' : '' ?>>No interesa</option>
+                                                <option value="Pendiente" <?= ($llamada_resultado === 'Pendiente') ? 'selected' : '' ?>>Pendiente</option>
                                             </select>
                                         </div>
                                     </div>
 
                                     <div class="data-item" style="margin-top: 20px;">
                                         <label class="label">Asunto:</label>
-                                        <textarea name="asunto" class="form-control" style="height: 80px; width: 100%; resize: vertical; font-family: inherit;">TURISMO</textarea>
+                                        <textarea name="asunto" class="form-control" style="height: 80px; width: 100%; resize: vertical; font-family: inherit;"><?= htmlspecialchars($llamada_asunto) ?></textarea>
                                     </div>
 
                                     <div class="data-item" style="margin-top: 20px;">
                                         <label class="label" style="color: var(--label-blue);">Observaciones internas:</label>
-                                        <textarea name="notas" class="form-control" style="height: 80px; width: 100%; resize: vertical; font-family: inherit; color: var(--label-blue); font-weight: 600;">NO LE INTERESA, ESTÁ TRABAJANDO</textarea>
+                                        <textarea name="notas" class="form-control" style="height: 80px; width: 100%; resize: vertical; font-family: inherit; color: var(--label-blue); font-weight: 600;"><?= htmlspecialchars($llamada_notas) ?></textarea>
                                     </div>
                                 </div>
 
@@ -814,7 +1045,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_schedule'])) {
                             <?php if ($puede_editar): ?>
                             <div style="text-align: center; margin-top: 30px; display: flex; justify-content: center; gap: 15px;">
                                 <button type="submit" class="btn btn-primary" style="padding: 10px 40px; text-transform: uppercase; font-weight: 800; letter-spacing: 1px;">Guardar registro</button>
+                                <?php if ($llamada_db): ?>
                                 <button type="submit" name="action_delete_call" value="1" class="btn" style="padding: 10px 30px; text-transform: uppercase; font-weight: 800; letter-spacing: 1px; background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;" onclick="return confirm('¿Estás seguro de que deseas eliminar esta llamada permanentemente?');">Eliminar llamada</button>
+                                <?php endif; ?>
                             </div>
                             <?php else: ?>
                             <div style="text-align: center; margin-top: 30px;">
@@ -834,18 +1067,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_schedule'])) {
                                 <div class="data-item">
                                     <label class="label">Fecha y hora:</label>
                                     <div style="display: flex; gap: 10px; align-items: center;">
-                                        <input type="date" name="cita_fecha" class="form-control" value="<?= date('Y-m-d') ?>">
-                                        <input type="time" name="cita_hora" class="form-control" value="10:00">
+                                        <input type="date" name="cita_fecha" class="form-control" value="<?= htmlspecialchars($cita_fecha) ?>">
+                                        <input type="time" name="cita_hora" class="form-control" value="<?= htmlspecialchars($cita_hora) ?>">
                                     </div>
                                 </div>
                                 <div class="data-item">
                                     <label class="label">Asunto:</label>
-                                    <input type="text" name="cita_asunto" class="form-control" value="Llamar a BRIAN BUENO GUERRERO" style="width: 100%;">
+                                    <input type="text" name="cita_asunto" class="form-control" value="<?= htmlspecialchars($cita_asunto) ?>" style="width: 100%;">
                                 </div>
                             </div>
                             <div class="data-item" style="margin-top: 15px;">
                                 <label class="label">Descripción:</label>
-                                <textarea name="cita_descripcion" class="form-control" style="height: 60px; width: 100%; resize: vertical; font-family: inherit;"></textarea>
+                                <textarea name="cita_descripcion" class="form-control" style="height: 60px; width: 100%; resize: vertical; font-family: inherit;"><?= htmlspecialchars($cita_descripcion) ?></textarea>
                             </div>
                             <div style="margin-top: 15px;">
                                 <button type="submit" class="btn" style="background: #f1f5f9; border: 1px solid var(--border-gray); font-weight: 600; padding: 6px 20px;">Programar</button>
@@ -860,11 +1093,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_schedule'])) {
                         <div class="sidebar-header">
                             <h3>Doc pendiente:</h3>
                         </div>
-                        <div class="sidebar-body">
-                            <!-- Contenido vacío o lista de docs -->
+                        <?php
+                        $docs_pendientes = [];
+                        if (isset($matricula_db)) {
+                            if (empty($matricula_db['dni_entregado'])) { $docs_pendientes[] = "DNI / NIE"; }
+                            if (empty($matricula_db['nomina_entregada'])) { $docs_pendientes[] = "Cabecera de Nómina / Recibo Autónomo"; }
+                            if (empty($matricula_db['anexo1_entregado'])) { $docs_pendientes[] = "Anexo I firmado"; }
+                        }
+                        ?>
+                        <div class="sidebar-body" style="font-size: 0.8rem; font-weight: 600; color: #b91c1c; display: flex; flex-direction: column; gap: 8px;">
+                            <?php if (empty($docs_pendientes)): ?>
+                                <div style="color: #166534;">✓ Sin documentación pendiente</div>
+                            <?php else: ?>
+                                <?php foreach ($docs_pendientes as $doc): ?>
+                                    <div>• <?= htmlspecialchars($doc) ?></div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </div>
-                        <div class="status-badge status-danger">
-                            Encuesta NO realizada
+                        <?php
+                        $encuesta_realizada = 0;
+                        if (isset($matricula_db)) {
+                            $encuesta_realizada = isset($matricula_db['encuesta']) ? $matricula_db['encuesta'] : 0;
+                        }
+                        ?>
+                        <div class="status-badge <?= $encuesta_realizada ? 'status-success' : 'status-danger' ?>" style="<?= $encuesta_realizada ? 'background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; border-top: 1px solid #bbf7d0; border-bottom: 1px solid #bbf7d0;' : '' ?>">
+                            Encuesta <?= $encuesta_realizada ? 'REALIZADA' : 'NO realizada' ?>
                         </div>
                         <a href="#" class="btn-link">Mostrar doc pendiente otros cursos</a>
                     </div>
