@@ -895,6 +895,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <label>Grupo Cotización</label>
                         <select name="grupo_cotizacion" class="form-control">
                             <option value=""></option>
+                            <option value="1.- Ingenieros y licenciados" <?= ($matricula['grupo_cotizacion'] ?? '') == '1.- Ingenieros y licenciados' ? 'selected' : '' ?>>1.- Ingenieros y licenciados</option>
+                            <option value="2.- Ingenieros técnicos, peritos y Aytes. titulados" <?= ($matricula['grupo_cotizacion'] ?? '') == '2.- Ingenieros técnicos, peritos y Aytes. titulados' ? 'selected' : '' ?>>2.- Ingenieros técnicos, peritos y Aytes. titulados</option>
+                            <option value="3.- Jefes Advos. y de taller" <?= ($matricula['grupo_cotizacion'] ?? '') == '3.- Jefes Advos. y de taller' ? 'selected' : '' ?>>3.- Jefes Advos. y de taller</option>
+                            <option value="4.- Ayudantes no titulados" <?= ($matricula['grupo_cotizacion'] ?? '') == '4.- Ayudantes no titulados' ? 'selected' : '' ?>>4.- Ayudantes no titulados</option>
+                            <option value="5.- Oficiales administrativos" <?= ($matricula['grupo_cotizacion'] ?? '') == '5.- Oficiales administrativos' ? 'selected' : '' ?>>5.- Oficiales administrativos</option>
+                            <option value="6.- Subalternos" <?= ($matricula['grupo_cotizacion'] ?? '') == '6.- Subalternos' ? 'selected' : '' ?>>6.- Subalternos</option>
+                            <option value="7.- Auxiliares administrativos" <?= ($matricula['grupo_cotizacion'] ?? '') == '7.- Auxiliares administrativos' ? 'selected' : '' ?>>7.- Auxiliares administrativos</option>
+                            <option value="8.- Oficiales de primera y segunda" <?= ($matricula['grupo_cotizacion'] ?? '') == '8.- Oficiales de primera y segunda' ? 'selected' : '' ?>>8.- Oficiales de primera y segunda</option>
+                            <option value="9.- Oficiales de tercera y especialistas" <?= ($matricula['grupo_cotizacion'] ?? '') == '9.- Oficiales de tercera y especialistas' ? 'selected' : '' ?>>9.- Oficiales de tercera y especialistas</option>
+                            <option value="10.- Peones" <?= ($matricula['grupo_cotizacion'] ?? '') == '10.- Peones' ? 'selected' : '' ?>>10.- Peones</option>
+                            <option value="11.- Trabajadores menores de 18 años" <?= ($matricula['grupo_cotizacion'] ?? '') == '11.- Trabajadores menores de 18 años' ? 'selected' : '' ?>>11.- Trabajadores menores de 18 años</option>
+                            <option value="Trabajadores mayores de 18 años no cualif." <?= ($matricula['grupo_cotizacion'] ?? '') == 'Trabajadores mayores de 18 años no cualif.' ? 'selected' : '' ?>>Trabajadores mayores de 18 años no cualif.</option>
                         </select>
                     </div>
                     <div class="form-group">
