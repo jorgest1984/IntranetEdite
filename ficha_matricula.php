@@ -16,7 +16,7 @@ $stmtMatricula = $pdo->prepare("
     SELECT m.*, m.id as matricula_id,
            a.*,
            c.nombre as convocatoria_nombre, c.codigo_expediente,
-           p.nombre as plan_nombre, 
+           p.id as matricula_plan_id, p.nombre as plan_nombre, 
            e.nombre as empresa_nombre,
            g.numero_grupo, g.codigo_plataforma as grupo_cod, g.fecha_inicio as grupo_inicio, g.fecha_fin as grupo_fin,
            af.abreviatura as af_abreviatura, af.prioridad as af_prioridad, 
@@ -39,6 +39,7 @@ if (!$matricula) {
 }
 
 $empresas = $pdo->query("SELECT id, nombre FROM empresas ORDER BY nombre ASC")->fetchAll(PDO::FETCH_ASSOC);
+$planes = $pdo->query("SELECT id, nombre, codigo_expediente FROM planes ORDER BY nombre ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 // 2. Procesar formulario (Si el usuario guarda datos)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_datos_personales') {
@@ -995,7 +996,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     <div class="form-group" style="grid-column: 1;">
                         <label>Plan</label>
                         <select name="plan_id" class="form-control">
-                            <option value=""><?= htmlspecialchars($matricula['plan_nombre'] ?? 'Seleccione Plan') ?></option>
+                            <option value="">Seleccione Plan</option>
+                            <?php foreach($planes as $p): ?>
+                                <option value="<?= $p['id'] ?>" <?= ($matricula['matricula_plan_id'] ?? '') == $p['id'] ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($p['codigo_expediente'] ? $p['codigo_expediente'] . ' - ' . $p['nombre'] : $p['nombre']) ?>
+                                </option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                     <div class="form-group" style="display: flex; align-items: flex-end; padding-bottom: 0.6rem; grid-column: 2;">
