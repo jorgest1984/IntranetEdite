@@ -843,7 +843,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <label>Ocupación</label>
                         <select name="ocupacion" class="form-control">
                             <option value=""></option>
-                            <!-- Lista de ocupaciones iría aquí -->
+                            <option value="Artesanos y trabajadores cualificados de las industrias manufactureras y la construcción" <?= ($matricula['ocupacion'] ?? '') == 'Artesanos y trabajadores cualificados de las industrias manufactureras y la construcción' ? 'selected' : '' ?>>Artesanos y trabajadores cualificados de las industrias manufactureras y la construcción</option>
+                            <option value="Directores y gerentes" <?= ($matricula['ocupacion'] ?? '') == 'Directores y gerentes' ? 'selected' : '' ?>>Directores y gerentes</option>
+                            <option value="Empleados contables, administrativos y otros empleados de oficina" <?= ($matricula['ocupacion'] ?? '') == 'Empleados contables, administrativos y otros empleados de oficina' ? 'selected' : '' ?>>Empleados contables, administrativos y otros empleados de oficina</option>
+                            <option value="Ocupaciones elementales" <?= ($matricula['ocupacion'] ?? '') == 'Ocupaciones elementales' ? 'selected' : '' ?>>Ocupaciones elementales</option>
+                            <option value="Ocupaciones militares" <?= ($matricula['ocupacion'] ?? '') == 'Ocupaciones militares' ? 'selected' : '' ?>>Ocupaciones militares</option>
+                            <option value="Operadores de instalaciones y maquinaria y montadores" <?= ($matricula['ocupacion'] ?? '') == 'Operadores de instalaciones y maquinaria y montadores' ? 'selected' : '' ?>>Operadores de instalaciones y maquinaria y montadores</option>
+                            <option value="Técnicos profesionales de apoyo" <?= ($matricula['ocupacion'] ?? '') == 'Técnicos profesionales de apoyo' ? 'selected' : '' ?>>Técnicos profesionales de apoyo</option>
+                            <option value="Técnicos y profesionales científicos e intelectuales" <?= ($matricula['ocupacion'] ?? '') == 'Técnicos y profesionales científicos e intelectuales' ? 'selected' : '' ?>>Técnicos y profesionales científicos e intelectuales</option>
+                            <option value="Trabaj. cualificado agrícola, ganadero, forestal y pesquero" <?= ($matricula['ocupacion'] ?? '') == 'Trabaj. cualificado agrícola, ganadero, forestal y pesquero' ? 'selected' : '' ?>>Trabaj. cualificado agrícola, ganadero, forestal y pesquero</option>
+                            <option value="Trabaj. de restauración, personales, protección y vendedores" <?= ($matricula['ocupacion'] ?? '') == 'Trabaj. de restauración, personales, protección y vendedores' ? 'selected' : '' ?>>Trabaj. de restauración, personales, protección y vendedores</option>
                         </select>
                     </div>
                 </div>
