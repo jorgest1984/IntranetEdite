@@ -69,6 +69,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     } catch (Exception $e) {
         $error = "Error al actualizar (es posible que algunos campos como SS o Profesion no estén en la base de datos aún): " . $e->getMessage();
     }
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_datos_laborales') {
+    $sql = "UPDATE alumnos SET 
+            ultima_empresa_id = ?, 
+            colectivo = ?, 
+            desempleado_larga_duracion = ?, 
+            parado_sepe = ?, 
+            conductor = ?, 
+            ocupacion = ?, 
+            puesto_sepe = ?, 
+            categoria_profesional = ?, 
+            area_funcional = ?, 
+            antiguedad = ?, 
+            grupo_cotizacion = ?, 
+            contrato = ?
+            WHERE id = ?";
+            
+    try {
+        $stmtUpdate = $pdo->prepare($sql);
+        $stmtUpdate->execute([
+            empty($_POST['ultima_empresa_id']) ? null : $_POST['ultima_empresa_id'],
+            $_POST['colectivo'] ?? null,
+            $_POST['desempleado_larga_duracion'] ?? null,
+            $_POST['parado_sepe'] ?? null,
+            $_POST['conductor'] ?? null,
+            $_POST['ocupacion'] ?? null,
+            $_POST['puesto_sepe'] ?? null,
+            $_POST['categoria_profesional'] ?? null,
+            $_POST['area_funcional'] ?? null,
+            empty($_POST['antiguedad']) ? null : $_POST['antiguedad'],
+            $_POST['grupo_cotizacion'] ?? null,
+            $_POST['contrato'] ?? null,
+            $matricula['alumno_id']
+        ]);
+        header("Location: ficha_matricula.php?id=$id&success=1");
+        exit();
+    } catch (Exception $e) {
+        $error = "Error al actualizar datos laborales: " . $e->getMessage();
+    }
 }
 ?>
 <!DOCTYPE html>
