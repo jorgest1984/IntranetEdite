@@ -30,7 +30,7 @@ try {
 $llamadas = [];
 $searchPerformed = false;
 
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && (!empty($_GET['fecha_desde']) || !empty($_GET['fecha_hasta']) || !empty($_GET['comercial_id']) || !empty($_GET['destinatario_id']) || !empty($_GET['resultado']))) {
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['buscar'])) {
     $searchPerformed = true;
     try {
         $where = ["1=1"];
@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && (!empty($_GET['fecha_desde']) || !em
                 LEFT JOIN cursos c ON ts.curso_id = c.id
                 LEFT JOIN usuarios u ON ts.usuario_id = u.id
                 WHERE " . implode(" AND ", $where) . " 
-                ORDER BY ts.fecha DESC, ts.hora DESC LIMIT 100";
+                ORDER BY ts.fecha DESC, ts.hora DESC LIMIT 200";
                 
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
@@ -614,6 +614,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && (!empty($_GET['fecha_desde']) || !em
                     <h2>LLAMADAS REALIZADAS - CAMPOS DE BÚSQUEDA</h2>
                 </div>
                 <form class="search-form" method="GET">
+                    <input type="hidden" name="buscar" value="1">
                     
                     <!-- Fila 1: Fechas -->
                     <div class="search-row">
