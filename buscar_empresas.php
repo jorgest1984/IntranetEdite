@@ -35,85 +35,67 @@ try {
     if (!empty($_GET['nombre'])) {
         $sql .= " AND e.nombre LIKE ?";
         $params[] = "%" . $_GET['nombre'] . "%";
-        $searchPerformed = true;
     }
     if (!empty($_GET['cif'])) {
         $sql .= " AND e.cif LIKE ?";
         $params[] = "%" . $_GET['cif'] . "%";
-        $searchPerformed = true;
     }
     if (!empty($_GET['telefono'])) {
         $sql .= " AND (e.telefono LIKE ? OR e.contacto_telefono LIKE ?)";
         $params[] = "%" . $_GET['telefono'] . "%";
         $params[] = "%" . $_GET['telefono'] . "%";
-        $searchPerformed = true;
     }
     if (!empty($_GET['email'])) {
         $sql .= " AND e.email LIKE ?";
         $params[] = "%" . $_GET['email'] . "%";
-        $searchPerformed = true;
     }
     if (!empty($_GET['localidad'])) {
         $sql .= " AND e.localidad LIKE ?";
         $params[] = "%" . $_GET['localidad'] . "%";
-        $searchPerformed = true;
     }
     if (!empty($_GET['cp'])) {
         $sql .= " AND e.cp LIKE ?";
         $params[] = "%" . $_GET['cp'] . "%";
-        $searchPerformed = true;
     }
     if (!empty($_GET['actividad'])) {
         $sql .= " AND e.actividad LIKE ?";
         $params[] = "%" . $_GET['actividad'] . "%";
-        $searchPerformed = true;
     }
     
     // Selects SI/NO (TINYINT 1/0)
-    if (!empty($_GET['con_cursos']) && $_GET['con_cursos'] !== '---') {
-        // Lógica para 'Empresas que hayan hecho cursos' - Requiere join con matriculas o similar
-        // Por ahora lo dejamos como placeholder o filtro simple si existe la columna
-        $searchPerformed = true;
-    }
     if (!empty($_GET['adhesion']) && $_GET['adhesion'] !== '---') {
         $sql .= " AND e.es_adhesion = ?";
         $params[] = ($_GET['adhesion'] == 'SI' ? 1 : 0);
-        $searchPerformed = true;
     }
     if (!empty($_GET['gestora']) && $_GET['gestora'] !== '---') {
         $sql .= " AND e.es_gestora = ?";
         $params[] = ($_GET['gestora'] == 'SI' ? 1 : 0);
-        $searchPerformed = true;
     }
     if (!empty($_GET['mercadolid']) && $_GET['mercadolid'] !== '---') {
         $sql .= " AND e.es_mercadolid = ?";
         $params[] = ($_GET['mercadolid'] == 'SI' ? 1 : 0);
-        $searchPerformed = true;
     }
 
     if (!empty($_GET['comercial_id'])) {
         $sql .= " AND e.comercial_id = ?";
         $params[] = $_GET['comercial_id'];
-        $searchPerformed = true;
     }
     if (!empty($_GET['provincia'])) {
         $sql .= " AND e.provincia = ?";
         $params[] = $_GET['provincia'];
-        $searchPerformed = true;
     }
     if (!empty($_GET['sector'])) {
         $sql .= " AND e.sector = ?";
         $params[] = $_GET['sector'];
-        $searchPerformed = true;
     }
 
-    if ($searchPerformed) {
-        $sql .= " ORDER BY e.nombre ASC LIMIT 100";
+    // Ejecutar sólo si se pulsó el botón Buscar
+    if (isset($_GET['buscar'])) {
+        $searchPerformed = true;
+        $sql .= " ORDER BY e.nombre ASC LIMIT 300";
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
         $empresas = $stmt->fetchAll();
-    } else {
-        // Carga inicial (opcional, por defecto vacía según imagen de alumnos)
     }
 
 } catch (Exception $e) {
@@ -208,28 +190,59 @@ $current_page = 'buscar_empresas.php';
         select.form-control { height: 24px; padding: 0 5px; }
         input[type="text"].form-control { height: 22px; }
 
-        .btn-buscar {
-            background: #f1f5f9;
-            border: 1px solid var(--border-gray);
-            padding: 4px 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-            border-radius: 3px;
-        }
-
-        .btn-buscar:hover { background: #e2e8f0; }
-        
-        .btn-print {
-            background: #fff;
-            border: 1px solid var(--border-gray);
-            padding: 2px 10px;
-            font-size: 0.8rem;
-            cursor: pointer;
+        .btn-actions-row {
             display: inline-flex;
             align-items: center;
-            gap: 5px;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
         }
+
+        .btn-buscar {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: #000080;
+            color: #fff;
+            border: none;
+            padding: 8px 24px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            border-radius: 5px;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .btn-buscar:hover { background: #00007a; }
+        .btn-buscar:active { transform: scale(0.98); }
+
+        .btn-print {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: #fff;
+            color: #475569;
+            border: 1.5px solid #cbd5e1;
+            padding: 7px 18px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            border-radius: 5px;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.1s;
+        }
+
+        .btn-print:hover {
+            background: #f8fafc;
+            border-color: #94a3b8;
+            color: #1e293b;
+        }
+        .btn-print:active { transform: scale(0.98); }
 
         /* Results Table */
         .results-section {
@@ -313,6 +326,8 @@ $current_page = 'buscar_empresas.php';
                     <h2><?= $page_title_prefix ?> - CAMPOS DE BÚSQUEDA</h2>
                 </div>
                 <form class="search-form" method="GET">
+                    <input type="hidden" name="buscar" value="1">
+                    <?php if ($is_subvencionada): ?><input type="hidden" name="context" value="subvencionada"><?php endif; ?>
                     
                     <!-- Fila 1 -->
                     <div class="search-row">
@@ -422,12 +437,17 @@ $current_page = 'buscar_empresas.php';
                         </div>
                     </div>
 
-                    <div style="text-align: center; margin-top: 15px;">
-                        <button type="submit" class="btn-buscar">Buscar</button>
-                        <button type="button" class="btn-print" onclick="window.print()">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg" width="16" alt="PDF">
-                            Imprimir
-                        </button>
+                    <div style="margin-top: 18px; display: flex; justify-content: center;">
+                        <div class="btn-actions-row">
+                            <button type="submit" class="btn-buscar">
+                                <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                                Buscar
+                            </button>
+                            <button type="button" class="btn-print" onclick="window.print()">
+                                <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" style="flex-shrink: 0;"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
+                                Imprimir
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
