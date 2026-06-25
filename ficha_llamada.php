@@ -215,6 +215,18 @@ if ($call_id || ($id && $type === 'call')) {
     }
 }
 
+// Load all call history for this student
+$historial_llamadas = [];
+if ($alumno_id) {
+    try {
+        $stmt_hist = $pdo->prepare("SELECT * FROM tutorias_seguimiento WHERE alumno_id = ? ORDER BY fecha DESC, hora DESC, id DESC");
+        $stmt_hist->execute([$alumno_id]);
+        $historial_llamadas = $stmt_hist->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+        // Fail silently
+    }
+}
+
 // Calculate 25% date
 if ($grupo_db && !empty($grupo_db['fecha_inicio']) && !empty($grupo_db['fecha_fin'])) {
     $inicio = strtotime($grupo_db['fecha_inicio']);
@@ -1146,6 +1158,77 @@ $cita_descripcion = $llamada_db['cita_descripcion'] ?? '';
                                 <button type="submit" class="btn" style="background: #f1f5f9; border: 1px solid var(--border-gray); font-weight: 600; padding: 6px 20px;">Programar</button>
                             </div>
                         </form>
+                    </section>
+
+                    <!-- SECCIÓN 8: HISTORIAL DE LLAMADAS -->
+                    <section class="section-box" style="margin-top: 20px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; padding: 20px;">
+                        <h3 style="margin: 0 0 20px 0; font-size: 1.1rem; font-weight: 700; color: #334155;">Historial de llamadas</h3>
+                        
+                        <?php if (empty($historial_llamadas)): ?>
+                            <div style="color: #64748b; font-size: 0.85rem; font-weight: 500;">No hay llamadas previas registradas para este alumno.</div>
+                        <?php else: ?>
+                            <div style="overflow-x: auto; width: 100%;">
+                                <table class="table-custom" style="width: 100%; border-collapse: collapse; font-size: 0.8rem; text-align: left;">
+                                    <thead>
+                                        <tr style="background: #f8fafc;">
+                                            <th style="padding: 10px; border-bottom: 2px solid #cbd5e1; color: var(--label-blue); font-weight: 800; text-transform: uppercase; font-size: 0.75rem;">Fecha / Hora</th>
+                                            <th style="padding: 10px; border-bottom: 2px solid #cbd5e1; color: var(--label-blue); font-weight: 800; text-transform: uppercase; font-size: 0.75rem;">Motivo / Forma</th>
+                                            <th style="padding: 10px; border-bottom: 2px solid #cbd5e1; color: var(--label-blue); font-weight: 800; text-transform: uppercase; font-size: 0.75rem;">Asunto</th>
+                                            <th style="padding: 10px; border-bottom: 2px solid #cbd5e1; color: var(--label-blue); font-weight: 800; text-transform: uppercase; font-size: 0.75rem;">Notas / Observaciones</th>
+                                            <th style="padding: 10px; border-bottom: 2px solid #cbd5e1; color: var(--label-blue); font-weight: 800; text-transform: uppercase; font-size: 0.75rem;">Resultado</th>
+                                            <th style="padding: 10px; border-bottom: 2px solid #cbd5e1; color: var(--label-blue); font-weight: 800; text-transform: uppercase; font-size: 0.75rem;">Cita Programada</th>
+                                            <th style="padding: 10px; border-bottom: 2px solid #cbd5e1; text-align: center; width: 60px;"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($historial_llamadas as $hl): 
+                                            $es_activa = ($llamada_db && $hl['id'] == $llamada_db['id']);
+                                        ?>
+                                            <tr style="border-bottom: 1px solid #e2e8f0; background: <?= $es_activa ? '#f0f9ff' : 'transparent' ?>; transition: background 0.2s;" onmouseover="this.style.background='<?= $es_activa ? '#e0f2fe' : '#f8fafc' ?>'" onmouseout="this.style.background='<?= $es_activa ? '#f0f9ff' : 'transparent' ?>'">
+                                                <td style="padding: 10px; vertical-align: middle;">
+                                                    <div style="font-weight: 700; color: #1e293b;"><?= htmlspecialchars($hl['fecha'] ? date('d/m/Y', strtotime($hl['fecha'])) : '') ?></div>
+                                                    <div style="font-size: 0.75rem; color: #64748b;"><?= htmlspecialchars(substr($hl['hora'] ?? '', 0, 5)) ?></div>
+                                                </td>
+                                                <td style="padding: 10px; vertical-align: middle;">
+                                                    <div style="font-weight: 600; color: #334155;"><?= htmlspecialchars($hl['motivo'] ?? 'Seguimiento') ?></div>
+                                                    <div style="font-size: 0.75rem; color: #64748b;"><?= htmlspecialchars($hl['forma'] ?? 'Teléfono') ?></div>
+                                                </td>
+                                                <td style="padding: 10px; vertical-align: middle; font-weight: 600; color: var(--label-blue);"><?= htmlspecialchars($hl['asunto'] ?? 'TURISMO') ?></td>
+                                                <td style="padding: 10px; vertical-align: middle; max-width: 300px; white-space: normal; color: #475569; line-height: 1.4;">
+                                                    <?= nl2br(htmlspecialchars($hl['observaciones_internas'] ?: ($hl['notes'] ?? ($hl['notas'] ?? '')))) ?>
+                                                </td>
+                                                <td style="padding: 10px; vertical-align: middle;">
+                                                    <?php if ($hl['resultado']): ?>
+                                                        <span style="display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; background: #e0f2fe; color: #0369a1; text-transform: uppercase;">
+                                                            <?= htmlspecialchars($hl['resultado']) ?>
+                                                        </span>
+                                                    <?php else: ?>
+                                                        <span style="color: #94a3b8; font-size: 0.75rem;">---</span>
+                                                    <?php endif; ?>
+                                                </td>
+                                                <td style="padding: 10px; vertical-align: middle;">
+                                                    <?php if ($hl['cita_fecha']): ?>
+                                                        <div style="color: #15803d; font-weight: 700; font-size: 0.75rem;">
+                                                            📅 <?= date('d/m/Y', strtotime($hl['cita_fecha'])) ?> <?= htmlspecialchars(substr($hl['cita_hora'] ?? '', 0, 5)) ?>
+                                                        </div>
+                                                        <div style="font-size: 0.7rem; color: #166534; font-weight: 500;"><?= htmlspecialchars($hl['cita_asunto'] ?? '') ?></div>
+                                                    <?php else: ?>
+                                                        <span style="color: #94a3b8; font-size: 0.75rem;">---</span>
+                                                    <?php endif; ?>
+                                                </td>
+                                                <td style="padding: 10px; vertical-align: middle; text-align: center;">
+                                                    <?php if ($es_activa): ?>
+                                                        <span style="font-weight: 700; color: #0ea5e9; font-size: 0.75rem; text-transform: uppercase;">Editando</span>
+                                                    <?php else: ?>
+                                                        <a href="ficha_llamada.php?call_id=<?= $hl['id'] ?>" class="btn-efp" style="padding: 3px 8px; font-size: 0.7rem; text-decoration: none; display: inline-block; background: #f1f5f9; border: 1px solid var(--border-gray); color: var(--label-blue); border-radius: 3px; font-weight: 600;">Editar</a>
+                                                    <?php endif; ?>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php endif; ?>
                     </section>
                 </div>
 
