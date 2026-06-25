@@ -75,6 +75,20 @@ if ($call_id || ($id && $type === 'call')) {
             $grupo_db = $stmt->fetch();
             $matricula_db = $grupo_db ?: null;
         }
+
+        // Fallback: If no matricula found for this course, load student's latest matricula
+        if (!$matricula_db && $alumno_id) {
+            $stmt = $pdo->prepare("SELECT m.*, g.fecha_inicio, g.fecha_fin 
+                                   FROM matriculas m 
+                                   LEFT JOIN grupos g ON m.grupo_id = g.id 
+                                   WHERE m.alumno_id = ? 
+                                   ORDER BY m.id DESC LIMIT 1");
+            $stmt->execute([$alumno_id]);
+            $matricula_db = $stmt->fetch() ?: null;
+            if ($matricula_db && !$grupo_db) {
+                $grupo_db = $matricula_db;
+            }
+        }
     } else {
         die("Llamada no encontrada en el sistema.");
     }
@@ -120,7 +134,7 @@ if ($call_id || ($id && $type === 'call')) {
                                LEFT JOIN cursos cu ON af.curso_id = cu.id 
                                WHERE m.id = ?");
         $stmt->execute([$target_matricula_id]);
-        $matricula_db = $stmt->fetch();
+        $matricula_db = $stmt->fetch() ?: null;
 
         if ($matricula_db) {
             $alumno_id = $matricula_db['alumno_id'];
@@ -172,7 +186,7 @@ if ($call_id || ($id && $type === 'call')) {
                                    WHERE m.alumno_id = ? 
                                    ORDER BY m.id DESC LIMIT 1");
             $stmt->execute([$alumno_id]);
-            $matricula_db = $stmt->fetch();
+            $matricula_db = $stmt->fetch() ?: null;
 
             if ($matricula_db) {
                 $curso_id = $matricula_db['curso_id'];
@@ -1143,7 +1157,7 @@ $cita_descripcion = $llamada_db['cita_descripcion'] ?? '';
                         </div>
                         <?php
                         $docs_pendientes = [];
-                        if (isset($matricula_db)) {
+                        if ($matricula_db) {
                             if (empty($matricula_db['dni_entregado'])) { $docs_pendientes[] = "DNI / NIE"; }
                             if (empty($matricula_db['nomina_entregada'])) { $docs_pendientes[] = "Cabecera de Nómina / Recibo Autónomo"; }
                             if (empty($matricula_db['anexo1_entregado'])) { $docs_pendientes[] = "Anexo I firmado"; }
@@ -1160,7 +1174,7 @@ $cita_descripcion = $llamada_db['cita_descripcion'] ?? '';
                         </div>
                         <?php
                         $encuesta_realizada = 0;
-                        if (isset($matricula_db)) {
+                        if ($matricula_db) {
                             $encuesta_realizada = isset($matricula_db['encuesta']) ? $matricula_db['encuesta'] : 0;
                         }
                         ?>
