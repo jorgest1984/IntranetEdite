@@ -33,7 +33,10 @@ $fecha_25 = '';
 
 if ($call_id || ($id && $type === 'call')) {
     $target_call_id = $call_id ?? $id;
-    $stmt = $pdo->prepare("SELECT * FROM tutorias_seguimiento WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT ts.*, u.nombre as creador_nombre, u.apellidos as creador_apellidos 
+                           FROM tutorias_seguimiento ts 
+                           LEFT JOIN usuarios u ON ts.usuario_id = u.id 
+                           WHERE ts.id = ?");
     $stmt->execute([$target_call_id]);
     $llamada_db = $stmt->fetch();
 
@@ -219,7 +222,11 @@ if ($call_id || ($id && $type === 'call')) {
 $historial_llamadas = [];
 if ($alumno_id) {
     try {
-        $stmt_hist = $pdo->prepare("SELECT * FROM tutorias_seguimiento WHERE alumno_id = ? ORDER BY fecha DESC, hora DESC, id DESC");
+        $stmt_hist = $pdo->prepare("SELECT ts.*, u.nombre as comercial_nombre, u.apellidos as comercial_apellidos 
+                                    FROM tutorias_seguimiento ts 
+                                    LEFT JOIN usuarios u ON ts.usuario_id = u.id 
+                                    WHERE ts.alumno_id = ? 
+                                    ORDER BY ts.fecha DESC, ts.hora DESC, ts.id DESC");
         $stmt_hist->execute([$alumno_id]);
         $historial_llamadas = $stmt_hist->fetchAll(PDO::FETCH_ASSOC);
     } catch (Exception $e) {
@@ -350,12 +357,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_send_email']))
     }
 }
 
+// DETERMINAR PERMISOS DE EDICIÓN DE LLAMADA
+$puede_editar = false;
+if (!$llamada_db) {
+    // Si no hay llamada previa (creación de nueva llamada), cualquiera con acceso a la página puede editar/guardar
+    $puede_editar = true;
+} else {
+    // Si la llamada ya existe, solo la puede editar el creador, coordinadores o administradores
+    if (has_permission([ROLE_ADMIN, ROLE_COORD])) {
+        $puede_editar = true;
+    } elseif (isset($_SESSION['user_id']) && $llamada_db['usuario_id'] == $_SESSION['user_id']) {
+        $puede_editar = true;
+    }
+}
+
 // PROCESAR GUARDADO DE LLAMADA
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_save_call'])) {
     try {
         $target_call_id = $llamada_db ? $llamada_db['id'] : null;
         if ($llamada_db) {
             // Update existing call
+            if (!$puede_editar) {
+                throw new Exception("No tienes permiso para modificar esta llamada.");
+            }
             $stmt = $pdo->prepare("UPDATE tutorias_seguimiento SET 
                 fecha = ?, 
                 hora = ?, 
@@ -385,7 +409,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_save_call'])) 
             ]);
             $success_msg = "Registro de llamada guardado correctamente.";
             // Reload record
-            $stmt = $pdo->prepare("SELECT * FROM tutorias_seguimiento WHERE id = ?");
+            $stmt = $pdo->prepare("SELECT ts.*, u.nombre as creador_nombre, u.apellidos as creador_apellidos 
+                                   FROM tutorias_seguimiento ts 
+                                   LEFT JOIN usuarios u ON ts.usuario_id = u.id 
+                                   WHERE ts.id = ?");
             $stmt->execute([$target_call_id]);
             $llamada_db = $stmt->fetch();
         } else {
@@ -442,6 +469,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_schedule'])) {
     try {
         $target_call_id = $llamada_db ? $llamada_db['id'] : null;
         if ($llamada_db) {
+            if (!$puede_editar) {
+                throw new Exception("No tienes permiso para programar citas en esta llamada.");
+            }
             $stmt = $pdo->prepare("UPDATE tutorias_seguimiento SET 
                 cita_fecha = ?, cita_hora = ?, cita_asunto = ?, cita_descripcion = ? 
                 WHERE id = ?");
@@ -454,7 +484,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_schedule'])) {
             ]);
             $success_msg = "Cita programada correctamente.";
             // Reload record
-            $stmt = $pdo->prepare("SELECT * FROM tutorias_seguimiento WHERE id = ?");
+            $stmt = $pdo->prepare("SELECT ts.*, u.nombre as creador_nombre, u.apellidos as creador_apellidos 
+                                   FROM tutorias_seguimiento ts 
+                                   LEFT JOIN usuarios u ON ts.usuario_id = u.id 
+                                   WHERE ts.id = ?");
             $stmt->execute([$target_call_id]);
             $llamada_db = $stmt->fetch();
         } else {
@@ -1005,7 +1038,18 @@ $cita_descripcion = $llamada_db['cita_descripcion'] ?? '';
 
                     <!-- SECCIÓN 6: DATOS DE LA LLAMADA -->
                     <section class="section-box" style="background: #f8fafc;">
-                        <h2 class="section-title">DATOS DE LA LLAMADA</h2>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px;">
+                            <h2 class="section-title" style="margin: 0; border: none; padding: 0;">DATOS DE LA LLAMADA</h2>
+                            <?php if ($llamada_db): ?>
+                                <span style="display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; background: #e0f2fe; color: #0369a1; text-transform: uppercase;">
+                                    Registrado por: <?= htmlspecialchars(($llamada_db['creador_nombre'] ?? '') . ' ' . ($llamada_db['creador_apellidos'] ?? '')) ?: 'Sistema' ?>
+                                </span>
+                            <?php else: ?>
+                                <span style="display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; background: #fef3c7; color: #d97706; text-transform: uppercase;">
+                                    Nueva llamada
+                                </span>
+                            <?php endif; ?>
+                        </div>
                         
                         <form method="POST">
                             <input type="hidden" name="action_save_call" value="1">
@@ -1155,7 +1199,11 @@ $cita_descripcion = $llamada_db['cita_descripcion'] ?? '';
                                 <textarea name="cita_descripcion" class="form-control" style="height: 60px; width: 100%; resize: vertical; font-family: inherit;"><?= htmlspecialchars($cita_descripcion) ?></textarea>
                             </div>
                             <div style="margin-top: 15px;">
-                                <button type="submit" class="btn" style="background: #f1f5f9; border: 1px solid var(--border-gray); font-weight: 600; padding: 6px 20px;">Programar</button>
+                                <?php if ($puede_editar): ?>
+                                    <button type="submit" class="btn" style="background: #f1f5f9; border: 1px solid var(--border-gray); font-weight: 600; padding: 6px 20px;">Programar</button>
+                                <?php else: ?>
+                                    <span style="color: #64748b; font-size: 0.85rem; font-weight: 600;">No tienes permisos para programar citas en esta llamada.</span>
+                                <?php endif; ?>
                             </div>
                         </form>
                     </section>
@@ -1173,6 +1221,7 @@ $cita_descripcion = $llamada_db['cita_descripcion'] ?? '';
                                         <tr style="background: #f8fafc;">
                                             <th style="padding: 10px; border-bottom: 2px solid #cbd5e1; color: var(--label-blue); font-weight: 800; text-transform: uppercase; font-size: 0.75rem;">Fecha / Hora</th>
                                             <th style="padding: 10px; border-bottom: 2px solid #cbd5e1; color: var(--label-blue); font-weight: 800; text-transform: uppercase; font-size: 0.75rem;">Motivo / Forma</th>
+                                            <th style="padding: 10px; border-bottom: 2px solid #cbd5e1; color: var(--label-blue); font-weight: 800; text-transform: uppercase; font-size: 0.75rem;">Comercial</th>
                                             <th style="padding: 10px; border-bottom: 2px solid #cbd5e1; color: var(--label-blue); font-weight: 800; text-transform: uppercase; font-size: 0.75rem;">Asunto</th>
                                             <th style="padding: 10px; border-bottom: 2px solid #cbd5e1; color: var(--label-blue); font-weight: 800; text-transform: uppercase; font-size: 0.75rem;">Notas / Observaciones</th>
                                             <th style="padding: 10px; border-bottom: 2px solid #cbd5e1; color: var(--label-blue); font-weight: 800; text-transform: uppercase; font-size: 0.75rem;">Resultado</th>
@@ -1192,6 +1241,9 @@ $cita_descripcion = $llamada_db['cita_descripcion'] ?? '';
                                                 <td style="padding: 10px; vertical-align: middle;">
                                                     <div style="font-weight: 600; color: #334155;"><?= htmlspecialchars($hl['motivo'] ?? 'Seguimiento') ?></div>
                                                     <div style="font-size: 0.75rem; color: #64748b;"><?= htmlspecialchars($hl['forma'] ?? 'Teléfono') ?></div>
+                                                </td>
+                                                <td style="padding: 10px; vertical-align: middle;">
+                                                    <div style="font-weight: 600; color: #334155;"><?= htmlspecialchars(($hl['comercial_nombre'] ?? '') . ' ' . ($hl['comercial_apellidos'] ?? '')) ?: 'Sistema' ?></div>
                                                 </td>
                                                 <td style="padding: 10px; vertical-align: middle; font-weight: 600; color: var(--label-blue);"><?= htmlspecialchars($hl['asunto'] ?? 'TURISMO') ?></td>
                                                 <td style="padding: 10px; vertical-align: middle; max-width: 300px; white-space: normal; color: #475569; line-height: 1.4;">

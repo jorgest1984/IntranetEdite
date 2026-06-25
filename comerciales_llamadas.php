@@ -57,11 +57,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && (!empty($_GET['fecha_desde']) || !em
             $params[] = $_GET['resultado'];
         }
 
-        $sql = "SELECT ts.*, a.nombre as alumno_nombre, a.primer_apellido as alumno_apellido, e.nombre as empresa_nombre, c.nombre as curso_nombre
+        $sql = "SELECT ts.*, a.nombre as alumno_nombre, a.primer_apellido as alumno_apellido, e.nombre as empresa_nombre, c.nombre as curso_nombre, u.nombre as comercial_nombre, u.apellidos as comercial_apellidos
                 FROM tutorias_seguimiento ts
                 LEFT JOIN alumnos a ON ts.alumno_id = a.id
                 LEFT JOIN empresas e ON ts.empresa_id = e.id
                 LEFT JOIN cursos c ON ts.curso_id = c.id
+                LEFT JOIN usuarios u ON ts.usuario_id = u.id
                 WHERE " . implode(" AND ", $where) . " 
                 ORDER BY ts.fecha DESC, ts.hora DESC LIMIT 100";
                 
@@ -404,6 +405,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && (!empty($_GET['fecha_desde']) || !em
                                 <th style="width: 8%;">Hora</th>
                                 <th style="width: 10%;">Asunto</th>
                                 <th>Notas</th>
+                                <th style="width: 12%;">Comercial</th>
                                 <th style="width: 8%;">Enviada info</th>
                                 <th style="width: 8%;">Fecha envio info</th>
                                 <th style="width: 10%;">Resultado</th>
@@ -413,13 +415,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && (!empty($_GET['fecha_desde']) || !em
                         <tbody>
                             <?php if (!$searchPerformed): ?>
                                 <tr>
-                                    <td colspan="9" style="text-align: center; padding: 3rem; color: #64748b; font-size: 0.9rem; background: #fff !important;">
+                                    <td colspan="10" style="text-align: center; padding: 3rem; color: #64748b; font-size: 0.9rem; background: #fff !important;">
                                         Utilice los filtros superiores para consultar el registro de llamadas.
                                     </td>
                                 </tr>
                             <?php elseif (empty($llamadas)): ?>
                                 <tr>
-                                    <td colspan="9" style="text-align: center; padding: 3rem; color: var(--title-red); font-weight: 600; background: #fff !important;">
+                                    <td colspan="10" style="text-align: center; padding: 3rem; color: var(--title-red); font-weight: 600; background: #fff !important;">
                                         No se encontraron registros de llamadas con los criterios seleccionados.
                                     </td>
                                 </tr>
@@ -433,6 +435,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && (!empty($_GET['fecha_desde']) || !em
                                         <td class="cell-bold-blue"><?= htmlspecialchars($ll['hora']) ?></td>
                                         <td class="cell-bold-blue"><?= htmlspecialchars($ll['asunto']) ?></td>
                                         <td class="cell-bold-blue"><?= htmlspecialchars($ll['notas']) ?></td>
+                                        <td class="cell-bold-blue"><?= htmlspecialchars(trim(($ll['comercial_nombre'] ?? '') . ' ' . ($ll['comercial_apellidos'] ?? ''))) ?: 'Sistema' ?></td>
                                         <td style="text-align: center;"><?= htmlspecialchars($ll['enviada_info'] ?? '') ?></td>
                                         <td><?= (!empty($ll['fecha_envio'])) ? date('d/m/Y', strtotime($ll['fecha_envio'])) : '' ?></td>
                                         <td><?= htmlspecialchars($ll['resultado'] ?? '') ?></td>
