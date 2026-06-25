@@ -297,6 +297,259 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && (!empty($_GET['fecha_desde']) || !em
             font-size: 0.8rem;
             color: #475569;
         }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.6); /* Slate 900 with transparency */
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-container {
+            background: #fff;
+            width: 500px;
+            max-width: 90%;
+            border-radius: 8px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border: 1px solid #e2e8f0;
+            transform: scale(0.95);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-overlay.active .modal-container {
+            transform: scale(1);
+        }
+
+        .modal-header-custom {
+            padding: 16px 20px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-header-custom h3 {
+            margin: 0;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .modal-close-btn {
+            background: transparent;
+            border: none;
+            font-size: 1.5rem;
+            color: #64748b;
+            cursor: pointer;
+            line-height: 1;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+        }
+
+        .modal-close-btn:hover {
+            background-color: #f1f5f9;
+            color: #0f172a;
+        }
+
+        .modal-body-custom {
+            padding: 20px;
+        }
+
+        .search-wrapper {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .search-wrapper svg {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+        }
+
+        .search-input-modal {
+            width: 100%;
+            padding: 8px 12px 8px 36px;
+            font-size: 0.9rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .search-input-modal:focus {
+            border-color: #0ea5e9;
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+        }
+
+        .results-container {
+            max-height: 260px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            background: #fff;
+            display: none;
+        }
+
+        .results-container.active {
+            display: block;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            border-bottom: 1px solid #f1f5f9;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-item:hover {
+            background-color: #f8fafc;
+        }
+
+        .result-student-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .result-student-name {
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 0.85rem;
+        }
+
+        .result-student-dni {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        .result-action-label {
+            font-size: 0.75rem;
+            color: #0ea5e9;
+            font-weight: 600;
+        }
+
+        .no-results-msg {
+            padding: 16px;
+            text-align: center;
+            color: #64748b;
+            font-size: 0.85rem;
+        }
+
+        .searching-spinner {
+            padding: 16px;
+            text-align: center;
+            color: #64748b;
+            font-size: 0.85rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Print styling */
+        @media print {
+            .sidebar, 
+            .btn-volver, 
+            .search-card, 
+            .results-header, 
+            .action-icons, 
+            td:last-child, 
+            th:last-child,
+            .btn-primary-custom,
+            .modal-overlay,
+            header,
+            footer {
+                display: none !important;
+            }
+
+            body, .app-container, .main-content {
+                background: #fff !important;
+                color: #000 !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+                box-shadow: none !important;
+            }
+
+            .main-content {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .results-section {
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            .table-custom {
+                width: 100% !important;
+                min-width: 100% !important;
+                border-collapse: collapse !important;
+                margin-top: 10px !important;
+                font-size: 0.7rem !important;
+            }
+
+            .table-custom th,
+            .table-custom td {
+                border: 1px solid #cbd5e1 !important;
+                padding: 6px 8px !important;
+                color: #000 !important;
+                background: transparent !important;
+            }
+
+            .table-custom th {
+                background-color: #f1f5f9 !important;
+                font-weight: bold !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .print-only-header {
+                display: block !important;
+                margin-top: 10px !important;
+                margin-bottom: 25px !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -305,8 +558,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && (!empty($_GET['fecha_desde']) || !em
 
         <main class="main-content" style="flex: 1; overflow-y: auto;">
             
-            <div style="margin-bottom: 15px;">
-                <a href="comerciales.php" class="btn-volver">← Volver a Gestión Comercial</a>
+            <!-- Cabecera Exclusiva para Impresión -->
+            <div class="print-only-header" style="display: none;">
+                <h1 style="text-align: center; color: #b91c1c; font-size: 1.5rem; margin-bottom: 5px; font-weight: 800; font-family: 'Inter', sans-serif;">GRUPO EFP - GESTIÓN COMERCIAL</h1>
+                <h2 style="text-align: center; color: #334155; font-size: 1.1rem; margin-bottom: 20px; font-weight: 700; font-family: 'Inter', sans-serif;">Informe de Registro de Llamadas</h2>
+                <?php if (!empty($_GET['fecha_desde']) || !empty($_GET['fecha_hasta'])): ?>
+                    <p style="text-align: center; font-size: 0.85rem; color: #475569; margin-bottom: 20px; font-family: 'Inter', sans-serif;">
+                        <strong>Período:</strong> 
+                        <?= !empty($_GET['fecha_desde']) ? date('d/m/Y', strtotime($_GET['fecha_desde'])) : 'Inicio' ?> 
+                        hasta 
+                        <?= !empty($_GET['fecha_hasta']) ? date('d/m/Y', strtotime($_GET['fecha_hasta'])) : 'Fin' ?>
+                    </p>
+                <?php endif; ?>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                <a href="comerciales.php" class="btn-volver" style="margin: 0;">← Volver a Gestión Comercial</a>
+                <button type="button" class="btn-primary-custom" onclick="openNewCallModal()" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: #0ea5e9; color: #fff; border: none; border-radius: 4px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: background-color 0.2s; font-family: inherit;">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                    Registrar Nueva Llamada
+                </button>
             </div>
 
             <div class="search-card">
@@ -461,5 +732,126 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && (!empty($_GET['fecha_desde']) || !em
 
         </main>
     </div>
+
+    <!-- MODAL REGISTRAR NUEVA LLAMADA -->
+    <div id="newCallModal" class="modal-overlay" onclick="handleOutsideClick(event)">
+        <div class="modal-container">
+            <div class="modal-header-custom">
+                <h3>Registrar Nueva Llamada</h3>
+                <button type="button" class="modal-close-btn" onclick="closeNewCallModal()">&times;</button>
+            </div>
+            <div class="modal-body-custom">
+                <p style="margin: 0 0 15px 0; font-size: 0.8rem; color: #64748b; font-weight: 500;">
+                    Busca al alumno por su nombre, apellidos o DNI para iniciar el registro de la llamada.
+                </p>
+                <div class="search-wrapper">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" id="studentSearchInput" class="search-input-modal" placeholder="Ej: Juan Pérez o 12345678Z" autocomplete="off" oninput="debounceSearch()">
+                </div>
+                <div id="searchResults" class="results-container">
+                    <!-- Dynamic items will be added here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let searchTimeout = null;
+
+        function openNewCallModal() {
+            const modal = document.getElementById('newCallModal');
+            modal.classList.add('active');
+            const input = document.getElementById('studentSearchInput');
+            input.value = '';
+            input.focus();
+            document.getElementById('searchResults').classList.remove('active');
+            document.getElementById('searchResults').innerHTML = '';
+        }
+
+        function closeNewCallModal() {
+            const modal = document.getElementById('newCallModal');
+            modal.classList.remove('active');
+        }
+
+        function handleOutsideClick(event) {
+            if (event.target === event.currentTarget) {
+                closeNewCallModal();
+            }
+        }
+
+        function debounceSearch() {
+            clearTimeout(searchTimeout);
+            const query = document.getElementById('studentSearchInput').value.trim();
+            const resultsDiv = document.getElementById('searchResults');
+
+            if (query.length < 2) {
+                resultsDiv.classList.remove('active');
+                resultsDiv.innerHTML = '';
+                return;
+            }
+
+            resultsDiv.classList.add('active');
+            resultsDiv.innerHTML = `
+                <div class="searching-spinner">
+                    <svg class="animate-spin" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" style="animation: spin 1s linear infinite;"><circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="10"></circle></svg>
+                    Buscando alumno...
+                </div>
+            `;
+
+            // Style standard spinner animation if not present
+            if (!document.getElementById('spinner-style')) {
+                const style = document.createElement('style');
+                style.id = 'spinner-style';
+                style.innerHTML = `
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            searchTimeout = setTimeout(() => {
+                fetch(`api_buscar_alumnos.php?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.length === 0) {
+                            resultsDiv.innerHTML = '<div class="no-results-msg">No se encontraron alumnos que coincidan.</div>';
+                        } else {
+                            let html = '';
+                            data.forEach(student => {
+                                const fullName = `${student.nombre} ${student.primer_apellido}`;
+                                html += `
+                                    <a href="ficha_llamada.php?alumno_id=${student.id}" class="result-item">
+                                        <div class="result-student-info">
+                                            <span class="result-student-name">${escapeHTML(fullName)}</span>
+                                            <span class="result-student-dni">DNI/NIE: ${escapeHTML(student.dni || 'No indicado')}</span>
+                                        </div>
+                                        <span class="result-action-label">Seleccionar &raquo;</span>
+                                    </a>
+                                `;
+                            });
+                            resultsDiv.innerHTML = html;
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Error fetching students:', err);
+                        resultsDiv.innerHTML = '<div class="no-results-msg" style="color: #dc2626;">Error al buscar alumnos.</div>';
+                    });
+            }, 300);
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    "'": '&#39;',
+                    '"': '&quot;'
+                }[tag] || tag)
+            );
+        }
+    </script>
 </body>
 </html>
