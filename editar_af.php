@@ -14,13 +14,52 @@ if (!$id) die("ID no válido");
 $success = '';
 $error = '';
 
+$familias = [
+    'Actividades Físicas y Deportivas',
+    'Actividades y Competencias Transversales',
+    'Administración y Gestión',
+    'Agraria',
+    'Artes Gráficas',
+    'Artes y Artesanías',
+    'Comercio y Marketing',
+    'Edificación y Obra Civil',
+    'Electricidad y Electrónica',
+    'Energía y Agua',
+    'Fabricación Mecánica',
+    'Hostelería y Turismo',
+    'Imagen Personal',
+    'Imagen y Sonido',
+    'Industrias Alimentarias',
+    'Industrias Extractivas',
+    'Informática y Comunicaciones',
+    'Instalación y Mantenimiento',
+    'Inteligencia Artificial y Data',
+    'Madera, Mueble y Corcho',
+    'Marítimo-Pesquera',
+    'Química',
+    'Sanidad',
+    'Seguridad y Medio Ambiente',
+    'Servicios Socioculturales y a la Comunidad',
+    'Textil, Confección y Piel',
+    'Transporte y Mantenimiento de Vehículos',
+    'Vidrio y Cerámica',
+    'Transversal',
+    'Certificado de Profesionalidad',
+    'Prevención de Riesgos Laborales',
+    'SAP',
+    'Seguridad Privada',
+    'Oferta 1.Appforbrands',
+    'Oferta 2.Appforbrands',
+    'Oferta 3. Hosteleria y Restauracion'
+];
+
 // Procesar actualización
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $csrf_token = $_POST['csrf_token'] ?? '';
     if (!isset($_SESSION['csrf_token']) || empty($csrf_token) || !hash_equals($_SESSION['csrf_token'], $csrf_token)) {
         $error = "Error de seguridad (CSRF). Por favor, refresque la página e inténtelo de nuevo.";
     } else {
-        $fields = ['duracion', 'modalidad', 'prioridad', 'estado', 'objetivos', 'contenidos', 'contenidos_breves', 'notas_gestion'];
+        $fields = ['duracion', 'modalidad', 'prioridad', 'estado', 'familia_profesional', 'objetivos', 'contenidos', 'contenidos_breves', 'notas_gestion'];
         $data = [];
         $sql = "UPDATE acciones_formativas SET ";
         $sets = [];
@@ -116,6 +155,15 @@ if (!$af) die("No se encontró la Acción Formativa");
                             <option value="EN CURSO" <?= $af['estado'] == 'EN CURSO' ? 'selected' : '' ?>>EN CURSO</option>
                             <option value="FINALIZADA" <?= $af['estado'] == 'FINALIZADA' ? 'selected' : '' ?>>FINALIZADA</option>
                             <option value="PENDIENTE" <?= $af['estado'] == 'PENDIENTE' ? 'selected' : '' ?>>PENDIENTE</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Familia Profesional</label>
+                        <select name="familia_profesional" class="form-control">
+                            <option value=""></option>
+                            <?php foreach($familias as $f): ?>
+                                <option value="<?= htmlspecialchars($f) ?>" <?= ($af['familia_profesional'] ?? '') == $f ? 'selected' : '' ?>><?= htmlspecialchars($f) ?></option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                     <div class="form-group full-width">
