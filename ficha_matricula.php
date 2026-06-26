@@ -19,7 +19,7 @@ $stmtMatricula = $pdo->prepare("
            p.id as matricula_plan_id, p.nombre as plan_nombre, 
            e.nombre as empresa_nombre,
            g.numero_grupo, g.codigo_plataforma as grupo_cod, g.fecha_inicio as grupo_inicio, g.fecha_fin as grupo_fin,
-           af.abreviatura as af_abreviatura, af.prioridad as af_prioridad, 
+           af.abreviatura as af_abreviatura, af.prioridad as af_prioridad, af.num_accion as af_num_accion,
            cu.nombre_corto as curso_nombre, cu.nombre_largo as curso_titulo
     FROM matriculas m
     LEFT JOIN alumnos a ON m.alumno_id = a.id
@@ -228,21 +228,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         ];
         
         // 2. Resolver convocatoria_id a partir de plan_id si aplica
-        $convocatoria_id = null;
-        if (isset($_POST['plan_id']) && !empty($_POST['plan_id'])) {
-            $stmtPlan = $pdo->prepare("SELECT convocatoria_id FROM planes WHERE id = ?");
-            $stmtPlan->execute([$_POST['plan_id']]);
-            $convocatoria_id = $stmtPlan->fetchColumn();
+        if (isset($_POST['plan_id'])) {
+            $convocatoria_id = null;
+            if (!empty($_POST['plan_id'])) {
+                $stmtPlan = $pdo->prepare("SELECT convocatoria_id FROM planes WHERE id = ?");
+                $stmtPlan->execute([$_POST['plan_id']]);
+                $convocatoria_id = $stmtPlan->fetchColumn() ?: null;
+            }
+            if (in_array('convocatoria_id', $matriculas_columns)) {
+                $update_matriculas[] = "`convocatoria_id` = ?";
+                $update_matriculas_params[] = $convocatoria_id;
+            }
+        }
+        
+        // Resolver grupo_id de destino (para actualizar fechas y num_accion de grupo/accion)
+        $target_grupo_id = null;
+        if (isset($_POST['grupo_id'])) {
+            $target_grupo_id = !empty($_POST['grupo_id']) ? (int)$_POST['grupo_id'] : null;
+        } else {
+            $target_grupo_id = !empty($matricula['grupo_id']) ? (int)$matricula['grupo_id'] : null;
         }
         
         // 3. Preparar consulta de matrículas
         $update_matriculas = [];
         $update_matriculas_params = [];
-        
-        if ($convocatoria_id && in_array('convocatoria_id', $matriculas_columns)) {
-            $update_matriculas[] = "`convocatoria_id` = ?";
-            $update_matriculas_params[] = $convocatoria_id;
-        }
         
         foreach ($matriculas_mapping as $post_key => $col_name) {
             if (in_array($col_name, $matriculas_columns)) {
@@ -294,6 +303,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $update_alumnos_params[] = $matricula['alumno_id'];
             $sqlA = "UPDATE alumnos SET " . implode(', ', $update_alumnos) . " WHERE id = ?";
             $pdo->prepare($sqlA)->execute($update_alumnos_params);
+        }
+        
+        if ($target_grupo_id) {
+            // Fechas del grupo
+            if (isset($_POST['grupo_inicio']) || isset($_POST['grupo_fin'])) {
+                $stmtGroupDates = $pdo->prepare("UPDATE grupos SET fecha_inicio = ?, fecha_fin = ? WHERE id = ?");
+                $stmtGroupDates->execute([
+                    !empty($_POST['grupo_inicio']) ? $_POST['grupo_inicio'] : null,
+                    !empty($_POST['grupo_fin']) ? $_POST['grupo_fin'] : null,
+                    $target_grupo_id
+                ]);
+            }
+            
+            // Número de acción formativa
+            if (isset($_POST['af_num_accion'])) {
+                $stmtAccionNum = $pdo->prepare("UPDATE acciones_formativas SET num_accion = ? WHERE id = (SELECT accion_id FROM grupos WHERE id = ?)");
+                $stmtAccionNum->execute([
+                    $_POST['af_num_accion'],
+                    $target_grupo_id
+                ]);
+            }
         }
         
         $pdo->commit();
@@ -1203,6 +1233,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <select name="curso_id" class="form-control">
                             <option value=""><?= htmlspecialchars($matricula['curso_titulo'] ?? 'Seleccione Curso') ?></option>
                         </select>
+                    </div>
+                </div>
+
+                <div class="grid-form" style="grid-template-columns: 1fr 1fr 1fr;">
+                    <div class="form-group">
+                        <label>Nº de Acción</label>
+                        <input type="text" name="af_num_accion" class="form-control" value="<?= htmlspecialchars($matricula['af_num_accion'] ?? '') ?>" placeholder="Ej: 0001">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha de Inicio</label>
+                        <input type="date" name="grupo_inicio" class="form-control" value="<?= !empty($matricula['grupo_inicio']) ? date('Y-m-d', strtotime($matricula['grupo_inicio'])) : '' ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha de Fin</label>
+                        <input type="date" name="grupo_fin" class="form-control" value="<?= !empty($matricula['grupo_fin']) ? date('Y-m-d', strtotime($matricula['grupo_fin'])) : '' ?>">
                     </div>
                 </div>
 
