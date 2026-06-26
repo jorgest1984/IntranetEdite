@@ -123,195 +123,155 @@ $current_page = 'buscar_empresas.php';
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/main.css">
     <style>
-        :root {
-            --title-blue: #006ce4;
-            --label-blue: #1e40af;
-            --border-gray: #cbd5e1;
-            --bg-light: #f8fafc;
+        /* ===== BUSCAR EMPRESAS PREMIUM STYLES ===== */
+        .main-content { padding: 2rem; }
+
+        .search-card-premium {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            box-shadow: var(--glass-shadow);
+            overflow: hidden;
+            transition: background-color 0.4s ease, border-color 0.4s ease;
         }
 
-        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
-        .main-content { padding: 1.5rem; }
-
-        .search-card {
-            background: #fff;
-            border: 1px solid var(--border-gray);
-            border-radius: 4px;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .card-header-custom {
-            background: #fff;
-            padding: 0.5rem;
-            border-bottom: 2px solid var(--border-gray);
+        .card-header-premium {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+            padding: 1rem;
             text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 108, 228, 0.15);
         }
 
-        .card-header-custom h2 {
+        .card-header-premium h2 {
             margin: 0;
-            font-size: 0.85rem;
+            font-size: 0.95rem;
             font-weight: 800;
-            color: var(--title-blue);
+            color: white;
             text-transform: uppercase;
+            letter-spacing: 2px;
         }
 
-        .search-form { padding: 1rem; }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1.25rem;
+            padding: 2rem;
+        }
 
-        .search-row {
+        .form-group-custom {
             display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 8px;
-            align-items: center;
+            flex-direction: column;
+            gap: 0.4rem;
         }
 
-        .form-group {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
+        .form-group-custom.span-12 { grid-column: span 12; }
+        .form-group-custom.span-8 { grid-column: span 8; }
+        .form-group-custom.span-6 { grid-column: span 6; }
+        .form-group-custom.span-5 { grid-column: span 5; }
+        .form-group-custom.span-4 { grid-column: span 4; }
+        .form-group-custom.span-3 { grid-column: span 3; }
+        .form-group-custom.span-2 { grid-column: span 2; }
 
-        .form-group label {
+        .form-group-custom label {
             font-size: 0.75rem;
             font-weight: 700;
-            color: var(--label-blue);
-            white-space: nowrap;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
-        .form-control {
+        .section-header-custom {
+            grid-column: span 12;
+            font-weight: 800;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
             font-size: 0.8rem;
-            padding: 2px 5px;
-            border: 1px solid var(--border-gray);
-            border-radius: 2px;
-            background: #fff;
+            border-left: 4px solid var(--primary-color);
+            padding-left: 10px;
+            letter-spacing: 0.5px;
         }
 
-        select.form-control { height: 24px; padding: 0 5px; }
-        input[type="text"].form-control { height: 22px; }
-
-        .btn-actions-row {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .btn-buscar {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            background: #000080;
-            color: #fff;
-            border: none;
-            padding: 8px 24px;
-            font-size: 0.82rem;
-            font-weight: 700;
-            font-family: 'Inter', sans-serif;
-            cursor: pointer;
-            border-radius: 5px;
-            letter-spacing: 0.03em;
-            text-transform: uppercase;
-            transition: background 0.2s, transform 0.1s;
-        }
-
-        .btn-buscar:hover { background: #00007a; }
-        .btn-buscar:active { transform: scale(0.98); }
-
-        .btn-print {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            background: #fff;
-            color: #475569;
-            border: 1.5px solid #cbd5e1;
-            padding: 7px 18px;
-            font-size: 0.82rem;
-            font-weight: 600;
-            font-family: 'Inter', sans-serif;
-            cursor: pointer;
-            border-radius: 5px;
-            letter-spacing: 0.02em;
-            text-transform: uppercase;
-            transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.1s;
-        }
-
-        .btn-print:hover {
-            background: #f8fafc;
-            border-color: #94a3b8;
-            color: #1e293b;
-        }
-        .btn-print:active { transform: scale(0.98); }
-
-        /* Results Table */
-        .results-section {
-            background: #fff;
-            border: 1px solid var(--border-gray);
-            border-radius: 4px;
+        /* Results Card Layout */
+        .results-section-premium {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            box-shadow: var(--glass-shadow);
             overflow: hidden;
+            margin-bottom: 2rem;
         }
 
-        .results-header {
-            padding: 0.5rem;
-            text-align: center;
-            border-bottom: 1px solid var(--border-gray);
+        .results-header-premium {
+            background: rgba(0, 108, 228, 0.03);
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
 
-        .results-header h2 {
+        .results-header-premium h2 {
             margin: 0;
             font-size: 0.85rem;
             font-weight: 800;
-            color: var(--title-blue);
+            color: var(--primary-color);
             text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        .table-responsive { 
-            overflow-x: auto; 
+        /* Table */
+        .table-premium {
             width: 100%;
-            margin-bottom: 1rem;
-            border-bottom: 1px solid var(--border-gray);
+            border-collapse: collapse;
+            font-size: 0.85rem;
         }
         
-        .table-custom {
-            width: 100%;
-            min-width: 1100px;
-            border-collapse: collapse;
-            font-size: 0.75rem;
-        }
-
-        .table-custom th {
-            background: #f8fafc;
-            border: 1px solid var(--border-gray);
-            padding: 6px;
+        .table-premium th {
+            background: rgba(0, 108, 228, 0.04);
+            border-bottom: 2px solid var(--border-color);
+            padding: 0.75rem 1rem;
             text-align: left;
-            color: var(--label-blue);
+            color: var(--primary-color);
             font-weight: 700;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .table-custom th svg {
-            width: 10px;
-            height: 10px;
+        .table-premium th svg {
+            width: 12px;
+            height: 12px;
             vertical-align: middle;
             margin-right: 4px;
+            fill: currentColor;
         }
 
-        .table-custom td {
-            border: 1px solid #f1f5f9;
-            padding: 6px;
-            white-space: nowrap;
+        .table-premium td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-color);
         }
 
-        .table-custom tr:nth-child(even) { background: #f8fafc; }
-        .table-custom tr:hover { background: #f1f5f9; }
+        .table-premium tr:last-child td {
+            border-bottom: none;
+        }
 
-        .btn-volver {
-            margin-top: 10px;
-            padding: 4px 15px;
-            font-size: 0.75rem;
-            cursor: pointer;
-            background: #f1f5f9;
-            border: 1px solid var(--border-gray);
+        .table-premium tr:hover td {
+            background-color: rgba(0, 108, 228, 0.015);
+        }
+
+        @media print {
+            .sidebar, .main-content > div:first-child, .search-card-premium, .results-header-premium form { display: none !important; }
+            .results-section-premium { border: none; box-shadow: none; max-width: 100%; }
         }
     </style>
 </head>
@@ -320,207 +280,232 @@ $current_page = 'buscar_empresas.php';
         <?php include 'includes/sidebar.php'; ?>
 
         <main class="main-content" style="flex: 1; overflow-y: auto;">
+
+            <!-- Barra de acciones superior -->
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 1.5rem; padding: 2rem 2rem 0;">
+                <a href="ficha_empresa.php?new=1" class="btn btn-primary">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                    </svg>
+                    Nueva Empresa
+                </a>
+            </div>
             
-            <div class="search-card">
-                <div class="card-header-custom">
-                    <h2><?= $page_title_prefix ?> - CAMPOS DE BÚSQUEDA</h2>
-                </div>
-                <form class="search-form" method="GET">
-                    <input type="hidden" name="buscar" value="1">
-                    <?php if ($is_subvencionada): ?><input type="hidden" name="context" value="subvencionada"><?php endif; ?>
-                    
-                    <!-- Fila 1 -->
-                    <div class="search-row">
-                        <div class="form-group">
-                            <label>Razón social:</label>
-                            <input type="text" name="nombre" value="<?= htmlspecialchars($_GET['nombre'] ?? '') ?>" class="form-control" style="width: 280px;">
-                        </div>
-                        <div class="form-group">
-                            <label>CIF:</label>
-                            <input type="text" name="cif" value="<?= htmlspecialchars($_GET['cif'] ?? '') ?>" class="form-control" style="width: 120px;">
-                        </div>
-                        <div class="form-group">
-                            <label>Teléfono:</label>
-                            <input type="text" name="telefono" value="<?= htmlspecialchars($_GET['telefono'] ?? '') ?>" class="form-control" style="width: 130px;">
-                        </div>
-                        <div class="form-group">
-                            <label>email:</label>
-                            <div style="position: relative; display: flex; align-items: center;">
-                                <input type="text" name="email" value="<?= htmlspecialchars($_GET['email'] ?? '') ?>" class="form-control" style="width: 130px; padding-right: 25px;">
-                                <svg viewBox="0 0 24 24" width="14" style="position: absolute; right: 5px; color: #fbbf24;"><circle cx="12" cy="12" r="10" fill="currentColor"/><circle cx="12" cy="12" r="3" fill="white"/></svg>
+            <div style="padding: 0 2rem 2rem;">
+                <!-- PANEL DE BÚSQUEDA -->
+                <div class="search-card-premium">
+                    <div class="card-header-premium">
+                        <h2><?= $page_title_prefix ?> - Filtros de Búsqueda</h2>
+                    </div>
+                    <form method="GET" style="margin:0;">
+                        <input type="hidden" name="buscar" value="1">
+                        <?php if ($is_subvencionada): ?><input type="hidden" name="context" value="subvencionada"><?php endif; ?>
+                        
+                        <div class="form-grid">
+                            
+                            <!-- IDENTIFICACIÓN Y CONTACTO -->
+                            <div class="section-header-custom" style="margin-top: 0;">Identificación y Contacto</div>
+                            
+                            <div class="form-group-custom span-4">
+                                <label>Razón Social / Nombre:</label>
+                                <input type="text" name="nombre" value="<?= htmlspecialchars($_GET['nombre'] ?? '') ?>">
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Localidad:</label>
-                            <input type="text" name="localidad" value="<?= htmlspecialchars($_GET['localidad'] ?? '') ?>" class="form-control" style="width: 220px;">
-                        </div>
-                    </div>
+                            <div class="form-group-custom span-2">
+                                <label>CIF:</label>
+                                <input type="text" name="cif" value="<?= htmlspecialchars($_GET['cif'] ?? '') ?>">
+                            </div>
+                            <div class="form-group-custom span-3">
+                                <label>Teléfono:</label>
+                                <input type="text" name="telefono" value="<?= htmlspecialchars($_GET['telefono'] ?? '') ?>">
+                            </div>
+                            <div class="form-group-custom span-3">
+                                <label>E-mail:</label>
+                                <input type="text" name="email" value="<?= htmlspecialchars($_GET['email'] ?? '') ?>">
+                            </div>
 
-                    <!-- Fila 2 -->
-                    <div class="search-row">
-                        <div class="form-group">
-                            <label>C.P.:</label>
-                            <input type="text" name="cp" value="<?= htmlspecialchars($_GET['cp'] ?? '') ?>" class="form-control" style="width: 90px;">
-                        </div>
-                        <div class="form-group">
-                            <label>Empresas que hayan hecho cursos:</label>
-                            <select name="con_cursos" class="form-control">
-                                <option value="---">---</option>
-                                <option value="SI">SI</option>
-                                <option value="NO">NO</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Actividad:</label>
-                            <input type="text" name="actividad" value="<?= htmlspecialchars($_GET['actividad'] ?? '') ?>" class="form-control" style="width: 150px;">
-                        </div>
-                        <div class="form-group">
-                            <label>Empresas con adhesión:</label>
-                            <select name="adhesion" class="form-control">
-                                <option value="---">---</option>
-                                <option value="SI" <?= ($_GET['adhesion'] ?? '') == 'SI' ? 'selected' : '' ?>>SI</option>
-                                <option value="NO" <?= ($_GET['adhesion'] ?? '') == 'NO' ? 'selected' : '' ?>>NO</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Empresas gestoras:</label>
-                            <select name="gestora" class="form-control">
-                                <option value="---">---</option>
-                                <option value="SI" <?= ($_GET['gestora'] ?? '') == 'SI' ? 'selected' : '' ?>>SI</option>
-                                <option value="NO" <?= ($_GET['gestora'] ?? '') == 'NO' ? 'selected' : '' ?>>NO</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Empresas de Mercadolid:</label>
-                            <select name="mercadolid" class="form-control">
-                                <option value="---">---</option>
-                                <option value="SI" <?= ($_GET['mercadolid'] ?? '') == 'SI' ? 'selected' : '' ?>>SI</option>
-                                <option value="NO" <?= ($_GET['mercadolid'] ?? '') == 'NO' ? 'selected' : '' ?>>NO</option>
-                            </select>
-                        </div>
-                    </div>
+                            <!-- UBICACIÓN Y ACTIVIDAD -->
+                            <div class="section-header-custom">Ubicación y Actividad</div>
+                            
+                            <div class="form-group-custom span-4">
+                                <label>Localidad:</label>
+                                <input type="text" name="localidad" value="<?= htmlspecialchars($_GET['localidad'] ?? '') ?>">
+                            </div>
+                            <div class="form-group-custom span-2">
+                                <label>Código Postal (C.P.):</label>
+                                <input type="text" name="cp" value="<?= htmlspecialchars($_GET['cp'] ?? '') ?>">
+                            </div>
+                            <div class="form-group-custom span-3">
+                                <label>Provincia:</label>
+                                <select name="provincia">
+                                    <option value="">--- Todas ---</option>
+                                    <?php foreach($provincias as $prov): ?>
+                                        <option value="<?= mb_strtoupper($prov, 'UTF-8') ?>" <?= ($_GET['provincia'] ?? '') == mb_strtoupper($prov, 'UTF-8') ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars($prov) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="form-group-custom span-3">
+                                <label>Actividad:</label>
+                                <input type="text" name="actividad" value="<?= htmlspecialchars($_GET['actividad'] ?? '') ?>">
+                            </div>
 
-                    <!-- Fila 3 -->
-                    <div class="search-row">
-                        <div class="form-group">
-                            <label>Comercial:</label>
-                            <select name="comercial_id" class="form-control" style="width: 250px;">
-                                <option value="">---</option>
-                                <?php foreach($comerciales as $c): ?>
-                                    <option value="<?= $c['id'] ?>" <?= ($_GET['comercial_id'] ?? '') == $c['id'] ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($c['nombre'] . ' ' . $c['apellidos']) ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Provincia:</label>
-                            <select name="provincia" class="form-control" style="width: 150px;">
-                                <option value="">---</option>
-                                <?php foreach($provincias as $prov): ?>
-                                    <option value="<?= mb_strtoupper($prov, 'UTF-8') ?>" <?= ($_GET['provincia'] ?? '') == mb_strtoupper($prov, 'UTF-8') ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($prov) ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Sector:</label>
-                            <select name="sector" class="form-control" style="width: 450px;">
-                                <option value="">---</option>
-                                <?php foreach($sectores as $s): ?>
-                                    <option value="<?= htmlspecialchars($s) ?>" <?= ($_GET['sector'] ?? '') == $s ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($s) ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                    </div>
+                            <!-- FILTROS Y ASIGNACIONES -->
+                            <div class="section-header-custom">Filtros y Asignaciones</div>
 
-                    <div style="margin-top: 18px; display: flex; justify-content: center;">
-                        <div class="btn-actions-row">
-                            <button type="submit" class="btn-buscar">
-                                <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                            <div class="form-group-custom span-4">
+                                <label>Comercial:</label>
+                                <select name="comercial_id">
+                                    <option value="">--- Todos ---</option>
+                                    <?php foreach($comerciales as $c): ?>
+                                        <option value="<?= $c['id'] ?>" <?= ($_GET['comercial_id'] ?? '') == $c['id'] ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars($c['nombre'] . ' ' . $c['apellidos']) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="form-group-custom span-8">
+                                <label>Sector:</label>
+                                <select name="sector">
+                                    <option value="">--- Todos ---</option>
+                                    <?php foreach($sectores as $s): ?>
+                                        <option value="<?= htmlspecialchars($s) ?>" <?= ($_GET['sector'] ?? '') == $s ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars($s) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+
+                            <div class="form-group-custom span-3">
+                                <label>Con Cursos:</label>
+                                <select name="con_cursos">
+                                    <option value="---">--- Todos ---</option>
+                                    <option value="SI" <?= ($_GET['con_cursos'] ?? '') == 'SI' ? 'selected' : '' ?>>SÍ</option>
+                                    <option value="NO" <?= ($_GET['con_cursos'] ?? '') == 'NO' ? 'selected' : '' ?>>NO</option>
+                                </select>
+                            </div>
+                            <div class="form-group-custom span-3">
+                                <label>Es Adhesión:</label>
+                                <select name="adhesion">
+                                    <option value="---">--- Todos ---</option>
+                                    <option value="SI" <?= ($_GET['adhesion'] ?? '') == 'SI' ? 'selected' : '' ?>>SÍ</option>
+                                    <option value="NO" <?= ($_GET['adhesion'] ?? '') == 'NO' ? 'selected' : '' ?>>NO</option>
+                                </select>
+                            </div>
+                            <div class="form-group-custom span-3">
+                                <label>Es Gestora:</label>
+                                <select name="gestora">
+                                    <option value="---">--- Todos ---</option>
+                                    <option value="SI" <?= ($_GET['gestora'] ?? '') == 'SI' ? 'selected' : '' ?>>SÍ</option>
+                                    <option value="NO" <?= ($_GET['gestora'] ?? '') == 'NO' ? 'selected' : '' ?>>NO</option>
+                                </select>
+                            </div>
+                            <div class="form-group-custom span-3">
+                                <label>De Mercadolid:</label>
+                                <select name="mercadolid">
+                                    <option value="---">--- Todos ---</option>
+                                    <option value="SI" <?= ($_GET['mercadolid'] ?? '') == 'SI' ? 'selected' : '' ?>>SÍ</option>
+                                    <option value="NO" <?= ($_GET['mercadolid'] ?? '') == 'NO' ? 'selected' : '' ?>>NO</option>
+                                </select>
+                            </div>
+
+                        </div>
+
+                        <!-- ACCIONES DE BÚSQUEDA -->
+                        <div style="padding: 1.5rem 2rem; background: rgba(0, 108, 228, 0.03); border-top: 1px solid var(--border-color); display: flex; justify-content: center; gap: 1rem; align-items: center;">
+                            <button type="submit" class="btn btn-primary">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align: middle;"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
                                 Buscar
                             </button>
-                            <button type="button" class="btn-print" onclick="window.print()">
-                                <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" style="flex-shrink: 0;"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
+                            <button type="button" class="btn btn-glass" onclick="window.print()" style="border: 1px solid var(--border-color);">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align: middle;"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
                                 Imprimir
                             </button>
                         </div>
-                    </div>
-                </form>
-            </div>
-
-            <!-- RESULTADOS -->
-            <div class="results-section">
-                <div class="results-header">
-                    <div style="font-size: 0.65rem; display: flex; align-items: center; gap: 5px; margin-bottom: 5px; color: var(--label-blue);">
-                        <input type="checkbox" name="multiple_sort"> Ordenar múltiple
-                    </div>
-                    <h2>RESULTADO DE LA BÚSQUEDA</h2>
+                    </form>
                 </div>
-                
-                <div class="table-responsive">
-                    <table class="table-custom">
-                        <thead>
-                            <tr>
-                                <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Razón social</th>
-                                <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Localidad</th>
-                                <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>CP</th>
-                                <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Provincia</th>
-                                <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Teléfono</th>
-                                <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Email</th>
-                                <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>RLT</th>
-                                <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Adhesión</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php if (!$searchPerformed): ?>
+
+                <!-- RESULTADOS -->
+                <div class="results-section-premium">
+                    <div class="results-header-premium">
+                        <h2>Resultado de la Búsqueda</h2>
+                        <label style="font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px; color: var(--text-color); cursor: pointer; font-weight: 600; margin: 0;">
+                            <input type="checkbox" name="multiple_sort" style="width: 15px; height: 15px; cursor: pointer; accent-color: var(--primary-color);"> Ordenar Múltiple
+                        </label>
+                    </div>
+                    
+                    <div style="padding: 1.5rem; overflow-x: auto;">
+                        <table class="table-premium">
+                            <thead>
                                 <tr>
-                                    <td colspan="8" style="text-align: center; padding: 2rem; color: #64748b;">
-                                        Utilice los filtros para realizar una búsqueda.
-                                    </td>
+                                    <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Razón social</th>
+                                    <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Localidad</th>
+                                    <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>CP</th>
+                                    <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Provincia</th>
+                                    <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Teléfono</th>
+                                    <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Email</th>
+                                    <th><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>RLT</th>
+                                    <th style="text-align: center;"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Adhesión</th>
                                 </tr>
-                            <?php elseif (empty($empresas)): ?>
-                                <tr>
-                                    <td colspan="8" style="text-align: center; padding: 2rem; color: #b91c1c; font-weight: 600;">
-                                        No se encontraron empresas con los criterios seleccionados.
-                                    </td>
-                                </tr>
-                            <?php else: ?>
-                                <?php foreach ($empresas as $emp): ?>
+                            </thead>
+                            <tbody>
+                                <?php if (!$searchPerformed): ?>
                                     <tr>
-                                        <td>
-                                            <a href="ficha_empresa.php?id=<?= $emp['id'] ?>" style="color: var(--label-blue); text-decoration: none; font-weight: 700;">
-                                                <?= htmlspecialchars($emp['nombre']) ?>
-                                            </a>
-                                        </td>
-                                        <td><?= htmlspecialchars($emp['localidad'] ?? '') ?></td>
-                                        <td><?= htmlspecialchars($emp['cp'] ?? '') ?></td>
-                                        <td><?= htmlspecialchars($emp['provincia'] ?? '') ?></td>
-                                        <td><?= htmlspecialchars($emp['telefono'] ?? '') ?></td>
-                                        <td>
-                                            <?php if (!empty($emp['email'])): ?>
-                                                <a href="mailto:<?= $emp['email'] ?>" style="color: var(--label-blue); text-decoration: none;">
-                                                    <?= htmlspecialchars($emp['email']) ?>
-                                                </a>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td><?= htmlspecialchars($emp['rlt'] ?? '---') ?></td>
-                                        <td style="text-align: center;">
-                                            <?= $emp['es_adhesion'] ? 'SÍ' : 'NO' ?>
+                                        <td colspan="8" style="text-align: center; padding: 2.5rem; color: var(--text-muted); font-weight: 500;">
+                                            Utilice los filtros para realizar una búsqueda.
                                         </td>
                                     </tr>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
+                                <?php elseif (empty($empresas)): ?>
+                                    <tr>
+                                        <td colspan="8" style="text-align: center; padding: 2.5rem; color: #b91c1c; font-weight: 700;">
+                                            ⚠️ No se encontraron empresas con los criterios seleccionados.
+                                        </td>
+                                    </tr>
+                                <?php else: ?>
+                                    <?php foreach ($empresas as $emp): ?>
+                                        <tr>
+                                            <td style="font-weight: 700;">
+                                                <a href="ficha_empresa.php?id=<?= $emp['id'] ?>" style="color: var(--primary-color); text-decoration: none;">
+                                                    <?= htmlspecialchars($emp['nombre']) ?>
+                                                </a>
+                                            </td>
+                                            <td><?= htmlspecialchars($emp['localidad'] ?? '—') ?></td>
+                                            <td><?= htmlspecialchars($emp['cp'] ?? '—') ?></td>
+                                            <td style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);"><?= htmlspecialchars($emp['provincia'] ?? '—') ?></td>
+                                            <td style="font-weight: 500;"><?= htmlspecialchars($emp['telefono'] ?? '—') ?></td>
+                                            <td>
+                                                <?php if (!empty($emp['email'])): ?>
+                                                    <a href="mailto:<?= $emp['email'] ?>" style="color: var(--primary-color); text-decoration: none; font-weight: 500;">
+                                                        <?= htmlspecialchars($emp['email']) ?>
+                                                    </a>
+                                                <?php else: ?>
+                                                    —
+                                                <?php endif; ?>
+                                            </td>
+                                            <td style="font-size: 0.8rem; color: var(--text-muted);"><?= htmlspecialchars($emp['rlt'] ?? '—') ?></td>
+                                            <td style="text-align: center;">
+                                                <span style="display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 700; 
+                                                    <?= $emp['es_adhesion'] 
+                                                        ? 'background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534;' 
+                                                        : 'background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569;' 
+                                                    ?>">
+                                                    <?= $emp['es_adhesion'] ? 'SÍ' : 'NO' ?>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
 
-            <div style="text-align: center;">
-                <a href="<?= $back_url ?>" class="btn-volver" style="text-decoration: none; display: inline-block;">Volver</a>
+                <div style="text-align: center; margin-top: 1rem; margin-bottom: 2rem;">
+                    <a href="<?= $back_url ?>" class="btn btn-glass" style="border: 1px solid var(--border-color);">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align: middle;"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                        Volver al Panel Principal
+                    </a>
+                </div>
             </div>
 
         </main>
