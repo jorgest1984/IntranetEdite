@@ -627,12 +627,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                     <label class="form-label">Familia Profesional</label>
                     <select name="familia_profesional" class="form-input">
                         <option value=""></option>
+                        <option value="Actividades Físicas y Deportivas">Actividades Físicas y Deportivas</option>
+                        <option value="Actividades y Competencias Transversales">Actividades y Competencias Transversales</option>
                         <option value="Administración y Gestión">Administración y Gestión</option>
+                        <option value="Agraria">Agraria</option>
+                        <option value="Artes Gráficas">Artes Gráficas</option>
+                        <option value="Artes y Artesanías">Artes y Artesanías</option>
                         <option value="Comercio y Marketing">Comercio y Marketing</option>
+                        <option value="Edificación y Obra Civil">Edificación y Obra Civil</option>
+                        <option value="Electricidad y Electrónica">Electricidad y Electrónica</option>
+                        <option value="Energía y Agua">Energía y Agua</option>
+                        <option value="Fabricación Mecánica">Fabricación Mecánica</option>
                         <option value="Hostelería y Turismo">Hostelería y Turismo</option>
+                        <option value="Imagen Personal">Imagen Personal</option>
+                        <option value="Imagen y Sonido">Imagen y Sonido</option>
+                        <option value="Industrias Alimentarias">Industrias Alimentarias</option>
+                        <option value="Industrias Extractivas">Industrias Extractivas</option>
                         <option value="Informática y Comunicaciones">Informática y Comunicaciones</option>
+                        <option value="Instalación y Mantenimiento">Instalación y Mantenimiento</option>
+                        <option value="Inteligencia Artificial y Data">Inteligencia Artificial y Data</option>
+                        <option value="Madera, Mueble y Corcho">Madera, Mueble y Corcho</option>
+                        <option value="Marítimo-Pesquera">Marítimo-Pesquera</option>
+                        <option value="Química">Química</option>
                         <option value="Sanidad">Sanidad</option>
-                        <option value="Servicios Socioculturales">Servicios Socioculturales</option>
+                        <option value="Seguridad y Medio Ambiente">Seguridad y Medio Ambiente</option>
+                        <option value="Servicios Socioculturales y a la Comunidad">Servicios Socioculturales y a la Comunidad</option>
+                        <option value="Textil, Confección y Piel">Textil, Confección y Piel</option>
+                        <option value="Transporte y Mantenimiento de Vehículos">Transporte y Mantenimiento de Vehículos</option>
+                        <option value="Vidrio y Cerámica">Vidrio y Cerámica</option>
                         <option value="Transversal">Transversal</option>
                     </select>
                 </div>

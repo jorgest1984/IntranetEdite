@@ -32,17 +32,43 @@ $niveles = ['Básico', 'Medio', 'Medio-superior', 'Superior'];
 $prioridades = ['Alta', 'Media', 'Baja'];
 $estados = ['No programable', 'Programable', 'En curso', 'Finalizado'];
 
-// Base list for families (reused from catalog)
 $familias = [
-    'Certificado de Profesionalidad', 'Familia- Actividades Físicas y Deportivas',
-    'Familia- Administración y Gestión', 'Familia- Agraria', 'Familia- Artes graficas',
-    'Familia- Comercio y Marketing', 'Familia- Edificación y Obra Civil',
-    'Familia- Energía y Agua', 'Familia- Hostelería y Turismo', 'Familia- Imagen Personal',
-    'Familia- Imagen y Sonido', 'Familia- Industria alimentaria',
-    'Familia- Informática y Comunicaciones', 'Familia- Seguridad y Medioambiente',
-    'Familia: Sevicios socioculturales y a la comunidad', 'Oferta 1.Appforbrands',
-    'Oferta 2.Appforbrands', 'Oferta 3. Hosteleria y Restauracion',
-    'Prevención de Riesgos Laborales', 'SAP', 'Seguridad Privada', 'Transversal'
+    'Actividades Físicas y Deportivas',
+    'Actividades y Competencias Transversales',
+    'Administración y Gestión',
+    'Agraria',
+    'Artes Gráficas',
+    'Artes y Artesanías',
+    'Comercio y Marketing',
+    'Edificación y Obra Civil',
+    'Electricidad y Electrónica',
+    'Energía y Agua',
+    'Fabricación Mecánica',
+    'Hostelería y Turismo',
+    'Imagen Personal',
+    'Imagen y Sonido',
+    'Industrias Alimentarias',
+    'Industrias Extractivas',
+    'Informática y Comunicaciones',
+    'Instalación y Mantenimiento',
+    'Inteligencia Artificial y Data',
+    'Madera, Mueble y Corcho',
+    'Marítimo-Pesquera',
+    'Química',
+    'Sanidad',
+    'Seguridad y Medio Ambiente',
+    'Servicios Socioculturales y a la Comunidad',
+    'Textil, Confección y Piel',
+    'Transporte y Mantenimiento de Vehículos',
+    'Vidrio y Cerámica',
+    'Transversal',
+    'Certificado de Profesionalidad',
+    'Prevención de Riesgos Laborales',
+    'SAP',
+    'Seguridad Privada',
+    'Oferta 1.Appforbrands',
+    'Oferta 2.Appforbrands',
+    'Oferta 3. Hosteleria y Restauracion'
 ];
 
 // Fetch existing action if ID is provided

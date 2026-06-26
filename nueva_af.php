@@ -6,8 +6,35 @@ require_once 'includes/config.php';
 // Obtener planes y convocatorias para los selectores
 $planes = $pdo->query("SELECT id, nombre, codigo FROM planes ORDER BY nombre ASC")->fetchAll();
 $familias = [
-    'Administración y Gestión', 'Comercio y Marketing', 'Hostelería y Turismo', 
-    'Informática y Comunicaciones', 'Sanidad', 'Servicios Socioculturales', 'Transversal'
+    'Actividades Físicas y Deportivas',
+    'Actividades y Competencias Transversales',
+    'Administración y Gestión',
+    'Agraria',
+    'Artes Gráficas',
+    'Artes y Artesanías',
+    'Comercio y Marketing',
+    'Edificación y Obra Civil',
+    'Electricidad y Electrónica',
+    'Energía y Agua',
+    'Fabricación Mecánica',
+    'Hostelería y Turismo',
+    'Imagen Personal',
+    'Imagen y Sonido',
+    'Industrias Alimentarias',
+    'Industrias Extractivas',
+    'Informática y Comunicaciones',
+    'Instalación y Mantenimiento',
+    'Inteligencia Artificial y Data',
+    'Madera, Mueble y Corcho',
+    'Marítimo-Pesquera',
+    'Química',
+    'Sanidad',
+    'Seguridad y Medio Ambiente',
+    'Servicios Socioculturales y a la Comunidad',
+    'Textil, Confección y Piel',
+    'Transporte y Mantenimiento de Vehículos',
+    'Vidrio y Cerámica',
+    'Transversal'
 ];
 ?>
 <!DOCTYPE html>
