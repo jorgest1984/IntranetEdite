@@ -65,10 +65,7 @@ $familias = [
     'Certificado de Profesionalidad',
     'Prevención de Riesgos Laborales',
     'SAP',
-    'Seguridad Privada',
-    'Oferta 1.Appforbrands',
-    'Oferta 2.Appforbrands',
-    'Oferta 3. Hosteleria y Restauracion'
+    'Seguridad Privada'
 ];
 
 // Fetch existing action if ID is provided
