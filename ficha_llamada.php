@@ -22,6 +22,9 @@ if (isset($_GET['saved'])) {
 if (isset($_GET['scheduled'])) {
     $success_msg = "Cita programada correctamente.";
 }
+if (isset($_GET['deleted'])) {
+    $success_msg = "Registro de llamada eliminado correctamente.";
+}
 
 $llamada_db = null;
 $alumno_db = null;
@@ -452,6 +455,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_delete_call'])
     $target_call_id = $llamada_db ? $llamada_db['id'] : null;
     if ($puede_editar && $llamada_db) {
         try {
+            // Guardar detalles antes de borrar para auditar
+            $datos_antiguos = $llamada_db;
+            audit_log($pdo, 'LLAMADA_ELIMINADA', 'tutorias_seguimiento', $target_call_id, $datos_antiguos, null);
+
             $stmt = $pdo->prepare("DELETE FROM tutorias_seguimiento WHERE id = ?");
             $stmt->execute([$target_call_id]);
             header("Location: comerciales_llamadas.php?deleted=1");
@@ -461,6 +468,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_delete_call'])
         }
     } else {
         $error_msg = "No tienes permiso para eliminar esta llamada.";
+    }
+}
+
+// PROCESAR BORRADO DE LLAMADA DESDE EL HISTORIAL
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_delete_history_call'])) {
+    $delete_call_id = $_POST['delete_call_id'] ?? null;
+    if ($delete_call_id && has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_COMERCIAL])) {
+        try {
+            // Cargar detalles antes de borrar para auditar
+            $stmt_check = $pdo->prepare("SELECT * FROM tutorias_seguimiento WHERE id = ?");
+            $stmt_check->execute([$delete_call_id]);
+            $call_to_delete = $stmt_check->fetch(PDO::FETCH_ASSOC);
+
+            if ($call_to_delete) {
+                // Registrar log de auditoría
+                audit_log($pdo, 'LLAMADA_ELIMINADA', 'tutorias_seguimiento', $delete_call_id, $call_to_delete, null);
+
+                // Eliminar la llamada de la base de datos
+                $stmt = $pdo->prepare("DELETE FROM tutorias_seguimiento WHERE id = ?");
+                $stmt->execute([$delete_call_id]);
+
+                // Si la llamada eliminada era la llamada actualmente cargada, redirigir quitando call_id
+                if ($call_id && $call_id == $delete_call_id) {
+                    $redirect_url = "ficha_llamada.php?alumno_id=" . $alumno_id . "&deleted=1";
+                    if ($matricula_id) {
+                        $redirect_url .= "&matricula_id=" . $matricula_id;
+                    }
+                    header("Location: " . $redirect_url);
+                } else {
+                    // Mantenerse en la misma página con aviso de éxito
+                    $query_params = $_GET;
+                    $query_params['deleted'] = 1;
+                    header("Location: ficha_llamada.php?" . http_build_query($query_params));
+                }
+                exit();
+            } else {
+                $error_msg = "La llamada a eliminar no existe.";
+            }
+        } catch (Exception $e) {
+            $error_msg = "Error al eliminar la llamada: " . $e->getMessage();
+        }
+    } else {
+        $error_msg = "No tienes permisos para realizar esta acción.";
     }
 }
 
@@ -1269,11 +1319,19 @@ $cita_descripcion = $llamada_db['cita_descripcion'] ?? '';
                                                     <?php endif; ?>
                                                 </td>
                                                 <td style="padding: 10px; vertical-align: middle; text-align: center;">
-                                                    <?php if ($es_activa): ?>
-                                                        <span style="font-weight: 700; color: #0ea5e9; font-size: 0.75rem; text-transform: uppercase;">Editando</span>
-                                                    <?php else: ?>
-                                                        <a href="ficha_llamada.php?call_id=<?= $hl['id'] ?>" class="btn-efp" style="padding: 3px 8px; font-size: 0.7rem; text-decoration: none; display: inline-block; background: #f1f5f9; border: 1px solid var(--border-gray); color: var(--label-blue); border-radius: 3px; font-weight: 600;">Editar</a>
-                                                    <?php endif; ?>
+                                                    <div style="display: flex; gap: 5px; justify-content: center; align-items: center;">
+                                                        <?php if ($es_activa): ?>
+                                                            <span style="font-weight: 700; color: #0ea5e9; font-size: 0.75rem; text-transform: uppercase; margin-right: 5px;">Editando</span>
+                                                        <?php else: ?>
+                                                            <a href="ficha_llamada.php?call_id=<?= $hl['id'] ?>" class="btn-efp" style="padding: 3px 8px; font-size: 0.7rem; text-decoration: none; display: inline-block; background: #f1f5f9; border: 1px solid var(--border-gray); color: var(--label-blue); border-radius: 3px; font-weight: 600;">Editar</a>
+                                                        <?php endif; ?>
+                                                        
+                                                        <form method="POST" style="margin: 0;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta llamada del historial? Esta acción no se puede deshacer.');">
+                                                            <input type="hidden" name="action_delete_history_call" value="1">
+                                                            <input type="hidden" name="delete_call_id" value="<?= $hl['id'] ?>">
+                                                            <button type="submit" style="padding: 3px 8px; font-size: 0.7rem; background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; border-radius: 3px; font-weight: 600; cursor: pointer; display: inline-block; border-style: solid;">Borrar</button>
+                                                        </form>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
