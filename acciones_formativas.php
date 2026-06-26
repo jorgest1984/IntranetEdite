@@ -855,6 +855,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
         <?php if (!empty($_GET['plan_id'])): ?>
         <div id="tab-nueva" class="tab-content-af">
             <form action="procesar_nueva_af.php" method="POST" class="form-card-tab">
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                 <input type="hidden" name="plan_id" value="<?= (int)$_GET['plan_id'] ?>">
                 
                 <div class="section-title-tab">
