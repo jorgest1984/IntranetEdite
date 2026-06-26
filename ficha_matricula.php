@@ -70,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     try {
         $stmtUpdate = $pdo->prepare($sql);
         $stmtUpdate->execute([
-            $_POST['dni'] ?? null, $_POST['ss'] ?? null, $_POST['fecha_nacimiento'] ?? null,
+            $_POST['dni'] ?? null, $_POST['ss'] ?? null, empty($_POST['fecha_nacimiento']) ? null : $_POST['fecha_nacimiento'],
             $_POST['nombre'] ?? null, $_POST['primer_apellido'] ?? null, $_POST['segundo_apellido'] ?? null,
             $_POST['sexo'] ?? null,
             $_POST['tipo_via'] ?? null, $_POST['nombre_via'] ?? null, $_POST['num_domicilio'] ?? null, $_POST['escalera'] ?? null, $_POST['planta'] ?? null, $_POST['puerta'] ?? null,
