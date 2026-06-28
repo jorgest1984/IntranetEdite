@@ -533,12 +533,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         <?php endif; ?>
 
         <!-- TARJETA RESUMEN CURSO -->
-        <div class="card-resumen">
-            <div class="resumen-grid">
+        <div class="card-resumen" style="position: relative;">
+            <!-- Botón Editar en la esquina superior derecha -->
+            <button id="btn-edit-resumen" class="btn-outline" style="position: absolute; top: 10px; right: 10px; padding: 4px 8px; font-size: 0.75rem; display: flex; align-items: center; gap: 4px; cursor: pointer; border-radius: 6px;">
+                ✏️ Editar Curso / Fechas
+            </button>
+
+            <!-- Modo Vista (Static View) -->
+            <div id="resumen-view-mode" class="resumen-grid">
                 <div class="resumen-item">
                     <span class="resumen-label">Acción / Grupo</span>
                     <span class="resumen-value">
-                        <span style="background: #e0f2fe; color: #0284c7; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; margin-right: 4px;">AC</span><?= htmlspecialchars($matricula['af_abreviatura'] ?? 'N/A') ?> 
+                        <span style="background: #e0f2fe; color: #0284c7; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; margin-right: 4px;">AC</span><?= htmlspecialchars($matricula['af_num_accion'] ?? '') ?><?= !empty($matricula['af_num_accion']) && !empty($matricula['af_abreviatura']) ? ' - ' : '' ?><?= htmlspecialchars($matricula['af_abreviatura'] ?? 'N/A') ?> 
                         <span style="background: #f1f5f9; color: #475569; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; margin-left: 8px; margin-right: 4px;">GR</span><?= htmlspecialchars($matricula['numero_grupo'] ?? 'N/A') ?>
                     </span>
                 </div>
@@ -556,6 +562,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         🏁 <?= !empty($matricula['grupo_fin']) ? date('d/m/Y', strtotime($matricula['grupo_fin'])) : '--/--/----' ?>
                     </span>
                 </div>
+            </div>
+
+            <!-- Modo Edición (Form View) - Oculto por defecto -->
+            <div id="resumen-edit-mode" style="display: none; padding-top: 15px;">
+                <form method="POST">
+                    <input type="hidden" name="action" value="update_datos_curso">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
+                    
+                    <div class="resumen-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                        <div class="resumen-item">
+                            <label class="resumen-label" style="font-weight: 700; margin-bottom: 4px;">Plan</label>
+                            <select name="plan_id" class="form-control" style="padding: 6px; font-size: 0.85rem; height: 32px;">
+                                <option value="">Seleccione Plan</option>
+                                <?php foreach($planes as $p): ?>
+                                    <option value="<?= $p['id'] ?>" <?= ($matricula['matricula_plan_id'] ?? '') == $p['id'] ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($p['nombre']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        
+                        <div class="resumen-item">
+                            <label class="resumen-label" style="font-weight: 700; margin-bottom: 4px;">Código grupo</label>
+                            <select name="grupo_id" class="form-control" style="padding: 6px; font-size: 0.85rem; height: 32px;">
+                                <option value="">Seleccione Grupo...</option>
+                                <?php foreach ($todos_grupos as $g): ?>
+                                    <option value="<?= $g['id'] ?>" <?= ($matricula['grupo_id'] ?? '') == $g['id'] ? 'selected' : '' ?>>
+                                        [<?= htmlspecialchars($g['curso_codigo'] ?? '') ?>] Grupo <?= htmlspecialchars($g['numero_grupo'] ?? '') ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <div class="resumen-item">
+                            <label class="resumen-label" style="font-weight: 700; margin-bottom: 4px;">Nº de Acción</label>
+                            <input type="text" name="af_num_accion" class="form-control" value="<?= htmlspecialchars($matricula['af_num_accion'] ?? '') ?>" placeholder="Ej: 0001" style="padding: 6px; font-size: 0.85rem; height: 32px;">
+                        </div>
+
+                        <div class="resumen-item">
+                            <label class="resumen-label" style="font-weight: 700; margin-bottom: 4px;">Fecha de Inicio</label>
+                            <input type="date" name="grupo_inicio" class="form-control" value="<?= !empty($matricula['grupo_inicio']) ? date('Y-m-d', strtotime($matricula['grupo_inicio'])) : '' ?>" style="padding: 6px; font-size: 0.85rem; height: 32px;">
+                        </div>
+
+                        <div class="resumen-item">
+                            <label class="resumen-label" style="font-weight: 700; margin-bottom: 4px;">Fecha de Fin</label>
+                            <input type="date" name="grupo_fin" class="form-control" value="<?= !empty($matricula['grupo_fin']) ? date('Y-m-d', strtotime($matricula['grupo_fin'])) : '' ?>" style="padding: 6px; font-size: 0.85rem; height: 32px;">
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" id="btn-cancel-resumen" class="btn-outline" style="padding: 6px 12px; font-size: 0.8rem; cursor: pointer; border-radius: 6px;">Cancelar</button>
+                        <button type="submit" class="btn-modern btn-primary-modern" style="padding: 6px 16px; font-size: 0.8rem; cursor: pointer; border-radius: 6px;">💾 Guardar</button>
+                    </div>
+                </form>
             </div>
         </div>
 
@@ -1893,6 +1953,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 }
             });
         });
+
+        // Resumen Edit/View Mode toggle
+        const btnEditResumen = document.getElementById('btn-edit-resumen');
+        const btnCancelResumen = document.getElementById('btn-cancel-resumen');
+        const resumenViewMode = document.getElementById('resumen-view-mode');
+        const resumenEditMode = document.getElementById('resumen-edit-mode');
+
+        if (btnEditResumen && btnCancelResumen && resumenViewMode && resumenEditMode) {
+            btnEditResumen.addEventListener('click', (e) => {
+                e.preventDefault();
+                resumenViewMode.style.display = 'none';
+                resumenEditMode.style.display = 'block';
+                btnEditResumen.style.display = 'none';
+            });
+
+            btnCancelResumen.addEventListener('click', (e) => {
+                e.preventDefault();
+                resumenViewMode.style.display = 'grid';
+                resumenEditMode.style.display = 'none';
+                btnEditResumen.style.display = 'block';
+            });
+        }
     });
 </script>
 
