@@ -639,21 +639,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
             <div class="results-section-premium">
                 <div class="results-header-premium">
                     <h2>Gestión de Acciones Formativas</h2>
-                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                        <?php
-                        $queryString = $_SERVER['QUERY_STRING'];
-                        ?>
-                        <button type="button" class="btn btn-glass" style="border: 1px solid var(--border-color); font-size: 0.78rem; padding: 0.5rem 1rem;" onclick="window.open('imprimir_contenidos.php?<?= htmlspecialchars($queryString) ?>', '_blank')">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#dc2626" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                            Imprimir Contenidos
-                        </button>
-                        <button type="button" class="btn btn-glass" style="border: 1px solid var(--border-color); font-size: 0.78rem; padding: 0.5rem 1rem;" onclick="window.open('imprimir_contenidos.php?<?= htmlspecialchars($queryString) ?>&tipo=resumido', '_blank')">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#2563eb" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
-                            Contenidos resumidos
-                        </button>
+                    <div>
                         <button type="button" class="btn btn-glass" style="border: 1px solid var(--border-color); font-size: 0.78rem; padding: 0.5rem 1rem;" onclick="window.print()">
                             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#475569" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-                            Imprimir
+                            Imprimir Pantalla
                         </button>
                     </div>
                 </div>
@@ -700,6 +689,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
                                         </td>
                                         <td data-label="Acciones">
                                             <div style="display: flex; gap: 8px; justify-content: center;">
+                                                <a href="imprimir_contenidos.php?id_accion=<?= $row['id'] ?>" target="_blank" class="btn-action" style="color: #dc2626;" title="Imprimir Contenidos">
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                                </a>
+                                                <a href="imprimir_contenidos.php?id_accion=<?= $row['id'] ?>&tipo=resumido" target="_blank" class="btn-action" style="color: #2563eb;" title="Contenidos resumidos">
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                                                </a>
                                                 <a href="editar_af.php?id=<?= $row['id'] ?>" class="btn-action" title="Editar Parámetros">
                                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                                 </a>
