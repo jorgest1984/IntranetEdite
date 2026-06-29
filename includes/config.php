@@ -1,6 +1,9 @@
 <?php
 // includes/config.php
 
+// Forzar zona horaria en PHP para España (Madrid)
+date_default_timezone_set('Europe/Madrid');
+
 // Detección de entorno (Local vs Preproducción vs Producción)
 $host = $_SERVER['HTTP_HOST'] ?? '';
 $is_local = in_array($host, ['localhost', '127.0.0.1', 'localhost:8000', 'localhost:3000']);
@@ -84,6 +87,20 @@ if ($is_local) {
     } catch (PDOException $e) {
         throw new Exception("Error de conexión en PRODUCCIÓN (Plesk): " . $e->getMessage());
     }
+}
+
+// Configurar zona horaria de la conexión a la base de datos (compatibilidad con y sin tablas de zonas cargadas en MySQL)
+try {
+    $pdo->exec("SET time_zone = 'Europe/Madrid'");
+} catch (PDOException $e) {
+    $now = new DateTime();
+    $mins = $now->getOffset() / 60;
+    $sgn = ($mins < 0 ? -1 : 1);
+    $mins = abs($mins);
+    $hrs = floor($mins / 60);
+    $mins -= $hrs * 60;
+    $offset = sprintf('%+03d:%02d', $hrs * $sgn, $mins);
+    $pdo->exec("SET time_zone = '$offset'");
 }
 
 // Cabeceras de seguridad HTTP globales (ISO 27001)

@@ -4,6 +4,9 @@
  * Este archivo DEBE subirse a tu servidor Plesk.
  */
 
+// Forzar zona horaria en PHP para España (Madrid)
+date_default_timezone_set('Europe/Madrid');
+
 // --- CONFIGURACIÓN DE SEGURIDAD ---
 define('BRIDGE_SECRET_KEY', 'dbbea329538b1694971d7ee66cc3e4673');
 
@@ -49,6 +52,20 @@ try {
     $pdo = new PDO("mysql:host=" . LOCAL_DB_HOST . ";dbname=" . LOCAL_DB_NAME . ";charset=utf8mb4", LOCAL_DB_USER, LOCAL_DB_PASS);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    
+    // Configurar zona horaria de la conexión a la base de datos (compatibilidad con y sin tablas de zonas cargadas en MySQL)
+    try {
+        $pdo->exec("SET time_zone = 'Europe/Madrid'");
+    } catch (PDOException $e) {
+        $now = new DateTime();
+        $mins = $now->getOffset() / 60;
+        $sgn = ($mins < 0 ? -1 : 1);
+        $mins = abs($mins);
+        $hrs = floor($mins / 60);
+        $mins -= $hrs * 60;
+        $offset = sprintf('%+03d:%02d', $hrs * $sgn, $mins);
+        $pdo->exec("SET time_zone = '$offset'");
+    }
 } catch (PDOException $e) {
     echo json_encode(['error' => 'Connection failed: ' . $e->getMessage()]);
     exit;
