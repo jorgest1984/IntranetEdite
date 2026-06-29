@@ -253,49 +253,235 @@ $current_page = 'grupos.php';
             </div>
             <form method="GET" style="margin: 0;">
                 <div class="form-grid">
-                    <!-- Fila 1 -->
-                    <div class="form-group-custom span-3">
+                    <!-- Grupo 1: Curso, Convocatoria y Plan -->
+                    <div class="form-group-custom span-4">
                         <label>Curso:</label>
-                        <input type="text" name="curso" class="form-control">
+                        <input type="text" name="curso" class="form-control" value="<?= htmlspecialchars($_GET['curso'] ?? '') ?>">
                     </div>
-                    <div class="form-group-custom span-2">
-                        <label>Código grupo:</label>
-                        <input type="text" name="codigo_grupo" class="form-control">
-                    </div>
-                    <div class="form-group-custom span-2">
-                        <label>Situación:</label>
-                        <select name="situacion" class="form-control">
-                            <option value="">Todas</option>
-                            <option value="Valido">Válido</option>
-                            <option value="Suspendido">Suspendido</option>
-                            <option value="Finalizado">Finalizado</option>
-                            <option value="Lista espera">Lista espera</option>
-                            <option value="Inactivo">Inactivo</option>
+                    <div class="form-group-custom span-4">
+                        <label>Convocatoria:</label>
+                        <select name="convocatoria_id" class="form-control">
+                            <option value="">Todas las convocatorias</option>
+                            <?php foreach ($convocatorias as $conv): ?>
+                                <option value="<?= $conv['id'] ?>" <?= (isset($_GET['convocatoria_id']) && $_GET['convocatoria_id'] == $conv['id']) ? 'selected' : '' ?>><?= htmlspecialchars($conv['nombre']) ?></option>
+                            <?php endforeach; ?>
                         </select>
+                    </div>
+                    <div class="form-group-custom span-4">
+                        <label>Plan:</label>
+                        <select name="plan_id" class="form-control">
+                            <option value="">Todos los planes</option>
+                            <?php foreach ($planes as $p): ?>
+                                <option value="<?= $p['id'] ?>" <?= (isset($_GET['plan_id']) && $_GET['plan_id'] == $p['id']) ? 'selected' : '' ?>><?= htmlspecialchars($p['nombre']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <!-- Grupo 2: Detalles del Grupo y Asignación -->
+                    <div class="form-group-custom span-3">
+                        <label>Código grupo:</label>
+                        <input type="text" name="codigo_grupo" class="form-control" value="<?= htmlspecialchars($_GET['codigo_grupo'] ?? '') ?>">
+                    </div>
+                    <div class="form-group-custom span-3">
+                        <label>Acción:</label>
+                        <input type="text" name="accion" class="form-control" value="<?= htmlspecialchars($_GET['accion'] ?? '') ?>">
+                    </div>
+                    <div class="form-group-custom span-2">
+                        <label>Grupo (Nº):</label>
+                        <input type="text" name="grupo_num" class="form-control" value="<?= htmlspecialchars($_GET['grupo_num'] ?? '') ?>">
                     </div>
                     <div class="form-group-custom span-2">
                         <label>Modalidad:</label>
                         <select name="modalidad" class="form-control">
                             <option value="">Todas</option>
-                            <option value="Presencial">Presencial</option>
-                            <option value="Teleformación">Teleformación</option>
-                            <option value="Mixta">Mixta</option>
+                            <option value="Presencial" <?= (isset($_GET['modalidad']) && $_GET['modalidad'] == 'Presencial') ? 'selected' : '' ?>>Presencial</option>
+                            <option value="Teleformación" <?= (isset($_GET['modalidad']) && $_GET['modalidad'] == 'Teleformación') ? 'selected' : '' ?>>Teleformación</option>
+                            <option value="Mixta" <?= (isset($_GET['modalidad']) && $_GET['modalidad'] == 'Mixta') ? 'selected' : '' ?>>Mixta</option>
                         </select>
                     </div>
-                    <div class="form-group-custom span-3">
+                    <div class="form-group-custom span-2">
+                        <label>Asignación:</label>
+                        <select name="asignacion" class="form-control">
+                            <option value="">Todas</option>
+                            <option value="I" <?= (isset($_GET['asignacion']) && $_GET['asignacion'] == 'I') ? 'selected' : '' ?>>I</option>
+                            <option value="E" <?= (isset($_GET['asignacion']) && $_GET['asignacion'] == 'E') ? 'selected' : '' ?>>E</option>
+                            <option value="M" <?= (isset($_GET['asignacion']) && $_GET['asignacion'] == 'M') ? 'selected' : '' ?>>M</option>
+                        </select>
+                    </div>
+
+                    <!-- Grupo 3: Tutores y Ubicación -->
+                    <div class="form-group-custom span-4">
                         <label>Tutor:</label>
                         <select name="tutor" class="form-control">
                             <option value="">Todos</option>
                             <?php foreach ($tutores as $t): ?>
-                                <option value="<?= $t['id'] ?>"><?= htmlspecialchars($t['nombre']) ?></option>
+                                <option value="<?= $t['id'] ?>" <?= (isset($_GET['tutor']) && $_GET['tutor'] == $t['id']) ? 'selected' : '' ?>><?= htmlspecialchars($t['nombre']) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
-
-                    <!-- Fila 2 -->
-                    <div class="form-group-custom span-4">
+                    <div class="form-group-custom span-5">
+                        <label>Centro impartición:</label>
+                        <input type="text" name="centro" id="centro-input" class="form-control" list="centros-list" placeholder="Escriba el centro..." value="<?= htmlspecialchars($_GET['centro'] ?? '') ?>">
+                        <datalist id="centros-list">
+                            <?php foreach ($centros as $c): ?>
+                                <option value="<?= htmlspecialchars($c['nombre']) ?>">
+                            <?php endforeach; ?>
+                            <!-- Centros adicionales -->
+                            <option value="A. F. C. CONSULTING DEPORTIVO">
+                            <option value="ACADEMIA CERVANTES , CARLOS AMEZ LAIZ CB">
+                            <option value="ACADEMIA FIPP">
+                            <option value="ACADEMIA SOCE S.L.U.">
+                            <option value="ACADEMIA TECNAS">
+                            <option value="ACADEMIA VIGILANT S.L.">
+                            <option value="ACADEMIA VISAN">
+                            <option value="ADAMS">
+                            <option value="AE S. MARTIN">
+                            <option value="AEFOL EXPOELEARNING S.L.">
+                            <option value="AESS">
+                            <option value="AFA-FORMACION CONTINUA S.L.">
+                            <option value="AGE">
+                            <option value="AMUSAL">
+                            <option value="AREA FORMACION AULAS">
+                            <option value="asimag servicios empresariales, s.l">
+                            <option value="ASIMAG SERVICIOS EMPRESARIALES, S.L.">
+                            <option value="Association Puerta de Alcalá">
+                            <option value="ATENTO TELESERVICIOS ESPAÑA, S.A.">
+                            <option value="AUDEMA">
+                            <option value="AUTOESCUELA EMERITA S.L.">
+                            <option value="AVEFOR ARAGÓN DAIDA PEREZ HERNANDEZ">
+                            <option value="AVIZOR, CENTRO SUPERIOR DE FORMACIÓN EN ESTUDIOS D">
+                            <option value="Ayuntamiento de Cajar">
+                            <option value="AZUVIS S.C.A">
+                            <option value="BODYFACTORY SOMOSAGUAS">
+                            <option value="BOROXSPORT CLUB SPORT">
+                            <option value="C/ CORCEGA,371">
+                            <option value="CAD-SEGURIDAD">
+                            <option value="CENTRO DE ENSEÑANZAS PROFESIONALES Y TECNOLOGICAS">
+                            <option value="Centro de Estudio Arsenio Toral S.A.L.">
+                            <option value="Centro de Estudio Arsenio Toral S.A.L.. 2012">
+                            <option value="CENTRO DE ESTUDIOS APPA SCL">
+                            <option value="CENTRO DE ESTUDIOS DE FORMACION ALFER">
+                            <option value="CENTRO DE ESTUDIOS DE FORMACION ALFER S.L.">
+                            <option value="CENTRO DE ESTUDIOS LA ACADEMIA CB">
+                            <option value="Centro de Estudios y Experimentación de Obras Públ">
+                            <option value="CENTRO DE FORMACION ALFER">
+                            <option value="CENTRO DE FORMACION ARSENIO JIMENO">
+                            <option value="centro de formación oasis">
+                            <option value="CENTRO DE FORMACION PRAXIS">
+                            <option value="CENTRO DE FORMACION PRAXIS II">
+                            <option value="CENTRO EMPRESARIAL CEMEI">
+                            <option value="CEPAL">
+                            <option value="CFI SEGURIDAD">
+                            <option value="CICE S.A">
+                            <option value="CIS-FORMACION ESPECIALIZADA SEGURIDAD-SALUD S.L.">
+                            <option value="Ciudad Escuela de Formacion">
+                            <option value="CLUB DE GOLF GUADALMINA">
+                            <option value="CLUB DE TENIS Y PADEL MONTEVERDE">
+                            <option value="Club Natació Barcelona">
+                            <option value="CLUB NAUTICO DE GANDIA">
+                            <option value="COMERCIANTES DEL PONIENTE, S.A.">
+                            <option value="Consultores de Formacion">
+                            <option value="CONSULTORIA Y FORMACION BALBO S.L">
+                            <option value="CONTROL DE FORMACION">
+                            <option value="CREATI MOMENTUM">
+                            <option value="D.D. SPORT FG S.L. (CIS)">
+                            <option value="Dedalo Proyectos XYZ (Vicar)">
+                            <option value="EDIFICIO SINDICATOS (A CORUÑA)">
+                            <option value="EDITEFORMACION (Madrid)">
+                            <option value="EDITEFORMACION-MERCAOLID">
+                            <option value="EDITRAIN SL">
+                            <option value="EDITRAIN, S.L. (P.E.LA FINCA)">
+                            <option value="El Ser Creativo SL">
+                            <option value="EL VENTAL DE OCASION S.L.">
+                            <option value="ELOGOS, S.L.">
+                            <option value="EMPRESA MIXTA DE SERVICIOS FUNERARIOS DE MADRID">
+                            <option value="ENSEÑANZAS ORTHOS">
+                            <option value="ESCUELA DE FORMACIÓN PROFESIONAL">
+                            <option value="ESCUELA DE FORMACIÓN PROFESIONAL (Vícar)">
+                            <option value="Escuela Internacional de Gerencia">
+                            <option value="ESTACION DISEÑO">
+                            <option value="ESTACION DISEÑO (Antiguo)">
+                            <option value="EUROPEANQUALITY S.L.">
+                            <option value="F.I.P.P">
+                            <option value="FEDERAC. PROV. DE MINUSVALIDOS FISICOS DE CORDOBA">
+                            <option value="FESS LA SALLE">
+                            <option value="FONDO DE PROMOCION Y DESARROLLO PROFESIONAL">
+                            <option value="FPDP">
+                            <option value="FPDP-VALENCIA">
+                            <option value="FUNDACIÓN SAN VALERO">
+                            <option value="GENERAL PLAN">
+                            <option value="GESTIÓN DE LA EXCELENCIA Y COACHING APLICADO A LOS">
+                            <option value="Gimnasio Triunfo S.A.">
+                            <option value="Green Apple School">
+                            <option value="GREEN TAL S.A.">
+                            <option value="Grupo Coremsa">
+                            <option value="GRUPO DTM CONSULTING S.L.U.">
+                            <option value="GRUPO EDNE, S.L.">
+                            <option value="GRUPO SUR RECICLAJE Y FORMACIÓN S.L.">
+                            <option value="Hotel Avenida">
+                            <option value="IDFO">
+                            <option value="IFES">
+                            <option value="IFES ( ZARAGOZA)">
+                            <option value="IFES (EUSKADI)">
+                            <option value="IFES NAVARRA">
+                            <option value="IFES UGT">
+                            <option value="IFES-CENTRO DE FORMACION ARSENIO JIMENO">
+                            <option value="IFES-SEVILLA">
+                            <option value="IFES-UGT (ALICANTE)">
+                            <option value="INGAFOR">
+                            <option value="INSFORCAN, S.L CENTRO DE ESTUDIOS EMPRESARIALES">
+                            <option value="Instituto Educacion Secundaria Elaios">
+                            <option value="INSTITUTO FORMACION ESTUDIOS SOCIALES">
+                            <option value="INSTITUTO MADRILEÑO DE FORMACION S.L">
+                            <option value="LA MIRADA DIGITAL">
+                            <option value="LA MIRADA DIGITAL, S.L.">
+                            <option value="MAREN">
+                            <option value="MARSDIGITAL S.L (antiguo)">
+                            <option value="Marsdigital S.L (Granada )">
+                            <option value="Marsdigital S.L. (Barcelona)">
+                            <option value="Marsdigital S.L. (la Mirada)">
+                            <option value="MASTER (CENTRO DE ESTUDIOS - TIENDA DE INFORMATICA">
+                            <option value="MBNA EUROPE BANK LIMITED ESPAÑA">
+                            <option value="Método Consultores, S.L">
+                            <option value="METODO ESTUDIOS CONSULTORES ( ARENAL)">
+                            <option value="METODO ESTUDIOS CONSULTORES, S.L.">
+                            <option value="METODO ESTUDIOS CONSULTORES,S.L (C/DIEGO)">
+                            <option value="MGI NEVA CENTROS DE FORMACION">
+                            <option value="MORTUALBA SCL ( TANATORIO MUNICIPAL ALBACETE)">
+                            <option value="OROVIDA S.L.">
+                            <option value="PARCESA, PARQUES DE LA PAZ S.A">
+                            <option value="PARCESA, PARQUES DE LA PAZ S.A ( segundo centro)">
+                            <option value="PARCESA, PARQUES DE LA PAZ S.A ( tercer centro)">
+                            <option value="POLIDEPORTIVO LAS CRUCES">
+                            <option value="PRODUCCIONES HINOJOSA BECERRA MEDIA2 S.L">
+                            <option value="PROINTEC S.A.">
+                            <option value="PROMAX S.L.L">
+                            <option value="Remo RCNGandia">
+                            <option value="SANTAGADEA GESTIÓN S.L. ( CENTRO DE DEPORTIVO DEHESA">
+                            <option value="SEGURIDAD CERES S.A.">
+                            <option value="SERVICIOS FUNERARIOS DE BARCELONA">
+                            <option value="SERVICIOS SECURITAS S.A.">
+                            <option value="Soom Management S.L">
+                            <option value="SQUASH GYM SIERRA S.L.">
+                            <option value="Swiss Sports Club">
+                            <option value="TALKING ENGLISH">
+                            <option value="TANATORIO MONTSERRAT TRUYOLS">
+                            <option value="TANATORIO MUNICIPAL CIUDAD DE VALENCIA">
+                            <option value="TANATORIO SAN LAZARO S.L.">
+                            <option value="TANATORIO SERVICIOS FUNERARIOS SAGUNTO. FUALRUB S.">
+                            <option value="TANATORIO TORRERO">
+                            <option value="TANATORIO VELATORIO LUCENSES">
+                            <option value="Tecnas">
+                            <option value="TWENTY4HELP KNOWLEDGE SERVICE ESPAÑA">
+                            <option value="ULTRAGYM/BODY FACTORY">
+                            <option value="Universidad de Granada">
+                            <option value="VALLADOLID 1402 S.L. ESCUELA DE SEGURIDAD">
+                            <option value="vigilantes">
+                        </datalist>
+                    </div>
+                    <div class="form-group-custom span-3">
                         <label>Provincia de impartición:</label>
-                        <input type="text" name="provincia" id="provincia-input" class="form-control" list="provincias-list" placeholder="Escriba la provincia...">
+                        <input type="text" name="provincia" id="provincia-input" class="form-control" list="provincias-list" placeholder="Escriba la provincia..." value="<?= htmlspecialchars($_GET['provincia'] ?? '') ?>">
                         <datalist id="provincias-list">
                             <option value="Álava">
                             <option value="Albacete">
@@ -351,272 +537,81 @@ $current_page = 'grupos.php';
                             <option value="Melilla">
                         </datalist>
                     </div>
-                    <div class="form-group-custom span-5">
-                        <label>Centro impartición:</label>
-                        <input type="text" name="centro" id="centro-input" class="form-control" list="centros-list" placeholder="Escriba el centro...">
-                        <datalist id="centros-list">
-                            <?php foreach ($centros as $c): ?>
-                                <option value="<?= htmlspecialchars($c['nombre']) ?>">
-                            <?php endforeach; ?>
-                            <!-- Centros adicionales de la imagen -->
-                            <option value="A. F. C. CONSULTING DEPORTIVO">
-                            <option value="ACADEMIA CERVANTES , CARLOS AMEZ LAIZ CB">
-                            <option value="ACADEMIA FIPP">
-                            <option value="ACADEMIA SOCE S.L.U.">
-                            <option value="ACADEMIA TECNAS">
-                            <option value="ACADEMIA VIGILANT S.L.">
-                            <option value="ACADEMIA VISAN">
-                            <option value="ADAMS">
-                            <option value="AE S. MARTIN">
-                            <option value="AEFOL EXPOELEARNING S.L.">
-                            <option value="AESS">
-                            <option value="AFA-FORMACION CONTINUA S.L.">
-                            <option value="AGE">
-                            <option value="AMUSAL">
-                            <option value="AREA FORMACION AULAS">
-                            <option value="asimag servicios empresariales, s.l">
-                            <option value="ASIMAG SERVICIOS EMPRESARIALES, S.L.">
-                            <option value="Association Puerta de Alcalá">
-                            <option value="ATENTO TELESERVICIOS ESPAÑA, S.A.">
-                            <!-- Segunda tanda de centros -->
-                            <option value="AUDEMA">
-                            <option value="AUTOESCUELA EMERITA S.L.">
-                            <option value="AVEFOR ARAGÓN DAIDA PEREZ HERNANDEZ">
-                            <option value="AVIZOR, CENTRO SUPERIOR DE FORMACIÓN EN ESTUDIOS D">
-                            <option value="Ayuntamiento de Cajar">
-                            <option value="AZUVIS S.C.A">
-                            <option value="BODYFACTORY SOMOSAGUAS">
-                            <option value="BOROXSPORT CLUB SPORT">
-                            <option value="C/ CORCEGA,371">
-                            <option value="CAD-SEGURIDAD">
-                            <option value="CENTRO DE ENSEÑANZAS PROFESIONALES Y TECNOLOGICAS">
-                            <option value="Centro de Estudio Arsenio Toral S.A.L.">
-                            <option value="Centro de Estudio Arsenio Toral S.A.L.. 2012">
-                            <option value="CENTRO DE ESTUDIOS APPA SCL">
-                            <option value="CENTRO DE ESTUDIOS DE FORMACION ALFER">
-                            <option value="CENTRO DE ESTUDIOS DE FORMACION ALFER S.L.">
-                            <option value="CENTRO DE ESTUDIOS LA ACADEMIA CB">
-                            <option value="Centro de Estudios y Experimentación de Obras Públ">
-                            <option value="CENTRO DE FORMACION ALFER">
-                            <option value="CENTRO DE FORMACION ARSENIO JIMENO">
-                            <!-- Tercera tanda de centros -->
-                            <option value="centro de formación oasis">
-                            <option value="CENTRO DE FORMACION PRAXIS">
-                            <option value="CENTRO DE FORMACION PRAXIS II">
-                            <option value="CENTRO EMPRESARIAL CEMEI">
-                            <option value="CEPAL">
-                            <option value="CFI SEGURIDAD">
-                            <option value="CICE S.A">
-                            <option value="CIS-FORMACION ESPECIALIZADA SEGURIDAD-SALUD S.L.">
-                            <option value="Ciudad Escuela de Formacion">
-                            <option value="CLUB DE GOLF GUADALMINA">
-                            <option value="CLUB DE TENIS Y PADEL MONTEVERDE">
-                            <option value="Club Natació Barcelona">
-                            <option value="CLUB NAUTICO DE GANDIA">
-                            <option value="COMERCIANTES DEL PONIENTE, S.A.">
-                            <option value="Consultores de Formacion">
-                            <option value="CONSULTORIA Y FORMACION BALBO S.L">
-                            <option value="CONTROL DE FORMACION">
-                            <option value="CREATI MOMENTUM">
-                            <option value="D.D. SPORT FG S.L. (CIS)">
-                            <option value="Dedalo Proyectos XYZ (Vicar)">
-                            <!-- Cuarta tanda de centros -->
-                            <option value="EDIFICIO SINDICATOS (A CORUÑA)">
-                            <option value="EDITEFORMACION (Madrid)">
-                            <option value="EDITEFORMACION-MERCAOLID">
-                            <option value="EDITRAIN SL">
-                            <option value="EDITRAIN, S.L. (P.E.LA FINCA)">
-                            <option value="El Ser Creativo SL">
-                            <option value="EL VENTAL DE OCASION S.L.">
-                            <option value="ELOGOS, S.L.">
-                            <option value="EMPRESA MIXTA DE SERVICIOS FUNERARIOS DE MADRID">
-                            <option value="ENSEÑANZAS ORTHOS">
-                            <option value="ESCUELA DE FORMACIÓN PROFESIONAL">
-                            <option value="ESCUELA DE FORMACIÓN PROFESIONAL (Vícar)">
-                            <option value="Escuela Internacional de Gerencia">
-                            <option value="ESTACION DISEÑO">
-                            <option value="ESTACION DISEÑO (Antiguo)">
-                            <option value="EUROPEANQUALITY S.L.">
-                            <option value="F.I.P.P">
-                            <option value="FEDERAC. PROV. DE MINUSVALIDOS FISICOS DE CORDOBA">
-                            <!-- Quinta tanda de centros -->
-                            <option value="FESS LA SALLE">
-                            <option value="FONDO DE PROMOCION Y DESARROLLO PROFESIONAL">
-                            <option value="FPDP">
-                            <option value="FPDP-VALENCIA">
-                            <option value="FUNDACIÓN SAN VALERO">
-                            <option value="GENERAL PLAN">
-                            <option value="GESTIÓN DE LA EXCELENCIA Y COACHING APLICADO A LOS">
-                            <option value="Gimnasio Triunfo S.A.">
-                            <option value="Green Apple School">
-                            <option value="GREEN TAL S.A.">
-                            <option value="Grupo Coremsa">
-                            <option value="GRUPO DTM CONSULTING S.L.U.">
-                            <option value="GRUPO EDNE, S.L.">
-                            <option value="GRUPO SUR RECICLAJE Y FORMACIÓN S.L.">
-                            <option value="Hotel Avenida">
-                            <option value="IDFO">
-                            <option value="IFES">
-                            <option value="IFES ( ZARAGOZA)">
-                            <option value="IFES (EUSKADI)">
-                            <option value="IFES NAVARRA">
-                            <!-- Sexta tanda de centros -->
-                            <option value="IFES UGT">
-                            <option value="IFES-CENTRO DE FORMACION ARSENIO JIMENO">
-                            <option value="IFES-SEVILLA">
-                            <option value="IFES-UGT (ALICANTE)">
-                            <option value="INGAFOR">
-                            <option value="INSFORCAN, S.L CENTRO DE ESTUDIOS EMPRESARIALES">
-                            <option value="Instituto Educacion Secundaria Elaios">
-                            <option value="INSTITUTO FORMACION ESTUDIOS SOCIALES">
-                            <option value="INSTITUTO MADRILEÑO DE FORMACION S.L">
-                            <option value="LA MIRADA DIGITAL">
-                            <option value="LA MIRADA DIGITAL, S.L.">
-                            <option value="MAREN">
-                            <option value="MARSDIGITAL S.L (antiguo)">
-                            <option value="Marsdigital S.L (Granada )">
-                            <option value="Marsdigital S.L. (Barcelona)">
-                            <option value="Marsdigital S.L. (la Mirada)">
-                            <option value="MASTER (CENTRO DE ESTUDIOS - TIENDA DE INFORMATICA">
-                            <option value="MBNA EUROPE BANK LIMITED ESPAÑA">
-                            <option value="Método Consultores, S.L">
-                            <!-- Séptima tanda de centros -->
-                            <option value="METODO ESTUDIOS CONSULTORES ( ARENAL)">
-                            <option value="METODO ESTUDIOS CONSULTORES, S.L.">
-                            <option value="METODO ESTUDIOS CONSULTORES,S.L (C/DIEGO)">
-                            <option value="MGI NEVA CENTROS DE FORMACION">
-                            <option value="MORTUALBA SCL ( TANATORIO MUNICIPAL ALBACETE)">
-                            <option value="OROVIDA S.L.">
-                            <option value="PARCESA, PARQUES DE LA PAZ S.A">
-                            <option value="PARCESA, PARQUES DE LA PAZ S.A ( segundo centro)">
-                            <option value="PARCESA, PARQUES DE LA PAZ S.A ( tercer centro)">
-                            <option value="POLIDEPORTIVO LAS CRUCES">
-                            <option value="PRODUCCIONES HINOJOSA BECERRA MEDIA2 S.L">
-                            <option value="PROINTEC S.A.">
-                            <option value="PROMAX S.L.L">
-                            <option value="Remo RCNGandia">
-                            <option value="SANTAGADEA GESTIÓN S.L. ( CENTRO DE DEPORTIVO DEHESA">
-                            <option value="SEGURIDAD CERES S.A.">
-                            <option value="SERVICIOS FUNERARIOS DE BARCELONA">
-                            <option value="SERVICIOS SECURITAS S.A.">
-                            <option value="Soom Management S.L">
-                            <!-- Octava y última tanda de centros -->
-                            <option value="SQUASH GYM SIERRA S.L.">
-                            <option value="Swiss Sports Club">
-                            <option value="TALKING ENGLISH">
-                            <option value="TANATORIO MONTSERRAT TRUYOLS">
-                            <option value="TANATORIO MUNICIPAL CIUDAD DE VALENCIA">
-                            <option value="TANATORIO SAN LAZARO S.L.">
-                            <option value="TANATORIO SERVICIOS FUNERARIOS SAGUNTO. FUALRUB S.">
-                            <option value="TANATORIO TORRERO">
-                            <option value="TANATORIO VELATORIO LUCENSES">
-                            <option value="Tecnas">
-                            <option value="TWENTY4HELP KNOWLEDGE SERVICE ESPAÑA">
-                            <option value="ULTRAGYM/BODY FACTORY">
-                            <option value="Universidad de Granada">
-                            <option value="VALLADOLID 1402 S.L. ESCUELA DE SEGURIDAD">
-                            <option value="vigilantes">
-                        </datalist>
+
+                    <!-- Grupo 4: Fechas de Inicio y Fin -->
+                    <div class="form-group-custom span-3">
+                        <label>Fecha inicio desde:</label>
+                        <input type="date" name="fecha_ini_desde" class="form-control" value="<?= htmlspecialchars($_GET['fecha_ini_desde'] ?? '') ?>">
                     </div>
                     <div class="form-group-custom span-3">
-                        <label>Asignación:</label>
-                        <select name="asignacion" class="form-control">
-                            <option value="">Todas</option>
-                            <option value="I">I</option>
-                            <option value="E">E</option>
-                            <option value="M">M</option>
-                        </select>
+                        <label>Fecha inicio hasta:</label>
+                        <input type="date" name="fecha_ini_hasta" class="form-control" value="<?= htmlspecialchars($_GET['fecha_ini_hasta'] ?? '') ?>">
+                    </div>
+                    <div class="form-group-custom span-3">
+                        <label>Fecha fin desde:</label>
+                        <input type="date" name="fecha_fin_desde" class="form-control" value="<?= htmlspecialchars($_GET['fecha_fin_desde'] ?? '') ?>">
+                    </div>
+                    <div class="form-group-custom span-3">
+                        <label>Fecha fin hasta:</label>
+                        <input type="date" name="fecha_fin_hasta" class="form-control" value="<?= htmlspecialchars($_GET['fecha_fin_hasta'] ?? '') ?>">
                     </div>
 
-                    <!-- Fila 3 -->
-                    <div class="form-group-custom span-2">
-                        <label>Fecha inicio desde:</label>
-                        <input type="date" name="fecha_ini_desde" class="form-control">
-                    </div>
-                    <div class="form-group-custom span-2">
-                        <label>Fecha inicio hasta:</label>
-                        <input type="date" name="fecha_ini_hasta" class="form-control">
-                    </div>
-                    <div class="form-group-custom span-2" style="flex-direction: row; align-items: center; gap: 8px; margin-top: auto; margin-bottom: 8px;">
-                        <input type="checkbox" name="sin_fechas" id="sin_fechas_cb" style="width: 18px; height: 18px; cursor: pointer;">
+                    <!-- Grupo 5: Estado, Origen e Indicadores -->
+                    <div class="form-group-custom span-3" style="flex-direction: row; align-items: center; gap: 8px; margin-top: auto; margin-bottom: 8px;">
+                        <input type="checkbox" name="sin_fechas" id="sin_fechas_cb" style="width: 18px; height: 18px; cursor: pointer;" <?= isset($_GET['sin_fechas']) ? 'checked' : '' ?>>
                         <label for="sin_fechas_cb" style="cursor: pointer; margin-bottom: 0; white-space: nowrap;">Sin fechas</label>
                     </div>
                     <div class="form-group-custom span-3">
-                        <label>Acción:</label>
-                        <input type="text" name="accion" class="form-control">
-                    </div>
-                    <div class="form-group-custom span-1">
-                        <label>Grupo:</label>
-                        <input type="text" name="grupo_num" class="form-control">
-                    </div>
-                    <div class="form-group-custom span-2">
                         <label>Cursos propios:</label>
                         <select name="cursos_propios" class="form-control">
                             <option value="">Todos</option>
-                            <option value="1">Sí</option>
-                            <option value="0">No</option>
+                            <option value="1" <?= (isset($_GET['cursos_propios']) && $_GET['cursos_propios'] == '1') ? 'selected' : '' ?>>Sí</option>
+                            <option value="0" <?= (isset($_GET['cursos_propios']) && $_GET['cursos_propios'] == '0') ? 'selected' : '' ?>>No</option>
                         </select>
                     </div>
-
-                    <!-- Fila 4 -->
-                    <div class="form-group-custom span-2">
-                        <label>Fecha fin desde:</label>
-                        <input type="date" name="fecha_fin_desde" class="form-control">
-                    </div>
-                    <div class="form-group-custom span-2">
-                        <label>Fecha fin hasta:</label>
-                        <input type="date" name="fecha_fin_hasta" class="form-control">
-                    </div>
-                    <div class="form-group-custom span-2">
-                        <label>Comunicados:</label>
-                        <select name="comunicados" class="form-control">
-                            <option value="">Todos</option>
-                            <option value="1">Sí</option>
-                            <option value="0">No</option>
+                    <div class="form-group-custom span-3">
+                        <label>Situación:</label>
+                        <select name="situacion" class="form-control">
+                            <option value="">Todas</option>
+                            <option value="Valido" <?= (isset($_GET['situacion']) && $_GET['situacion'] == 'Valido') ? 'selected' : '' ?>>Válido</option>
+                            <option value="Suspendido" <?= (isset($_GET['situacion']) && $_GET['situacion'] == 'Suspendido') ? 'selected' : '' ?>>Suspendido</option>
+                            <option value="Finalizado" <?= (isset($_GET['situacion']) && $_GET['situacion'] == 'Finalizado') ? 'selected' : '' ?>>Finalizado</option>
+                            <option value="Lista espera" <?= (isset($_GET['situacion']) && $_GET['situacion'] == 'Lista espera') ? 'selected' : '' ?>>Lista espera</option>
+                            <option value="Inactivo" <?= (isset($_GET['situacion']) && $_GET['situacion'] == 'Inactivo') ? 'selected' : '' ?>>Inactivo</option>
                         </select>
                     </div>
-                    <div class="form-group-custom span-2">
-                        <label>Comunicados solic.:</label>
-                        <select name="comunicados_solicitados" class="form-control">
-                            <option value="">Todos</option>
-                            <option value="1">Sí</option>
-                            <option value="0">No</option>
-                        </select>
-                    </div>
-                    <div class="form-group-custom span-2">
-                        <label>Objetos de control:</label>
-                        <select name="objetos_control" class="form-control">
-                            <option value="">Todos</option>
-                            <option value="1">Sí</option>
-                            <option value="0">No</option>
-                        </select>
-                    </div>
-                    <div class="form-group-custom span-2">
+                    <div class="form-group-custom span-3">
                         <label>Desempleados:</label>
                         <select name="desempleados" class="form-control">
                             <option value="">Todos</option>
-                            <option value="1">Sí</option>
-                            <option value="0">No</option>
+                            <option value="1" <?= (isset($_GET['desempleados']) && $_GET['desempleados'] == '1') ? 'selected' : '' ?>>Sí</option>
+                            <option value="0" <?= (isset($_GET['desempleados']) && $_GET['desempleados'] == '0') ? 'selected' : '' ?>>No</option>
                         </select>
                     </div>
 
-                    <!-- Fila 5 -->
-                    <div class="form-group-custom span-6">
-                        <label>Convocatoria:</label>
-                        <select name="convocatoria_id" class="form-control">
-                            <option value="">Todas las convocatorias</option>
-                            <?php foreach ($convocatorias as $conv): ?>
-                                <option value="<?= $conv['id'] ?>"><?= htmlspecialchars($conv['nombre']) ?></option>
-                            <?php endforeach; ?>
+                    <!-- Grupo 6: Comunicaciones e Inspecciones -->
+                    <div class="form-group-custom span-4">
+                        <label>Comunicados:</label>
+                        <select name="comunicados" class="form-control">
+                            <option value="">Todos</option>
+                            <option value="1" <?= (isset($_GET['comunicados']) && $_GET['comunicados'] == '1') ? 'selected' : '' ?>>Sí</option>
+                            <option value="0" <?= (isset($_GET['comunicados']) && $_GET['comunicados'] == '0') ? 'selected' : '' ?>>No</option>
                         </select>
                     </div>
-                    <div class="form-group-custom span-6">
-                        <label>Plan:</label>
-                        <select name="plan_id" class="form-control">
-                            <option value="">Todos los planes</option>
-                            <?php foreach ($planes as $p): ?>
-                                <option value="<?= $p['id'] ?>"><?= htmlspecialchars($p['nombre']) ?></option>
-                            <?php endforeach; ?>
+                    <div class="form-group-custom span-4">
+                        <label>Comunicados solic.:</label>
+                        <select name="comunicados_solicitados" class="form-control">
+                            <option value="">Todos</option>
+                            <option value="1" <?= (isset($_GET['comunicados_solicitados']) && $_GET['comunicados_solicitados'] == '1') ? 'selected' : '' ?>>Sí</option>
+                            <option value="0" <?= (isset($_GET['comunicados_solicitados']) && $_GET['comunicados_solicitados'] == '0') ? 'selected' : '' ?>>No</option>
+                        </select>
+                    </div>
+                    <div class="form-group-custom span-4">
+                        <label>Objetos de control:</label>
+                        <select name="objetos_control" class="form-control">
+                            <option value="">Todos</option>
+                            <option value="1" <?= (isset($_GET['objetos_control']) && $_GET['objetos_control'] == '1') ? 'selected' : '' ?>>Sí</option>
+                            <option value="0" <?= (isset($_GET['objetos_control']) && $_GET['objetos_control'] == '0') ? 'selected' : '' ?>>No</option>
                         </select>
                     </div>
 
