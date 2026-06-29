@@ -243,16 +243,22 @@ $current_page = 'grupos.php';
     <?php include 'includes/sidebar.php'; ?>
 
     <main class="main-content" style="flex: 1; overflow-y: auto;">
-        <div class="page-navigation" style="display: flex; gap: 12px; margin-bottom: 20px;">
-            <a href="home.php" class="btn btn-glass" style="border: 1px solid var(--border-color); font-weight: 700; text-decoration: none;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                Inicio (Home)
-            </a>
-            <a href="formacion_profesional.php" class="btn btn-glass" style="border: 1px solid var(--border-color); font-weight: 700; text-decoration: none;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                Volver a FP
-            </a>
-        </div>
+        <header class="page-header">
+            <div class="page-title">
+                <h1>Grupos de FP</h1>
+                <p>Búsqueda y gestión de grupos de formación profesional</p>
+            </div>
+            <div class="page-actions" style="display: flex; gap: 12px;">
+                <a href="home.php" class="btn btn-glass" style="border: 1px solid var(--border-color); font-weight: 700; text-decoration: none;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                    Inicio (Home)
+                </a>
+                <a href="formacion_profesional.php" class="btn btn-glass" style="border: 1px solid var(--border-color); font-weight: 700; text-decoration: none;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    Volver a FP
+                </a>
+            </div>
+        </header>
 
         <div class="search-card-premium">
             <div class="card-header-premium">
