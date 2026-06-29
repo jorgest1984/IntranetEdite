@@ -236,6 +236,35 @@ $current_page = 'grupos.php';
         .badge-green { background: rgba(22, 163, 74, 0.1); color: #16a34a; }
         .badge-blue { background: rgba(37, 99, 235, 0.1); color: #2563eb; }
         .badge-yellow { background: rgba(202, 138, 4, 0.1); color: #ca8a04; }
+
+        /* Custom header button colors */
+        .btn-blue {
+            background-color: rgba(0, 108, 228, 0.08) !important;
+            color: var(--primary-color) !important;
+            border: 1px solid rgba(0, 108, 228, 0.15) !important;
+            box-shadow: 0 4px 12px 0 rgba(0, 108, 228, 0.05);
+        }
+        .btn-blue:hover {
+            background-color: var(--primary-color) !important;
+            color: white !important;
+            border-color: var(--primary-color) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px 0 rgba(0, 108, 228, 0.3);
+        }
+
+        .btn-red {
+            background-color: rgba(239, 68, 68, 0.08) !important;
+            color: #ef4444 !important;
+            border: 1px solid rgba(239, 68, 68, 0.15) !important;
+            box-shadow: 0 4px 12px 0 rgba(239, 68, 68, 0.05);
+        }
+        .btn-red:hover {
+            background-color: #ef4444 !important;
+            color: white !important;
+            border-color: #ef4444 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px 0 rgba(239, 68, 68, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -249,11 +278,11 @@ $current_page = 'grupos.php';
                 <p>Búsqueda y gestión de grupos de formación profesional</p>
             </div>
             <div class="page-actions" style="display: flex; gap: 12px;">
-                <a href="home.php" class="btn btn-glass" style="border: 1px solid var(--border-color); font-weight: 700; text-decoration: none;">
+                <a href="home.php" class="btn btn-blue" style="font-weight: 700; text-decoration: none;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                     Inicio (Home)
                 </a>
-                <a href="formacion_profesional.php" class="btn btn-glass" style="border: 1px solid var(--border-color); font-weight: 700; text-decoration: none;">
+                <a href="formacion_profesional.php" class="btn btn-red" style="font-weight: 700; text-decoration: none;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><polyline points="15 18 9 12 15 6"></polyline></svg>
                     Volver a FP
                 </a>
