@@ -265,6 +265,30 @@ $current_page = 'grupos.php';
             transform: translateY(-2px);
             box-shadow: 0 6px 16px 0 rgba(239, 68, 68, 0.3);
         }
+
+        /* Action Buttons */
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--primary-color);
+            transition: all 0.2s;
+            text-decoration: none;
+            padding: 0;
+            cursor: pointer;
+            box-sizing: border-box;
+        }
+        
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 108, 228, 0.15);
+            border-color: var(--primary-color);
+        }
     </style>
 </head>
 <body>
@@ -702,6 +726,7 @@ $current_page = 'grupos.php';
                             <th>Sin grupo válidos</th>
                             <th>Empresas</th>
                             <th>Mat. Facturado</th>
+                            <th style="border-right:none; text-align: right; padding-right: 2rem;">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -733,6 +758,13 @@ $current_page = 'grupos.php';
                             <td style="text-align: center;">0</td>
                             <td>EFP S.L.</td>
                             <td>SÍ</td>
+                            <td style="border-right:none;">
+                                <div style="display: flex; gap: 8px; justify-content: flex-end; padding-right: 1.5rem;">
+                                    <a href="ficha_grupo_edicion.php?id=1" class="btn-action" title="Editar Grupo">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                    </a>
+                                </div>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
