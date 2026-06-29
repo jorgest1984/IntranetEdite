@@ -29,141 +29,167 @@ $titulo = [
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/main.css">
     <style>
-        .edit-container {
-            background: white;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
+        /* Search Card Premium */
+        .search-card-premium {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            margin-top: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--glass-shadow);
             overflow: hidden;
-            margin-top: 20px;
+            transition: background-color 0.4s ease, border-color 0.4s ease;
         }
 
-        .edit-header-black {
-            background: #1e293b;
-            color: white;
-            padding: 10px 20px;
-            font-weight: 700;
-            text-transform: uppercase;
-            font-size: 0.9rem;
-        }
-
-        .edit-header-blue {
-            background: #0ea5e9;
-            color: white;
-            padding: 8px 20px;
-            text-align: center;
-            font-weight: 600;
-            text-transform: lowercase;
-            font-size: 0.9rem;
-        }
-
-        /* Tabs */
-        .tabs-container {
+        .card-header-premium {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+            padding: 1.25rem 2rem;
             display: flex;
-            gap: 5px;
-            padding: 15px 20px 0 20px;
-            background: #f8fafc;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0, 108, 228, 0.15);
         }
 
-        .tab {
-            padding: 8px 15px;
-            background: #e2e8f0;
-            border: 1px solid var(--border-color);
-            border-bottom: none;
-            border-radius: 4px 4px 0 0;
+        .card-header-premium h2 {
+            margin: 0;
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Tabs FP Style */
+        .tabs-header-fp {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 0px;
+        }
+
+        .tab-fp-btn {
+            padding: 10px 24px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
             font-size: 0.8rem;
-            font-weight: 600;
-            color: #64748b;
+            font-weight: 700;
+            color: var(--text-muted);
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.25s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .tab.active {
-            background: white;
+        .tab-fp-btn:hover {
             color: var(--primary-color);
-            border-color: var(--border-color);
-            position: relative;
-            z-index: 1;
-            margin-bottom: -1px;
-            padding-bottom: 9px;
+            border-color: var(--card-hover-border);
+            background: rgba(0, 108, 228, 0.02);
+            transform: translateY(-1px);
+        }
+
+        .tab-fp-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 12px rgba(0, 108, 228, 0.2);
         }
 
         /* Form Content */
         .form-content {
-            padding: 30px;
-            border-top: 1px solid var(--border-color);
+            padding: 2rem;
         }
 
         .form-grid {
             display: grid;
             grid-template-columns: 240px 1fr;
-            gap: 15px;
+            gap: 1.5rem;
             align-items: center;
-            margin-bottom: 25px;
+            margin-bottom: 1.5rem;
         }
 
         .form-label {
             font-weight: 700;
-            font-size: 0.95rem;
-            color: #1e293b;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         .form-control-edit {
             width: 100%;
-            max-width: 400px;
-            padding: 8px 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 4px;
-            font-size: 0.9rem;
+            max-width: 500px;
+            padding: 0.65rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            background: var(--input-bg);
+            color: var(--text-color);
             outline: none;
-            transition: border-color 0.2s;
+            transition: all 0.25s ease;
+            box-sizing: border-box;
         }
 
         .form-control-edit:focus {
-            border-color: #0ea5e9;
-            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 108, 228, 0.15);
+            background-color: var(--input-bg);
         }
 
-        .form-control-small { width: 80px; }
-        .form-control-medium { width: 140px; }
+        .form-control-small { width: 100px; }
+        .form-control-medium { width: 200px; }
 
         /* Rich Text Editor Mockup */
         .editor-mockup {
-            border: 1px solid #cbd5e1;
-            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
             overflow: hidden;
             width: 100%;
+            max-width: 700px;
+            background: var(--input-bg);
         }
 
         .editor-toolbar {
-            background: #f8fafc;
-            border-bottom: 1px solid #cbd5e1;
-            padding: 5px;
+            background: rgba(0, 108, 228, 0.02);
+            border-bottom: 1px solid var(--border-color);
+            padding: 8px;
             display: flex;
             flex-wrap: wrap;
-            gap: 5px;
+            gap: 6px;
+            align-items: center;
         }
 
         .tool-btn {
             background: none;
             border: 1px solid transparent;
-            padding: 4px;
-            border-radius: 3px;
+            padding: 5px;
+            border-radius: 4px;
             cursor: pointer;
-            color: #475569;
+            color: var(--text-muted);
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 700;
+            width: 28px;
+            height: 28px;
+            box-sizing: border-box;
+            transition: all 0.2s;
         }
 
-        .tool-btn:hover { background: #e2e8f0; border-color: #cbd5e1; }
+        .tool-btn:hover { 
+            background: rgba(0, 108, 228, 0.08); 
+            color: var(--primary-color);
+        }
 
-        .tool-btn svg { width: 16px; height: 16px; }
+        .tool-btn svg { width: 15px; height: 15px; }
 
         .tool-separator {
             width: 1px;
-            height: 20px;
-            background: #cbd5e1;
-            margin: 0 5px;
+            height: 18px;
+            background: var(--border-color);
+            margin: 0 4px;
         }
 
         .editor-area {
@@ -173,45 +199,12 @@ $titulo = [
             border: none;
             resize: vertical;
             font-family: inherit;
-            font-size: 0.9rem;
+            font-size: 0.92rem;
             outline: none;
+            background: transparent;
+            color: var(--text-color);
+            box-sizing: border-box;
         }
-
-        .form-footer {
-            padding: 20px 30px;
-            background: #f8fafc;
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            justify-content: flex-end;
-            gap: 15px;
-        }
-
-        .btn-save {
-            background: #0ea5e9;
-            color: white;
-            padding: 10px 25px;
-            border-radius: 6px;
-            font-weight: 700;
-            border: none;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .btn-save:hover { background: #0284c7; }
-
-        .btn-cancel {
-            background: white;
-            color: #64748b;
-            padding: 10px 25px;
-            border-radius: 6px;
-            font-weight: 600;
-            border: 1px solid #e2e8f0;
-            text-decoration: none;
-            transition: all 0.2s;
-        }
-
-        .btn-cancel:hover { background: #f1f5f9; color: #1e293b; }
-
     </style>
 </head>
 <body>
@@ -226,21 +219,22 @@ $titulo = [
                 <p>Edición de parámetros académicos y visibilidad web</p>
             </div>
             <div class="page-actions">
-                <a href="formacion_profesional.php" class="btn-cancel">
-                    <svg style="margin-right: 8px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                <a href="formacion_profesional.php" class="btn btn-glass" style="border: 1px solid var(--border-color); font-weight: 700;">
+                    <svg style="margin-right: 8px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
                     Volver al Listado
                 </a>
             </div>
         </header>
 
-        <section class="edit-container">
-            <div class="edit-header-black">Títulos Formativos</div>
-            <div class="edit-header-blue">formación profesional</div>
+        <section class="search-card-premium">
+            <div class="card-header-premium">
+                <h2>Editar Título Formativo: <?= htmlspecialchars($titulo['titulo']) ?></h2>
+            </div>
 
-            <div class="tabs-container">
-                <div class="tab active">Datos Generales</div>
-                <div class="tab">Curso 1</div>
-                <div class="tab">Curso 2</div>
+            <div class="tabs-header-fp" style="display: flex; gap: 8px; padding: 1.5rem 2rem 0.5rem 2rem; border-bottom: 1px solid var(--border-color);">
+                <button type="button" class="tab-fp-btn active">Datos Generales</button>
+                <button type="button" class="tab-fp-btn">Curso 1</button>
+                <button type="button" class="tab-fp-btn">Curso 2</button>
             </div>
 
             <form class="form-content">
@@ -344,9 +338,9 @@ $titulo = [
                     </div>
                 </div>
 
-                <div class="form-footer">
-                    <a href="formacion_profesional.php" class="btn-cancel">Descartar</a>
-                    <button type="submit" class="btn-save">Guardar Cambios</button>
+                <div class="form-footer" style="padding: 1.5rem 2rem; background: rgba(0, 108, 228, 0.02); border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 12px;">
+                    <a href="formacion_profesional.php" class="btn btn-glass" style="border: 1px solid var(--border-color); font-weight: 700; padding: 0.65rem 2rem;">Descartar</a>
+                    <button type="submit" class="btn btn-primary" style="padding: 0.65rem 2.5rem;">Guardar Cambios</button>
                 </div>
             </form>
         </section>
