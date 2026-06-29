@@ -44,225 +44,225 @@ $current_page = 'grupos.php';
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/main.css">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-        .main-content { padding: 2rem; }
-        
-        /* Navigation Top Bar */
-        .page-navigation {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-        .nav-btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            color: #475569;
-            text-decoration: none;
-            font-size: 0.85rem;
-            font-weight: 600;
-            transition: all 0.2s;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        }
-        .nav-btn:hover {
-            background: #f8fafc;
-            color: #1e293b;
-            border-color: #cbd5e1;
-            transform: translateY(-1px);
-        }
-        .nav-btn svg {
-            color: #64748b;
+        /* ===== GRUPOS PREMIUM STYLES ===== */
+
+        /* Search Card Premium */
+        .search-card-premium {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            box-shadow: var(--glass-shadow);
+            overflow: hidden;
+            transition: background-color 0.4s ease, border-color 0.4s ease;
         }
 
-        .search-card {
-            background: #fff;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-            margin-bottom: 2rem;
-            overflow: hidden;
+        .card-header-premium {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0, 108, 228, 0.15);
         }
-        .search-card-header {
-            background: #f8fafc;
-            padding: 0.75rem 1.5rem;
-            border-bottom: 2px solid #e2e8f0;
-            text-align: center;
-        }
-        .search-card-header h2 {
+
+        .card-header-premium h2 {
             margin: 0;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             font-weight: 800;
-            color: #b91c1c;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1.25rem;
+            padding: 2rem;
+        }
+
+        .form-group-custom {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .form-group-custom.span-12 { grid-column: span 12; }
+        .form-group-custom.span-10 { grid-column: span 10; }
+        .form-group-custom.span-8 { grid-column: span 8; }
+        .form-group-custom.span-6 { grid-column: span 6; }
+        .form-group-custom.span-5 { grid-column: span 5; }
+        .form-group-custom.span-4 { grid-column: span 4; }
+        .form-group-custom.span-3 { grid-column: span 3; }
+        .form-group-custom.span-2 { grid-column: span 2; }
+        .form-group-custom.span-1 { grid-column: span 1; }
+
+        .form-group-custom label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
-        .search-form { padding: 1.5rem; }
-        
-        .form-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px 10px;
-        }
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .form-group.row-layout {
-            flex-direction: row;
-            align-items: center;
-        }
-        .form-group label {
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: #1e3a8a;
-            white-space: nowrap;
-            text-transform: capitalize;
-        }
-        .form-group.row-layout label {
-            min-width: auto;
-            margin-right: 5px;
-        }
-        .form-control {
-            padding: 0.4rem 0.6rem;
-            border: 1px solid #cbd5e1;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            background: #f8fafc;
-            width: 100%;
-            box-sizing: border-box;
-        }
 
-        /* Layout Helpers */
-        .w-10 { width: calc(10% - 10px); }
-        .w-15 { width: calc(15% - 10px); }
-        .w-20 { width: calc(20% - 10px); }
-        .w-25 { width: calc(25% - 10px); }
-        .w-30 { width: calc(30% - 10px); }
-        .w-33 { width: calc(33.33% - 10px); }
-        .w-40 { width: calc(40% - 10px); }
-        .w-50 { width: calc(50% - 10px); }
-        .w-60 { width: calc(60% - 10px); }
-        .w-100 { width: 100%; }
-
-        @media (max-width: 1024px) {
-            .w-10, .w-15, .w-20, .w-25, .w-30, .w-33, .w-40, .w-50, .w-60 { width: calc(50% - 10px); }
-        }
-        @media (max-width: 640px) {
-            .w-10, .w-15, .w-20, .w-25, .w-30, .w-33, .w-40, .w-50, .w-60 { width: 100%; }
-        }
-
-        .search-actions {
-            display: flex;
-            justify-content: center;
-            margin-top: 1.5rem;
-        }
-        .btn-search {
-            padding: 0.5rem 2rem;
-            background: #f1f5f9;
-            border: 1px solid #cbd5e1;
-            border-radius: 4px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .btn-search:hover { background: #e2e8f0; }
-
-        /* Results table */
-        .results-section {
-            background: #fff;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        /* Results Card Layout */
+        .results-section-premium {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            box-shadow: var(--glass-shadow);
             overflow: hidden;
+            margin-bottom: 2rem;
         }
-        .results-header {
-            background: #fff;
-            padding: 1rem;
-            text-align: center;
-            border-bottom: 1px solid #e2e8f0;
+
+        .results-header-premium {
+            background: rgba(0, 108, 228, 0.03);
+            padding: 1.25rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
-        .results-header h2 {
+
+        .results-header-premium h2 {
             margin: 0;
-            font-size: 0.9rem;
+            font-size: 1rem;
             font-weight: 800;
-            color: #b91c1c;
+            color: var(--primary-color);
             text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        .table-responsive {
-            width: 100%;
-            overflow-x: auto;
-        }
-        .table-custom {
+
+        /* Table */
+        .table-premium {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.75rem;
-            min-width: 2500px; /* Very wide table */
+            font-size: 0.82rem;
+            min-width: 2500px; /* Horizontally scrollable wide table */
         }
-        .table-custom th {
-            background: #1e293b;
-            color: #fff;
-            padding: 0.75rem 0.5rem;
+        
+        .table-premium th {
+            background: rgba(0, 108, 228, 0.04);
+            border-bottom: 2px solid var(--border-color);
+            padding: 0.85rem 0.6rem;
             text-align: left;
-            font-weight: 600;
-            border-right: 1px solid rgba(255,255,255,0.1);
+            color: var(--primary-color);
+            font-weight: 700;
+            font-size: 0.74rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             white-space: nowrap;
         }
-        .table-custom td {
-            padding: 0.6rem 0.5rem;
-            border-bottom: 1px solid #e2e8f0;
-            border-right: 1px solid #f1f5f9;
+
+        .table-premium td {
+            padding: 0.75rem 0.6rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-color);
+            white-space: nowrap;
         }
-        .table-custom tr:hover { background: #f8fafc; }
+
+        .table-premium tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table-premium tr:hover td {
+            background-color: rgba(0, 108, 228, 0.015);
+        }
+
+        /* Responsive Media Queries */
+        @media (max-width: 1024px) {
+            .form-grid {
+                padding: 1.5rem !important;
+                gap: 1rem !important;
+            }
+            .form-group-custom {
+                grid-column: span 6 !important;
+            }
+            .form-group-custom.span-12 {
+                grid-column: span 12 !important;
+            }
+        }
         
-        .badge {
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-weight: 700;
-            font-size: 0.7rem;
-            text-transform: uppercase;
+        @media (max-width: 768px) {
+            .app-container {
+                flex-direction: column !important;
+            }
+            .main-content {
+                padding: 15px !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+                overflow-x: hidden !important;
+            }
+            .card-header-premium {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 12px !important;
+                padding: 15px !important;
+            }
+            .card-header-premium h2 {
+                text-align: center !important;
+            }
+            .form-group-custom {
+                grid-column: span 12 !important;
+            }
         }
-        .badge-red { background: #fee2e2; color: #b91c1c; }
-        .badge-green { background: #dcfce7; color: #166534; }
-        .badge-blue { background: #dbeafe; color: #1e40af; }
-        .badge-yellow { background: #fef9c3; color: #854d0e; }
+
+        /* Badge system */
+        .badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 800;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+        }
+        .badge-red { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+        .badge-green { background: rgba(22, 163, 74, 0.1); color: #16a34a; }
+        .badge-blue { background: rgba(37, 99, 235, 0.1); color: #2563eb; }
+        .badge-yellow { background: rgba(202, 138, 4, 0.1); color: #ca8a04; }
     </style>
 </head>
 <body>
+<div class="app-container">
     <?php include 'includes/sidebar.php'; ?>
 
-    <main class="main-content">
-        <div class="page-navigation">
-            <a href="home.php" class="nav-btn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+    <main class="main-content" style="flex: 1; overflow-y: auto;">
+        <div class="page-navigation" style="display: flex; gap: 12px; margin-bottom: 20px;">
+            <a href="home.php" class="btn btn-glass" style="border: 1px solid var(--border-color); font-weight: 700; text-decoration: none;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                 Inicio (Home)
             </a>
-            <a href="formacion_profesional.php" class="nav-btn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            <a href="formacion_profesional.php" class="btn btn-glass" style="border: 1px solid var(--border-color); font-weight: 700; text-decoration: none;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><polyline points="15 18 9 12 15 6"></polyline></svg>
                 Volver a FP
             </a>
         </div>
 
-        <div class="search-card">
-            <div class="search-card-header">
-                <h2>GRUPOS - CAMPOS DE BÚSQUEDA</h2>
+        <div class="search-card-premium">
+            <div class="card-header-premium">
+                <h2>GRUPOS - FILTROS DE BÚSQUEDA</h2>
             </div>
-            <form class="search-form" method="GET">
+            <form method="GET" style="margin: 0;">
                 <div class="form-grid">
                     <!-- Fila 1 -->
-                    <div class="form-group w-25">
+                    <div class="form-group-custom span-3">
                         <label>Curso:</label>
                         <input type="text" name="curso" class="form-control">
                     </div>
-                    <div class="form-group w-20">
+                    <div class="form-group-custom span-2">
                         <label>Código grupo:</label>
                         <input type="text" name="codigo_grupo" class="form-control">
                     </div>
-                    <div class="form-group w-15">
+                    <div class="form-group-custom span-2">
                         <label>Situación:</label>
                         <select name="situacion" class="form-control">
                             <option value="">Todas</option>
@@ -273,7 +273,7 @@ $current_page = 'grupos.php';
                             <option value="Inactivo">Inactivo</option>
                         </select>
                     </div>
-                    <div class="form-group w-15">
+                    <div class="form-group-custom span-2">
                         <label>Modalidad:</label>
                         <select name="modalidad" class="form-control">
                             <option value="">Todas</option>
@@ -282,7 +282,7 @@ $current_page = 'grupos.php';
                             <option value="Mixta">Mixta</option>
                         </select>
                     </div>
-                    <div class="form-group w-25">
+                    <div class="form-group-custom span-3">
                         <label>Tutor:</label>
                         <select name="tutor" class="form-control">
                             <option value="">Todos</option>
@@ -293,7 +293,7 @@ $current_page = 'grupos.php';
                     </div>
 
                     <!-- Fila 2 -->
-                    <div class="form-group w-30">
+                    <div class="form-group-custom span-4">
                         <label>Provincia de impartición:</label>
                         <input type="text" name="provincia" id="provincia-input" class="form-control" list="provincias-list" placeholder="Escriba la provincia...">
                         <datalist id="provincias-list">
@@ -351,7 +351,7 @@ $current_page = 'grupos.php';
                             <option value="Melilla">
                         </datalist>
                     </div>
-                    <div class="form-group w-40">
+                    <div class="form-group-custom span-5">
                         <label>Centro impartición:</label>
                         <input type="text" name="centro" id="centro-input" class="form-control" list="centros-list" placeholder="Escriba el centro...">
                         <datalist id="centros-list">
@@ -518,7 +518,7 @@ $current_page = 'grupos.php';
                             <option value="vigilantes">
                         </datalist>
                     </div>
-                    <div class="form-group w-30">
+                    <div class="form-group-custom span-3">
                         <label>Asignación:</label>
                         <select name="asignacion" class="form-control">
                             <option value="">Todas</option>
@@ -529,27 +529,27 @@ $current_page = 'grupos.php';
                     </div>
 
                     <!-- Fila 3 -->
-                    <div class="form-group w-15">
+                    <div class="form-group-custom span-2">
                         <label>Fecha inicio desde:</label>
                         <input type="date" name="fecha_ini_desde" class="form-control">
                     </div>
-                    <div class="form-group w-15">
+                    <div class="form-group-custom span-2">
                         <label>Fecha inicio hasta:</label>
                         <input type="date" name="fecha_ini_hasta" class="form-control">
                     </div>
-                    <div class="form-group row-layout w-10">
-                        <label>Sin fechas:</label>
-                        <input type="checkbox" name="sin_fechas">
+                    <div class="form-group-custom span-2" style="flex-direction: row; align-items: center; gap: 8px; margin-top: auto; margin-bottom: 8px;">
+                        <input type="checkbox" name="sin_fechas" id="sin_fechas_cb" style="width: 18px; height: 18px; cursor: pointer;">
+                        <label for="sin_fechas_cb" style="cursor: pointer; margin-bottom: 0; white-space: nowrap;">Sin fechas</label>
                     </div>
-                    <div class="form-group w-25">
+                    <div class="form-group-custom span-3">
                         <label>Acción:</label>
                         <input type="text" name="accion" class="form-control">
                     </div>
-                    <div class="form-group w-10">
+                    <div class="form-group-custom span-1">
                         <label>Grupo:</label>
                         <input type="text" name="grupo_num" class="form-control">
                     </div>
-                    <div class="form-group w-25">
+                    <div class="form-group-custom span-2">
                         <label>Cursos propios:</label>
                         <select name="cursos_propios" class="form-control">
                             <option value="">Todos</option>
@@ -559,15 +559,15 @@ $current_page = 'grupos.php';
                     </div>
 
                     <!-- Fila 4 -->
-                    <div class="form-group w-15">
+                    <div class="form-group-custom span-2">
                         <label>Fecha fin desde:</label>
                         <input type="date" name="fecha_fin_desde" class="form-control">
                     </div>
-                    <div class="form-group w-15">
+                    <div class="form-group-custom span-2">
                         <label>Fecha fin hasta:</label>
                         <input type="date" name="fecha_fin_hasta" class="form-control">
                     </div>
-                    <div class="form-group w-15">
+                    <div class="form-group-custom span-2">
                         <label>Comunicados:</label>
                         <select name="comunicados" class="form-control">
                             <option value="">Todos</option>
@@ -575,7 +575,7 @@ $current_page = 'grupos.php';
                             <option value="0">No</option>
                         </select>
                     </div>
-                    <div class="form-group w-15">
+                    <div class="form-group-custom span-2">
                         <label>Comunicados solic.:</label>
                         <select name="comunicados_solicitados" class="form-control">
                             <option value="">Todos</option>
@@ -583,7 +583,7 @@ $current_page = 'grupos.php';
                             <option value="0">No</option>
                         </select>
                     </div>
-                    <div class="form-group w-20">
+                    <div class="form-group-custom span-2">
                         <label>Objetos de control:</label>
                         <select name="objetos_control" class="form-control">
                             <option value="">Todos</option>
@@ -591,7 +591,7 @@ $current_page = 'grupos.php';
                             <option value="0">No</option>
                         </select>
                     </div>
-                    <div class="form-group w-20">
+                    <div class="form-group-custom span-2">
                         <label>Desempleados:</label>
                         <select name="desempleados" class="form-control">
                             <option value="">Todos</option>
@@ -601,7 +601,7 @@ $current_page = 'grupos.php';
                     </div>
 
                     <!-- Fila 5 -->
-                    <div class="form-group w-50">
+                    <div class="form-group-custom span-6">
                         <label>Convocatoria:</label>
                         <select name="convocatoria_id" class="form-control">
                             <option value="">Todas las convocatorias</option>
@@ -610,7 +610,7 @@ $current_page = 'grupos.php';
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="form-group w-50">
+                    <div class="form-group-custom span-6">
                         <label>Plan:</label>
                         <select name="plan_id" class="form-control">
                             <option value="">Todos los planes</option>
@@ -619,20 +619,24 @@ $current_page = 'grupos.php';
                             <?php endforeach; ?>
                         </select>
                     </div>
-                </div>
-                
-                <div class="search-actions">
-                    <button type="submit" class="btn-search">Buscar</button>
+
+                    <!-- Botón de Búsqueda -->
+                    <div class="span-12" style="display: flex; justify-content: center; margin-top: 15px;">
+                        <button type="submit" class="btn btn-primary" style="padding: 0.65rem 2.5rem;">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            Buscar
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
 
-        <div class="results-section">
-            <div class="results-header">
-                <h2>RESULTADO DE LA BÚSQUEDA</h2>
+        <div class="results-section-premium">
+            <div class="results-header-premium">
+                <h2>Resultado de la Búsqueda</h2>
             </div>
-            <div class="table-responsive">
-                <table class="table-custom">
+            <div class="table-responsive" style="background: transparent; border-radius: 0 0 16px 16px; box-shadow: none; border-bottom: none;">
+                <table class="table-premium">
                     <thead>
                         <tr>
                             <th>Convocatoria</th>
@@ -672,7 +676,7 @@ $current_page = 'grupos.php';
                             <td>001</td>
                             <td>G1</td>
                             <td>PLAT-01</td>
-                            <td>CIBERSEGURIDAD AVANZADA</td>
+                            <td style="font-weight: 700; white-space: normal; min-width: 250px;"><?= htmlspecialchars('CIBERSEGURIDAD AVANZADA') ?></td>
                             <td>Madrid</td>
                             <td>JUAN PÉREZ</td>
                             <td>SÍ</td>
@@ -685,11 +689,11 @@ $current_page = 'grupos.php';
                             <td><span class="badge badge-green">Válido</span></td>
                             <td>ENVIADO</td>
                             <td>20/09/2024</td>
-                            <td>25</td>
-                            <td>20</td>
-                            <td>18</td>
-                            <td>0</td>
-                            <td>0</td>
+                            <td style="text-align: center; font-weight: 700;">25</td>
+                            <td style="text-align: center; font-weight: 700;">20</td>
+                            <td style="text-align: center; font-weight: 700;">18</td>
+                            <td style="text-align: center;">0</td>
+                            <td style="text-align: center;">0</td>
                             <td>EFP S.L.</td>
                             <td>SÍ</td>
                         </tr>
@@ -698,5 +702,6 @@ $current_page = 'grupos.php';
             </div>
         </div>
     </main>
+</div>
 </body>
 </html>
