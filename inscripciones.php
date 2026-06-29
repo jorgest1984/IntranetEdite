@@ -107,227 +107,327 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/main.css">
     <style>
-        :root {
-            --title-red: #b91c1c;
-            --label-blue: #1e40af;
-            --border-gray: #cbd5e1;
-            --bg-light: #f8fafc;
-        }
+        /* ===== INSCRIPCIONES PREMIUM STYLES ===== */
 
-        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
-        .main-content { padding: 1.5rem; }
-
-        .search-card {
-            background: #fff;
-            border: 1px solid var(--border-gray);
-            border-radius: 4px;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .card-header-custom {
-            background: #fff;
-            padding: 0.5rem;
-            border-bottom: 2px solid var(--border-gray);
-            text-align: center;
-        }
-
-        .card-header-custom h2 {
-            margin: 0;
-            font-size: 0.85rem;
-            font-weight: 800;
-            color: var(--title-red);
-            text-transform: uppercase;
-        }
-
-        .search-form { padding: 1rem; }
-
-        .search-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 8px;
-            align-items: center;
-        }
-
-        .form-group {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .form-group label {
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: var(--label-blue);
-            white-space: nowrap;
-        }
-
-        .form-control {
-            font-size: 0.8rem;
-            padding: 2px 5px;
-            border: 1px solid var(--border-gray);
-            border-radius: 2px;
-            background: #fff;
-        }
-
-        select.form-control { height: 24px; padding: 0 5px; }
-        input[type="text"].form-control, input[type="date"].form-control { height: 22px; }
-
-        .btn-buscar {
-            background: #f1f5f9;
-            border: 1px solid var(--border-gray);
-            padding: 4px 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-            border-radius: 3px;
-        }
-
-        .btn-buscar:hover { background: #e2e8f0; }
-
-        /* Standardized FP Layout */
-        .fp-content-main {
-            padding: 20px 25px !important;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .table-responsive-fp {
-            width: 100%;
-            overflow-x: auto;
-            border: 1px solid var(--border-gray);
-            background: white;
-            border-radius: 4px;
-            margin-top: 10px;
-        }
-
-        .table-custom {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.65rem;
-            min-width: 2000px; /* Force horizontal scroll for 23 columns */
-        }
-
-        .table-custom th, .table-custom td {
-            padding: 3px 6px;
-            border: 1px solid #cbd5e1;
-            white-space: nowrap;
+        /* Search Card Premium */
+        .search-card-premium {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            box-shadow: var(--glass-shadow);
             overflow: hidden;
-            text-overflow: ellipsis;
+            transition: background-color 0.4s ease, border-color 0.4s ease;
         }
 
-        .table-custom th {
-            background-color: #e2e8f0;
-            color: #1e293b;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-
-        .table-custom tbody tr:hover {
-            background-color: #f1f5f9;
-        }
-
-        .results-header-fp {
-            background: #333;
-            padding: 12px 20px;
-            color: white;
+        .card-header-premium {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+            padding: 1rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-        .results-header-fp h2 {
-            margin: 0;
-            font-size: 1rem;
-            font-weight: 700;
-            text-transform: uppercase;
+            box-shadow: 0 4px 15px rgba(0, 108, 228, 0.15);
         }
 
-        .btn-edit-student {
-            background: #2563eb;
+        .card-header-premium h2 {
+            margin: 0;
+            font-size: 0.95rem;
+            font-weight: 800;
             color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Form Grid */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1.25rem;
+            padding: 2rem;
+        }
+
+        .form-group-custom {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .form-group-custom.span-12 { grid-column: span 12; }
+        .form-group-custom.span-10 { grid-column: span 10; }
+        .form-group-custom.span-8  { grid-column: span 8; }
+        .form-group-custom.span-6  { grid-column: span 6; }
+        .form-group-custom.span-5  { grid-column: span 5; }
+        .form-group-custom.span-4  { grid-column: span 4; }
+        .form-group-custom.span-3  { grid-column: span 3; }
+        .form-group-custom.span-2  { grid-column: span 2; }
+        .form-group-custom.span-1  { grid-column: span 1; }
+
+        .form-group-custom label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .form-control-edit {
+            padding: 0.6rem 0.85rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.82rem;
+            background: var(--input-bg);
+            color: var(--text-color);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .form-control-edit:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 108, 228, 0.1);
+        }
+
+        /* Results */
+        .results-section-premium {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            box-shadow: var(--glass-shadow);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .results-header-premium {
+            background: rgba(0, 108, 228, 0.03);
+            padding: 1.25rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .results-header-premium h2 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .results-count {
+            font-size: 0.78rem;
+            color: var(--text-muted);
             font-weight: 600;
-            font-size: 0.7rem;
+        }
+
+        /* Table */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .table-premium {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.78rem;
+            min-width: 2000px;
+        }
+
+        .table-premium th {
+            background: rgba(0, 108, 228, 0.04);
+            border-bottom: 2px solid var(--border-color);
+            padding: 0.85rem 0.75rem;
+            text-align: left;
+            color: var(--primary-color);
+            font-weight: 700;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .table-premium td {
+            padding: 0.75rem 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-color);
+            white-space: nowrap;
+        }
+
+        .table-premium tr:last-child td { border-bottom: none; }
+        .table-premium tr:hover td { background-color: rgba(0, 108, 228, 0.015); }
+
+        /* Status badges */
+        .badge {
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: 800;
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
             display: inline-flex;
             align-items: center;
-            gap: 4px;
         }
-        .btn-edit-student:hover { background: #1d4ed8; }
+        .badge-admitido  { background: rgba(22, 163, 74, 0.1);  color: #16a34a; }
+        .badge-inscrito  { background: rgba(37, 99, 235, 0.1);  color: #2563eb; }
+        .badge-espera    { background: rgba(202, 138, 4, 0.1);  color: #ca8a04; }
+        .badge-baja      { background: rgba(239, 68, 68, 0.1);  color: #ef4444; }
+        .badge-finalizado{ background: rgba(100, 116, 139, 0.1);color: #64748b; }
+        .badge-default   { background: rgba(100, 116, 139, 0.08);color: var(--text-muted); }
+
+        /* Action button */
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            padding: 5px 12px;
+            border-radius: 8px;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--primary-color);
+            font-size: 0.72rem;
+            font-weight: 700;
+            transition: all 0.2s;
+            text-decoration: none;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .btn-action:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 108, 228, 0.15);
+            border-color: var(--primary-color);
+        }
+
+        /* Blue + Red nav buttons */
+        .btn-blue {
+            background-color: rgba(0, 108, 228, 0.08) !important;
+            color: var(--primary-color) !important;
+            border: 1px solid rgba(0, 108, 228, 0.15) !important;
+            box-shadow: 0 4px 12px 0 rgba(0, 108, 228, 0.05);
+        }
+        .btn-blue:hover {
+            background-color: var(--primary-color) !important;
+            color: white !important;
+            border-color: var(--primary-color) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px 0 rgba(0, 108, 228, 0.3);
+        }
+
+        .btn-red {
+            background-color: rgba(239, 68, 68, 0.08) !important;
+            color: #ef4444 !important;
+            border: 1px solid rgba(239, 68, 68, 0.15) !important;
+            box-shadow: 0 4px 12px 0 rgba(239, 68, 68, 0.05);
+        }
+        .btn-red:hover {
+            background-color: #ef4444 !important;
+            color: white !important;
+            border-color: #ef4444 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px 0 rgba(239, 68, 68, 0.3);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .form-grid { padding: 1.5rem !important; gap: 1rem !important; }
+            .form-group-custom { grid-column: span 6 !important; }
+            .form-group-custom.span-12 { grid-column: span 12 !important; }
+        }
+        @media (max-width: 768px) {
+            .form-group-custom { grid-column: span 12 !important; }
+        }
     </style>
 </head>
 <body>
     <div class="app-container">
         <?php include 'includes/sidebar.php'; ?>
 
-        <main class="main-content">
-            <div class="fp-content-main">
-            
-            <!-- BUSCADOR -->
-            <div class="search-card">
-                <div class="card-header-custom">
-                    <h2>INSCRIPCIONES - CAMPOS DE BÚSQUEDA</h2>
+        <main class="main-content" style="flex: 1; overflow-y: auto;">
+
+            <!-- PAGE HEADER -->
+            <header class="page-header">
+                <div class="page-title">
+                    <h1>Inscripciones</h1>
+                    <p>Búsqueda y gestión de inscripciones de alumnos</p>
                 </div>
-                <form class="search-form" method="GET">
+                <div class="page-actions" style="display: flex; gap: 12px;">
+                    <a href="home.php" class="btn btn-blue" style="font-weight: 700; text-decoration: none;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                        Inicio
+                    </a>
+                </div>
+            </header>
+
+            <!-- BUSCADOR -->
+            <div class="search-card-premium">
+                <div class="card-header-premium">
+                    <h2>Inscripciones &mdash; Filtros de Búsqueda</h2>
+                </div>
+                <form method="GET">
                     
-                    <!-- Fila 1 -->
-                    <div class="search-row">
-                        <div class="form-group">
-                            <label>Curso:</label>
-                            <input type="text" name="curso" class="form-control" style="width: 150px;">
+                    <!-- Fila 1: Curso, Código grupo, Comercial, Tutor -->
+                    <div class="form-grid">
+                        <div class="form-group-custom span-3">
+                            <label>Curso</label>
+                            <input type="text" name="curso" class="form-control-edit" placeholder="Nombre del curso...">
                         </div>
-                        <div class="form-group">
-                            <label>Código grupo:</label>
-                            <input type="text" name="cod_grupo" class="form-control" style="width: 100px;">
+                        <div class="form-group-custom span-2">
+                            <label>Código Grupo</label>
+                            <input type="text" name="cod_grupo" class="form-control-edit" placeholder="Ej: G1">
                         </div>
-                        <div class="form-group">
-                            <label>Mostrar alumnos sin grupo</label>
-                            <input type="checkbox" name="sin_grupo">
-                        </div>
-                        <div class="form-group">
-                            <label>Comercial:</label>
-                            <select name="comercial" class="form-control" style="width: 180px;">
-                                <option value="">---</option>
+                        <div class="form-group-custom span-3">
+                            <label>Comercial</label>
+                            <select name="comercial" class="form-control-edit">
+                                <option value="">— Todos —</option>
                                 <?php foreach ($comerciales as $c): ?>
                                     <option value="<?= $c['id'] ?>"><?= htmlspecialchars($c['nombre'] . ' ' . $c['apellidos']) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Tutor:</label>
-                            <select name="tutor" class="form-control" style="width: 250px;">
-                                <option value="">---</option>
+                        <div class="form-group-custom span-4">
+                            <label>Tutor</label>
+                            <select name="tutor" class="form-control-edit">
+                                <option value="">— Todos —</option>
                                 <?php foreach ($tutores as $t): ?>
                                     <option value="<?= $t['id'] ?>"><?= htmlspecialchars($t['nombre'] . ' ' . $t['apellidos']) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                    </div>
+                        <div class="form-group-custom span-2" style="justify-content: flex-end; padding-top: 1.5rem;">
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                                <input type="checkbox" name="sin_grupo"> Sin grupo
+                            </label>
+                        </div>
 
-                    <!-- Fila 2 -->
-                    <div class="search-row">
-                        <div class="form-group">
-                            <label>Fecha inscripción desde:</label>
-                            <input type="date" name="fecha_desde" class="form-control">
+                        <!-- Fila 2: Fechas, Provincia, Motivo No-Admisión -->
+                        <div class="form-group-custom span-3">
+                            <label>Fecha Inscripción Desde</label>
+                            <input type="date" name="fecha_desde" class="form-control-edit">
                         </div>
-                        <div class="form-group">
-                            <label>inscripción hasta:</label>
-                            <input type="date" name="fecha_hasta" class="form-control">
+                        <div class="form-group-custom span-3">
+                            <label>Fecha Inscripción Hasta</label>
+                            <input type="date" name="fecha_hasta" class="form-control-edit">
                         </div>
-                        <div class="form-group">
-                            <label>Provincia:</label>
-                            <input type="text" name="provincia" class="form-control" list="provincias_list" placeholder="Escriba provincia..." style="width: 150px;">
+                        <div class="form-group-custom span-3">
+                            <label>Provincia</label>
+                            <input type="text" name="provincia" class="form-control-edit" list="provincias_list" placeholder="Escriba provincia...">
                             <datalist id="provincias_list">
                                 <?php foreach($provincias as $prov): ?><option value="<?= mb_strtoupper($prov, 'UTF-8') ?>"><?php endforeach; ?>
                             </datalist>
                         </div>
-                        <div class="form-group">
-                            <label>Motivo No-Admisión:</label>
-                            <select name="motivo_rechazo" class="form-control" style="width: 150px;">
-                                <option value="">---</option>
+                        <div class="form-group-custom span-3">
+                            <label>Motivo No-Admisión</label>
+                            <select name="motivo_rechazo" class="form-control-edit">
+                                <option value="">— Todos —</option>
                                 <option value="Acción agotada">Acción agotada</option>
                                 <option value="Acción no programable">Acción no programable</option>
                                 <option value="Falta doc">Falta doc</option>
@@ -339,15 +439,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
                                 <option value="Tutor completo">Tutor completo</option>
                             </select>
                         </div>
-                    </div>
 
-                    <!-- Fila 3 -->
-                    <div class="search-row">
-                        <!-- Campo Solicitante - Actualizado v1.1 -->
-                        <div class="form-group">
-                            <label>Solicitante:</label>
-                            <select name="solicitante" class="form-control" style="width: 280px;">
-                                <option value="">---</option>
+                        <!-- Fila 3: Solicitante, Sexo, Colectivo, No válido, Mayor 45 -->
+                        <div class="form-group-custom span-4">
+                            <label>Solicitante</label>
+                            <select name="solicitante" class="form-control-edit">
+                                <option value="">— Todos —</option>
                                 <option value="COMFIA">COMFIA</option>
                                 <option value="FED. COM. Y TTE. CCOO MADRID">FED. COM. Y TTE. CCOO MADRID</option>
                                 <option value="UGT DE CATALUNYA">UGT DE CATALUNYA</option>
@@ -371,251 +468,104 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
                                 <option value="Fed. Estatal de servicios - UGT">Fed. Estatal de servicios - UGT</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Sexo:</label>
-                            <select name="sexo" class="form-control"><option value="">---</option><option value="M">Hombre</option><option value="F">Mujer</option></select>
+                        <div class="form-group-custom span-2">
+                            <label>Sexo</label>
+                            <select name="sexo" class="form-control-edit">
+                                <option value="">— Todos —</option>
+                                <option value="M">Hombre</option>
+                                <option value="F">Mujer</option>
+                            </select>
                         </div>
-                        <div class="form-group">
-                            <label>Colectivo:</label>
-                            <select name="colectivo" class="form-control" style="width: 380px;">
-                                <option value="">---</option>
-                                <option value="Cuidadores no profesionales de las personas en situación de dependencia">Cuidadores no profesionales de las personas en situación de dependencia</option>
+                        <div class="form-group-custom span-4">
+                            <label>Colectivo</label>
+                            <select name="colectivo" class="form-control-edit">
+                                <option value="">— Todos —</option>
+                                <option value="Cuidadores no profesionales de las personas en situación de dependencia">Cuidadores no profesionales</option>
                                 <option value="Empleado hogar">Empleado hogar</option>
-                                <option value="ERE (Art. 51 y 52 del Estatuto de los Trabajadores)">ERE (Art. 51 y 52 del Estatuto de los Trabajadores)</option>
-                                <option value="ERTE (Art. 47 del Estatuto de los Trabajadores)">ERTE (Art. 47 del Estatuto de los Trabajadores)</option>
-                                <option value="Fijos discontinuos en periodo de no ocupación">Fijos discontinuos en periodo de no ocupación</option>
-                                <option value="Mutualistas de Colegios Profesionales no incluidos como autónomos">Mutualistas de Colegios Profesionales no incluidos como autónomos</option>
-                                <option value="Persona actualmente desempleada que anteriormente ha estado en situación de ERTE.">Persona actualmente desempleada que anteriormente ha estado en situación de ERTE.</option>
-                                <option value="Persona que actualmente está trabajando pero que anteriormente ha estado en situación de ERTE.">Persona que actualmente está trabajando pero que anteriormente ha estado en situación de ERTE.</option>
-                                <option value="Régimen especial agrario por cuenta ajena">Régimen especial agrario por cuenta ajena</option>
-                                <option value="Régimen especial agrario por cuenta propia">Régimen especial agrario por cuenta propia</option>
-                                <option value="Régimen especial autónomos">Régimen especial autónomos</option>
+                                <option value="ERE (Art. 51 y 52 del Estatuto de los Trabajadores)">ERE</option>
+                                <option value="ERTE (Art. 47 del Estatuto de los Trabajadores)">ERTE</option>
+                                <option value="Fijos discontinuos en periodo de no ocupación">Fijos discontinuos</option>
+                                <option value="Mutualistas de Colegios Profesionales no incluidos como autónomos">Mutualistas</option>
+                                <option value="Persona actualmente desempleada que anteriormente ha estado en situación de ERTE.">Desempleado ex-ERTE</option>
+                                <option value="Persona que actualmente está trabajando pero que anteriormente ha estado en situación de ERTE.">Trabajando ex-ERTE</option>
+                                <option value="Régimen especial agrario por cuenta ajena">Agrario cuenta ajena</option>
+                                <option value="Régimen especial agrario por cuenta propia">Agrario cuenta propia</option>
+                                <option value="Régimen especial autónomos">Autónomos</option>
                                 <option value="Régimen general">Régimen general</option>
-                                <option value="Regulación de empleo en periodos de no ocupación">Regulación de empleo en periodos de no ocupación</option>
-                                <option value="Trabajador con contrato a tiempo parcial">Trabajador con contrato a tiempo parcial</option>
-                                <option value="Trabajador con contrato temporal">Trabajador con contrato temporal</option>
-                                <option value="Trabajadores a tiempo parcial de carácter indefinido con trabajos discontinuos en sus periodos de no ocupación">Trabajadores a tiempo parcial de carácter indefinido con trabajos discontinuos en sus periodos de no ocupación</option>
-                                <option value="Trabajadores con convenio especial con la Seguridad Social">Trabajadores con convenio especial con la Seguridad Social</option>
-                                <option value="Trabajadores con relaciones laborales de carácter especial que se recogen en el art.2 del Estatuto de los Trabajadores">Trabajadores con relaciones laborales de carácter especial que se recogen en el art.2 del Estatuto de los Trabajadores</option>
-                                <option value="Trabajadores incluidos en el Régimen especial del mar">Trabajadores incluidos en el Régimen especial del mar</option>
-                                <option value="Trabajadores no ocupados inscritos como demandantes de empleo en los servicios públicos de empleo">Trabajadores no ocupados inscritos como demandantes de empleo en los servicios públicos de empleo</option>
-                                <option value="administración pública">administración pública</option>
+                                <option value="Regulación de empleo en periodos de no ocupación">Regulación empleo</option>
+                                <option value="Trabajador con contrato a tiempo parcial">Tiempo parcial</option>
+                                <option value="Trabajador con contrato temporal">Contrato temporal</option>
+                                <option value="administración pública">Administración pública</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>No válido:</label>
-                            <select name="no_valido" class="form-control"><option value="">---</option><option value="S">SÍ</option><option value="N" selected>NO</option></select>
-                        </div>
-                        <div class="form-group">
-                            <label>Mayor de 45:</label>
-                            <select name="mayor_45" class="form-control"><option value="">---</option><option value="S">SÍ</option><option value="N">NO</option></select>
-                        </div>
-                    </div>
-
-                    <!-- Fila 4 -->
-                    <div class="search-row">
-                        <div class="form-group" style="margin-left: 360px;">
-                            <label>Discapacitado:</label>
-                            <select name="discapacitado" class="form-control"><option value="">---</option><option value="S">SÍ</option><option value="N">NO</option></select>
-                        </div>
-                    </div>
-
-                    <!-- Fila 5 -->
-                    <div class="search-row">
-                        <div class="form-group">
-                            <label>Grupo cotización:</label>
-                            <select name="grupo_cotizacion" class="form-control" style="width: 320px;">
+                        <div class="form-group-custom span-1">
+                            <label>No válido</label>
+                            <select name="no_valido" class="form-control-edit">
                                 <option value="">---</option>
-                                <option value="1.- Ingenieros y licenciados">1.- Ingenieros y licenciados</option>
-                                <option value="2.- Ingenieros técnicos, peritos y Aytes. titulados">2.- Ingenieros técnicos, peritos y Aytes. titulados</option>
-                                <option value="3.- Jefes Advos. y de taller">3.- Jefes Advos. y de taller</option>
-                                <option value="4.- Ayudantes no titulados">4.- Ayudantes no titulados</option>
-                                <option value="5.- Oficiales administrativos">5.- Oficiales administrativos</option>
-                                <option value="6.- Subalternos">6.- Subalternos</option>
-                                <option value="7.- Auxiliares administrativos">7.- Auxiliares administrativos</option>
-                                <option value="8.- Oficiales de primera y segunda">8.- Oficiales de primera y segunda</option>
-                                <option value="9.- Oficiales de tercera y especialistas">9.- Oficiales de tercera y especialistas</option>
-                                <option value="10.- Peones">10.- Peones</option>
-                                <option value="11.- Trabajadores menores de 18 años">11.- Trabajadores menores de 18 años</option>
-                                <option value="Trabajadores mayores de 18 años no cualif.">Trabajadores mayores de 18 años no cualif.</option>
+                                <option value="S">SÍ</option>
+                                <option value="N" selected>NO</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Centro impartición:</label>
-                            <input type="text" name="centro" class="form-control" list="centros_list" placeholder="Escriba el centro..." style="width: 500px;">
+                        <div class="form-group-custom span-1">
+                            <label>Mayor 45</label>
+                            <select name="mayor_45" class="form-control-edit">
+                                <option value="">---</option>
+                                <option value="S">SÍ</option>
+                                <option value="N">NO</option>
+                            </select>
+                        </div>
+
+                        <!-- Fila 4: Discapacitado, Grupo cotización, Centro impartición -->
+                        <div class="form-group-custom span-1">
+                            <label>Discapacitado</label>
+                            <select name="discapacitado" class="form-control-edit">
+                                <option value="">---</option>
+                                <option value="S">SÍ</option>
+                                <option value="N">NO</option>
+                            </select>
+                        </div>
+                        <div class="form-group-custom span-4">
+                            <label>Grupo de cotización</label>
+                            <select name="grupo_cotizacion" class="form-control-edit">
+                                <option value="">— Todos —</option>
+                                <option value="1.- Ingenieros y licenciados">1. Ingenieros y licenciados</option>
+                                <option value="2.- Ingenieros técnicos, peritos y Aytes. titulados">2. Ingenieros técnicos</option>
+                                <option value="3.- Jefes Advos. y de taller">3. Jefes Advos.</option>
+                                <option value="4.- Ayudantes no titulados">4. Ayudantes no titulados</option>
+                                <option value="5.- Oficiales administrativos">5. Oficiales administrativos</option>
+                                <option value="6.- Subalternos">6. Subalternos</option>
+                                <option value="7.- Auxiliares administrativos">7. Auxiliares</option>
+                                <option value="8.- Oficiales de primera y segunda">8. Of. 1ª y 2ª</option>
+                                <option value="9.- Oficiales de tercera y especialistas">9. Of. 3ª y especialistas</option>
+                                <option value="10.- Peones">10. Peones</option>
+                                <option value="11.- Trabajadores menores de 18 años">11. Menores 18 años</option>
+                                <option value="Trabajadores mayores de 18 años no cualif.">Mayores 18 no cualificados</option>
+                            </select>
+                        </div>
+                        <div class="form-group-custom span-7">
+                            <label>Centro de impartición</label>
+                            <input type="text" name="centro" class="form-control-edit" list="centros_list" placeholder="Escriba el centro...">
                             <datalist id="centros_list">
                                 <?php foreach($centros_db as $c): ?><option value="<?= htmlspecialchars($c['nombre']) ?>"><?php endforeach; ?>
-                                <option value="A. F. C. CONSULTING DEPORTIVO">
-                                <option value="ACADEMIA CERVANTES , CARLOS AMEZ LAIZ CB">
-                                <option value="ACADEMIA FIPP">
-                                <option value="ACADEMIA SOCE S.L.U.">
-                                <option value="ACADEMIA TECNAS">
-                                <option value="ACADEMIA VIGILANT S.L.">
-                                <option value="ACADEMIA VISAN">
-                                <option value="ADAMS">
-                                <option value="AE S. MARTIN">
-                                <option value="AEFOL EXPOELEARNING S.L.">
-                                <option value="AESS">
-                                <option value="AFA-FORMACION CONTINUA S.L.">
-                                <option value="AGE">
-                                <option value="AMUSAL">
-                                <option value="AREA FORMACION AULAS">
-                                <option value="asimag servicios empresariales, s.l">
-                                <option value="ASIMAG SERVICIOS EMPRESARIALES, S.L.">
-                                <option value="Association Puerta de Alcalá">
-                                <option value="ATENTO TELESERVICIOS ESPAÑA, S.A.">
-                                <option value="AUDEMA">
-                                <option value="AUTOESCUELA EMERITA S.L.">
-                                <option value="AVEFOR ARAGÓN DAIDA PEREZ HERNANDEZ">
-                                <option value="AVIZOR, CENTRO SUPERIOR DE FORMACIÓN EN ESTUDIOS D">
-                                <option value="Ayuntamiento de Cajar">
-                                <option value="AZUVIS S.C.A">
-                                <option value="BODYFACTORY SOMOSAGUAS">
-                                <option value="BOROXSPORT CLUB SPORT">
-                                <option value="C/ CORCEGA,371">
-                                <option value="CAD-SEGURIDAD">
-                                <option value="CENTRO DE ENSEÑANZAS PROFESIONALES Y TECNOLOGICAS">
-                                <option value="Centro de Estudio Arsenio Toral S.A.L.">
-                                <option value="Centro de Estudio Arsenio Toral S.A.L.. 2012">
-                                <option value="CENTRO DE ESTUDIOS APPA SCL">
-                                <option value="CENTRO DE ESTUDIOS DE FORMACION ALFER">
-                                <option value="CENTRO DE ESTUDIOS DE FORMACION ALFER S.L.">
-                                <option value="CENTRO DE ESTUDIOS LA ACADEMIA CB">
-                                <option value="Centro de Estudios y Experimentación de Obras Públ">
-                                <option value="CENTRO DE FORMACION ALFER">
-                                <option value="CENTRO DE FORMACION ARSENIO JIMENO">
-                                <option value="centro de formación oasis">
-                                <option value="CENTRO DE FORMACION PRAXIS">
-                                <option value="CENTRO DE FORMACION PRAXIS II">
-                                <option value="CENTRO EMPRESARIAL CEMEI">
-                                <option value="CEPAL">
-                                <option value="CFI SEGURIDAD">
-                                <option value="CICE S.A">
-                                <option value="CIS-FORMACION ESPECIALIZADA SEGURIDAD-SALUD S.L.">
-                                <option value="Ciudad Escuela de Formacion">
-                                <option value="CLUB DE GOLF GUADALMINA">
-                                <option value="CLUB DE TENIS Y PADEL MONTEVERDE">
-                                <option value="Club Natació Barcelona">
-                                <option value="CLUB NAUTICO DE GANDIA">
-                                <option value="COMERCIANTES DEL PONIENTE, S.A.">
-                                <option value="Consultores de Formacion">
-                                <option value="CONSULTORIA Y FORMACION BALBO S.L">
-                                <option value="CONTROL DE FORMACION">
-                                <option value="CREATI MOMENTUM">
-                                <option value="D.D. SPORT FG S.L. (CIS)">
-                                <option value="Dedalo Proyectos XYZ (Vicar)">
-                                <option value="EDIFICIO SINDICATOS (A CORUÑA)">
-                                <option value="EDITEFORMACION (Madrid)">
-                                <option value="EDITEFORMACION-MERCAOLID">
-                                <option value="EDITRAIN SL">
-                                <option value="EDITRAIN, S.L. (P.E.LA FINCA)">
-                                <option value="El Ser Creativo SL">
-                                <option value="EL VENTAL DE OCASION S.L.">
-                                <option value="ELOGOS, S.L.">
-                                <option value="EMPRESA MIXTA DE SERVICIOS FUNERARIOS DE MADRID">
-                                <option value="ENSEÑANZAS ORTHOS">
-                                <option value="ESCUELA DE FORMACIÓN PROFESIONAL">
-                                <option value="ESCUELA DE FORMACIÓN PROFESIONAL (Vícar)">
-                                <option value="Escuela Internacional de Gerencia">
-                                <option value="ESTACION DISEÑO">
-                                <option value="ESTACION DISEÑO (Antiguo)">
-                                <option value="EUROPEANQUALITY S.L.">
-                                <option value="F.I.P.P">
-                                <option value="FEDERAC. PROV. DE MINUSVALIDOS FISICOS DE CORDOBA">
-                                <option value="FESS LA SALLE">
-                                <option value="FONDO DE PROMOCION Y DESARROLLO PROFESIONAL">
-                                <option value="FPDP">
-                                <option value="FPDP-VALENCIA">
-                                <option value="FUNDACIÓN SAN VALERO">
-                                <option value="GENERAL PLAN">
-                                <option value="GESTIÓN DE LA EXCELENCIA Y COACHING APLICADO A LOS">
-                                <option value="Gimnasio Triunfo S.A.">
-                                <option value="Green Apple School">
-                                <option value="GREEN TAL S.A.">
-                                <option value="Grupo Coremsa">
-                                <option value="GRUPO DTM CONSULTING S.L.U.">
-                                <option value="GRUPO EDNE, S.L.">
-                                <option value="GRUPO SUR RECICLAJE Y FORMACIÓN S.L.">
-                                <option value="Hotel Avenida">
-                                <option value="IDFO">
-                                <option value="IFES">
-                                <option value="IFES ( ZARAGOZA)">
-                                <option value="IFES (EUSKADI)">
-                                <option value="IFES NAVARRA">
-                                <option value="IFES UGT">
-                                <option value="IFES-CENTRO DE FORMACION ARSENIO JIMENO">
-                                <option value="IFES-SEVILLA">
-                                <option value="IFES-UGT (ALICANTE)">
-                                <option value="INGAFOR">
-                                <option value="INSFORCAN, S.L CENTRO DE ESTUDIOS EMPRESARIALES">
-                                <option value="Instituto Educacion Secundaria Elaios">
-                                <option value="INSTITUTO FORMACION ESTUDIOS SOCIALES">
-                                <option value="INSTITUTO MADRILEÑO DE FORMACION S.L">
-                                <option value="LA MIRADA DIGITAL">
-                                <option value="LA MIRADA DIGITAL, S.L.">
-                                <option value="MAREN">
-                                <option value="MARSDIGITAL S.L (antiguo)">
-                                <option value="Marsdigital S.L (Granada )">
-                                <option value="Marsdigital S.L. (Barcelona)">
-                                <option value="Marsdigital S.L. (la Mirada)">
-                                <option value="MASTER (CENTRO DE ESTUDIOS - TIENDA DE INFORMATICA">
-                                <option value="MBNA EUROPE BANK LIMITED ESPAÑA">
-                                <option value="Método Consultores, S.L">
-                                <option value="METODO ESTUDIOS CONSULTORES ( ARENAL)">
-                                <option value="METODO ESTUDIOS CONSULTORES, S.L.">
-                                <option value="METODO ESTUDIOS CONSULTORES,S.L (C/DIEGO)">
-                                <option value="MGI NEVA CENTROS DE FORMACION">
-                                <option value="MORTUALBA SCL ( TANATORIO MUNICIPAL ALBACETE)">
-                                <option value="OROVIDA S.L.">
-                                <option value="PARCESA, PARQUES DE LA PAZ S.A">
-                                <option value="PARCESA, PARQUES DE LA PAZ S.A ( segundo centro)">
-                                <option value="PARCESA, PARQUES DE LA PAZ S.A ( tercer centro)">
-                                <option value="POLIDEPORTIVO LAS CRUCES">
-                                <option value="PRODUCCIONES HINOJOSA BECERRA MEDIA2 S.L">
-                                <option value="PROINTEC S.A.">
-                                <option value="PROMAX S.L.L">
-                                <option value="Remo RCNGandia">
-                                <option value="SANTAGADEA GESTIÓN S.L. ( CENTRO DE DEPORTIVO DEHESA">
-                                <option value="SEGURIDAD CERES S.A.">
-                                <option value="SERVICIOS FUNERARIOS DE BARCELONA">
-                                <option value="SERVICIOS SECURITAS S.A.">
-                                <option value="Soom Management S.L">
-                                <option value="SQUASH GYM SIERRA S.L.">
-                                <option value="Swiss Sports Club">
-                                <option value="TALKING ENGLISH">
-                                <option value="TANATORIO MONTSERRAT TRUYOLS">
-                                <option value="TANATORIO MUNICIPAL CIUDAD DE VALENCIA">
-                                <option value="TANATORIO SAN LAZARO S.L.">
-                                <option value="TANATORIO SERVICIOS FUNERARIOS SAGUNTO. FUALRUB S.">
-                                <option value="TANATORIO TORRERO">
-                                <option value="TANATORIO VELATORIO LUCENSES">
-                                <option value="Tecnas">
-                                <option value="TWENTY4HELP KNOWLEDGE SERVICE ESPAÑA">
-                                <option value="ULTRAGYM/BODY FACTORY">
-                                <option value="Universidad de Granada">
-                                <option value="VALLADOLID 1402 S.L. ESCUELA DE SEGURIDAD">
-                                <option value="vigilantes">
                             </datalist>
                         </div>
-                    </div>
 
-                    <!-- Fila 6 -->
-                    <div class="search-row">
-                        <div class="form-group">
-                            <label>Convocatoria:</label>
-                            <select name="convocatoria" class="form-control" style="width: 80px;">
+                        <!-- Fila 5: Convocatoria, Plan, Estado, Modalidad -->
+                        <div class="form-group-custom span-2">
+                            <label>Convocatoria</label>
+                            <select name="convocatoria" class="form-control-edit">
                                 <option value="Todas">Todas</option>
                                 <?php foreach($convocatorias as $c): ?><option value="<?= $c['id'] ?>"><?= htmlspecialchars($c['nombre']) ?></option><?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Plan:</label>
-                            <select name="plan" class="form-control" style="width: 450px;"><option value="">------------ Todos los planes ------------</option></select>
+                        <div class="form-group-custom span-5">
+                            <label>Plan</label>
+                            <select name="plan" class="form-control-edit"><option value="">— Todos los planes —</option></select>
                         </div>
-                        <div class="form-group">
-                            <label>Estado:</label>
-                            <select name="estado" class="form-control" style="width: 150px;">
-                                <option value="">---</option>
+                        <div class="form-group-custom span-3">
+                            <label>Estado</label>
+                            <select name="estado" class="form-control-edit">
+                                <option value="">— Todos —</option>
                                 <option value="Abandono">Abandono</option>
                                 <option value="Admitido">Admitido</option>
                                 <option value="Baja">Baja</option>
@@ -633,10 +583,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
                                 <option value="Reserva">Reserva</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Modalidad:</label>
-                            <select name="modalidad" class="form-control" style="width: 150px;">
-                                <option value="">---</option>
+                        <div class="form-group-custom span-2">
+                            <label>Modalidad</label>
+                            <select name="modalidad" class="form-control-edit">
+                                <option value="">— Todas —</option>
                                 <option value="Teleformación">Teleformación</option>
                                 <option value="Distancia">Distancia</option>
                                 <option value="Mixta">Mixta</option>
@@ -645,113 +595,118 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
                                 <option value="Excepto presencial">Excepto presencial</option>
                             </select>
                         </div>
-                    </div>
 
-                    <!-- Fila 7 -->
-                    <div class="search-row">
-                        <div class="form-group">
-                            <label>Acción:</label>
-                            <input type="text" name="accion" class="form-control" style="width: 50px;">
+                        <!-- Fila 6: Acción, Grupo, Prioridad, Inscripciones, Nuestros, Entregado, Captado, Certificables -->
+                        <div class="form-group-custom span-1">
+                            <label>Acción</label>
+                            <input type="text" name="accion" class="form-control-edit" placeholder="Nº">
                         </div>
-                        <div class="form-group">
-                            <label>Grupo:</label>
-                            <input type="text" name="grupo" class="form-control" style="width: 50px;">
+                        <div class="form-group-custom span-1">
+                            <label>Grupo</label>
+                            <input type="text" name="grupo" class="form-control-edit" placeholder="Nº">
                         </div>
-                        <div class="form-group">
-                            <label>Prioridad:</label>
-                            <select name="prioridad" class="form-control">
+                        <div class="form-group-custom span-2">
+                            <label>Prioridad</label>
+                            <select name="prioridad" class="form-control-edit">
                                 <option value="">---</option>
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
-                                <option value="4">4</option>
-                                <option value="5">5</option>
-                                <option value="6">6</option>
-                                <option value="7">7</option>
+                                <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                                <option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Inscripciones:</label>
-                            <select name="filtro_inscripciones" class="form-control" style="width: 100px;">
-                                <option value="">---</option>
+                        <div class="form-group-custom span-2">
+                            <label>Inscripciones</label>
+                            <select name="filtro_inscripciones" class="form-control-edit">
+                                <option value="">— Todas —</option>
                                 <option value="Web">Web</option>
                                 <option value="Manual">Manual</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Cursos nuestros:</label>
-                            <select name="nuestros" class="form-control" style="width: 150px;">
+                        <div class="form-group-custom span-2">
+                            <label>Cursos nuestros</label>
+                            <select name="nuestros" class="form-control-edit">
                                 <option value="">Todos</option>
                                 <option value="S">Sí</option>
                                 <option value="N">No</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Entregado mat:</label>
-                            <select name="entregado" class="form-control" style="width: 80px;">
+                        <div class="form-group-custom span-2">
+                            <label>Entregado mat.</label>
+                            <select name="entregado" class="form-control-edit">
                                 <option value="">Todos</option>
                                 <option value="S">Sí</option>
                                 <option value="N">No</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Captado:</label>
-                            <select name="captado" class="form-control" style="width: 80px;">
+                        <div class="form-group-custom span-1">
+                            <label>Captado</label>
+                            <select name="captado" class="form-control-edit">
                                 <option value="">Todos</option>
                                 <option value="IDFO">IDFO</option>
                                 <option value="UGT">UGT</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>CERTIFICABLES:</label>
-                            <select name="certificables" class="form-control" style="width: 80px;">
+                        <div class="form-group-custom span-1">
+                            <label>Certificables</label>
+                            <select name="certificables" class="form-control-edit">
                                 <option value="">Todos</option>
                                 <option value="S">Sí</option>
                                 <option value="N">No</option>
                             </select>
                         </div>
-                    </div>
 
-                    <!-- Fila 8 (Fechas) -->
-                    <div class="search-row">
-                        <div class="form-group">
-                            <label>Inicio desde:</label><input type="text" class="form-control" style="width:80px;">
-                            <label>hasta:</label><input type="text" class="form-control" style="width:80px;">
+                        <!-- Fila 7: Fechas de grupo -->
+                        <div class="form-group-custom span-2">
+                            <label>Inicio desde</label>
+                            <input type="date" name="inicio_desde" class="form-control-edit">
                         </div>
-                        <div class="form-group" style="margin-left: 15px;">
-                            <label>Mitad desde:</label><input type="text" class="form-control" style="width:80px;">
-                            <label>hasta:</label><input type="text" class="form-control" style="width:80px;">
+                        <div class="form-group-custom span-2">
+                            <label>Inicio hasta</label>
+                            <input type="date" name="inicio_hasta" class="form-control-edit">
                         </div>
-                        <div class="form-group" style="margin-left: 15px;">
-                            <label>Fin desde:</label><input type="text" class="form-control" style="width:80px;">
-                            <label>hasta:</label><input type="text" class="form-control" style="width:80px;">
+                        <div class="form-group-custom span-2">
+                            <label>Mitad desde</label>
+                            <input type="date" name="mitad_desde" class="form-control-edit">
                         </div>
-                    </div>
+                        <div class="form-group-custom span-2">
+                            <label>Mitad hasta</label>
+                            <input type="date" name="mitad_hasta" class="form-control-edit">
+                        </div>
+                        <div class="form-group-custom span-2">
+                            <label>Fin desde</label>
+                            <input type="date" name="fin_desde" class="form-control-edit">
+                        </div>
+                        <div class="form-group-custom span-2">
+                            <label>Fin hasta</label>
+                            <input type="date" name="fin_hasta" class="form-control-edit">
+                        </div>
 
-                    <div style="text-align: center; margin-top: 15px;">
-                        <button type="submit" class="btn-buscar">Buscar</button>
-                    </div>
+                        <!-- Botón Buscar -->
+                        <div class="form-group-custom span-12" style="display: flex; justify-content: center; margin-top: 0.5rem;">
+                            <button type="submit" class="btn btn-primary" style="padding: 0.65rem 2.5rem;">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                                Buscar
+                            </button>
+                        </div>
+                    </div><!-- /form-grid -->
                 </form>
             </div>
 
             <!-- RESULTADOS -->
-            <div class="fp-content-main">
-                <div class="results-header-fp">
-                    <h2>RESULTADO DE LA BÚSQUEDA</h2>
-                    <div style="font-size: 0.75rem; color: #cbd5e1;">Se han encontrado <?= count($resultados) ?> resultados</div>
+            <div class="results-section-premium">
+                <div class="results-header-premium">
+                    <h2>Resultado de la Búsqueda</h2>
+                    <span class="results-count"><?= count($resultados) ?> inscripciones encontradas</span>
                 </div>
-                
 
-
-                <div class="table-responsive-fp">
-                    <table class="table-custom">
+                <div class="table-responsive">
+                    <table class="table-premium">
                         <thead>
                             <tr>
                                 <th>Plan</th>
                                 <th>Modal.</th>
                                 <th>Nº Acc.</th>
-                                <th>Nº gr.</th>
-                                <th>Cod Grupo</th>
+                                <th>Nº Gr.</th>
+                                <th>Cód Grupo</th>
                                 <th>Curso</th>
                                 <th>Alumno</th>
                                 <th>Empresa</th>
@@ -762,14 +717,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
                                 <th>Mitad</th>
                                 <th>Fin</th>
                                 <th>Estado</th>
-                                <th>No admision</th>
+                                <th>No Admisión</th>
                                 <th>Fecha Ins.</th>
                                 <th>Cambio estado</th>
-                                <th>Doc pte</th>
-                                <th>Prioridad</th>
+                                <th>Doc. Pte.</th>
+                                <th>Prior.</th>
                                 <th>Prefiere</th>
-                                <th>Numero</th>
-                                <th style="background: #f1f5f9; text-align: center;">Acciones</th>
+                                <th>Núm.</th>
+                                <th style="text-align: center;">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -795,20 +750,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
                                         <td><?= htmlspecialchars($res['empresa_nombre'] ?? '') ?></td>
                                         <td><?= htmlspecialchars($res['empresa_sector'] ?? '') ?></td>
                                         <td><?= htmlspecialchars($res['provincia'] ?? '') ?></td>
-                                        <td><?= htmlspecialchars(trim(($res['comercial_nombre'] ?? '') . ' ' . ($res['comercial_apellidos'] ?? ''))) ?></td>
-                                        <td><?= !empty($res['grupo_inicio']) && $res['grupo_inicio'] != '0000-00-00' ? date('d/m/Y', strtotime($res['grupo_inicio'])) : '' ?></td>
+                                                                               <td><?= !empty($res['grupo_inicio']) && $res['grupo_inicio'] != '0000-00-00' ? date('d/m/Y', strtotime($res['grupo_inicio'])) : '' ?></td>
                                         <td><?= !empty($res['grupo_mitad']) && $res['grupo_mitad'] != '0000-00-00' ? date('d/m/Y', strtotime($res['grupo_mitad'])) : '' ?></td>
                                         <td><?= !empty($res['grupo_fin']) && $res['grupo_fin'] != '0000-00-00' ? date('d/m/Y', strtotime($res['grupo_fin'])) : '' ?></td>
                                         <td>
-                                            <span style="padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; background: #e2e8f0;">
-                                                <?= htmlspecialchars($res['estado']) ?>
-                                            </span>
+                                            <?php
+                                            $estado_val = strtolower($res['estado'] ?? '');
+                                            $badge_class = 'badge-default';
+                                            if (str_contains($estado_val, 'admitido')) $badge_class = 'badge-admitido';
+                                            elseif (str_contains($estado_val, 'inscrito') || str_contains($estado_val, 'preinscrito')) $badge_class = 'badge-inscrito';
+                                            elseif (str_contains($estado_val, 'espera') || str_contains($estado_val, 'pendiente')) $badge_class = 'badge-espera';
+                                            elseif (str_contains($estado_val, 'baja') || str_contains($estado_val, 'abandono')) $badge_class = 'badge-baja';
+                                            elseif (str_contains($estado_val, 'finalizado')) $badge_class = 'badge-finalizado';
+                                            ?>
+                                            <span class="badge <?= $badge_class ?>"><?= htmlspecialchars($res['estado']) ?></span>
                                         </td>
-                                        <td></td> <!-- No admision -->
+                                        <td></td> <!-- No admisión -->
                                         <td><?= !empty($res['fecha_matricula']) && $res['fecha_matricula'] != '0000-00-00' ? date('d/m/Y', strtotime($res['fecha_matricula'])) : '' ?></td>
                                         <td></td> <!-- Cambio estado -->
-                                        <td style="font-size: 0.65rem; color: #b91c1c;">
-                                            <?php 
+                                        <td style="color: #ef4444; font-size: 0.72rem;">
+                                            <?php
                                             $doc_pte = [];
                                             if (empty($res['dni_entregado'])) $doc_pte[] = 'DNI';
                                             if (empty($res['nomina_entregada'])) $doc_pte[] = 'Nómina';
@@ -816,12 +777,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
                                             echo empty($doc_pte) ? '' : 'Falta: ' . implode(', ', $doc_pte);
                                             ?>
                                         </td>
-                                        <td style="text-align: center;"><?= htmlspecialchars($res['af_prioridad'] ?? '') ?></td>
+                                        <td style="text-align: center; font-weight: 700;"><?= htmlspecialchars($res['af_prioridad'] ?? '') ?></td>
                                         <td style="text-align: center;"><?= htmlspecialchars($res['pref_presencial'] ?? '') ?></td>
-                                        <td style="text-align: center;">1</td> <!-- Numero -->
+                                        <td style="text-align: center;">1</td>
                                         <td style="text-align: center;">
-                                            <a href="ficha_alumno.php?id=<?= $res['alumno_id'] ?>" class="btn-edit-student" title="Ver/Modificar ficha del alumno">
-                                                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                            <a href="ficha_alumno.php?id=<?= $res['alumno_id'] ?>" class="btn-action" title="Ver ficha del alumno">
+                                                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                                 Ficha
                                             </a>
                                         </td>
@@ -833,7 +794,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
                 </div>
             </div>
 
-            </div>
         </main>
     </div>
 </body>
