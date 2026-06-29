@@ -641,7 +641,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
                     </div>
                 </div>
             </form>
-        </div>       </div>
+        </div>
 
         <?php if (!empty($_GET['plan_id'])): ?>
         <div class="tabs-header-af">
