@@ -140,6 +140,13 @@ $current_page = 'grupos.php';
             letter-spacing: 1px;
         }
 
+        /* Table responsive wrapper */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
         /* Table */
         .table-premium {
             width: 100%;
@@ -630,7 +637,7 @@ $current_page = 'grupos.php';
             <div class="results-header-premium">
                 <h2>Resultado de la Búsqueda</h2>
             </div>
-            <div class="table-responsive" style="background: transparent; border-radius: 0 0 16px 16px; box-shadow: none; border-bottom: none;">
+            <div class="table-responsive" style="overflow-x: auto; width: 100%; background: transparent; border-radius: 0 0 16px 16px; box-shadow: none; border-bottom: none;">
                 <table class="table-premium">
                     <thead>
                         <tr>
