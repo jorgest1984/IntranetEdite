@@ -69,8 +69,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
         $params[] = "%" . $_GET['provincia'] . "%";
     }
 
-    $sql = "SELECT m.*, a.nombre as alumno_nombre, a.primer_apellido, a.segundo_apellido, a.dni, a.provincia, a.pref_presencial, 
-                   c.nombre as convocatoria_nombre, p.nombre as plan_nombre, e.nombre as empresa_nombre, e.sector as empresa_sector,
+    $sql = "SELECT m.*, a.nombre as alumno_nombre, a.primer_apellido, a.segundo_apellido, a.dni, a.provincia, a.pref_presencial,
+                   c.nombre as convocatoria_nombre,
+                   (SELECT pl.nombre FROM planes pl WHERE pl.convocatoria_id = c.id ORDER BY pl.id ASC LIMIT 1) as plan_nombre,
+                   e.nombre as empresa_nombre, e.sector as empresa_sector,
                    g.numero_grupo, g.codigo_plataforma as grupo_cod, g.fecha_inicio as grupo_inicio, g.fecha_mitad as grupo_mitad, g.fecha_fin as grupo_fin,
                    af.abreviatura as af_abreviatura, af.prioridad as af_prioridad, cu.nombre_corto as curso_nombre,
                    u_com.nombre as comercial_nombre, u_com.apellidos as comercial_apellidos,
@@ -78,15 +80,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
             FROM matriculas m
             INNER JOIN alumnos a ON m.alumno_id = a.id
             LEFT JOIN convocatorias c ON m.convocatoria_id = c.id
-            LEFT JOIN planes p ON c.id = p.convocatoria_id
             LEFT JOIN empresas e ON a.ultima_empresa_id = e.id
             LEFT JOIN grupos g ON m.grupo_id = g.id
             LEFT JOIN acciones_formativas af ON g.accion_id = af.id
             LEFT JOIN cursos cu ON af.curso_id = cu.id
             LEFT JOIN usuarios u_com ON m.comercial_id = u_com.id
             WHERE " . implode(" AND ", $where) . "
-            GROUP BY m.id
-            LIMIT 100";
+            ORDER BY m.id DESC
+            LIMIT 500";
+
 
     try {
         $stmt = $pdo->prepare($sql);
@@ -682,9 +684,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
                         </div>
 
                         <!-- Botón Buscar -->
-                        <div class="form-group-custom span-12" style="display: flex; justify-content: center; margin-top: 0.5rem;">
-                            <button type="submit" class="btn btn-primary" style="padding: 0.65rem 2.5rem;">
-                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <div class="form-group-custom span-12" style="display:flex; justify-content:center; padding-top:0.5rem;">
+                            <button type="submit" class="btn btn-primary" style="padding:0.6rem 3rem; min-width:160px; width:auto;">
+                                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                                 Buscar
                             </button>
                         </div>
