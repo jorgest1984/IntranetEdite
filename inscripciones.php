@@ -375,7 +375,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
                 </div>
                 <form method="GET">
                     
-                    <!-- Fila 1: Curso, Código grupo, Comercial, Tutor -->
+                    <!-- Fila 1: Curso, Código grupo, Comercial, Tutor, Sin grupo -->
                     <div class="form-grid">
                         <div class="form-group-custom span-3">
                             <label>Curso</label>
@@ -394,7 +394,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="form-group-custom span-4">
+                        <div class="form-group-custom span-3">
                             <label>Tutor</label>
                             <select name="tutor" class="form-control-edit">
                                 <option value="">— Todos —</option>
@@ -403,19 +403,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="form-group-custom span-2" style="justify-content: flex-end; padding-top: 1.5rem;">
-                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                        <div class="form-group-custom span-1" style="justify-content: flex-end; padding-top: 1.6rem;">
+                            <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:0.72rem; white-space:nowrap;">
                                 <input type="checkbox" name="sin_grupo"> Sin grupo
                             </label>
                         </div>
 
-                        <!-- Fila 2: Fechas, Provincia, Motivo No-Admisión -->
+                        <!-- Fila 2: Fechas inscripción, Provincia, Motivo No-Admisión -->
                         <div class="form-group-custom span-3">
-                            <label>Fecha Inscripción Desde</label>
+                            <label>Fecha Insc. Desde</label>
                             <input type="date" name="fecha_desde" class="form-control-edit">
                         </div>
                         <div class="form-group-custom span-3">
-                            <label>Fecha Inscripción Hasta</label>
+                            <label>Fecha Insc. Hasta</label>
                             <input type="date" name="fecha_hasta" class="form-control-edit">
                         </div>
                         <div class="form-group-custom span-3">
@@ -442,7 +442,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
                         </div>
 
                         <!-- Fila 3: Solicitante, Sexo, Colectivo, No válido, Mayor 45 -->
-                        <div class="form-group-custom span-4">
+                        <div class="form-group-custom span-3">
                             <label>Solicitante</label>
                             <select name="solicitante" class="form-control-edit">
                                 <option value="">— Todos —</option>
@@ -452,7 +452,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
                                 <option value="UGT Madrid">UGT Madrid</option>
                                 <option value="FETCM-UGT">FETCM-UGT</option>
                                 <option value="FETE-UGT">FETE-UGT</option>
-                                <option value="FED. NACIONAL DE DETALLISTAS DE FRUTAS Y HORTALIZA">FED. NACIONAL DE DETALLISTAS DE FRUTAS Y HORTALIZA</option>
+                                <option value="FED. NACIONAL DE DETALLISTAS DE FRUTAS Y HORTALIZA">FED. NACIONAL DE DETALLISTAS...</option>
                                 <option value="MARS">MARS</option>
                                 <option value="FITAG">FITAG</option>
                                 <option value="Comunidad de Madrid">Comunidad de Madrid</option>
@@ -477,7 +477,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
                                 <option value="F">Mujer</option>
                             </select>
                         </div>
-                        <div class="form-group-custom span-4">
+                        <div class="form-group-custom span-3">
                             <label>Colectivo</label>
                             <select name="colectivo" class="form-control-edit">
                                 <option value="">— Todos —</option>
@@ -499,7 +499,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
                                 <option value="administración pública">Administración pública</option>
                             </select>
                         </div>
-                        <div class="form-group-custom span-1">
+                        <div class="form-group-custom span-2">
                             <label>No válido</label>
                             <select name="no_valido" class="form-control-edit">
                                 <option value="">---</option>
@@ -507,7 +507,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
                                 <option value="N" selected>NO</option>
                             </select>
                         </div>
-                        <div class="form-group-custom span-1">
+                        <div class="form-group-custom span-2">
                             <label>Mayor 45</label>
                             <select name="mayor_45" class="form-control-edit">
                                 <option value="">---</option>
@@ -517,7 +517,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
                         </div>
 
                         <!-- Fila 4: Discapacitado, Grupo cotización, Centro impartición -->
-                        <div class="form-group-custom span-1">
+                        <div class="form-group-custom span-2">
                             <label>Discapacitado</label>
                             <select name="discapacitado" class="form-control-edit">
                                 <option value="">---</option>
@@ -543,7 +543,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
                                 <option value="Trabajadores mayores de 18 años no cualif.">Mayores 18 no cualificados</option>
                             </select>
                         </div>
-                        <div class="form-group-custom span-7">
+                        <div class="form-group-custom span-6">
                             <label>Centro de impartición</label>
                             <input type="text" name="centro" class="form-control-edit" list="centros_list" placeholder="Escriba el centro...">
                             <datalist id="centros_list">
@@ -559,7 +559,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
                                 <?php foreach($convocatorias as $c): ?><option value="<?= $c['id'] ?>"><?= htmlspecialchars($c['nombre']) ?></option><?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="form-group-custom span-5">
+                        <div class="form-group-custom span-4">
                             <label>Plan</label>
                             <select name="plan" class="form-control-edit"><option value="">— Todos los planes —</option></select>
                         </div>
@@ -584,7 +584,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
                                 <option value="Reserva">Reserva</option>
                             </select>
                         </div>
-                        <div class="form-group-custom span-2">
+                        <div class="form-group-custom span-3">
                             <label>Modalidad</label>
                             <select name="modalidad" class="form-control-edit">
                                 <option value="">— Todas —</option>
@@ -597,7 +597,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
                             </select>
                         </div>
 
-                        <!-- Fila 6: Acción, Grupo, Prioridad, Inscripciones, Nuestros, Entregado, Captado, Certificables -->
+                        <!-- Fila 6: Acción, Grupo, Prioridad, Tipo Insc., Nuestros, Entregado, Captado, Certificables -->
                         <div class="form-group-custom span-1">
                             <label>Acción</label>
                             <input type="text" name="accion" class="form-control-edit" placeholder="Nº">
@@ -615,7 +615,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
                             </select>
                         </div>
                         <div class="form-group-custom span-2">
-                            <label>Inscripciones</label>
+                            <label>Tipo Insc.</label>
                             <select name="filtro_inscripciones" class="form-control-edit">
                                 <option value="">— Todas —</option>
                                 <option value="Web">Web</option>
@@ -641,15 +641,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
                         <div class="form-group-custom span-1">
                             <label>Captado</label>
                             <select name="captado" class="form-control-edit">
-                                <option value="">Todos</option>
+                                <option value="">---</option>
                                 <option value="IDFO">IDFO</option>
                                 <option value="UGT">UGT</option>
                             </select>
                         </div>
                         <div class="form-group-custom span-1">
-                            <label>Certificables</label>
+                            <label>Certif.</label>
                             <select name="certificables" class="form-control-edit">
-                                <option value="">Todos</option>
+                                <option value="">---</option>
                                 <option value="S">Sí</option>
                                 <option value="N">No</option>
                             </select>
