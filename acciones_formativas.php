@@ -618,9 +618,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
                     </div>
 
                     <!-- Botones de Acción -->
-                    <div class="span-12" style="display: flex; gap: 10px; justify-content: center; margin-top: 15px; flex-wrap: wrap;">
+                    <div style="grid-column: span 12; display: flex; gap: 10px; justify-content: center; margin-top: 15px; flex-wrap: wrap; align-items: center;">
                         <button type="submit" class="btn btn-primary" style="padding: 0.65rem 2rem;">
-                            🔍 Buscar
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            Buscar
                         </button>
                         <?php
                         $queryString = $_SERVER['QUERY_STRING'];
