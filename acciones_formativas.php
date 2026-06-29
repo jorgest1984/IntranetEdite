@@ -128,205 +128,133 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/main.css">
     <style>
-        :root {
-            --title-red: #b91c1c;
-            --label-blue: #1e40af;
-            --border-gray: #cbd5e1;
-            --primary-color: #1e3a8a;
-        }
+        /* ===== ACCIONES FORMATIVAS STYLES ===== */
 
-        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; margin: 0; }
-        .main-content { padding: 1.5rem; }
-
-        .search-card {
-            background: #fff;
-            border: 1px solid var(--border-gray);
-            border-radius: 4px;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .card-header-custom {
-            background: #fff;
-            padding: 0.5rem;
-            border-bottom: 2px solid var(--border-gray);
-            text-align: center;
-        }
-
-        .card-header-custom h2 {
-            margin: 0;
-            font-size: 0.85rem;
-            font-weight: 800;
-            color: var(--title-red);
-            text-transform: uppercase;
-        }
-
-        .search-form { padding: 1rem; }
-
-        .search-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-bottom: 10px;
-            align-items: center;
-        }
-
-        .form-group {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .form-group label {
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: var(--label-blue);
-            white-space: nowrap;
-        }
-
-        .form-control {
-            font-size: 0.8rem;
-            padding: 3px 6px;
-            border: 1px solid var(--border-gray);
-            border-radius: 2px;
-            background: #fff;
-            color: #000000 !important;
-        }
-
-        select.form-control option {
-            color: #000000 !important;
-            background-color: #ffffff !important;
-        }
-
-        select.form-control { height: 26px; padding: 0 6px; }
-        input[type="text"].form-control { height: 24px; }
-
-        .button-bar {
-            text-align: center;
-            margin-top: 15px;
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .btn-buscar {
-            background: #f1f5f9;
-            border: 1px solid var(--border-gray);
-            padding: 4px 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-            border-radius: 3px;
-        }
-
-        .btn-buscar:hover { background: #e2e8f0; }
-
-        .btn-print {
-            background: #fff;
-            border: 1px solid var(--border-gray);
-            padding: 3px 12px;
-            font-size: 0.8rem;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            border-radius: 3px;
-        }
-
-        .btn-print:hover { background: #f8fafc; }
-
-        /* Results Table */
-        .results-section {
-            background: #fff;
-            border: 1px solid var(--border-gray);
-            border-radius: 4px;
+        /* Search Card Premium */
+        .search-card-premium {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            box-shadow: var(--glass-shadow);
             overflow: hidden;
+            transition: background-color 0.4s ease, border-color 0.4s ease;
         }
 
-        .results-header {
-            padding: 0.6rem;
-            text-align: center;
-            border-bottom: 1px solid var(--border-gray);
-            position: relative;
-        }
-
-        .results-header .check-group {
-            position: absolute;
-            left: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 0.65rem;
+        .card-header-premium {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+            padding: 1rem 2rem;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 5px;
-            color: var(--label-blue);
-            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(0, 108, 228, 0.15);
         }
 
-        .results-header h2 {
+        .card-header-premium h2 {
             margin: 0;
-            font-size: 0.85rem;
+            font-size: 0.95rem;
             font-weight: 800;
-            color: var(--title-red);
+            color: white;
             text-transform: uppercase;
+            letter-spacing: 2px;
         }
 
-        .table-responsive { 
-            overflow-x: auto; 
-            width: 100%;
-            margin-bottom: 1rem;
-            border-bottom: 1px solid var(--border-gray);
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1.25rem;
+            padding: 2rem;
         }
-        
-        .table-custom {
-            width: 100%;
-            min-width: 1200px;
-            border-collapse: collapse;
+
+        .form-group-custom {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .form-group-custom.span-12 { grid-column: span 12; }
+        .form-group-custom.span-8 { grid-column: span 8; }
+        .form-group-custom.span-6 { grid-column: span 6; }
+        .form-group-custom.span-5 { grid-column: span 5; }
+        .form-group-custom.span-4 { grid-column: span 4; }
+        .form-group-custom.span-3 { grid-column: span 3; }
+        .form-group-custom.span-2 { grid-column: span 2; }
+
+        .form-group-custom label {
             font-size: 0.75rem;
-        }
-
-        .table-custom th {
-            background: #f8fafc;
-            border: 1px solid var(--border-gray);
-            padding: 8px;
-            text-align: center;
-            color: var(--label-blue);
             font-weight: 700;
-            white-space: nowrap;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
-        .table-custom th svg {
-            width: 10px;
-            height: 10px;
-            vertical-align: middle;
-            margin-right: 5px;
-            color: #64748b;
+        /* Results Card Layout */
+        .results-section-premium {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            box-shadow: var(--glass-shadow);
+            overflow: hidden;
+            margin-bottom: 2rem;
         }
 
-        .table-custom td {
-            border: 1px solid #f1f5f9;
-            padding: 8px;
-            white-space: nowrap;
+        .results-header-premium {
+            background: rgba(0, 108, 228, 0.03);
+            padding: 1.25rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
 
-        .table-custom tr:nth-child(even) { background: #f8fafc; }
-        .table-custom tr:hover { background: #f1f5f9; }
+        .results-header-premium h2 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
 
-        .btn-volver {
-            margin-top: 15px;
-            padding: 5px 20px;
-            font-size: 0.75rem;
-            cursor: pointer;
-            background: #f1f5f9;
-            border: 1px solid var(--border-gray);
-            border-radius: 3px;
+        /* Table */
+        .table-premium {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
         }
         
-        .btn-volver:hover { background: #e2e8f0; }
+        .table-premium th {
+            background: rgba(0, 108, 228, 0.04);
+            border-bottom: 2px solid var(--border-color);
+            padding: 1rem 1.5rem;
+            text-align: left;
+            color: var(--primary-color);
+            font-weight: 700;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
 
-        /* Estilos Premium para Acciones */
-        .table-premium th { padding: 15px; border-bottom: 2px solid #f1f5f9; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; font-size: 0.7rem; }
-        .table-premium tr:hover { background: #f8fafc; }
+        .table-premium td {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-color);
+        }
+
+        .table-premium tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table-premium tr:hover td {
+            background-color: rgba(0, 108, 228, 0.015);
+        }
+
         .btn-action {
             display: flex;
             align-items: center;
@@ -334,16 +262,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
             width: 32px;
             height: 32px;
             border-radius: 8px;
-            background: white;
-            border: 1px solid #e2e8f0;
-            color: #1e3a8a;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--primary-color);
             transition: all 0.2s;
             text-decoration: none;
         }
+        
         .btn-action:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            border-color: currentColor;
+            box-shadow: 0 4px 12px rgba(0, 108, 228, 0.15);
+            border-color: var(--primary-color);
         }
 
         /* Loading Spinner */
@@ -353,56 +282,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
         /* Tabs Styles */
         .tabs-header-af {
             display: flex;
-            gap: 5px;
-            margin-bottom: -1px;
-            padding-left: 10px;
+            gap: 8px;
+            margin-bottom: 1.5rem;
+            padding-left: 5px;
         }
 
         .tab-af-btn {
-            padding: 10px 25px;
-            background: #e2e8f0;
-            border: 1px solid #cbd5e1;
-            border-bottom: none;
-            border-radius: 8px 8px 0 0;
+            padding: 10px 24px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
             font-size: 0.8rem;
             font-weight: 700;
-            color: #64748b;
+            color: var(--text-muted);
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.25s ease;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tab-af-btn:hover {
+            background: rgba(0, 108, 228, 0.04);
+            color: var(--primary-color);
+            border-color: var(--card-hover-border);
         }
 
         .tab-af-btn.active {
-            background: white;
-            color: #1e3a8a;
-            border-bottom: 2px solid white;
-            margin-bottom: -1px;
-            z-index: 2;
-        }
-
-        .tab-content-af {
-            display: none;
-        }
-
-        .tab-content-af.active {
-            display: block;
+            background: var(--primary-color);
+            color: white !important;
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 12px rgba(0, 108, 228, 0.2);
         }
 
         /* Form Styles for Tab */
         .form-card-tab {
-            background: white;
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
             padding: 30px;
-            border-radius: 0 0 8px 8px;
-            border: 1px solid #cbd5e1;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            border-radius: 16px;
+            box-shadow: var(--glass-shadow);
         }
         
         .section-title-tab {
-            color: #1e3a8a;
+            color: var(--primary-color);
             font-size: 0.85rem;
             font-weight: 800;
             text-transform: uppercase;
-            border-bottom: 2px solid #f1f5f9;
+            border-bottom: 2px solid var(--border-color);
             padding-bottom: 8px;
             margin: 25px 0 15px 0;
             display: flex;
@@ -413,39 +341,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
         .grid-form-tab {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
+            gap: 20px;
         }
         
         .form-group-tab label {
             display: block;
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             font-weight: 700;
-            color: #64748b;
+            color: var(--text-muted);
             margin-bottom: 5px;
             text-transform: uppercase;
         }
         
-        .form-control-tab {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            color: #000000 !important;
-            background-color: #ffffff !important;
-        }
-
-        select.form-control-tab option {
-            color: #000000 !important;
-            background-color: #ffffff !important;
-        }
-        
         .moodle-sync-box-tab {
-            background: #eff6ff;
-            border: 1px solid #bfdbfe;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 20px;
+            background: rgba(0, 108, 228, 0.05);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 25px;
             display: flex;
             align-items: center;
             gap: 12px;
@@ -462,49 +375,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
                 box-sizing: border-box !important;
                 overflow-x: hidden !important;
             }
-            .card-header-custom {
+            .card-header-premium {
                 flex-direction: column !important;
                 align-items: stretch !important;
                 gap: 12px !important;
                 padding: 15px !important;
             }
-            .card-header-custom h2 {
+            .card-header-premium h2 {
                 text-align: center !important;
             }
-            .search-form {
+            .form-grid {
                 padding: 15px !important;
-            }
-            .search-row {
-                flex-direction: column !important;
-                align-items: stretch !important;
                 gap: 12px !important;
             }
-            .form-group {
-                flex-direction: column !important;
-                align-items: stretch !important;
-                width: 100% !important;
-            }
-            .form-group label {
-                text-align: left !important;
-                margin-bottom: 4px !important;
-            }
-            .form-control {
-                width: 100% !important;
-                max-width: 100% !important;
-                box-sizing: border-box !important;
-                height: 36px !important;
-            }
-            select.form-control {
-                height: 36px !important;
-            }
-            .button-bar {
-                flex-direction: column !important;
-                align-items: stretch !important;
-                gap: 10px !important;
-            }
-            .button-bar button {
-                width: 100% !important;
-                justify-content: center !important;
+            .form-group-custom {
+                grid-column: span 12 !important;
             }
             .tabs-header-af {
                 flex-direction: column !important;
@@ -513,12 +398,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
             }
             .tab-af-btn {
                 border-radius: 6px !important;
-                border: 1px solid #cbd5e1 !important;
+                border: 1px solid var(--glass-border) !important;
                 text-align: center !important;
                 padding: 12px 15px !important;
-            }
-            .tab-af-btn.active {
-                border-bottom: 1px solid #cbd5e1 !important;
             }
             .form-card-tab {
                 padding: 15px !important;
@@ -527,9 +409,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
             .grid-form-tab {
                 grid-template-columns: 1fr !important;
                 gap: 12px !important;
-            }
-            .grid-form-tab > div {
-                grid-column: span 1 !important;
             }
             .moodle-sync-box-tab {
                 flex-direction: column !important;
@@ -548,20 +427,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
             }
             .table-premium tr {
                 margin-bottom: 20px !important;
-                border: 1px solid #e2e8f0 !important;
+                border: 1px solid var(--border-color) !important;
                 border-radius: 12px !important;
-                background: white !important;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.03) !important;
+                background: var(--glass-bg) !important;
+                box-shadow: var(--glass-shadow) !important;
                 padding: 12px !important;
             }
             .table-premium td {
                 display: flex !important;
                 justify-content: space-between !important;
                 align-items: center !important;
-                border-bottom: 1px solid #f1f5f9 !important;
+                border-bottom: 1px solid var(--border-color) !important;
                 padding: 12px 5px !important;
                 text-align: right !important;
                 white-space: normal !important;
+                color: var(--text-color) !important;
             }
             .table-premium td:last-child {
                 border-bottom: none !important;
@@ -569,7 +449,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
             .table-premium td::before {
                 content: attr(data-label) !important;
                 font-weight: 700 !important;
-                color: #1e40af !important;
+                color: var(--primary-color) !important;
                 font-size: 0.75rem !important;
                 text-transform: uppercase !important;
                 text-align: left !important;
@@ -612,40 +492,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
                 ✗ Error: <?= htmlspecialchars($_GET['error']) ?>
             </div>
         <?php endif; ?>
-        
-        <div class="search-card">
-            <div class="card-header-custom" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 20px;">
-                <h2 style="margin: 0; color: #b91c1c; font-size: 0.85rem; font-weight: 800; text-transform: uppercase;"><?= $current_plan_name ? 'CURSOS DEL PLAN: ' . htmlspecialchars($current_plan_name) : ($page_title_prefix . ' - CAMPOS DE BÚSQUEDA') ?></h2>
+          <div class="search-card-premium">
+            <div class="card-header-premium" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem;">
+                <h2 style="margin: 0; color: white; font-size: 0.95rem; font-weight: 800; text-transform: uppercase; letter-spacing: 2px;"><?= $current_plan_name ? 'CURSOS DEL PLAN: ' . htmlspecialchars($current_plan_name) : ($page_title_prefix . ' - FILTROS DE BÚSQUEDA') ?></h2>
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <?php if ($current_plan_name): ?>
-                        <button onclick="document.getElementById('searchForm').style.display = (document.getElementById('searchForm').style.display === 'none' ? 'block' : 'none')" class="btn-small" style="font-size: 0.7rem; padding: 4px 10px; cursor:pointer; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px;">🔍 Filtros</button>
+                        <button type="button" onclick="document.getElementById('searchForm').style.display = (document.getElementById('searchForm').style.display === 'none' ? 'block' : 'none')" class="btn btn-glass" style="font-size: 0.7rem; padding: 4px 10px; cursor:pointer; color: white; border: 1px solid rgba(255,255,255,0.3);">🔍 Filtros</button>
                     <?php endif; ?>
                 </div>
             </div>
             
-            <form id="searchForm" class="search-form" method="GET" style="<?= $current_plan_name ? 'display: none;' : '' ?>">
+            <form id="searchForm" method="GET" style="margin:0; <?= $current_plan_name ? 'display: none;' : '' ?>">
                 <input type="hidden" name="context" value="<?= htmlspecialchars($_GET['context'] ?? '') ?>">
                 
-                <!-- Fila 1 -->
-                <div class="search-row" style="justify-content: center;">
-                    <div class="form-group">
+                <div class="form-grid">
+                    <!-- Fila 1 -->
+                    <div class="form-group-custom span-6">
                         <label>Nombre:</label>
-                        <input type="text" name="nombre" value="<?= htmlspecialchars($_GET['nombre'] ?? '') ?>" class="form-control" style="width: 400px;">
+                        <input type="text" name="nombre" value="<?= htmlspecialchars($_GET['nombre'] ?? '') ?>" class="form-control" style="width: 100%;">
                     </div>
-                </div>
-
-                <!-- Fila 2 -->
-                <div class="search-row">
-                    <div class="form-group" style="flex: 1;">
-                        <label>Convocatoria:</label>
-                        <select name="convocatoria_id" class="form-control" style="width: 100%; max-width: 300px;">
-                            <option value="">Todas</option>
-                            <?php foreach ($convocatorias as $c): ?>
-                                <option value="<?= $c['id'] ?>" <?= (($_GET['convocatoria_id'] ?? '') == $c['id']) ? 'selected' : '' ?>><?= htmlspecialchars($c['nombre']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="form-group" style="flex: 2;">
+                    
+                    <div class="form-group-custom span-6">
                         <label>Plan:</label>
                         <select name="plan_id" class="form-control" style="width: 100%;">
                             <option value="">Todos los planes</option>
@@ -654,11 +521,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
                             <?php endforeach; ?>
                         </select>
                     </div>
-                </div>
 
-                <!-- Fila 3 -->
-                <div class="search-row">
-                    <div class="form-group" style="flex: 1;">
+                    <!-- Fila 2 -->
+                    <div class="form-group-custom span-4">
+                        <label>Convocatoria:</label>
+                        <select name="convocatoria_id" class="form-control" style="width: 100%;">
+                            <option value="">Todas</option>
+                            <?php foreach ($convocatorias as $c): ?>
+                                <option value="<?= $c['id'] ?>" <?= (($_GET['convocatoria_id'] ?? '') == $c['id']) ? 'selected' : '' ?>><?= htmlspecialchars($c['nombre']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group-custom span-4">
                         <label>Solicitante:</label>
                         <select name="solicitante" class="form-control" style="width: 100%;">
                             <option value=""></option>
@@ -667,7 +542,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="form-group" style="flex: 1;">
+                    
+                    <div class="form-group-custom span-4">
                         <label>Sector:</label>
                         <select name="sector" class="form-control" style="width: 100%;">
                             <option value=""></option>
@@ -676,11 +552,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
                             <?php endforeach; ?>
                         </select>
                     </div>
-                </div>
 
-                <!-- Fila 4 -->
-                <div class="search-row">
-                    <div class="form-group" style="flex: 1;">
+                    <!-- Fila 3 -->
+                    <div class="form-group-custom span-4">
                         <label>Proveedor:</label>
                         <select name="proveedor" class="form-control" style="width: 100%;">
                             <option value=""></option>
@@ -689,7 +563,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="form-group" style="flex: 1;">
+                    
+                    <div class="form-group-custom span-4">
                         <label>Catálogo:</label>
                         <select name="catalogo" class="form-control" style="width: 100%;">
                             <option value=""></option>
@@ -698,11 +573,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
                             <?php endforeach; ?>
                         </select>
                     </div>
-                </div>
-
-                <!-- Fila 5 -->
-                <div class="search-row">
-                    <div class="form-group" style="flex: 2;">
+                    
+                    <div class="form-group-custom span-4">
                         <label>Consultora:</label>
                         <select name="consultora" class="form-control" style="width: 100%;">
                             <option value=""></option>
@@ -711,56 +583,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="form-group">
+
+                    <!-- Fila 4 -->
+                    <div class="form-group-custom span-3">
                         <label>Num. acción:</label>
-                        <input type="text" name="id_accion" class="form-control" value="<?= htmlspecialchars($_GET['id_accion'] ?? '') ?>" style="width: 80px;">
+                        <input type="text" name="id_accion" class="form-control" value="<?= htmlspecialchars($_GET['id_accion'] ?? '') ?>" style="width: 100%;">
                     </div>
-                    <div class="form-group">
+                    
+                    <div class="form-group-custom span-3">
                         <label>Prioridad:</label>
-                        <select name="prioridad" class="form-control" style="width: 100px;">
+                        <select name="prioridad" class="form-control" style="width: 100%;">
                             <option value=""></option>
                             <?php foreach ($prioridades as $p): ?>
                                 <option value="<?= $p ?>" <?= (($_GET['prioridad'] ?? '') == $p) ? 'selected' : '' ?>><?= $p ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="form-group">
+                    
+                    <div class="form-group-custom span-3">
                         <label>Modalidad:</label>
-                        <select name="modalidad" class="form-control" style="width: 140px;">
+                        <select name="modalidad" class="form-control" style="width: 100%;">
                             <option value=""></option>
                             <?php foreach ($modalidades as $m): ?>
                                 <option value="<?= $m ?>" <?= (($_GET['modalidad'] ?? '') == $m) ? 'selected' : '' ?>><?= $m ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="form-group">
+                    
+                    <div class="form-group-custom span-3">
                         <label>Reserva:</label>
-                        <select name="reserva" class="form-control" style="width: 80px;">
+                        <select name="reserva" class="form-control" style="width: 100%;">
                             <option value=""></option>
                         </select>
                     </div>
-                </div>
 
-                <div class="button-bar">
-                    <button type="submit" class="btn-buscar">Buscar</button>
-                    <?php
-                    $queryString = $_SERVER['QUERY_STRING'];
-                    ?>
-                    <button type="button" class="btn-print" onclick="window.open('imprimir_contenidos.php?<?= htmlspecialchars($queryString) ?>', '_blank')">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                        Imprimir Contenidos
-                    </button>
-                    <button type="button" class="btn-print" onclick="window.open('imprimir_contenidos.php?<?= htmlspecialchars($queryString) ?>&tipo=resumido', '_blank')">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
-                        Contenidos resumidos
-                    </button>
-                    <button type="button" class="btn-print" onclick="window.print()">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#475569" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-                        Imprimir
-                    </button>
+                    <!-- Botones de Acción -->
+                    <div class="span-12" style="display: flex; gap: 10px; justify-content: center; margin-top: 15px; flex-wrap: wrap;">
+                        <button type="submit" class="btn btn-primary" style="padding: 0.65rem 2rem;">
+                            🔍 Buscar
+                        </button>
+                        <?php
+                        $queryString = $_SERVER['QUERY_STRING'];
+                        ?>
+                        <button type="button" class="btn btn-glass" style="border: 1px solid var(--border-color);" onclick="window.open('imprimir_contenidos.php?<?= htmlspecialchars($queryString) ?>', '_blank')">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                            Imprimir Contenidos
+                        </button>
+                        <button type="button" class="btn btn-glass" style="border: 1px solid var(--border-color);" onclick="window.open('imprimir_contenidos.php?<?= htmlspecialchars($queryString) ?>&tipo=resumido', '_blank')">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                            Contenidos resumidos
+                        </button>
+                        <button type="button" class="btn btn-glass" style="border: 1px solid var(--border-color);" onclick="window.print()">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#475569" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                            Imprimir
+                        </button>
+                    </div>
                 </div>
             </form>
-        </div>
+        </div>       </div>
 
         <?php if (!empty($_GET['plan_id'])): ?>
         <div class="tabs-header-af">
@@ -770,86 +650,86 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
         <?php endif; ?>
 
         <div id="tab-listado" class="tab-content-af active">
-            <div class="results-section">
-                <div class="results-header" style="background: white; border-bottom: 2px solid #e2e8f0; padding: 15px 25px; border-radius: 8px 8px 0 0;">
-                    <h2 style="margin: 0; color: #1e3a8a; font-size: 1rem; text-transform: uppercase;">Gestión de Acciones Formativas</h2>
+            <div class="results-section-premium">
+                <div class="results-header-premium">
+                    <h2>Gestión de Acciones Formativas</h2>
                 </div>
 
-            <div class="table-responsive" style="background: white; border-radius: 0 0 8px 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-                <table class="table-premium" style="width: 100%; border-collapse: collapse;">
-                    <thead>
-                        <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
-                            <th style="padding: 15px; text-align: left; font-size: 0.7rem; color: #64748b;">ID / CÓDIGO</th>
-                            <th style="padding: 15px; text-align: left; font-size: 0.7rem; color: #64748b;">NOMBRE DEL CURSO</th>
-                            <th style="padding: 15px; text-align: center; font-size: 0.7rem; color: #64748b;">MODALIDAD</th>
-                            <th style="padding: 15px; text-align: center; font-size: 0.7rem; color: #64748b;">DURACIÓN</th>
-                            <th style="padding: 15px; text-align: center; font-size: 0.7rem; color: #64748b;">MATRÍCULAS</th>
-                            <th style="padding: 15px; text-align: center; font-size: 0.7rem; color: #64748b;">ESTADO</th>
-                            <th style="padding: 15px; text-align: center; font-size: 0.7rem; color: #64748b;">ACCIONES</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if ($searched && count($results) > 0): ?>
-                            <?php foreach ($results as $row): ?>
-                                <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.2s;">
-                                    <td data-label="ID / Código" style="padding: 15px;">
-                                        <div style="font-weight: 800; color: #1e3a8a;">#<?= $row['id'] ?></div>
-                                        <small style="color: #94a3b8; font-weight: 600;"><?= htmlspecialchars($row['num_accion'] ?? '---') ?></small>
-                                    </td>
-                                    <td data-label="Nombre del Curso" style="padding: 15px;">
-                                        <div style="font-weight: 700; color: #1e293b; font-size: 0.9rem;"><?= htmlspecialchars($row['titulo'] ?? '') ?></div>
-                                        <small style="color: #64748b; font-weight: 600;"><?= htmlspecialchars($row['nombre_plan'] ?? 'Sin Plan') ?></small>
-                                    </td>
-                                    <td data-label="Modalidad" style="padding: 15px; text-align: center;">
-                                        <span style="background: #eff6ff; color: #1e40af; padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 800;"><?= htmlspecialchars($row['modalidad'] ?? '') ?></span>
-                                    </td>
-                                    <td data-label="Duración" style="padding: 15px; text-align: center; font-weight: 800; color: #1e293b;"><?= $row['duracion'] ?>h</td>
-                                    <td data-label="Matrículas" style="padding: 15px; text-align: center;">
-                                        <div style="background: #f1f5f9; padding: 5px; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px;">
-                                            <span style="font-weight: 800; color: #1e3a8a; font-size: 1rem;"><?= $row['participantes'] ?? 0 ?></span>
-                                            <small style="font-weight: 700; color: #94a3b8; font-size: 0.6rem;">ALUMNOS</small>
-                                        </div>
-                                    </td>
-                                    <td data-label="Estado" style="padding: 15px; text-align: center;">
-                                        <span style="font-weight: 800; font-size: 0.7rem; color: <?= ($row['estado'] == 'ACTIVA' || $row['estado'] == 'En curso') ? '#16a34a' : '#ef4444' ?>;">
-                                            ● <?= htmlspecialchars($row['estado'] ?? 'PENDIENTE') ?>
-                                        </span>
-                                    </td>
-                                    <td data-label="Acciones" style="padding: 15px;">
-                                        <div style="display: flex; gap: 8px; justify-content: center;">
-                                            <a href="editar_af.php?id=<?= $row['id'] ?>" class="btn-action" title="Editar Parámetros">
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                <div class="table-responsive" style="background: transparent; border-radius: 0 0 16px 16px; box-shadow: none; border-bottom: none;">
+                    <table class="table-premium" style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--border-color);">
+                                <th style="text-align: left;">ID / CÓDIGO</th>
+                                <th style="text-align: left;">NOMBRE DEL CURSO</th>
+                                <th style="text-align: center;">MODALIDAD</th>
+                                <th style="text-align: center;">DURACIÓN</th>
+                                <th style="text-align: center;">MATRÍCULAS</th>
+                                <th style="text-align: center;">ESTADO</th>
+                                <th style="text-align: center;">ACCIONES</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if ($searched && count($results) > 0): ?>
+                                <?php foreach ($results as $row): ?>
+                                    <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s;">
+                                        <td data-label="ID / Código">
+                                            <div style="font-weight: 800; color: var(--primary-color);">#<?= $row['id'] ?></div>
+                                            <small style="color: var(--text-muted); font-weight: 600;"><?= htmlspecialchars($row['num_accion'] ?? '---') ?></small>
+                                        </td>
+                                        <td data-label="Nombre del Curso">
+                                            <div style="font-weight: 700; color: var(--text-color); font-size: 0.9rem; white-space: normal;"><?= htmlspecialchars($row['titulo'] ?? '') ?></div>
+                                            <small style="color: var(--text-muted); font-weight: 600;"><?= htmlspecialchars($row['nombre_plan'] ?? 'Sin Plan') ?></small>
+                                        </td>
+                                        <td data-label="Modalidad" style="text-align: center;">
+                                            <span style="background: rgba(0, 108, 228, 0.08); color: var(--primary-color); padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 800;"><?= htmlspecialchars($row['modalidad'] ?? '') ?></span>
+                                        </td>
+                                        <td data-label="Duración" style="text-align: center; font-weight: 800; color: var(--text-color);"><?= $row['duracion'] ?>h</td>
+                                        <td data-label="Matrículas" style="text-align: center;">
+                                            <div style="background: rgba(148, 163, 184, 0.08); padding: 5px 10px; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px;">
+                                                <span style="font-weight: 800; color: var(--primary-color); font-size: 1rem;"><?= $row['participantes'] ?? 0 ?></span>
+                                                <small style="font-weight: 700; color: var(--text-muted); font-size: 0.6rem;">ALUMNOS</small>
+                                            </div>
+                                        </td>
+                                        <td data-label="Estado" style="text-align: center;">
+                                            <span style="font-weight: 800; font-size: 0.75rem; color: <?= ($row['estado'] == 'ACTIVA' || $row['estado'] == 'En curso') ? '#16a34a' : '#ef4444' ?>;">
+                                                ● <?= htmlspecialchars($row['estado'] ?? 'PENDIENTE') ?>
+                                            </span>
+                                        </td>
+                                        <td data-label="Acciones">
+                                            <div style="display: flex; gap: 8px; justify-content: center;">
+                                                <a href="editar_af.php?id=<?= $row['id'] ?>" class="btn-action" title="Editar Parámetros">
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                                </a>
+                                                <a href="gestion_matriculas.php?af_id=<?= $row['id'] ?>" class="btn-action" style="color: #16a34a;" title="Matricular Alumnos">
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="17" y1="11" x2="23" y2="11"></line></svg>
+                                                </a>
+                                                <a href="borrar_af.php?id=<?= $row['id'] ?>&csrf_token=<?= urlencode($_SESSION['csrf_token'] ?? '') ?>" class="btn-action" style="color: #ef4444;" title="Borrar Acción Formativa" onclick="return confirm('¿Seguro que deseas eliminar esta Acción Formativa? Esta acción no se puede deshacer y eliminará sus grupos y matrículas.');">
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php elseif ($searched): ?>
+                                <tr>
+                                    <td colspan="7" style="padding: 40px; text-align: center;">
+                                        <div style="color: #ef4444; font-weight: 600; margin-bottom: 20px;">No se encontraron resultados para los filtros aplicados.</div>
+                                        <?php if (!empty($_GET['plan_id'])): ?>
+                                            <a href="nueva_af.php?plan_id=<?= (int)$_GET['plan_id'] ?>" class="btn btn-primary" style="text-decoration: none; padding: 10px 25px; display: inline-block;">
+                                                Crear Nueva Acción Formativa para este Plan
                                             </a>
-                                            <a href="gestion_matriculas.php?af_id=<?= $row['id'] ?>" class="btn-action" style="color: #16a34a;" title="Matricular Alumnos">
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="17" y1="11" x2="23" y2="11"></line></svg>
-                                            </a>
-                                            <a href="borrar_af.php?id=<?= $row['id'] ?>&csrf_token=<?= urlencode($_SESSION['csrf_token'] ?? '') ?>" class="btn-action" style="color: #ef4444;" title="Borrar Acción Formativa" onclick="return confirm('¿Seguro que deseas eliminar esta Acción Formativa? Esta acción no se puede deshacer y eliminará sus grupos y matrículas.');">
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                                            </a>
-                                        </div>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
-                            <?php endforeach; ?>
-                        <?php elseif ($searched): ?>
-                            <tr>
-                                <td colspan="7" style="padding: 40px; text-align: center;">
-                                    <div style="color: #ef4444; font-weight: 600; margin-bottom: 20px;">No se encontraron resultados para los filtros aplicados.</div>
-                                    <?php if (!empty($_GET['plan_id'])): ?>
-                                        <a href="nueva_af.php?plan_id=<?= (int)$_GET['plan_id'] ?>" class="btn-buscar" style="background: #1e3a8a; color: white; border: none; text-decoration: none; padding: 10px 25px; display: inline-block;">
-                                            Crear Nueva Acción Formativa para este Plan
-                                        </a>
-                                    <?php endif; ?>
-                                </td>
-                            </tr>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="7" style="padding: 40px; text-align: center; color: #64748b;">Utilice los filtros superiores para comenzar la gestión.</td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="7" style="padding: 40px; text-align: center; color: var(--text-muted);">Utilice los filtros superiores para comenzar la gestión.</td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
         </div>
 
         <?php if (!empty($_GET['plan_id'])): ?>
@@ -866,15 +746,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
                 <div class="grid-form-tab">
                     <div class="form-group-tab" style="grid-column: span 2;">
                         <label>Título Completo del Curso:</label>
-                        <input type="text" name="titulo" class="form-control-tab" placeholder="Ej: Gestión de Equipos de Trabajo" required>
+                        <input type="text" name="titulo" class="form-control" placeholder="Ej: Gestión de Equipos de Trabajo" required>
                     </div>
                     <div class="form-group-tab">
                         <label>Nombre Corto / Abrev:</label>
-                        <input type="text" name="abreviatura" class="form-control-tab" placeholder="Ej: GET-2024" required>
+                        <input type="text" name="abreviatura" class="form-control" placeholder="Ej: GET-2024" required>
                     </div>
                     <div class="form-group-tab">
                         <label>Nº de Acción (Código):</label>
-                        <input type="text" name="num_accion" class="form-control-tab" placeholder="0001">
+                        <input type="text" name="num_accion" class="form-control" placeholder="0001">
                     </div>
                 </div>
 
@@ -886,13 +766,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
                 <div class="grid-form-tab">
                     <div class="form-group-tab">
                         <label>Plan Estratégico:</label>
-                        <select class="form-control-tab" disabled>
+                        <select class="form-control" disabled style="opacity: 0.7;">
                             <option><?= htmlspecialchars($current_plan_name) ?></option>
                         </select>
                     </div>
                     <div class="form-group-tab">
                         <label>Modalidad:</label>
-                        <select name="modalidad" class="form-control-tab">
+                        <select name="modalidad" class="form-control">
                             <option value="TELEFORMACIÓN">TELEFORMACIÓN</option>
                             <option value="PRESENCIAL">PRESENCIAL</option>
                             <option value="MIXTA">MIXTA</option>
@@ -901,11 +781,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
                     </div>
                     <div class="form-group-tab">
                         <label>Duración (Horas Totales):</label>
-                        <input type="number" name="duracion" class="form-control-tab" value="60">
+                        <input type="number" name="duracion" class="form-control" value="60">
                     </div>
                     <div class="form-group-tab">
                         <label>Familia Profesional:</label>
-                        <select name="familia_profesional" class="form-control-tab">
+                        <select name="familia_profesional" class="form-control">
                             <option value=""></option>
                             <option value="Actividades Físicas y Deportivas">Actividades Físicas y Deportivas</option>
                             <option value="Actividades y Competencias Transversales">Actividades y Competencias Transversales</option>
@@ -941,22 +821,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
                 </div>
 
                 <div class="moodle-sync-box-tab">
-                    <input type="checkbox" name="crear_moodle" id="crear_moodle_tab" checked style="width: 18px; height: 18px;">
+                    <input type="checkbox" name="crear_moodle" id="crear_moodle_tab" checked style="width: 18px; height: 18px; cursor: pointer;">
                     <div>
-                        <label for="crear_moodle_tab" style="font-weight: 700; color: #1e40af; cursor: pointer; display: block; font-size: 0.8rem;">Aprovisionar automáticamente en el Aula Virtual</label>
-                        <span style="font-size: 0.7rem; color: #3b82f6;">Se creará un curso en Moodle y se vinculará automáticamente.</span>
+                        <label for="crear_moodle_tab" style="font-weight: 700; color: var(--primary-color); cursor: pointer; display: block; font-size: 0.8rem; margin-bottom: 0;">Aprovisionar automáticamente en el Aula Virtual</label>
+                        <span style="font-size: 0.7rem; color: var(--text-muted);">Se creará un curso en Moodle y se vinculará automáticamente.</span>
                     </div>
                 </div>
 
                 <div style="margin-top: 30px; text-align: right;">
-                    <button type="submit" class="btn btn-primary" style="padding: 12px 40px; font-size: 0.9rem; border-radius: 8px; cursor: pointer;">Crear Acción Formativa</button>
+                    <button type="submit" class="btn btn-primary" style="padding: 0.65rem 2.5rem; border-radius: 8px; cursor: pointer;">Crear Acción Formativa</button>
                 </div>
             </form>
         </div>
         <?php endif; ?>
 
         <div style="text-align: center; margin-top: 30px;">
-            <a href="<?= $back_url ?>" class="btn-volver" style="padding: 10px 30px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">« Volver</a>
+            <a href="<?= $back_url ?>" class="btn btn-glass" style="border: 1px solid var(--border-color); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; text-decoration: none; display: inline-block;">« Volver</a>
         </div>
 
     </main>
