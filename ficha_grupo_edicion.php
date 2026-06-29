@@ -179,6 +179,21 @@ $asignaciones = ['I', 'E', 'M'];
             justify-content: flex-end;
             gap: 15px;
         }
+
+        /* Red glass button modifier */
+        .btn-red {
+            background-color: rgba(239, 68, 68, 0.08) !important;
+            color: #ef4444 !important;
+            border: 1px solid rgba(239, 68, 68, 0.15) !important;
+            box-shadow: 0 4px 12px 0 rgba(239, 68, 68, 0.05);
+        }
+        .btn-red:hover {
+            background-color: #ef4444 !important;
+            color: white !important;
+            border-color: #ef4444 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px 0 rgba(239, 68, 68, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -190,7 +205,7 @@ $asignaciones = ['I', 'E', 'M'];
                 <h1><?= $id ? 'Editar Grupo' : 'Nuevo Grupo' ?></h1>
             </div>
             <div class="btn-group-header">
-                <a href="ficha_accion_formativa.php?id=<?= $accion_id ?>&tab=grupos" class="btn btn-glass" style="border: 1px solid var(--border-color); font-weight: 700; display: inline-flex; align-items: center;">
+                <a href="ficha_accion_formativa.php?id=<?= $accion_id ?>&tab=grupos" class="btn btn-red" style="font-weight: 700; display: inline-flex; align-items: center;">
                     <svg style="margin-right: 8px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
                     Volver a la ficha
                 </a>
