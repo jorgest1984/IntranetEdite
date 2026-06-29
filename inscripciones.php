@@ -144,8 +144,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
         .form-grid {
             display: grid;
             grid-template-columns: repeat(12, 1fr);
-            gap: 1.25rem;
-            padding: 2rem;
+            gap: 0.8rem 1rem;
+            padding: 1.5rem 2rem;
         }
 
         .form-group-custom {
@@ -173,16 +173,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
         }
 
         .form-control-edit {
-            padding: 0.6rem 0.85rem;
+            padding: 0.45rem 0.75rem;
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 0.82rem;
+            border-radius: 7px;
+            font-size: 0.8rem;
             background: var(--input-bg);
             color: var(--text-color);
             outline: none;
             transition: border-color 0.2s, box-shadow 0.2s;
             width: 100%;
             box-sizing: border-box;
+            height: 36px;
         }
 
         .form-control-edit:focus {
@@ -750,7 +751,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
                                         <td><?= htmlspecialchars($res['empresa_nombre'] ?? '') ?></td>
                                         <td><?= htmlspecialchars($res['empresa_sector'] ?? '') ?></td>
                                         <td><?= htmlspecialchars($res['provincia'] ?? '') ?></td>
-                                                                               <td><?= !empty($res['grupo_inicio']) && $res['grupo_inicio'] != '0000-00-00' ? date('d/m/Y', strtotime($res['grupo_inicio'])) : '' ?></td>
+                                        <td><?= htmlspecialchars(trim(($res['comercial_nombre'] ?? '') . ' ' . ($res['comercial_apellidos'] ?? ''))) ?></td>
+                                        <td><?= !empty($res['grupo_inicio']) && $res['grupo_inicio'] != '0000-00-00' ? date('d/m/Y', strtotime($res['grupo_inicio'])) : '' ?></td>
                                         <td><?= !empty($res['grupo_mitad']) && $res['grupo_mitad'] != '0000-00-00' ? date('d/m/Y', strtotime($res['grupo_mitad'])) : '' ?></td>
                                         <td><?= !empty($res['grupo_fin']) && $res['grupo_fin'] != '0000-00-00' ? date('d/m/Y', strtotime($res['grupo_fin'])) : '' ?></td>
                                         <td>
