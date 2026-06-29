@@ -171,18 +171,7 @@ $asignaciones = ['I', 'E', 'M'];
 
         .btn-save:hover { background: #991b1b; }
 
-        .btn-back {
-            background: #fff;
-            color: #64748b;
-            border: 1px solid #cbd5e1;
-            padding: 10px 25px;
-            border-radius: 6px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: background 0.2s;
-        }
 
-        .btn-back:hover { background: #f8fafc; }
 
         .footer-actions {
             margin-top: 30px;
@@ -201,7 +190,10 @@ $asignaciones = ['I', 'E', 'M'];
                 <h1><?= $id ? 'Editar Grupo' : 'Nuevo Grupo' ?></h1>
             </div>
             <div class="btn-group-header">
-                <a href="ficha_accion_formativa.php?id=<?= $accion_id ?>&tab=grupos" class="btn-back">Volver a la ficha</a>
+                <a href="ficha_accion_formativa.php?id=<?= $accion_id ?>&tab=grupos" class="btn btn-glass" style="border: 1px solid var(--border-color); font-weight: 700; display: inline-flex; align-items: center;">
+                    <svg style="margin-right: 8px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    Volver a la ficha
+                </a>
             </div>
         </div>
         <div class="action-info-box">
