@@ -471,43 +471,35 @@ $empresas = $pdo->query("SELECT id, nombre FROM empresas ORDER BY nombre ASC LIM
             border-color: var(--primary-color);
         }
 
-        /* Scroll superior pegajoso para la tabla de alumnos */
-        .table-scroll-wrapper {
-            position: relative;
-        }
-        .table-scroll-top {
-            overflow-x: auto;
-            overflow-y: hidden;
-            position: sticky;
-            top: 0;
-            z-index: 20;
-            background: #fff;
-            border-bottom: 1px solid var(--border-color);
-            /* Sombra sutil para indicar que hay contenido debajo */
-            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-            border-radius: 12px 12px 0 0;
-            /* Scrollbar visible y estilizada */
-            scrollbar-width: thin;
-            scrollbar-color: var(--primary-color) #e2e8f0;
-        }
-        .table-scroll-top::-webkit-scrollbar { height: 8px; }
-        .table-scroll-top::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
-        .table-scroll-top::-webkit-scrollbar-thumb { background: var(--primary-color); border-radius: 4px; opacity: 0.7; }
-        .table-scroll-top-inner {
-            /* Ancho se ajusta por JS al mismo ancho que la tabla */
-            height: 1px;
-            min-width: 1100px; /* mismo min-width que .table-custom */
-        }
+        /* Tabla responsive con scroll inferior nativo */
         .table-responsive {
             overflow-x: auto;
             overflow-y: visible;
-            border-radius: 0 0 12px 12px;
+            border-radius: 12px;
             scrollbar-width: thin;
             scrollbar-color: var(--primary-color) #e2e8f0;
         }
-        .table-responsive::-webkit-scrollbar { height: 8px; }
-        .table-responsive::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
-        .table-responsive::-webkit-scrollbar-thumb { background: var(--primary-color); border-radius: 4px; }
+        .table-responsive::-webkit-scrollbar { height: 10px; }
+        .table-responsive::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 5px; }
+        .table-responsive::-webkit-scrollbar-thumb { background: var(--primary-color); border-radius: 5px; }
+
+        /* Barra de scroll fija superior (inyectada por JS) */
+        #fixedScrollBar {
+            display: none;          /* oculta por defecto */
+            position: fixed;
+            z-index: 1000;
+            overflow-x: auto;
+            overflow-y: hidden;
+            background: #fff;
+            border-bottom: 2px solid #e2e8f0;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.10);
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-color) #e2e8f0;
+        }
+        #fixedScrollBar::-webkit-scrollbar { height: 10px; }
+        #fixedScrollBar::-webkit-scrollbar-track { background: #e2e8f0; }
+        #fixedScrollBar::-webkit-scrollbar-thumb { background: var(--primary-color); border-radius: 5px; }
+        #fixedScrollBar.visible { display: block; }
     </style>
 </head>
 <body>
@@ -590,10 +582,6 @@ $empresas = $pdo->query("SELECT id, nombre FROM empresas ORDER BY nombre ASC LIM
 
                     <!-- Tabla de Alumnos -->
                     <div class="table-scroll-wrapper">
-                        <!-- Scroll superior pegajoso -->
-                        <div class="table-scroll-top" id="scrollTop">
-                            <div class="table-scroll-top-inner" id="scrollTopInner"></div>
-                        </div>
                         <div class="table-responsive" id="tableResponsive">
                         <table class="table-custom">
                             <thead>
@@ -919,35 +907,66 @@ $empresas = $pdo->query("SELECT id, nombre FROM empresas ORDER BY nombre ASC LIM
             });
         }
 
-        // Sincronizar scroll superior con el scroll real de la tabla
+        // Sincronizar scroll superior FIJO con el scroll real de la tabla
         (function() {
-            const scrollTop   = document.getElementById('scrollTop');
-            const tableResp   = document.getElementById('tableResponsive');
-            const innerSpacer = document.getElementById('scrollTopInner');
-            if (!scrollTop || !tableResp || !innerSpacer) return;
+            const tableResp = document.getElementById('tableResponsive');
+            if (!tableResp) return;
 
-            // Ajustar el ancho del espaciador al ancho real del contenido de la tabla
-            function syncWidth() {
+            // Crear la barra fija de scroll en el body
+            const fixedBar = document.createElement('div');
+            fixedBar.id = 'fixedScrollBar';
+            const fixedInner = document.createElement('div');
+            fixedInner.style.height = '1px';
+            fixedBar.appendChild(fixedInner);
+            document.body.appendChild(fixedBar);
+
+            // Actualizar posición y tamaño de la barra fija según el contenedor real
+            function updateBarGeometry() {
+                const rect = tableResp.getBoundingClientRect();
+                fixedBar.style.left   = rect.left + 'px';
+                fixedBar.style.width  = rect.width + 'px';
+                fixedBar.style.top    = '0px';
+                // El ancho del contenido desplazable
                 const tableEl = tableResp.querySelector('table');
-                if (tableEl) innerSpacer.style.width = tableEl.scrollWidth + 'px';
+                fixedInner.style.width = (tableEl ? tableEl.scrollWidth : tableResp.scrollWidth) + 'px';
             }
-            syncWidth();
-            window.addEventListener('resize', syncWidth);
 
-            // Sincronizar scroll: top -> tabla
-            let lockTable = false, lockTop = false;
-            scrollTop.addEventListener('scroll', function() {
+            // Mostrar/ocultar la barra fija según si la tabla está por debajo del viewport
+            function onScroll() {
+                const rect = tableResp.getBoundingClientRect();
+                // Mostrar cuando el borde superior de la tabla sale por arriba del viewport
+                // y el borde inferior todavía es visible (tabla en pantalla)
+                const tableVisible = rect.bottom > 40;
+                const topAboveViewport = rect.top < 0;
+                if (topAboveViewport && tableVisible) {
+                    updateBarGeometry();
+                    fixedBar.classList.add('visible');
+                } else {
+                    fixedBar.classList.remove('visible');
+                }
+            }
+
+            // Sincronizar scroll: barra fija -> tabla
+            let lockTable = false, lockFixed = false;
+            fixedBar.addEventListener('scroll', function() {
                 if (lockTable) return;
-                lockTop = true;
-                tableResp.scrollLeft = scrollTop.scrollLeft;
-                requestAnimationFrame(() => { lockTop = false; });
+                lockFixed = true;
+                tableResp.scrollLeft = fixedBar.scrollLeft;
+                requestAnimationFrame(() => { lockFixed = false; });
             });
-            // Sincronizar scroll: tabla -> top
+            // Sincronizar scroll: tabla -> barra fija
             tableResp.addEventListener('scroll', function() {
-                if (lockTop) return;
+                if (lockFixed) return;
                 lockTable = true;
-                scrollTop.scrollLeft = tableResp.scrollLeft;
+                fixedBar.scrollLeft = tableResp.scrollLeft;
                 requestAnimationFrame(() => { lockTable = false; });
+            });
+
+            updateBarGeometry();
+            window.addEventListener('scroll', onScroll, { passive: true });
+            window.addEventListener('resize', function() {
+                updateBarGeometry();
+                onScroll();
             });
         })();
     </script>
