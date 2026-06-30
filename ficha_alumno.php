@@ -1237,11 +1237,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                                     <td style="color: var(--text-muted); font-weight: 500;"><?= htmlspecialchars($doc['username']) ?></td>
                                                     <td style="text-align: center;">
                                                         <div style="display: flex; gap: 5px; justify-content: center; flex-wrap: wrap;">
-                                                            <a href="<?= htmlspecialchars($doc['ruta_archivo']) ?>" target="_blank" style="padding: 5px 10px; font-size: 0.72rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600; text-decoration: none; background: rgba(30,64,175,0.05); color: var(--primary-color); border: 1px solid rgba(30,64,175,0.15);" title="Descargar">
-                                                                <i class="fas fa-download"></i>
+                                                            <a href="<?= htmlspecialchars($doc['ruta_archivo']) ?>" target="_blank" style="padding: 5px 9px; font-size: 0.72rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px; font-weight: 600; text-decoration: none; background: rgba(30,64,175,0.06); color: var(--primary-color); border: 1px solid rgba(30,64,175,0.18); white-space: nowrap;" title="Descargar archivo">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                                                Descargar
                                                             </a>
-                                                            <button type="button" onclick="abrirEditarDoc(<?= $doc['id'] ?>, '<?= htmlspecialchars(addslashes($doc['nombre_archivo'])) ?>', '<?= htmlspecialchars(addslashes($doc['tipo_documento'] ?? 'General')) ?>', <?= $doc['accion_id'] ?? 'null' ?>)" style="padding: 5px 10px; font-size: 0.72rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600; cursor: pointer; background: rgba(234,179,8,0.08); color: #b45309; border: 1px solid rgba(234,179,8,0.25);" title="Editar clasificación">
-                                                                <i class="fas fa-pen"></i>
+                                                            <button type="button" onclick="abrirEditarDoc(<?= $doc['id'] ?>, '<?= htmlspecialchars(addslashes($doc['nombre_archivo'])) ?>', '<?= htmlspecialchars(addslashes($doc['tipo_documento'] ?? 'General')) ?>', <?= $doc['accion_id'] ?? 'null' ?>)" style="padding: 5px 9px; font-size: 0.72rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px; font-weight: 600; cursor: pointer; background: rgba(234,179,8,0.09); color: #b45309; border: 1px solid rgba(234,179,8,0.28); white-space: nowrap;" title="Editar clasificación">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                                                Editar
                                                             </button>
                                                         </div>
                                                     </td>
@@ -1302,15 +1304,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                                                 <td style="color: var(--text-muted);"><?= date('d/m/Y H:i', strtotime($doc['fecha_subida'])) ?></td>
                                                                 <td style="color: var(--text-muted); font-weight: 500;"><?= htmlspecialchars($doc['username']) ?></td>
                                                                 <td style="text-align: center;">
-                                                                    <div style="display: flex; gap: 5px; justify-content: center; flex-wrap: wrap;">
-                                                                        <a href="<?= htmlspecialchars($doc['ruta_archivo']) ?>" target="_blank" style="padding: 5px 10px; font-size: 0.72rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600; text-decoration: none; background: rgba(157,23,77,0.05); color: #9d174d; border: 1px solid rgba(157,23,77,0.15);" title="Descargar">
-                                                                            <i class="fas fa-download"></i>
-                                                                        </a>
-                                                                        <button type="button" onclick="abrirEditarDoc(<?= $doc['id'] ?>, '<?= htmlspecialchars(addslashes($doc['nombre_archivo'])) ?>', '<?= htmlspecialchars(addslashes($doc['tipo_documento'] ?? 'General')) ?>', <?= $doc['accion_id'] ?? 'null' ?>)" style="padding: 5px 10px; font-size: 0.72rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600; cursor: pointer; background: rgba(234,179,8,0.08); color: #b45309; border: 1px solid rgba(234,179,8,0.25);" title="Editar clasificación">
-                                                                            <i class="fas fa-pen"></i>
-                                                                        </button>
-                                                                    </div>
-                                                                </td>
+                                                                     <div style="display: flex; gap: 5px; justify-content: center; flex-wrap: wrap;">
+                                                                         <a href="<?= htmlspecialchars($doc['ruta_archivo']) ?>" target="_blank" style="padding: 5px 9px; font-size: 0.72rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px; font-weight: 600; text-decoration: none; background: rgba(30,64,175,0.06); color: var(--primary-color); border: 1px solid rgba(30,64,175,0.18); white-space: nowrap;" title="Descargar archivo">
+                                                                             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                                                             Descargar
+                                                                         </a>
+                                                                         <button type="button" onclick="abrirEditarDoc(<?= $doc['id'] ?>, '<?= htmlspecialchars(addslashes($doc['nombre_archivo'])) ?>', '<?= htmlspecialchars(addslashes($doc['tipo_documento'] ?? 'General')) ?>', <?= $doc['accion_id'] ?? 'null' ?>)" style="padding: 5px 9px; font-size: 0.72rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px; font-weight: 600; cursor: pointer; background: rgba(234,179,8,0.09); color: #b45309; border: 1px solid rgba(234,179,8,0.28); white-space: nowrap;" title="Editar clasificación">
+                                                                             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                                                             Editar
+                                                                         </button>
+                                                                     </div>
+                                                                 </td>
                                                             </tr>
                                                         <?php endforeach; ?>
                                                     </tbody>
@@ -1356,15 +1360,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                                     <td style="font-weight: 600; color: #9d174d;"><?= htmlspecialchars($doc['accion_titulo'] ?? 'Acción Formativa desvinculada') ?></td>
                                                     <td style="color: var(--text-muted);"><?= htmlspecialchars($doc['username']) ?></td>
                                                     <td style="text-align: center;">
-                                                        <div style="display: flex; gap: 5px; justify-content: center; flex-wrap: wrap;">
-                                                            <a href="<?= htmlspecialchars($doc['ruta_archivo']) ?>" target="_blank" style="padding: 5px 10px; font-size: 0.72rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600; text-decoration: none; background: rgba(71,85,105,0.05); color: #475569; border: 1px solid rgba(71,85,105,0.15);" title="Descargar">
-                                                                <i class="fas fa-download"></i>
-                                                            </a>
-                                                            <button type="button" onclick="abrirEditarDoc(<?= $doc['id'] ?>, '<?= htmlspecialchars(addslashes($doc['nombre_archivo'])) ?>', '<?= htmlspecialchars(addslashes($doc['tipo_documento'] ?? 'General')) ?>', <?= $doc['accion_id'] ?? 'null' ?>)" style="padding: 5px 10px; font-size: 0.72rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600; cursor: pointer; background: rgba(234,179,8,0.08); color: #b45309; border: 1px solid rgba(234,179,8,0.25);" title="Editar clasificación">
-                                                                <i class="fas fa-pen"></i>
-                                                            </button>
-                                                        </div>
-                                                    </td>
+                                                         <div style="display: flex; gap: 5px; justify-content: center; flex-wrap: wrap;">
+                                                             <a href="<?= htmlspecialchars($doc['ruta_archivo']) ?>" target="_blank" style="padding: 5px 9px; font-size: 0.72rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px; font-weight: 600; text-decoration: none; background: rgba(71,85,105,0.06); color: #475569; border: 1px solid rgba(71,85,105,0.18); white-space: nowrap;" title="Descargar archivo">
+                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                                                 Descargar
+                                                             </a>
+                                                             <button type="button" onclick="abrirEditarDoc(<?= $doc['id'] ?>, '<?= htmlspecialchars(addslashes($doc['nombre_archivo'])) ?>', '<?= htmlspecialchars(addslashes($doc['tipo_documento'] ?? 'General')) ?>', <?= $doc['accion_id'] ?? 'null' ?>)" style="padding: 5px 9px; font-size: 0.72rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px; font-weight: 600; cursor: pointer; background: rgba(234,179,8,0.09); color: #b45309; border: 1px solid rgba(234,179,8,0.28); white-space: nowrap;" title="Editar clasificación">
+                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                                                 Editar
+                                                             </button>
+                                                         </div>
+                                                     </td>
                                                 </tr>
                                             <?php endforeach; ?>
                                         </tbody>
