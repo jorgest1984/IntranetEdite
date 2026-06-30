@@ -42,7 +42,7 @@ try {
 $acciones_inscrito = [];
 try {
     $stmtAcciones = $pdo->prepare("
-        SELECT DISTINCT af.id as accion_id, c.nombre_largo as curso_titulo, c.nombre_corto as curso_codigo
+        SELECT MIN(af.id) as accion_id, c.nombre_largo as curso_titulo, c.nombre_corto as curso_codigo
         FROM (
             SELECT m.alumno_id, g.accion_id 
             FROM matriculas m 
@@ -57,6 +57,7 @@ try {
         ) res
         JOIN acciones_formativas af ON res.accion_id = af.id
         JOIN cursos c ON af.curso_id = c.id
+        GROUP BY c.id
     ");
     $stmtAcciones->execute([$id, $id]);
     $acciones_inscrito = $stmtAcciones->fetchAll();
@@ -1194,14 +1195,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             <!-- TAB: Documentación -->
             <div id="tab-documentacion" style="<?= $active_tab == 'documentacion' ? '' : 'display:none;' ?>">
                 
-                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; align-items: start;">
                     
                     <!-- Columna Izquierda: Documentos Categorizados -->
                     <div>
                         <!-- 1. Documentación Común / General -->
-                        <div style="background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
-                            <h3 style="margin-top: 0; display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem; color: #1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.75rem;">
-                                📁 Documentación Común / General
+                        <div class="card-section-premium">
+                            <h3 class="card-section-title" style="border-left-color: var(--primary-color); color: var(--primary-color); margin-bottom: 1.5rem;">
+                                <i class="fas fa-folder-open"></i> Documentación Común / General
                             </h3>
                             
                             <?php 
@@ -1209,89 +1210,96 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                             ?>
                             
                             <?php if (empty($docsGenerales)): ?>
-                                <p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 2rem 0; margin: 0;">No hay documentos comunes subidos.</p>
+                                <p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 2rem 0; margin: 0; font-style: italic;">No hay documentos comunes subidos.</p>
                             <?php else: ?>
-                                <table class="table-custom" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
-                                    <thead>
-                                        <tr style="border-bottom: 2px solid var(--border-color); background: #f8fafc;">
-                                            <th style="padding: 10px; font-weight: 600;">Nombre del Archivo</th>
-                                            <th style="padding: 10px; font-weight: 600; width: 140px;">Fecha Subida</th>
-                                            <th style="padding: 10px; font-weight: 600; width: 120px;">Subido Por</th>
-                                            <th style="padding: 10px; font-weight: 600; text-align: center; width: 100px;">Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php foreach ($docsGenerales as $doc): ?>
-                                            <tr style="border-bottom: 1px solid var(--border-color);">
-                                                <td style="padding: 10px; font-weight: 500; color: var(--text-color);"><?= htmlspecialchars($doc['nombre_archivo']) ?></td>
-                                                <td style="padding: 10px; color: var(--text-muted);"><?= date('d/m/Y H:i', strtotime($doc['fecha_subida'])) ?></td>
-                                                <td style="padding: 10px; color: var(--text-muted);"><?= htmlspecialchars($doc['username']) ?></td>
-                                                <td style="padding: 10px; text-align: center;">
-                                                    <a href="<?= htmlspecialchars($doc['ruta_archivo']) ?>" target="_blank" class="btn" style="padding: 4px 10px; font-size: 0.75rem; background: #eff6ff; color: #1e40af; text-decoration: none; border-radius: 4px; font-weight: 600;">
-                                                        Descargar
-                                                    </a>
-                                                </td>
+                                <div style="overflow-x: auto; border: 1px solid var(--border-color); border-radius: 10px;">
+                                    <table class="table-premium-dense">
+                                        <thead>
+                                            <tr>
+                                                <th>Nombre del Archivo</th>
+                                                <th style="width: 140px;">Fecha Subida</th>
+                                                <th style="width: 120px;">Subido Por</th>
+                                                <th style="text-align: center; width: 110px;">Acción</th>
                                             </tr>
-                                        <?php endforeach; ?>
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($docsGenerales as $doc): ?>
+                                                <tr>
+                                                    <td style="font-weight: 600; color: var(--primary-color);"><?= htmlspecialchars($doc['nombre_archivo']) ?></td>
+                                                    <td style="color: var(--text-muted);"><?= date('d/m/Y H:i', strtotime($doc['fecha_subida'])) ?></td>
+                                                    <td style="color: var(--text-muted); font-weight: 500;"><?= htmlspecialchars($doc['username']) ?></td>
+                                                    <td style="text-align: center;">
+                                                        <a href="<?= htmlspecialchars($doc['ruta_archivo']) ?>" target="_blank" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.72rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600; text-decoration: none; background: rgba(30,64,175,0.05); color: var(--primary-color); border: 1px solid rgba(30,64,175,0.1);" title="Descargar Documento">
+                                                            <i class="fas fa-download"></i> Descargar
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
                             <?php endif; ?>
                         </div>
                         
                         <!-- 2. Documentación Propia de cada Acción Formativa -->
-                        <h3 style="margin-top: 2rem; margin-bottom: 1rem; font-size: 1.1rem; color: var(--text-color);">
-                            🎓 Documentación por Acción Formativa
-                        </h3>
-                        
-                        <?php if (empty($acciones_inscrito)): ?>
-                            <div style="border: 1px dashed var(--border-color); padding: 2rem; text-align: center; border-radius: 12px; background: #fafafa;">
-                                <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">El alumno no está inscrito en ninguna acción formativa para clasificar documentos específicos.</p>
-                            </div>
-                        <?php else: ?>
-                            <?php foreach ($acciones_inscrito as $acc): ?>
-                                <div style="background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
-                                    <h4 style="margin-top: 0; display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; color: #8e1d52; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem; margin-bottom: 1rem;">
-                                        <span style="background: #fdf2f8; color: #9d174d; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700;"><?= htmlspecialchars($acc['curso_codigo']) ?></span>
-                                        <?= htmlspecialchars($acc['curso_titulo']) ?>
-                                    </h4>
-                                    
-                                    <?php 
-                                    $docsAccion = array_filter($documentos, function($d) use ($acc) { 
-                                        return $d['accion_id'] == $acc['accion_id']; 
-                                    });
-                                    ?>
-                                    
-                                    <?php if (empty($docsAccion)): ?>
-                                        <p style="color: var(--text-muted); font-size: 0.8rem; text-align: center; padding: 1rem 0; margin: 0; font-style: italic;">No hay documentos específicos para esta acción formativa.</p>
-                                    <?php else: ?>
-                                        <table class="table-custom" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
-                                            <thead>
-                                                <tr style="border-bottom: 2px solid var(--border-color); background: #f8fafc;">
-                                                    <th style="padding: 10px; font-weight: 600;">Nombre del Archivo</th>
-                                                    <th style="padding: 10px; font-weight: 600; width: 140px;">Fecha Subida</th>
-                                                    <th style="padding: 10px; font-weight: 600; width: 120px;">Subido Por</th>
-                                                    <th style="padding: 10px; font-weight: 600; text-align: center; width: 100px;">Acciones</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <?php foreach ($docsAccion as $doc): ?>
-                                                    <tr style="border-bottom: 1px solid var(--border-color);">
-                                                        <td style="padding: 10px; font-weight: 500; color: var(--text-color);"><?= htmlspecialchars($doc['nombre_archivo']) ?></td>
-                                                        <td style="padding: 10px; color: var(--text-muted);"><?= date('d/m/Y H:i', strtotime($doc['fecha_subida'])) ?></td>
-                                                        <td style="padding: 10px; color: var(--text-muted);"><?= htmlspecialchars($doc['username']) ?></td>
-                                                        <td style="padding: 10px; text-align: center;">
-                                                            <a href="<?= htmlspecialchars($doc['ruta_archivo']) ?>" target="_blank" class="btn" style="padding: 4px 10px; font-size: 0.75rem; background: #eff6ff; color: #1e40af; text-decoration: none; border-radius: 4px; font-weight: 600;">
-                                                                Descargar
-                                                            </a>
-                                                        </td>
-                                                    </tr>
-                                                <?php endforeach; ?>
-                                            </tbody>
-                                        </table>
-                                    <?php endif; ?>
+                        <div class="card-section-premium" style="background: none; border: none; box-shadow: none; padding: 0; margin-bottom: 2rem;">
+                            <h3 class="card-section-title" style="margin-top: 0; margin-bottom: 1.5rem; border-left-color: #8e1d52; color: #8e1d52;">
+                                <i class="fas fa-graduation-cap"></i> Documentación por Acción Formativa
+                            </h3>
+                            
+                            <?php if (empty($acciones_inscrito)): ?>
+                                <div style="border: 2px dashed var(--border-color); padding: 2.5rem; text-align: center; border-radius: 12px; background: #fff;">
+                                    <i class="fas fa-info-circle" style="font-size: 2rem; color: var(--text-muted); margin-bottom: 0.75rem;"></i>
+                                    <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0; font-weight: 500;">El alumno no está inscrito en ninguna acción formativa para clasificar documentos específicos.</p>
                                 </div>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
+                            <?php else: ?>
+                                <?php foreach ($acciones_inscrito as $acc): ?>
+                                    <div class="card-section-premium" style="border-left: 4px solid #db2777; margin-bottom: 1.5rem;">
+                                        <h4 style="margin-top: 0; display: flex; align-items: center; gap: 0.75rem; font-size: 0.9rem; color: #9d174d; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
+                                            <span style="background: #fdf2f8; color: #9d174d; padding: 3px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; border: 1px solid #fbcfe8;"><?= htmlspecialchars($acc['curso_codigo']) ?></span>
+                                            <span style="font-weight: 700;"><?= htmlspecialchars($acc['curso_titulo']) ?></span>
+                                        </h4>
+                                        
+                                        <?php 
+                                        $docsAccion = array_filter($documentos, function($d) use ($acc) { 
+                                            return $d['accion_id'] == $acc['accion_id']; 
+                                        });
+                                        ?>
+                                        
+                                        <?php if (empty($docsAccion)): ?>
+                                            <p style="color: var(--text-muted); font-size: 0.8rem; text-align: center; padding: 1.5rem 0; margin: 0; font-style: italic;">No hay documentos específicos subidos para esta acción formativa.</p>
+                                        <?php else: ?>
+                                            <div style="overflow-x: auto; border: 1px solid var(--border-color); border-radius: 10px;">
+                                                <table class="table-premium-dense">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Nombre del Archivo</th>
+                                                            <th style="width: 140px;">Fecha Subida</th>
+                                                            <th style="width: 120px;">Subido Por</th>
+                                                            <th style="text-align: center; width: 110px;">Acción</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <?php foreach ($docsAccion as $doc): ?>
+                                                            <tr>
+                                                                <td style="font-weight: 600; color: #9d174d;"><?= htmlspecialchars($doc['nombre_archivo']) ?></td>
+                                                                <td style="color: var(--text-muted);"><?= date('d/m/Y H:i', strtotime($doc['fecha_subida'])) ?></td>
+                                                                <td style="color: var(--text-muted); font-weight: 500;"><?= htmlspecialchars($doc['username']) ?></td>
+                                                                <td style="text-align: center;">
+                                                                    <a href="<?= htmlspecialchars($doc['ruta_archivo']) ?>" target="_blank" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.72rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600; text-decoration: none; background: rgba(157,23,77,0.05); color: #9d174d; border: 1px solid rgba(157,23,77,0.1);" title="Descargar Documento">
+                                                                        <i class="fas fa-download"></i> Descargar
+                                                                    </a>
+                                                                </td>
+                                                            </tr>
+                                                        <?php endforeach; ?>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </div>
                         
                         <!-- 3. Documentación de Historial (Acciones no actuales si existen) -->
                         <?php 
@@ -1302,57 +1310,59 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                         ?>
                         
                         <?php if (!empty($docsOtros)): ?>
-                            <div style="background: #fafafa; border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-top: 2rem;">
-                                <h3 style="margin-top: 0; display: flex; align-items: center; gap: 0.5rem; font-size: 1rem; color: var(--text-muted); border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem; margin-bottom: 1rem;">
-                                    📂 Historial / Otros Cursos
+                            <div class="card-section-premium" style="border-left: 4px solid var(--text-muted);">
+                                <h3 class="card-section-title" style="margin-top: 0; border-left: none; padding-left: 0; color: #475569; margin-bottom: 1.5rem;">
+                                    <i class="fas fa-history"></i> Historial / Otros Cursos
                                 </h3>
-                                <table class="table-custom" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
-                                    <thead>
-                                        <tr style="border-bottom: 2px solid var(--border-color); background: #f8fafc;">
-                                            <th style="padding: 10px; font-weight: 600;">Nombre del Archivo</th>
-                                            <th style="padding: 10px; font-weight: 600;">Curso / Acción Relacionada</th>
-                                            <th style="padding: 10px; font-weight: 600; width: 120px;">Subido Por</th>
-                                            <th style="padding: 10px; font-weight: 600; text-align: center; width: 100px;">Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php foreach ($docsOtros as $doc): ?>
-                                            <tr style="border-bottom: 1px solid var(--border-color);">
-                                                <td style="padding: 10px; font-weight: 500; color: var(--text-color);"><?= htmlspecialchars($doc['nombre_archivo']) ?></td>
-                                                <td style="padding: 10px; color: #8e1d52; font-weight: 500;"><?= htmlspecialchars($doc['accion_titulo'] ?? 'Acción Formativa desvinculada') ?></td>
-                                                <td style="padding: 10px; color: var(--text-muted);"><?= htmlspecialchars($doc['username']) ?></td>
-                                                <td style="padding: 10px; text-align: center;">
-                                                    <a href="<?= htmlspecialchars($doc['ruta_archivo']) ?>" target="_blank" class="btn" style="padding: 4px 10px; font-size: 0.75rem; background: #eff6ff; color: #1e40af; text-decoration: none; border-radius: 4px; font-weight: 600;">
-                                                        Descargar
-                                                    </a>
-                                                </td>
+                                <div style="overflow-x: auto; border: 1px solid var(--border-color); border-radius: 10px;">
+                                    <table class="table-premium-dense">
+                                        <thead>
+                                            <tr>
+                                                <th>Nombre del Archivo</th>
+                                                <th>Curso / Acción Relacionada</th>
+                                                <th style="width: 120px;">Subido Por</th>
+                                                <th style="text-align: center; width: 110px;">Acción</th>
                                             </tr>
-                                        <?php endforeach; ?>
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($docsOtros as $doc): ?>
+                                                <tr>
+                                                    <td style="font-weight: 600; color: #475569;"><?= htmlspecialchars($doc['nombre_archivo']) ?></td>
+                                                    <td style="font-weight: 600; color: #9d174d;"><?= htmlspecialchars($doc['accion_titulo'] ?? 'Acción Formativa desvinculada') ?></td>
+                                                    <td style="color: var(--text-muted);"><?= htmlspecialchars($doc['username']) ?></td>
+                                                    <td style="text-align: center;">
+                                                        <a href="<?= htmlspecialchars($doc['ruta_archivo']) ?>" target="_blank" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.72rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600; text-decoration: none; background: rgba(71,85,105,0.05); color: #475569; border: 1px solid rgba(71,85,105,0.1);" title="Descargar Documento">
+                                                            <i class="fas fa-download"></i> Descargar
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         <?php endif; ?>
                     </div>
                     
                     <!-- Columna Derecha: Formulario de Subida -->
-                    <div>
-                        <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02); position: sticky; top: 20px;">
-                            <h3 style="margin-top: 0; display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem; color: var(--text-color); margin-bottom: 1.2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
-                                📤 Subir Documentación
+                    <div style="position: sticky; top: 20px;">
+                        <div class="card-section-premium" style="background: #f8fafc; border-color: var(--border-color); padding: 1.75rem;">
+                            <h3 class="card-section-title" style="margin-top: 0; margin-bottom: 1.5rem; border-left-color: var(--primary-color); color: var(--primary-color);">
+                                <i class="fas fa-cloud-upload-alt"></i> Subir Documentación
                             </h3>
                             
                             <form action="subir_documento.php" method="POST" enctype="multipart/form-data">
                                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                                 <input type="hidden" name="alumno_id" value="<?= $id ?>">
                                 
-                                <div style="margin-bottom: 1.2rem;">
-                                    <label style="display: block; font-weight: 600; font-size: 0.85rem; color: var(--text-color); margin-bottom: 0.4rem;">Seleccionar Archivo *</label>
-                                    <input type="file" name="archivo" required style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: white; box-sizing: border-box;">
+                                <div style="margin-bottom: 1.25rem;">
+                                    <label style="display: block; font-weight: 700; font-size: 0.72rem; text-transform: uppercase; color: #475569; margin-bottom: 0.4rem; letter-spacing: 0.5px;">Seleccionar Archivo *</label>
+                                    <input type="file" name="archivo" required class="form-control-edit" style="padding-top: 6px; background: white; height: auto;">
                                 </div>
                                 
-                                <div style="margin-bottom: 1.2rem;">
-                                    <label style="display: block; font-weight: 600; font-size: 0.85rem; color: var(--text-color); margin-bottom: 0.4rem;">Clasificación / Destino *</label>
-                                    <select name="accion_id" style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background-color: white;">
+                                <div style="margin-bottom: 1.25rem;">
+                                    <label style="display: block; font-weight: 700; font-size: 0.72rem; text-transform: uppercase; color: #475569; margin-bottom: 0.4rem; letter-spacing: 0.5px;">Clasificación / Destino *</label>
+                                    <select name="accion_id" class="form-control-edit">
                                         <option value="0">📁 Documentación Común / General</option>
                                         <?php if (!empty($acciones_inscrito)): ?>
                                             <optgroup label="Cursos / Acciones Formativas">
@@ -1364,14 +1374,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                             </optgroup>
                                         <?php endif; ?>
                                     </select>
-                                    <p style="color: var(--text-muted); font-size: 0.75rem; margin: 0.4rem 0 0 0; line-height: 1.3;">
+                                    <p style="color: var(--text-muted); font-size: 0.7rem; margin-top: 0.4rem; line-height: 1.3;">
                                         Elige si el documento es genérico del alumno o si pertenece de forma exclusiva a una acción formativa.
                                     </p>
                                 </div>
                                 
-                                <div style="margin-bottom: 1.5rem;">
-                                    <label style="display: block; font-weight: 600; font-size: 0.85rem; color: var(--text-color); margin-bottom: 0.4rem;">Tipo de Documento</label>
-                                    <select name="tipo_documento" style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background-color: white;">
+                                <div style="margin-bottom: 1.75rem;">
+                                    <label style="display: block; font-weight: 700; font-size: 0.72rem; text-transform: uppercase; color: #475569; margin-bottom: 0.4rem; letter-spacing: 0.5px;">Tipo de Documento</label>
+                                    <select name="tipo_documento" class="form-control-edit">
                                         <option value="General" selected>General / Otro</option>
                                         <option value="DNI">DNI / NIE</option>
                                         <option value="Contrato">Contrato de Trabajo</option>
@@ -1383,9 +1393,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                     </select>
                                 </div>
                                 
-                                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.75rem; gap: 0.5rem; font-weight: 700;">
-                                    <svg style="width: 16px; height: 16px; fill: currentColor;" viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
-                                    Subir y Clasificar
+                                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.5rem; height: 42px;">
+                                    <i class="fas fa-cloud-upload-alt"></i> Subir y Clasificar
                                 </button>
                             </form>
                         </div>
