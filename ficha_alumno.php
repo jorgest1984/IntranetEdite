@@ -635,11 +635,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                     <input type="hidden" name="action" value="update_personales">
                     
-                    <div style="display: grid; grid-template-columns: 280px 1fr; gap: 2rem; align-items: start;">
+                    <div style="display: grid; grid-template-columns: 280px 1fr; gap: 2rem; align-items: start; margin-bottom: 2rem;">
                         <!-- Columna Izquierda: Perfil / Foto / Checkboxes -->
-                        <div style="position: sticky; top: 20px;">
+                        <div>
                             <!-- Foto de Perfil del Alumno -->
-                            <div class="card-section-premium" style="text-align: center; display: flex; flex-direction: column; align-items: center; padding: 2rem 1.5rem;">
+                            <div class="card-section-premium" style="text-align: center; display: flex; flex-direction: column; align-items: center; padding: 2rem 1.5rem; margin-bottom: 1.5rem;">
                                 <div class="avatar-wrapper" style="position: relative; width: 140px; height: 140px; border-radius: 50%; overflow: hidden; border: 4px solid var(--primary-color); background: #f8fafc; cursor: pointer; box-shadow: 0 8px 24px rgba(0,0,0,0.06); transition: transform 0.3s ease;">
                                     <div id="avatar-preview" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
                                         <?php 
@@ -664,7 +664,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                             </div>
 
                             <!-- Checkboxes de Control -->
-                            <div class="card-section-premium" style="padding: 1.5rem;">
+                            <div class="card-section-premium" style="padding: 1.5rem; margin-bottom: 0;">
                                 <h4 class="card-section-title" style="margin-bottom: 1rem;"><i class="fas fa-toggle-on"></i> Estado y Control</h4>
                                 
                                 <div class="checkbox-group-custom" style="padding-top: 5px;">
@@ -686,10 +686,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                             </div>
                         </div>
 
-                        <!-- Columna Derecha: Formulario Completo categorizado -->
+                        <!-- Columna Derecha: Datos Personales -->
                         <div>
                             <!-- SECCIÓN 1: DATOS PERSONALES -->
-                            <div class="card-section-premium">
+                            <div class="card-section-premium" style="margin-bottom: 0;">
                                 <h3 class="card-section-title"><i class="fas fa-id-card"></i> Datos Personales y de Identificación</h3>
                                 <div class="form-grid">
                                     <div class="form-group-custom span-3">
@@ -758,6 +758,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
 
                             <!-- SECCIÓN 2: DIRECCIÓN Y CONTACTO -->
                             <div class="card-section-premium">
@@ -1015,8 +1017,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                             <div style="margin-top: 2rem; text-align: right; border-top: 1px solid #e2e8f0; padding-top: 1.5rem;">
                                 <button type="submit" class="btn btn-primary" style="padding: 0.8rem 2.5rem; font-weight: 700; font-size: 0.9rem;">💾 Guardar Todos los Cambios</button>
                             </div>
-                        </div>
-                    </div>
                 </form>
             </div>
 
