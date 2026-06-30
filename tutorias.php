@@ -74,6 +74,7 @@ $current_page = 'tutorias.php';
     <title>Tutorías - <?= APP_NAME ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
     <style>
         :root {
             --primary-color: #006ce4;
@@ -86,16 +87,9 @@ $current_page = 'tutorias.php';
             --title-red: #b91c1c;
         }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8fafc;
-            color: var(--text-color);
-        }
-
         .main-content {
             padding: 2rem !important;
             max-width: 1600px;
-            margin: 0 auto;
         }
 
         /* Premium Card / Panel */
@@ -596,7 +590,7 @@ $current_page = 'tutorias.php';
                             </div>
                         </div>
                         <div class="form-group-custom span-3">
-                            <label>Fin desde / hasta</label>
+                            <label>Fin desde</label>
                             <div style="display: flex; gap: 5px;">
                                 <input type="text" name="fin_desde" class="form-control-edit" placeholder="Desde" style="flex: 1;">
                                 <input type="text" name="fin_hasta" class="form-control-edit" placeholder="Hasta" style="flex: 1;">
@@ -1111,7 +1105,7 @@ $current_page = 'tutorias.php';
                             </div>
                         </div>
                         <div class="form-group-custom span-3">
-                            <label>Fin desde / hasta</label>
+                            <label>Fin desde</label>
                             <div style="display: flex; gap: 5px;">
                                 <input type="text" name="fin_desde" class="form-control-edit" placeholder="Desde" style="flex: 1;">
                                 <input type="text" name="fin_hasta" class="form-control-edit" placeholder="Hasta" style="flex: 1;">
