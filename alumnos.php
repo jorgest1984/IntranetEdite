@@ -344,7 +344,7 @@ $empresas = $pdo->query("SELECT id, nombre FROM empresas ORDER BY nombre ASC LIM
         }
         .search-input {
             width: 100%;
-            padding: 0.6rem 1rem 0.6rem 2.5rem;
+            padding: 0.6rem 1rem 0.6rem 2.75rem !important;
             border: 1px solid var(--border-color);
             border-radius: 8px;
             font-size: 0.875rem;
