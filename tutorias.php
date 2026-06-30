@@ -73,199 +73,300 @@ $current_page = 'tutorias.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tutorías - <?= APP_NAME ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/main.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
+            --primary-color: #006ce4;
+            --primary-hover: #0056b3;
+            --accent-blue: #0ea5e9;
+            --text-color: #0f172a;
+            --text-muted: #64748b;
+            --border-color: rgba(0, 108, 228, 0.08);
+            --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
             --title-red: #b91c1c;
-            --label-blue: #1e40af;
-            --border-gray: #cbd5e1;
-            --bg-light: #f8fafc;
         }
 
-        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
-        .main-content { padding: 1.5rem; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: var(--text-color);
+        }
 
-        .search-card {
-            background: #fff;
-            border: 1px solid var(--border-gray);
-            border-radius: 4px;
+        .main-content {
+            padding: 2rem !important;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* Premium Card / Panel */
+        .card-premium {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .card-header-premium {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
             margin-bottom: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
-        .card-header-custom {
-            background: #fff;
-            padding: 0.5rem;
-            border-bottom: 2px solid var(--border-gray);
-            text-align: center;
-        }
-
-        .card-header-custom h2 {
+        .card-header-premium h2 {
             margin: 0;
-            font-size: 0.85rem;
+            font-size: 1.1rem;
             font-weight: 800;
-            color: var(--title-red);
+            color: var(--primary-color);
             text-transform: uppercase;
-        }
-
-        .search-form { padding: 1rem; }
-
-        .search-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 8px;
-            align-items: center;
-        }
-
-        .form-group {
+            letter-spacing: 0.5px;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 0.5rem;
         }
 
-        .form-group label {
-            font-size: 0.75rem;
+        /* Form elements matching premium spec */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group-custom {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .form-group-custom label {
+            font-size: 0.72rem;
             font-weight: 700;
-            color: var(--label-blue);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+        }
+
+        .form-group-custom label.label-red {
+            color: #ef4444 !important;
+        }
+
+        .form-control-edit {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            background: rgba(248, 250, 252, 0.8);
+            color: var(--text-color);
+            outline: none;
+            transition: all 0.2s ease;
+            width: 100%;
+            box-sizing: border-box;
+            height: 38px;
+        }
+
+        .form-control-edit:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 108, 228, 0.12);
+            background: #fff;
+        }
+
+        select.form-control-edit {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg fill='%23475569' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 0.75rem center !important;
+            background-size: 1.25rem !important;
+            padding-right: 2.5rem !important;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.25rem;
+            font-size: 0.85rem;
+            font-weight: 700;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            height: 38px;
+            box-sizing: border-box;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(0, 108, 228, 0.15);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(0, 108, 228, 0.25);
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: var(--text-color);
+            border-color: #cbd5e1;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+            transform: translateY(-1px);
+        }
+
+        /* Action Bar for Tutorias */
+        .action-bar {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            background: #fff;
+            padding: 1.25rem;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            margin-bottom: 2rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .action-bar .btn-action {
+            padding: 0.55rem 1.1rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.01);
+            height: auto;
+        }
+
+        .action-bar .btn-action:hover {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+            background: rgba(0, 108, 228, 0.04);
+            transform: translateY(-1px);
+        }
+
+        .action-bar .btn-action.active-btn {
+            background: var(--primary-color);
+            color: #fff !important;
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 12px rgba(0, 108, 228, 0.15);
+        }
+
+        /* Premium Table dense */
+        .table-premium {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 0.78rem;
+            text-align: left;
+        }
+
+        .table-premium th {
+            background: #f8fafc;
+            padding: 0.75rem 1rem;
+            color: #334155;
+            font-weight: 700;
+            border-bottom: 2px solid #e2e8f0;
+            border-top: 1px solid var(--border-color);
             white-space: nowrap;
         }
 
-        .form-control {
-            font-size: 0.8rem;
-            padding: 2px 5px;
-            border: 1px solid var(--border-gray);
-            border-radius: 2px;
-            background: #fff;
+        .table-premium th .sort-icon {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 4px;
+            vertical-align: middle;
+            color: var(--primary-color);
         }
 
-        select.form-control { height: 24px; padding: 0 5px; }
-        input[type="text"].form-control, input[type="date"].form-control { height: 22px; }
+        .table-premium td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #f1f5f9;
+            color: var(--text-color);
+            vertical-align: middle;
+            background-color: #ffffff;
+            white-space: nowrap;
+        }
 
-        .btn-buscar {
-            background: #f1f5f9;
-            border: 1px solid var(--border-gray);
-            padding: 4px 20px;
+        .table-premium tr:hover td {
+            background-color: #f8fafc;
+        }
+
+        .table-premium tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Status colors & Badges */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 8px;
+            border-radius: 9999px;
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+
+        .status-badge.autonomo { background: #ffedd5; color: #b45309; border: 1px solid #fed7aa; }
+        .status-badge.desempleado { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+        .status-badge.suspendido { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+        .status-badge.restringido { background: #f3e8ff; color: #6b21a8; border: 1px solid #e9d5ff; }
+
+        .legend-container {
+            margin-top: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
             font-size: 0.8rem;
             font-weight: 600;
-            cursor: pointer;
-            border-radius: 3px;
-        }
-
-        .btn-buscar:hover { background: #e2e8f0; }
-
-        /* Results Table */
-        .results-section {
+            padding: 1.25rem;
             background: #fff;
-            border: 1px solid var(--border-gray);
-            border-radius: 4px;
-            overflow: hidden;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--card-shadow);
         }
 
-        .results-header {
-            padding: 0.5rem;
-            text-align: center;
-            border-bottom: 1px solid var(--border-gray);
-        }
-
-        .results-header h2 {
-            margin: 0;
-            font-size: 0.85rem;
-            font-weight: 800;
-            color: var(--title-red);
-            text-transform: uppercase;
-        }
-
+        /* Status Header layout */
         .status-header {
             display: flex;
-            gap: 5px;
-            padding: 5px;
-            font-size: 0.65rem;
+            gap: 8px;
+            padding: 0.75rem 1rem;
+            flex-wrap: wrap;
+            background: #fff;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .status-box {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.72rem;
             font-weight: 700;
             color: #fff;
         }
-
-        .status-box { padding: 2px 5px; border-radius: 2px; }
         .bg-orange { background: #f97316; }
         .bg-cyan { background: #06b6d4; }
         .bg-pink { background: #ec4899; }
         .bg-teal { background: #14b8a6; }
         .bg-green { background: #16a34a; }
-
-        .table-responsive { overflow-x: auto; }
-        
-        .table-custom {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.7rem;
-        }
-
-        .table-custom th {
-            background: #f8fafc;
-            border: 1px solid var(--border-gray);
-            padding: 4px;
-            text-align: left;
-            color: var(--label-blue);
-            font-weight: 700;
-            position: relative;
-        }
-
-        .table-custom th .sort-icon {
-            display: inline-block;
-            margin-right: 3px;
-            vertical-align: middle;
-        }
-
-        .table-custom td {
-            border: 1px solid #f1f5f9;
-            padding: 4px;
-            white-space: nowrap;
-        }
-
-        .table-custom tr:nth-child(even) { background: #f8fafc; }
-        .table-custom tr:hover { background: #f1f5f9; }
-
-        /* Action Bar for Tutorias */
-        .action-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #fff;
-            padding: 10px 15px;
-            border: 1px solid var(--border-gray);
-            border-radius: 4px;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .action-bar .btn-action {
-            background: #f1f5f9;
-            border: 1px solid var(--border-gray);
-            padding: 6px 12px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: var(--label-blue);
-            cursor: pointer;
-            border-radius: 3px;
-            text-decoration: none;
-            transition: all 0.2s;
-        }
-        .action-bar .btn-action:hover {
-            background: #e2e8f0;
-            color: var(--title-red);
-        }
-
-        /* Sidebar highlighting */
-        .sidebar-menu li a.active {
-            background: rgba(30, 64, 175, 0.1);
-            color: #1e40af;
-            font-weight: 600;
-        }
-
-        .active-btn {
-            background: #e2e8f0 !!important;
-            border-color: var(--title-red) !!important;
-            color: var(--title-red) !!important;
-        }
     </style>
 </head>
 <body>
@@ -276,168 +377,266 @@ $current_page = 'tutorias.php';
             
             <!-- ACTION BAR -->
             <div class="action-bar">
-                <a href="tutorias.php?view=calcular" class="btn-action <?= $active_view == 'calcular' ? 'active-btn' : '' ?>">Calcular llamadas</a>
-                <a href="email_masivo.php" class="btn-action">E-mails masivos</a>
-                <button type="button" class="btn-action">Inicio curso ()</button>
-                <button type="button" class="btn-action">Mitad de curso ()</button>
-                <button type="button" class="btn-action">7 días fin ()</button>
-                <button type="button" class="btn-action">Documentación ()</button>
-                <button type="button" class="btn-action">Subir evals</button>
-                <button type="button" class="btn-action">Imprimir evals</button>
-                <a href="tutorias.php?view=llamadas" class="btn-action <?= $active_view == 'llamadas' ? 'active-btn' : '' ?>">Llamadas seguimiento</a>
-                <a href="calendario_tutorias.php" class="btn-action">Calendario de tutorias</a>
+                <a href="tutorias.php?view=calcular" class="btn-action <?= $active_view == 'calcular' ? 'active-btn' : '' ?>">
+                    <i class="fas fa-calculator"></i> Calcular llamadas
+                </a>
+                <a href="email_masivo.php" class="btn-action">
+                    <i class="fas fa-envelope"></i> E-mails masivos
+                </a>
+                <button type="button" class="btn-action">
+                    <i class="fas fa-play"></i> Inicio curso ()
+                </button>
+                <button type="button" class="btn-action">
+                    <i class="fas fa-adjust"></i> Mitad de curso ()
+                </button>
+                <button type="button" class="btn-action">
+                    <i class="fas fa-calendar-check"></i> 7 días fin ()
+                </button>
+                <button type="button" class="btn-action">
+                    <i class="fas fa-file-alt"></i> Documentación ()
+                </button>
+                <button type="button" class="btn-action">
+                    <i class="fas fa-upload"></i> Subir evals
+                </button>
+                <button type="button" class="btn-action">
+                    <i class="fas fa-print"></i> Imprimir evals
+                </button>
+                <a href="tutorias.php?view=llamadas" class="btn-action <?= $active_view == 'llamadas' ? 'active-btn' : '' ?>">
+                    <i class="fas fa-phone-alt"></i> Llamadas seguimiento
+                </a>
+                <a href="calendario_tutorias.php" class="btn-action">
+                    <i class="fas fa-calendar-alt"></i> Calendario de tutorias
+                </a>
             </div>
 
             <?php if ($active_view === 'calcular'): ?>
-            <!-- VISTA: CALCULAR LLAMADAS (BUSCADOR AVANZADO v1.5) -->
-            <div class="search-card">
-                <div class="card-header-custom" style="display:flex; justify-content: space-between; align-items: center; padding: 2px 10px; border-bottom: 3px solid #1e40af;">
-                    <div class="form-group" style="gap: 10px;">
-                        <label style="color: #000; font-weight: 700;">TUTOR:</label>
-                        <select class="form-control" style="width: 200px;">
-                            <option value="">---</option>
-                            <?php foreach ($tutores as $t): ?><option value="<?= $t['id'] ?>"><?= htmlspecialchars($t['nombre'].' '.$t['apellidos']) ?></option><?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="form-group" style="gap: 10px;">
-                        <label style="color: #000; font-weight: 700;">Solicitante:</label>
-                        <select name="solicitante" class="form-control" style="width: 250px;">
-                            <option value="">---</option>
-                            <option value="COMFIA">COMFIA</option>
-                            <option value="FED. COM. Y TTE. CCOO MADRID">FED. COM. Y TTE. CCOO MADRID</option>
-                            <option value="UGT DE CATALUNYA">UGT DE CATALUNYA</option>
-                            <option value="UGT Madrid">UGT Madrid</option>
-                            <option value="FETCM-UGT">FETCM-UGT</option>
-                            <option value="FETE-UGT">FETE-UGT</option>
-                            <option value="FED. NACIONAL DE DETALLISTAS DE FRUTAS Y HORTALIZA">FED. NACIONAL DE DETALLISTAS DE FRUTAS Y HORTALIZA</option>
-                            <option value="MARS">MARS</option>
-                            <option value="FITAG">FITAG</option>
-                            <option value="Comunidad de Madrid">Comunidad de Madrid</option>
-                            <option value="FAECTA">FAECTA</option>
-                            <option value="UGT Andalucía">UGT Andalucía</option>
-                            <option value="FTFE">FTFE</option>
-                            <option value="Criteria">Criteria</option>
-                            <option value="FSP-UGT Palencia">FSP-UGT Palencia</option>
-                            <option value="JUNTA DE CASTILLA Y LEON">JUNTA DE CASTILLA Y LEON</option>
-                            <option value="JUNTA DE ANDALUCIA">JUNTA DE ANDALUCIA</option>
-                            <option value="CRUZ ROJA ESPAÑOLA">CRUZ ROJA ESPAÑOLA</option>
-                            <option value="MARSDIGITAL S.L.">MARSDIGITAL S.L.</option>
-                            <option value="FUNDACIÓN PIQUER">FUNDACIÓN PIQUER</option>
-                            <option value="Fed. Estatal de servicios - UGT">Fed. Estatal de servicios - UGT</option>
-                        </select>
-                    </div>
-                    <div class="form-group" style="gap: 10px;">
-                        <label style="color: #000; font-weight: 700;">Comercial:</label>
-                        <select class="form-control" style="width: 200px;">
-                            <option value="">---</option>
-                            <?php foreach ($comerciales as $c): ?><option value="<?= $c['id'] ?>"><?= htmlspecialchars($c['nombre'].' '.$c['apellidos']) ?></option><?php endforeach; ?>
-                        </select>
-                    </div>
-                    <button type="button" class="btn-action" style="padding: 2px 8px; font-size: 0.7rem;">Quitar autofiltro</button>
+            <!-- VISTA: CALCULAR LLAMADAS (BUSCADOR             <div class="card-premium">
+                <div class="card-header-premium">
+                    <h2><i class="fas fa-calculator"></i> Calcular llamadas (Buscador Avanzado v1.5)</h2>
+                    <button type="button" class="btn btn-secondary" style="height: 32px; padding: 0 12px; font-size: 0.78rem;">Quitar autofiltro</button>
                 </div>
                 
-                <form class="search-form" method="GET" style="padding: 10px;">
+                <form class="search-form" method="GET" style="padding: 0;">
                     <input type="hidden" name="view" value="calcular">
                     
-                    <!-- Fila 2: Datos Personales -->
-                    <div class="search-row" style="justify-content: center; background: #f8fafc; padding: 5px; border-radius: 4px; border: 1px solid #e2e8f0; margin-bottom: 10px;">
-                        <div class="form-group"><label>Nombre:</label><input type="text" name="nombre" class="form-control" style="width: 150px;"></div>
-                        <div class="form-group"><label>Apellidos:</label><input type="text" name="apellidos" class="form-control" style="width: 200px;"></div>
-                        <div class="form-group"><label>NIF:</label><input type="text" name="nif" class="form-control" style="width: 100px;"></div>
-                        <div class="form-group"><label>E-mail:</label><input type="text" name="email" class="form-control" style="width: 180px;"></div>
-                        <div class="form-group">
-                            <label><svg viewBox="0 0 24 24" width="16" height="16" style="vertical-align: middle;"><path fill="#ca8a04" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg></label>
-                            <label>Teléfono:</label><input type="text" name="telefono" class="form-control" style="width: 100px;">
+                    <div class="form-grid">
+                        <!-- Autofiltros superiores -->
+                        <div class="form-group-custom span-4">
+                            <label>Tutor</label>
+                            <select name="tutor" class="form-control-edit">
+                                <option value="">---</option>
+                                <?php foreach ($tutores as $t): ?><option value="<?= $t['id'] ?>"><?= htmlspecialchars($t['nombre'].' '.$t['apellidos']) ?></option><?php endforeach; ?>
+                            </select>
                         </div>
-                    </div>
+                        <div class="form-group-custom span-4">
+                            <label>Solicitante</label>
+                            <select name="solicitante" class="form-control-edit">
+                                <option value="">---</option>
+                                <option value="COMFIA">COMFIA</option>
+                                <option value="FED. COM. Y TTE. CCOO MADRID">FED. COM. Y TTE. CCOO MADRID</option>
+                                <option value="UGT DE CATALUNYA">UGT DE CATALUNYA</option>
+                                <option value="UGT Madrid">UGT Madrid</option>
+                                <option value="FETCM-UGT">FETCM-UGT</option>
+                                <option value="FETE-UGT">FETE-UGT</option>
+                                <option value="FED. NACIONAL DE DETALLISTAS DE FRUTAS Y HORTALIZA">FED. NACIONAL DE DETALLISTAS DE FRUTAS Y HORTALIZA</option>
+                                <option value="MARS">MARS</option>
+                                <option value="FITAG">FITAG</option>
+                                <option value="Comunidad de Madrid">Comunidad de Madrid</option>
+                                <option value="FAECTA">FAECTA</option>
+                                <option value="UGT Andalucía">UGT Andalucía</option>
+                                <option value="FTFE">FTFE</option>
+                                <option value="Criteria">Criteria</option>
+                                <option value="FSP-UGT Palencia">FSP-UGT Palencia</option>
+                                <option value="JUNTA DE CASTILLA Y LEON">JUNTA DE CASTILLA Y LEON</option>
+                                <option value="JUNTA DE ANDALUCIA">JUNTA DE ANDALUCIA</option>
+                                <option value="CRUZ ROJA ESPAÑOLA">CRUZ ROJA ESPAÑOLA</option>
+                                <option value="MARSDIGITAL S.L.">MARSDIGITAL S.L.</option>
+                                <option value="FUNDACIÓN PIQUER">FUNDACIÓN PIQUER</option>
+                                <option value="Fed. Estatal de servicios - UGT">Fed. Estatal de servicios - UGT</option>
+                            </select>
+                        </div>
+                        <div class="form-group-custom span-4">
+                            <label>Comercial</label>
+                            <select name="comercial" class="form-control-edit">
+                                <option value="">---</option>
+                                <?php foreach ($comerciales as $c): ?><option value="<?= $c['id'] ?>"><?= htmlspecialchars($c['nombre'].' '.$c['apellidos']) ?></option><?php endforeach; ?>
+                            </select>
+                        </div>
+                        
+                        <!-- Datos Personales -->
+                        <div class="form-group-custom span-3">
+                            <label>Nombre</label>
+                            <input type="text" name="nombre" class="form-control-edit">
+                        </div>
+                        <div class="form-group-custom span-3">
+                            <label>Apellidos</label>
+                            <input type="text" name="apellidos" class="form-control-edit">
+                        </div>
+                        <div class="form-group-custom span-2">
+                            <label>NIF</label>
+                            <input type="text" name="nif" class="form-control-edit">
+                        </div>
+                        <div class="form-group-custom span-2">
+                            <label>E-mail</label>
+                            <input type="text" name="email" class="form-control-edit">
+                        </div>
+                        <div class="form-group-custom span-2">
+                            <label>Teléfono</label>
+                            <input type="text" name="telefono" class="form-control-edit">
+                        </div>
 
-                    <!-- Fila 3: Ubicación y Empresa -->
-                    <div class="search-row" style="justify-content: center; margin-bottom: 10px;">
-                        <div class="form-group">
-                            <label>Provincia:</label>
-                            <select name="provincia" class="form-control" style="width: 150px;">
+                        <!-- Ubicación y Empresa -->
+                        <div class="form-group-custom span-4">
+                            <label>Provincia</label>
+                            <select name="provincia" class="form-control-edit">
                                 <option value="">---</option>
                                 <?php foreach($provincias as $p): ?><option value="<?= $p ?>"><?= $p ?></option><?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="form-group"><label>Empresa:</label><input type="text" name="empresa" class="form-control" style="width: 180px;"></div>
-                        <div class="form-group">
-                            <label>Colectivo:</label>
-                            <select name="colectivo" class="form-control" style="width: 300px;">
+                        <div class="form-group-custom span-4">
+                            <label>Empresa</label>
+                            <input type="text" name="empresa" class="form-control-edit">
+                        </div>
+                        <div class="form-group-custom span-4">
+                            <label>Colectivo</label>
+                            <select name="colectivo" class="form-control-edit">
                                 <option value="">---</option>
                                 <option value="Régimen general">Régimen general</option>
                                 <option value="Autónomo">Autónomo</option>
                                 <option value="Desempleado">Desempleado</option>
                             </select>
                         </div>
-                    </div>
 
-                    <!-- Fila 4: Académico -->
-                    <div class="search-row" style="justify-content: center; margin-bottom: 10px;">
-                        <div class="form-group"><label>Acción:</label><input type="text" name="accion" class="form-control" style="width: 60px;"></div>
-                        <div class="form-group"><label>Grupo:</label><input type="text" name="grupo" class="form-control" style="width: 60px;"></div>
-                        <div class="form-group"><label>Curso:</label><input type="text" name="curso" class="form-control" style="width: 150px;"></div>
-                        <div class="form-group">
-                            <label>Grupos en curso:</label>
-                            <select name="grupos_en_curso" class="form-control" style="width: 60px;"><option value=""></option></select>
+                        <!-- Académico -->
+                        <div class="form-group-custom span-2">
+                            <label>Acción</label>
+                            <input type="text" name="accion" class="form-control-edit">
                         </div>
-                        <div class="form-group"><label>Cod grupo:</label><input type="text" name="cod_grupo" class="form-control" style="width: 100px;"></div>
+                        <div class="form-group-custom span-2">
+                            <label>Grupo</label>
+                            <input type="text" name="grupo" class="form-control-edit">
+                        </div>
+                        <div class="form-group-custom span-4">
+                            <label>Curso</label>
+                            <input type="text" name="curso" class="form-control-edit">
+                        </div>
+                        <div class="form-group-custom span-2">
+                            <label>Grupos en curso</label>
+                            <select name="grupos_en_curso" class="form-control-edit"><option value=""></option></select>
+                        </div>
+                        <div class="form-group-custom span-2">
+                            <label>Cod grupo</label>
+                            <input type="text" name="cod_grupo" class="form-control-edit">
+                        </div>
+
+                        <!-- Plan y Estado -->
+                        <div class="form-group-custom span-4">
+                            <label>Convocatoria</label>
+                            <select name="convocatoria" class="form-control-edit"><option value="Todas">Todas</option></select>
+                        </div>
+                        <div class="form-group-custom span-4">
+                            <label>Plan</label>
+                            <select name="plan" class="form-control-edit"><option value="">Todos los planes</option></select>
+                        </div>
+                        <div class="form-group-custom span-2">
+                            <label>Estado</label>
+                            <select name="estado" class="form-control-edit"><option value=""></option></select>
+                        </div>
+                        <div class="form-group-custom span-2">
+                            <label>Modalidad</label>
+                            <select name="modalidad" class="form-control-edit"><option value=""></option></select>
+                        </div>
+
+                        <!-- Estados Documentales -->
+                        <div class="form-group-custom span-2">
+                            <label>Entregado mat</label>
+                            <select name="entregado" class="form-control-edit"><option value=""></option></select>
+                        </div>
+                        <div class="form-group-custom span-2">
+                            <label>Horario</label>
+                            <input type="text" name="horario" class="form-control-edit">
+                        </div>
+                        <div class="form-group-custom span-2">
+                            <label>Conectados</label>
+                            <select name="conectados" class="form-control-edit"><option value=""></option></select>
+                        </div>
+                        <div class="form-group-custom span-2">
+                            <label>Realizó encuesta</label>
+                            <select name="encuesta" class="form-control-edit"><option value=""></option></select>
+                        </div>
+                        <div class="form-group-custom span-2">
+                            <label>Docu alumno pte</label>
+                            <select name="docu_alumno_pte" class="form-control-edit"><option value=""></option></select>
+                        </div>
+                        <div class="form-group-custom span-2">
+                            <label>Docu curso pte</label>
+                            <select name="docu_curso_pte" class="form-control-edit"><option value=""></option></select>
+                        </div>
+
+                        <!-- Fechas v2 -->
+                        <div class="form-group-custom span-3">
+                            <label>Inicio desde / hasta</label>
+                            <div style="display: flex; gap: 5px;">
+                                <input type="text" name="inicio_desde" class="form-control-edit" placeholder="Desde" style="flex: 1;">
+                                <input type="text" name="inicio_hasta" class="form-control-edit" placeholder="Hasta" style="flex: 1;">
+                            </div>
+                        </div>
+                        <div class="form-group-custom span-3">
+                            <label>25% desde / hasta</label>
+                            <div style="display: flex; gap: 5px;">
+                                <input type="text" name="pct25_desde" class="form-control-edit" placeholder="Desde" style="flex: 1;">
+                                <input type="text" name="pct25_hasta" class="form-control-edit" placeholder="Hasta" style="flex: 1;">
+                            </div>
+                        </div>
+                        <div class="form-group-custom span-3">
+                            <label>Mitad desde / hasta</label>
+                            <div style="display: flex; gap: 5px;">
+                                <input type="text" name="mitad_desde" class="form-control-edit" placeholder="Desde" style="flex: 1;">
+                                <input type="text" name="mitad_hasta" class="form-control-edit" placeholder="Hasta" style="flex: 1;">
+                            </div>
+                        </div>
+                        <div class="form-group-custom span-3">
+                            <label>Fin desde / hasta</label>
+                            <div style="display: flex; gap: 5px;">
+                                <input type="text" name="fin_desde" class="form-control-edit" placeholder="Desde" style="flex: 1;">
+                                <input type="text" name="fin_hasta" class="form-control-edit" placeholder="Hasta" style="flex: 1;">
+                            </div>
+                        </div>
+
+                        <!-- Checkboxes / Toggles -->
+                        <div class="form-group-custom span-4" style="flex-direction: row; align-items: center; gap: 8px; padding-top: 15px;">
+                            <input type="checkbox" name="eval_hechas_sin_subir" id="eval_no_sub" style="width: 17px; height: 17px;">
+                            <label for="eval_no_sub" style="cursor: pointer; margin: 0; color: #ef4444; font-weight: bold;">Evals hechas sin subir</label>
+                        </div>
+                        <div class="form-group-custom span-4" style="flex-direction: row; align-items: center; gap: 8px; padding-top: 15px;">
+                            <input type="checkbox" name="no_conec_15" id="no_conec_15" style="width: 17px; height: 17px;">
+                            <label for="no_conec_15" style="cursor: pointer; margin: 0; color: #ef4444; font-weight: bold;">No conectados antes del 15%</label>
+                        </div>
+                        <div class="form-group-custom span-4" style="flex-direction: row; align-items: center; gap: 8px; padding-top: 15px;">
+                            <input type="checkbox" name="no_conec_25" id="no_conec_25" style="width: 17px; height: 17px;">
+                            <label for="no_conec_25" style="cursor: pointer; margin: 0; color: #ef4444; font-weight: bold;">No conectados antes del 25%</label>
+                        </div>
                     </div>
 
-                    <!-- Fila 5: Plan y Estado -->
-                    <div class="search-row" style="justify-content: center; background: #eff6ff; padding: 5px; border-radius: 4px; border: 1px solid #dbeafe; margin-bottom: 10px;">
-                        <div class="form-group"><label>Convocatoria:</label><select class="form-control" style="width: 250px;"><option value="Todas">Todas</option></select></div>
-                        <div class="form-group"><label>Plan:</label><select class="form-control" style="width: 400px;"><option value="">Todos los planes</option></select></div>
-                        <div class="form-group"><label>Estado:</label><select class="form-control" style="width: 150px;"><option value=""></option></select></div>
-                    </div>
-                    <div class="search-row" style="justify-content: center; margin-bottom: 10px;">
-                        <div class="form-group"><label>Modalidad:</label><select class="form-control" style="width: 150px;"><option value=""></option></select></div>
-                    </div>
-
-                    <!-- Fila 6: Estados Documentales -->
-                    <div class="search-row" style="justify-content: center; font-size: 0.7rem; gap: 15px;">
-                        <div class="form-group"><label>Entregado mat:</label><select class="form-control" style="width: 50px;"><option value=""></option></select></div>
-                        <div class="form-group"><label>Horario:</label><input type="text" class="form-control" style="width: 80px;"></div>
-                        <div class="form-group"><label>Conectados:</label><select class="form-control" style="width: 60px;"><option value=""></option></select></div>
-                        <div class="form-group"><label>Realizó encuesta:</label><select class="form-control" style="width: 60px;"><option value=""></option></select></div>
-                        <div class="form-group"><label>Docu alumno pte:</label><select class="form-control" style="width: 60px;"><option value=""></option></select></div>
-                        <div class="form-group"><label>Docu curso pte:</label><select class="form-control" style="width: 60px;"><option value=""></option></select></div>
-                        <div class="form-group"><label>Evaluaciones hechas sin subir:</label><input type="checkbox"></div>
-                    </div>
-
-                    <!-- Fila 7: Fechas v2 -->
-                    <div class="search-row" style="justify-content: center; margin-top: 10px; font-size: 0.7rem;">
-                        <div class="form-group"><label>Inicio desde:</label><input type="text" class="form-control" placeholder="dd/mm/aaaa" style="width: 80px;"> <label>hasta:</label><input type="text" class="form-control" style="width: 80px;"></div>
-                        <div class="form-group" style="margin-left: 10px;"><label>25% desde:</label><input type="text" class="form-control" style="width: 80px;"> <label>hasta:</label><input type="text" class="form-control" style="width: 80px;"></div>
-                        <div class="form-group" style="margin-left: 10px;"><label>Mitad desde:</label><input type="text" class="form-control" style="width: 80px;"> <label>hasta:</label><input type="text" class="form-control" style="width: 80px;"></div>
-                        <div class="form-group" style="margin-left: 10px;"><label>Fin desde:</label><input type="text" class="form-control" style="width: 80px;"> <label>hasta:</label><input type="text" class="form-control" style="width: 80px;"></div>
-                    </div>
-
-                    <!-- Fila 8: No conectados -->
-                    <div class="search-row" style="justify-content: center; margin-top: 10px;">
-                        <div class="form-group" style="color: var(--title-red); font-weight: 700;"><label>Alumnos NO conectados antes del 15%</label><input type="checkbox"></div>
-                        <div class="form-group" style="color: var(--title-red); font-weight: 700; margin-left: 20px;"><label>Alumnos NO conectados antes del 25%</label><input type="checkbox"></div>
-                    </div>
-
-                    <div style="text-align: center; margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
-                        <button type="submit" class="btn-buscar" style="background: #1e40af; color: #fff; padding: 4px 30px;">Buscar</button>
-                        <button type="reset" class="btn-buscar">Limpiar filtros de búsqueda</button>
+                    <div style="text-align: center; margin-top: 2rem; display: flex; justify-content: center; gap: 0.75rem;">
+                        <button type="submit" class="btn btn-primary" style="padding: 0 2.5rem; height: 42px;"><i class="fas fa-search"></i> Buscar</button>
+                        <button type="reset" class="btn btn-secondary" style="padding: 0 1.5rem; height: 42px;"><i class="fas fa-undo"></i> Limpiar filtros</button>
                     </div>
                 </form>
             </div>
-
+            
             <!-- RESULTADOS: RELACION DE CURSOS (27 COLUMNAS) -->
-            <div class="results-section" style="margin-top: 20px;">
-                <div class="results-header" style="background: #fff; padding: 10px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                        <div style="font-size: 0.75rem; font-weight: 700;"><input type="checkbox"> Ordenar múltiple</div>
-                        <div style="color: var(--title-red); font-size: 1rem; font-weight: 900;">RELACIÓN DE CURSOS</div>
-                        <div style="font-size: 0.7rem; color: #64748b;">(registros)</div>
+            <div class="card-premium" style="margin-top: 20px;">
+                <div class="card-header-premium">
+                    <h2><i class="fas fa-list-alt"></i> Relación de Cursos</h2>
+                    <div style="font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" id="ord_mult_1" style="width: 16px; height: 16px;">
+                        <label for="ord_mult_1" style="color: var(--text-muted); cursor: pointer;">Ordenar múltiple</label>
                     </div>
                 </div>
 
                 <div class="table-responsive">
-                    <table class="table-custom" style="min-width: 2500px;">
+                    <table class="table-premium" style="min-width: 2500px;">
                         <thead>
                             <tr style="background: #eff6ff;">
                                 <th><span class="sort-icon">⬇</span>Plan</th>
@@ -475,79 +674,64 @@ $current_page = 'tutorias.php';
                                     Realice una búsqueda para generar resultados.
                                 </td>
                             </tr>
-                        </tbody>
-                    </table>
-                </div>
+                         <!-- LEYENDAS Y EXPORTACIÓN -->
+            <div class="legend-container">
+                <div style="display: flex; align-items: center; gap: 6px;"><span class="status-badge autonomo">Autónom@</span></div>
+                <div style="display: flex; align-items: center; gap: 6px;"><span class="status-badge desempleado">Desemplead@</span></div>
+                <div style="display: flex; align-items: center; gap: 6px;"><span class="status-badge suspendido">Suspendid@</span></div>
+                <div style="display: flex; align-items: center; gap: 6px;"><span class="status-badge restringido">Restringid@</span></div>
+                <div style="display: flex; align-items: center; gap: 6px; color: var(--text-muted);"><i class="fas fa-cog" style="color: #64748b;"></i> Incid. pendientes &lt; 4 días</div>
+                <div style="display: flex; align-items: center; gap: 6px; color: #ef4444;"><i class="fas fa-bomb" style="color: #ef4444;"></i> Incid. pendientes más de 4 días</div>
             </div>
 
-            <!-- LEYENDAS Y EXPORTACIÓN -->
-            <div style="margin-top: 15px; display: flex; flex-wrap: wrap; gap: 15px; font-size: 0.8rem; font-weight: 600; padding: 10px; background: #fff; border-radius: 4px; border: 1px solid var(--border-gray);">
-                <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 15px; height: 15px; background: #ffedd5; border: 1px solid #fb923c;"></div> Autónom@</div>
-                <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 15px; height: 15px; background: #dcfce7; border: 1px solid #4ade80;"></div> Desemplead@</div>
-                <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 15px; height: 15px; background: #fef9c3; border: 1px solid #facc15;"></div> Suspendid@</div>
-                <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 15px; height: 15px; background: #7e22ce;"></div> Restringid@</div>
-                <div style="display: flex; align-items: center; gap: 5px;"><span style="font-size: 1rem;">⚙️</span> Incid. pendientes < 4 días</div>
-                <div style="display: flex; align-items: center; gap: 5px;"><span style="font-size: 1rem; color: red;">💥</span> Incid. pendientes más de 4 días</div>
-            </div>
-
-            <div style="text-align: center; margin-top: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px;">
-                <button type="button" class="btn-action" style="background: #f1f5f9; color: var(--label-blue);">Listado en Excel</button>
-                <a href="tutorias.php" class="btn-buscar" style="text-decoration: none;">Volver</a>
+            <div style="text-align: center; margin-top: 20px; display: flex; justify-content: center; gap: 10px; margin-bottom: 2rem;">
+                <button type="button" class="btn btn-primary"><i class="fas fa-file-excel"></i> Exportar a Excel</button>
+                <a href="tutorias.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver</a>
             </div>
 
             <?php elseif ($active_view === 'llamadas'): ?>
             <!-- VISTA: LLAMADAS DE SEGUIMIENTO -->
-            <div class="search-card">
-                <div class="card-header-custom">
-                    <h2>LLAMADAS REALIZADAS - CAMPOS DE BÚSQUEDA</h2>
+            <div class="card-premium">
+                <div class="card-header-premium">
+                    <h2><i class="fas fa-phone-alt"></i> Llamadas Realizadas - Campos de Búsqueda</h2>
                 </div>
-                <form class="search-form" method="GET">
+                <form class="search-form" method="GET" style="padding: 0;">
                     <input type="hidden" name="view" value="llamadas">
                     
-                    <!-- Fila 1: Desde, Hasta, Nombre, Apellidos -->
-                    <div class="search-row">
-                        <div class="form-group">
-                            <label>Desde:</label>
-                            <input type="date" name="fecha_desde" class="form-control" value="<?= date('Y-m-d', strtotime('-7 days')) ?>">
+                    <div class="form-grid">
+                        <div class="form-group-custom span-3">
+                            <label>Desde</label>
+                            <input type="date" name="fecha_desde" class="form-control-edit" value="<?= date('Y-m-d', strtotime('-7 days')) ?>">
                         </div>
-                        <div class="form-group">
-                            <label>»</label>
+                        <div class="form-group-custom span-3">
+                            <label>Hasta</label>
+                            <input type="date" name="fecha_hasta" class="form-control-edit" value="<?= date('Y-m-d') ?>">
                         </div>
-                        <div class="form-group">
-                            <label>Hasta:</label>
-                            <input type="date" name="fecha_hasta" class="form-control" value="<?= date('Y-m-d') ?>">
+                        <div class="form-group-custom span-3">
+                            <label>Nombre</label>
+                            <input type="text" name="nombre" class="form-control-edit">
                         </div>
-                        <div class="form-group">
-                            <label>»</label>
+                        <div class="form-group-custom span-3">
+                            <label>Apellidos</label>
+                            <input type="text" name="apellidos" class="form-control-edit">
                         </div>
-                        <div class="form-group">
-                            <label>Nombre:</label>
-                            <input type="text" name="nombre" class="form-control" style="width: 150px;">
-                        </div>
-                        <div class="form-group">
-                            <label>Apellidos:</label>
-                            <input type="text" name="apellidos" class="form-control" style="width: 200px;">
-                        </div>
-                    </div>
 
-                    <!-- Fila 2: Empresa, Usuario, Motivo, Forma -->
-                    <div class="search-row">
-                        <div class="form-group">
-                            <label>Empresa:</label>
-                            <input type="text" name="empresa" class="form-control" style="width: 250px;" list="centros_list">
+                        <div class="form-group-custom span-4">
+                            <label>Empresa</label>
+                            <input type="text" name="empresa" class="form-control-edit" list="centros_list">
                         </div>
-                        <div class="form-group">
-                            <label>Usuario:</label>
-                            <select name="usuario_id" class="form-control" style="width: 200px;">
+                        <div class="form-group-custom span-3">
+                            <label>Usuario</label>
+                            <select name="usuario_id" class="form-control-edit">
                                 <option value="">---</option>
                                 <?php foreach ($tutores as $t): ?>
                                     <option value="<?= $t['id'] ?>"><?= htmlspecialchars($t['nombre'] . ' ' . $t['apellidos']) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Motivo:</label>
-                            <select name="motivo" class="form-control" style="width: 200px;">
+                        <div class="form-group-custom span-3">
+                            <label>Motivo</label>
+                            <select name="motivo" class="form-control-edit">
                                 <option value="">---</option>
                                 <option value="Seguimiento">Seguimiento</option>
                                 <option value="Bienvenida">Bienvenida</option>
@@ -555,9 +739,9 @@ $current_page = 'tutorias.php';
                                 <option value="Encuesta">Encuesta</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Forma:</label>
-                            <select name="forma" class="form-control" style="width: 100px;">
+                        <div class="form-group-custom span-2">
+                            <label>Forma</label>
+                            <select name="forma" class="form-control-edit">
                                 <option value="">---</option>
                                 <option value="Teléfono">Teléfono</option>
                                 <option value="Email">Email</option>
@@ -566,23 +750,24 @@ $current_page = 'tutorias.php';
                         </div>
                     </div>
 
-                    <div style="text-align: center; margin-top: 15px;">
-                        <button type="submit" class="btn-buscar">Buscar</button>
+                    <div style="text-align: center; margin-top: 1.5rem;">
+                        <button type="submit" class="btn btn-primary" style="padding: 0 2.5rem; height: 42px;"><i class="fas fa-search"></i> Buscar</button>
                     </div>
                 </form>
             </div>
-
+            
             <!-- RESULTADOS LLAMADAS -->
-            <div class="results-section">
-                <div class="results-header">
-                    <div style="font-size: 0.65rem; display: flex; align-items: center; gap: 5px; margin-bottom: 5px;">
-                        <input type="checkbox"> Ordenar múltiple
+            <div class="card-premium" style="margin-top: 20px;">
+                <div class="card-header-premium">
+                    <h2><i class="fas fa-history"></i> Historial de Llamadas Seguimiento</h2>
+                    <div style="font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" id="ord_mult_2" style="width: 16px; height: 16px;">
+                        <label for="ord_mult_2" style="color: var(--text-muted); cursor: pointer;">Ordenar múltiple</label>
                     </div>
-                    <h2>RESULTADO DE LA BÚSQUEDA</h2>
                 </div>
                 
                 <div class="table-responsive">
-                    <table class="table-custom">
+                    <table class="table-premium">
                         <thead>
                             <tr>
                                 <th><span class="sort-icon">⬇</span>Empresa</th>
@@ -628,71 +813,60 @@ $current_page = 'tutorias.php';
             </div>
 
             <div style="text-align: center; margin-top: 20px;">
-                <a href="tutorias.php" class="btn-buscar" style="text-decoration: none; display: inline-block;">Volver</a>
-            </div>
-
-            <?php else: ?>
-            <!-- BUSCADOR -->
-            <div class="search-card">
-                <div class="card-header-custom">
-                    <h2>TUTORÍAS - CAMPOS DE BÚSQUEDA</h2>
+                <a href=            <?php else: ?>
+            <!-- BUSCADOR GENERAL -->
+            <div class="card-premium">
+                <div class="card-header-premium">
+                    <h2><i class="fas fa-search"></i> Tutorías - Campos de Búsqueda</h2>
                 </div>
-                <form class="search-form" method="GET">
-                    
-                    <!-- Fila 1 -->
-                    <div class="search-row">
-                        <div class="form-group">
-                            <label>Curso:</label>
-                            <input type="text" name="curso" class="form-control" style="width: 150px;">
+                <form class="search-form" method="GET" style="padding: 0;">
+                    <div class="form-grid">
+                        <div class="form-group-custom span-4">
+                            <label>Curso</label>
+                            <input type="text" name="curso" class="form-control-edit">
                         </div>
-                        <div class="form-group">
-                            <label>Código grupo:</label>
-                            <input type="text" name="cod_grupo" class="form-control" style="width: 100px;">
+                        <div class="form-group-custom span-2">
+                            <label>Código grupo</label>
+                            <input type="text" name="cod_grupo" class="form-control-edit">
                         </div>
-                        <div class="form-group">
-                            <label>Mostrar alumnos sin grupo</label>
-                            <input type="checkbox" name="sin_grupo">
-                        </div>
-                        <div class="form-group">
-                            <label>Comercial:</label>
-                            <select name="comercial" class="form-control" style="width: 180px;">
+                        <div class="form-group-custom span-3">
+                            <label>Comercial</label>
+                            <select name="comercial" class="form-control-edit">
                                 <option value="">---</option>
                                 <?php foreach ($comerciales as $c): ?>
                                     <option value="<?= $c['id'] ?>"><?= htmlspecialchars($c['nombre'] . ' ' . $c['apellidos']) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Tutor:</label>
-                            <select name="tutor" class="form-control" style="width: 250px;">
+                        <div class="form-group-custom span-3">
+                            <label>Tutor</label>
+                            <select name="tutor" class="form-control-edit">
                                 <option value="">---</option>
                                 <?php foreach ($tutores as $t): ?>
                                     <option value="<?= $t['id'] ?>"><?= htmlspecialchars($t['nombre'] . ' ' . $t['apellidos']) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                    </div>
 
-                    <!-- Fila 2 -->
-                    <div class="search-row">
-                        <div class="form-group">
-                            <label>Fecha inscripción desde:</label>
-                            <input type="date" name="fecha_desde" class="form-control">
+                        <!-- Fechas Inscripción -->
+                        <div class="form-group-custom span-3">
+                            <label>Inscripción desde</label>
+                            <input type="date" name="fecha_desde" class="form-control-edit">
                         </div>
-                        <div class="form-group">
-                            <label>inscripción hasta:</label>
-                            <input type="date" name="fecha_hasta" class="form-control">
+                        <div class="form-group-custom span-3">
+                            <label>Inscripción hasta</label>
+                            <input type="date" name="fecha_hasta" class="form-control-edit">
                         </div>
-                        <div class="form-group">
-                            <label>Provincia:</label>
-                            <input type="text" name="provincia" class="form-control" list="provincias_list" placeholder="Escriba provincia..." style="width: 150px;">
+                        <div class="form-group-custom span-3">
+                            <label>Provincia</label>
+                            <input type="text" name="provincia" class="form-control-edit" list="provincias_list" placeholder="Escriba provincia...">
                             <datalist id="provincias_list">
-                                <?php foreach($provincias as $prov): ?><option value="<?= mb_strtoupper($prov, 'UTF-8') ?>"><?php endforeach; ?>
+                                <?php foreach($provincias as $prov): ?><option value="<?= mb_strtoupper($prov, 'UTF-8') ?>"><?php endforeach; ?></option>
                             </datalist>
                         </div>
-                        <div class="form-group">
-                            <label>Motivo No-Admisión:</label>
-                            <select name="motivo_rechazo" class="form-control" style="width: 150px;">
+                        <div class="form-group-custom span-3">
+                            <label>Motivo No-Admisión</label>
+                            <select name="motivo_rechazo" class="form-control-edit">
                                 <option value="">---</option>
                                 <option value="Acción agotada">Acción agotada</option>
                                 <option value="Acción no programable">Acción no programable</option>
@@ -705,14 +879,11 @@ $current_page = 'tutorias.php';
                                 <option value="Tutor completo">Tutor completo</option>
                             </select>
                         </div>
-                    </div>
 
-                    <!-- Fila 3 -->
-                    <div class="search-row">
-                        <!-- Campo Solicitante - Actualizado v1.1 -->
-                        <div class="form-group">
-                            <label>Solicitante:</label>
-                            <select name="solicitante" class="form-control" style="width: 280px;">
+                        <!-- Solicitante, Sexo, Colectivo -->
+                        <div class="form-group-custom span-4">
+                            <label>Solicitante</label>
+                            <select name="solicitante" class="form-control-edit">
                                 <option value="">---</option>
                                 <option value="COMFIA">COMFIA</option>
                                 <option value="FED. COM. Y TTE. CCOO MADRID">FED. COM. Y TTE. CCOO MADRID</option>
@@ -737,60 +908,54 @@ $current_page = 'tutorias.php';
                                 <option value="Fed. Estatal de servicios - UGT">Fed. Estatal de servicios - UGT</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Sexo:</label>
-                            <select name="sexo" class="form-control"><option value="">---</option><option value="M">Hombre</option><option value="F">Mujer</option></select>
-                        </div>
-                        <div class="form-group">
-                            <label>Colectivo:</label>
-                            <select name="colectivo" class="form-control" style="width: 380px;">
+                        <div class="form-group-custom span-2">
+                            <label>Sexo</label>
+                            <select name="sexo" class="form-control-edit">
                                 <option value="">---</option>
-                                <option value="Cuidadores no profesionales de las personas en situación de dependencia">Cuidadores no profesionales de las personas en situación de dependencia</option>
-                                <option value="Empleado hogar">Empleado hogar</option>
-                                <option value="ERE (Art. 51 y 52 del Estatuto de los Trabajadores)">ERE (Art. 51 y 52 del Estatuto de los Trabajadores)</option>
-                                <option value="ERTE (Art. 47 del Estatuto de los Trabajadores)">ERTE (Art. 47 del Estatuto de los Trabajadores)</option>
-                                <option value="Fijos discontinuos en periodo de no ocupación">Fijos discontinuos en periodo de no ocupación</option>
-                                <option value="Mutualistas de Colegios Profesionales no incluidos como autónomos">Mutualistas de Colegios Profesionales no incluidos como autónomos</option>
-                                <option value="Persona actualmente desempleada que anteriormente ha estado en situación de ERTE.">Persona actualmente desempleada que anteriormente ha estado en situación de ERTE.</option>
-                                <option value="Persona que actualmente está trabajando pero que anteriormente ha estado en situación de ERTE.">Persona que actualmente está trabajando pero que anteriormente ha estado en situación de ERTE.</option>
-                                <option value="Régimen especial agrario por cuenta ajena">Régimen especial agrario por cuenta ajena</option>
-                                <option value="Régimen especial agrario por cuenta propia">Régimen especial agrario por cuenta propia</option>
-                                <option value="Régimen especial autónomos">Régimen especial autónomos</option>
-                                <option value="Régimen general">Régimen general</option>
-                                <option value="Regulación de empleo en periodos de no ocupación">Regulación de empleo en periodos de no ocupación</option>
-                                <option value="Trabajador con contrato a tiempo parcial">Trabajador con contrato a tiempo parcial</option>
-                                <option value="Trabajador con contrato temporal">Trabajador con contrato temporal</option>
-                                <option value="Trabajadores a tiempo parcial de carácter indefinido con trabajos discontinuos en sus periodos de no ocupación">Trabajadores a tiempo parcial de carácter indefinido con trabajos discontinuos en sus periodos de no ocupación</option>
-                                <option value="Trabajadores con convenio especial con la Seguridad Social">Trabajadores con convenio especial con la Seguridad Social</option>
-                                <option value="Trabajadores con relaciones laborales de carácter especial que se recogen en el art.2 del Estatuto de los Trabajadores">Trabajadores con relaciones laborales de carácter especial que se recogen en el art.2 del Estatuto de los Trabajadores</option>
-                                <option value="Trabajadores incluidos en el Régimen especial del mar">Trabajadores incluidos en el Régimen especial del mar</option>
-                                <option value="Trabajadores no ocupados inscritos como demandantes de empleo en los servicios públicos de empleo">Trabajadores no ocupados inscritos como demandantes de empleo en los servicios públicos de empleo</option>
-                                <option value="administración pública">administración pública</option>
+                                <option value="M">Hombre</option>
+                                <option value="F">Mujer</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>No válido:</label>
-                            <select name="no_valido" class="form-control"><option value="">---</option><option value="S">SÍ</option><option value="N" selected>NO</option></select>
+                        <div class="form-group-custom span-6">
+                            <label>Colectivo</label>
+                            <select name="colectivo" class="form-control-edit">
+                                <option value="">---</option>
+                                <?php // Agregamos opciones principales para agilizar ?>
+                                <option value="Régimen general">Régimen general</option>
+                                <option value="Autónomo">Autónomo / Régimen especial autónomos</option>
+                                <option value="Desempleado">Desempleado</option>
+                                <option value="Empleado hogar">Empleado hogar</option>
+                            </select>
                         </div>
-                        <div class="form-group">
-                            <label>Mayor de 45:</label>
-                            <select name="mayor_45" class="form-control"><option value="">---</option><option value="S">SÍ</option><option value="N">NO</option></select>
-                        </div>
-                    </div>
 
-                    <!-- Fila 4 -->
-                    <div class="search-row">
-                        <div class="form-group" style="margin-left: 360px;">
-                            <label>Discapacitado:</label>
-                            <select name="discapacitado" class="form-control"><option value="">---</option><option value="S">SÍ</option><option value="N">NO</option></select>
+                        <!-- Filtros Adicionales -->
+                        <div class="form-group-custom span-3">
+                            <label>No válido</label>
+                            <select name="no_valido" class="form-control-edit">
+                                <option value="">---</option>
+                                <option value="S">SÍ</option>
+                                <option value="N" selected>NO</option>
+                            </select>
                         </div>
-                    </div>
-
-                    <!-- Fila 5 -->
-                    <div class="search-row">
-                        <div class="form-group">
-                            <label>Grupo cotización:</label>
-                            <select name="grupo_cotizacion" class="form-control" style="width: 320px;">
+                        <div class="form-group-custom span-3">
+                            <label>Mayor de 45</label>
+                            <select name="mayor_45" class="form-control-edit">
+                                <option value="">---</option>
+                                <option value="S">SÍ</option>
+                                <option value="N">NO</option>
+                            </select>
+                        </div>
+                        <div class="form-group-custom span-3">
+                            <label>Discapacitado</label>
+                            <select name="discapacitado" class="form-control-edit">
+                                <option value="">---</option>
+                                <option value="S">SÍ</option>
+                                <option value="N">NO</option>
+                            </select>
+                        </div>
+                        <div class="form-group-custom span-3">
+                            <label>Grupo cotización</label>
+                            <select name="grupo_cotizacion" class="form-control-edit">
                                 <option value="">---</option>
                                 <option value="1.- Ingenieros y licenciados">1.- Ingenieros y licenciados</option>
                                 <option value="2.- Ingenieros técnicos, peritos y Aytes. titulados">2.- Ingenieros técnicos, peritos y Aytes. titulados</option>
@@ -806,181 +971,29 @@ $current_page = 'tutorias.php';
                                 <option value="Trabajadores mayores de 18 años no cualif.">Trabajadores mayores de 18 años no cualif.</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Centro impartición:</label>
-                            <input type="text" name="centro" class="form-control" list="centros_list" placeholder="Escriba el centro..." style="width: 500px;">
+
+                        <!-- Centro, Convocatoria, Plan, Estado, Modalidad -->
+                        <div class="form-group-custom span-4">
+                            <label>Centro impartición</label>
+                            <input type="text" name="centro" class="form-control-edit" list="centros_list" placeholder="Escriba el centro...">
                             <datalist id="centros_list">
                                 <?php foreach($centros_db as $c): ?><option value="<?= htmlspecialchars($c['nombre']) ?>"><?php endforeach; ?>
-                                <option value="A. F. C. CONSULTING DEPORTIVO">
-                                <option value="ACADEMIA CERVANTES , CARLOS AMEZ LAIZ CB">
-                                <option value="ACADEMIA FIPP">
-                                <option value="ACADEMIA SOCE S.L.U.">
-                                <option value="ACADEMIA TECNAS">
-                                <option value="ACADEMIA VIGILANT S.L.">
-                                <option value="ACADEMIA VISAN">
-                                <option value="ADAMS">
-                                <option value="AE S. MARTIN">
-                                <option value="AEFOL EXPOELEARNING S.L.">
-                                <option value="AESS">
-                                <option value="AFA-FORMACION CONTINUA S.L.">
-                                <option value="AGE">
-                                <option value="AMUSAL">
-                                <option value="AREA FORMACION AULAS">
-                                <option value="asimag servicios empresariales, s.l">
-                                <option value="ASIMAG SERVICIOS EMPRESARIALES, S.L.">
-                                <option value="Association Puerta de Alcalá">
-                                <option value="ATENTO TELESERVICIOS ESPAÑA, S.A.">
-                                <option value="AUDEMA">
-                                <option value="AUTOESCUELA EMERITA S.L.">
-                                <option value="AVEFOR ARAGÓN DAIDA PEREZ HERNANDEZ">
-                                <option value="AVIZOR, CENTRO SUPERIOR DE FORMACIÓN EN ESTUDIOS D">
-                                <option value="Ayuntamiento de Cajar">
-                                <option value="AZUVIS S.C.A">
-                                <option value="BODYFACTORY SOMOSAGUAS">
-                                <option value="BOROXSPORT CLUB SPORT">
-                                <option value="C/ CORCEGA,371">
-                                <option value="CAD-SEGURIDAD">
-                                <option value="CENTRO DE ENSEÑANZAS PROFESIONALES Y TECNOLOGICAS">
-                                <option value="Centro de Estudio Arsenio Toral S.A.L.">
-                                <option value="Centro de Estudio Arsenio Toral S.A.L.. 2012">
-                                <option value="CENTRO DE ESTUDIOS APPA SCL">
-                                <option value="CENTRO DE ESTUDIOS DE FORMACION ALFER">
-                                <option value="CENTRO DE ESTUDIOS DE FORMACION ALFER S.L.">
-                                <option value="CENTRO DE ESTUDIOS LA ACADEMIA CB">
-                                <option value="Centro de Estudios y Experimentación de Obras Públ">
-                                <option value="CENTRO DE FORMACION ALFER">
-                                <option value="CENTRO DE FORMACION ARSENIO JIMENO">
-                                <option value="centro de formación oasis">
-                                <option value="CENTRO DE FORMACION PRAXIS">
-                                <option value="CENTRO DE FORMACION PRAXIS II">
-                                <option value="CENTRO EMPRESARIAL CEMEI">
-                                <option value="CEPAL">
-                                <option value="CFI SEGURIDAD">
-                                <option value="CICE S.A">
-                                <option value="CIS-FORMACION ESPECIALIZADA SEGURIDAD-SALUD S.L.">
-                                <option value="Ciudad Escuela de Formacion">
-                                <option value="CLUB DE GOLF GUADALMINA">
-                                <option value="CLUB DE TENIS Y PADEL MONTEVERDE">
-                                <option value="Club Natació Barcelona">
-                                <option value="CLUB NAUTICO DE GANDIA">
-                                <option value="COMERCIANTES DEL PONIENTE, S.A.">
-                                <option value="Consultores de Formacion">
-                                <option value="CONSULTORIA Y FORMACION BALBO S.L">
-                                <option value="CONTROL DE FORMACION">
-                                <option value="CREATI MOMENTUM">
-                                <option value="D.D. SPORT FG S.L. (CIS)">
-                                <option value="Dedalo Proyectos XYZ (Vicar)">
-                                <option value="EDIFICIO SINDICATOS (A CORUÑA)">
-                                <option value="EDITEFORMACION (Madrid)">
-                                <option value="EDITEFORMACION-MERCAOLID">
-                                <option value="EDITRAIN SL">
-                                <option value="EDITRAIN, S.L. (P.E.LA FINCA)">
-                                <option value="El Ser Creativo SL">
-                                <option value="EL VENTAL DE OCASION S.L.">
-                                <option value="ELOGOS, S.L.">
-                                <option value="EMPRESA MIXTA DE SERVICIOS FUNERARIOS DE MADRID">
-                                <option value="ENSEÑANZAS ORTHOS">
-                                <option value="ESCUELA DE FORMACIÓN PROFESIONAL">
-                                <option value="ESCUELA DE FORMACIÓN PROFESIONAL (Vícar)">
-                                <option value="Escuela Internacional de Gerencia">
-                                <option value="ESTACION DISEÑO">
-                                <option value="ESTACION DISEÑO (Antiguo)">
-                                <option value="EUROPEANQUALITY S.L.">
-                                <option value="F.I.P.P">
-                                <option value="FEDERAC. PROV. DE MINUSVALIDOS FISICOS DE CORDOBA">
-                                <option value="FESS LA SALLE">
-                                <option value="FONDO DE PROMOCION Y DESARROLLO PROFESIONAL">
-                                <option value="FPDP">
-                                <option value="FPDP-VALENCIA">
-                                <option value="FUNDACIÓN SAN VALERO">
-                                <option value="GENERAL PLAN">
-                                <option value="GESTIÓN DE LA EXCELENCIA Y COACHING APLICADO A LOS">
-                                <option value="Gimnasio Triunfo S.A.">
-                                <option value="Green Apple School">
-                                <option value="GREEN TAL S.A.">
-                                <option value="Grupo Coremsa">
-                                <option value="GRUPO DTM CONSULTING S.L.U.">
-                                <option value="GRUPO EDNE, S.L.">
-                                <option value="GRUPO SUR RECICLAJE Y FORMACIÓN S.L.">
-                                <option value="Hotel Avenida">
-                                <option value="IDFO">
-                                <option value="IFES">
-                                <option value="IFES ( ZARAGOZA)">
-                                <option value="IFES (EUSKADI)">
-                                <option value="IFES NAVARRA">
-                                <option value="IFES UGT">
-                                <option value="IFES-CENTRO DE FORMACION ARSENIO JIMENO">
-                                <option value="IFES-SEVILLA">
-                                <option value="IFES-UGT (ALICANTE)">
-                                <option value="INGAFOR">
-                                <option value="INSFORCAN, S.L CENTRO DE ESTUDIOS EMPRESARIALES">
-                                <option value="Instituto Educacion Secundaria Elaios">
-                                <option value="INSTITUTO FORMACION ESTUDIOS SOCIALES">
-                                <option value="INSTITUTO MADRILEÑO DE FORMACION S.L">
-                                <option value="LA MIRADA DIGITAL">
-                                <option value="LA MIRADA DIGITAL, S.L.">
-                                <option value="MAREN">
-                                <option value="MARSDIGITAL S.L (antiguo)">
-                                <option value="Marsdigital S.L (Granada )">
-                                <option value="Marsdigital S.L. (Barcelona)">
-                                <option value="Marsdigital S.L. (la Mirada)">
-                                <option value="MASTER (CENTRO DE ESTUDIOS - TIENDA DE INFORMATICA">
-                                <option value="MBNA EUROPE BANK LIMITED ESPAÑA">
-                                <option value="Método Consultores, S.L">
-                                <option value="METODO ESTUDIOS CONSULTORES ( ARENAL)">
-                                <option value="METODO ESTUDIOS CONSULTORES, S.L.">
-                                <option value="METODO ESTUDIOS CONSULTORES,S.L (C/DIEGO)">
-                                <option value="MGI NEVA CENTROS DE FORMACION">
-                                <option value="MORTUALBA SCL ( TANATORIO MUNICIPAL ALBACETE)">
-                                <option value="OROVIDA S.L.">
-                                <option value="PARCESA, PARQUES DE LA PAZ S.A">
-                                <option value="PARCESA, PARQUES DE LA PAZ S.A ( segundo centro)">
-                                <option value="PARCESA, PARQUES DE LA PAZ S.A ( tercer centro)">
-                                <option value="POLIDEPORTIVO LAS CRUCES">
-                                <option value="PRODUCCIONES HINOJOSA BECERRA MEDIA2 S.L">
-                                <option value="PROINTEC S.A.">
-                                <option value="PROMAX S.L.L">
-                                <option value="Remo RCNGandia">
-                                <option value="SANTAGADEA GESTIÓN S.L. ( CENTRO DE DEPORTIVO DEHESA">
-                                <option value="SEGURIDAD CERES S.A.">
-                                <option value="SERVICIOS FUNERARIOS DE BARCELONA">
-                                <option value="SERVICIOS SECURITAS S.A.">
-                                <option value="Soom Management S.L">
-                                <option value="SQUASH GYM SIERRA S.L.">
-                                <option value="Swiss Sports Club">
-                                <option value="TALKING ENGLISH">
-                                <option value="TANATORIO MONTSERRAT TRUYOLS">
-                                <option value="TANATORIO MUNICIPAL CIUDAD DE VALENCIA">
-                                <option value="TANATORIO SAN LAZARO S.L.">
-                                <option value="TANATORIO SERVICIOS FUNERARIOS SAGUNTO. FUALRUB S.">
-                                <option value="TANATORIO TORRERO">
-                                <option value="TANATORIO VELATORIO LUCENSES">
-                                <option value="Tecnas">
-                                <option value="TWENTY4HELP KNOWLEDGE SERVICE ESPAÑA">
-                                <option value="ULTRAGYM/BODY FACTORY">
-                                <option value="Universidad de Granada">
-                                <option value="VALLADOLID 1402 S.L. ESCUELA DE SEGURIDAD">
-                                <option value="vigilantes">
                             </datalist>
                         </div>
-                    </div>
-
-                    <!-- Fila 6 -->
-                    <div class="search-row">
-                        <div class="form-group">
-                            <label>Convocatoria:</label>
-                            <select name="convocatoria" class="form-control" style="width: 80px;">
+                        <div class="form-group-custom span-2">
+                            <label>Convocatoria</label>
+                            <select name="convocatoria" class="form-control-edit">
                                 <option value="Todas">Todas</option>
                                 <?php foreach($convocatorias as $c): ?><option value="<?= $c['id'] ?>"><?= htmlspecialchars($c['nombre']) ?></option><?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Plan:</label>
-                            <select name="plan" class="form-control" style="width: 450px;"><option value="">------------ Todos los planes ------------</option></select>
+                        <div class="form-group-custom span-3">
+                            <label>Plan</label>
+                            <select name="plan" class="form-control-edit"><option value="">Todos los planes</option></select>
                         </div>
-                        <div class="form-group">
-                            <label>Estado:</label>
-                            <select name="estado" class="form-control" style="width: 150px;">
+                        <div class="form-group-custom span-3">
+                            <label>Estado</label>
+                            <select name="estado" class="form-control-edit">
                                 <option value="">---</option>
                                 <option value="Abandono">Abandono</option>
                                 <option value="Admitido">Admitido</option>
@@ -999,33 +1012,19 @@ $current_page = 'tutorias.php';
                                 <option value="Reserva">Reserva</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Modalidad:</label>
-                            <select name="modalidad" class="form-control" style="width: 150px;">
-                                <option value="">---</option>
-                                <option value="Teleformación">Teleformación</option>
-                                <option value="Distancia">Distancia</option>
-                                <option value="Mixta">Mixta</option>
-                                <option value="Presencial">Presencial</option>
-                                <option value="Semipresencial">Semipresencial</option>
-                                <option value="Excepto presencial">Excepto presencial</option>
-                            </select>
-                        </div>
-                    </div>
 
-                    <!-- Fila 7 -->
-                    <div class="search-row">
-                        <div class="form-group">
-                            <label>Acción:</label>
-                            <input type="text" name="accion" class="form-control" style="width: 50px;">
+                        <!-- Acción, Grupo, Prioridad, Inscripciones, Cursos, Entregado, Captado, Certificables -->
+                        <div class="form-group-custom span-1">
+                            <label>Acción</label>
+                            <input type="text" name="accion" class="form-control-edit">
                         </div>
-                        <div class="form-group">
-                            <label>Grupo:</label>
-                            <input type="text" name="grupo" class="form-control" style="width: 50px;">
+                        <div class="form-group-custom span-1">
+                            <label>Grupo</label>
+                            <input type="text" name="grupo" class="form-control-edit">
                         </div>
-                        <div class="form-group">
-                            <label>Prioridad:</label>
-                            <select name="prioridad" class="form-control">
+                        <div class="form-group-custom span-2">
+                            <label>Prioridad</label>
+                            <select name="prioridad" class="form-control-edit">
                                 <option value="">---</option>
                                 <option value="1">1</option>
                                 <option value="2">2</option>
@@ -1036,94 +1035,120 @@ $current_page = 'tutorias.php';
                                 <option value="7">7</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Inscripciones:</label>
-                            <select name="filtro_inscripciones" class="form-control" style="width: 100px;">
+                        <div class="form-group-custom span-2">
+                            <label>Inscripción</label>
+                            <select name="filtro_inscripciones" class="form-control-edit">
                                 <option value="">---</option>
                                 <option value="Web">Web</option>
                                 <option value="Manual">Manual</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Cursos nuestros:</label>
-                            <select name="nuestros" class="form-control" style="width: 150px;">
+                        <div class="form-group-custom span-2">
+                            <label>Nuestros</label>
+                            <select name="nuestros" class="form-control-edit">
                                 <option value="">Todos</option>
                                 <option value="S">Sí</option>
                                 <option value="N">No</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Entregado mat:</label>
-                            <select name="entregado" class="form-control" style="width: 80px;">
+                        <div class="form-group-custom span-2">
+                            <label>Entregado mat</label>
+                            <select name="entregado" class="form-control-edit">
                                 <option value="">Todos</option>
                                 <option value="S">Sí</option>
                                 <option value="N">No</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Captado:</label>
-                            <select name="captado" class="form-control" style="width: 80px;">
+                        <div class="form-group-custom span-2">
+                            <label>Captado</label>
+                            <select name="captado" class="form-control-edit">
                                 <option value="">Todos</option>
                                 <option value="IDFO">IDFO</option>
                                 <option value="UGT">UGT</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>CERTIFICABLES:</label>
-                            <select name="certificables" class="form-control" style="width: 80px;">
+                        <div class="form-group-custom span-2">
+                            <label>Certificables</label>
+                            <select name="certificables" class="form-control-edit">
                                 <option value="">Todos</option>
                                 <option value="S">Sí</option>
                                 <option value="N">No</option>
                             </select>
                         </div>
+                        <div class="form-group-custom span-2">
+                            <label>Modalidad</label>
+                            <select name="modalidad" class="form-control-edit">
+                                <option value="">---</option>
+                                <option value="Teleformación">Teleformación</option>
+                                <option value="Distancia">Distancia</option>
+                                <option value="Mixta">Mixta</option>
+                                <option value="Presencial">Presencial</option>
+                                <option value="Semipresencial">Semipresencial</option>
+                                <option value="Excepto presencial">Excepto presencial</option>
+                            </select>
+                        </div>
+
+                        <!-- Fechas v2 -->
+                        <div class="form-group-custom span-3">
+                            <label>Inicio desde / hasta</label>
+                            <div style="display: flex; gap: 5px;">
+                                <input type="text" name="inicio_desde" class="form-control-edit" placeholder="Desde" style="flex: 1;">
+                                <input type="text" name="inicio_hasta" class="form-control-edit" placeholder="Hasta" style="flex: 1;">
+                            </div>
+                        </div>
+                        <div class="form-group-custom span-3">
+                            <label>25% desde / hasta</label>
+                            <div style="display: flex; gap: 5px;">
+                                <input type="text" name="pct25_desde" class="form-control-edit" placeholder="Desde" style="flex: 1;">
+                                <input type="text" name="pct25_hasta" class="form-control-edit" placeholder="Hasta" style="flex: 1;">
+                            </div>
+                        </div>
+                        <div class="form-group-custom span-3">
+                            <label>Mitad desde / hasta</label>
+                            <div style="display: flex; gap: 5px;">
+                                <input type="text" name="mitad_desde" class="form-control-edit" placeholder="Desde" style="flex: 1;">
+                                <input type="text" name="mitad_hasta" class="form-control-edit" placeholder="Hasta" style="flex: 1;">
+                            </div>
+                        </div>
+                        <div class="form-group-custom span-3">
+                            <label>Fin desde / hasta</label>
+                            <div style="display: flex; gap: 5px;">
+                                <input type="text" name="fin_desde" class="form-control-edit" placeholder="Desde" style="flex: 1;">
+                                <input type="text" name="fin_hasta" class="form-control-edit" placeholder="Hasta" style="flex: 1;">
+                            </div>
+                        </div>
+
+                        <!-- Checkboxes / Toggles -->
+                        <div class="form-group-custom span-4" style="flex-direction: row; align-items: center; gap: 8px; padding-top: 15px;">
+                            <input type="checkbox" name="sin_grupo" id="sin_grupo" style="width: 17px; height: 17px;">
+                            <label for="sin_grupo" style="cursor: pointer; margin: 0; color: var(--text-muted); font-weight: bold;">Mostrar alumnos sin grupo</label>
+                        </div>
+                        <div class="form-group-custom span-4" style="flex-direction: row; align-items: center; gap: 8px; padding-top: 15px;">
+                            <input type="checkbox" name="no_conec_15" id="no_conec_15_def" style="width: 17px; height: 17px;">
+                            <label for="no_conec_15_def" style="cursor: pointer; margin: 0; color: #ef4444; font-weight: bold;">No conectados antes del 15%</label>
+                        </div>
+                        <div class="form-group-custom span-4" style="flex-direction: row; align-items: center; gap: 8px; padding-top: 15px;">
+                            <input type="checkbox" name="no_conec_25" id="no_conec_25_def" style="width: 17px; height: 17px;">
+                            <label for="no_conec_25_def" style="cursor: pointer; margin: 0; color: #ef4444; font-weight: bold;">No conectados antes del 25%</label>
+                        </div>
                     </div>
 
-                    <!-- Fila 8 (Fechas) -->
-                    <div class="search-row">
-                        <div class="form-group">
-                            <label>Inicio desde:</label><input type="text" class="form-control" style="width:70px;">
-                            <label>hasta:</label><input type="text" class="form-control" style="width:70px;">
-                        </div>
-                        <div class="form-group" style="margin-left: 10px;">
-                            <label>25% desde:</label><input type="text" class="form-control" style="width:70px;">
-                            <label>hasta:</label><input type="text" class="form-control" style="width:70px;">
-                        </div>
-                        <div class="form-group" style="margin-left: 10px;">
-                            <label>Mitad desde:</label><input type="text" class="form-control" style="width:70px;">
-                            <label>hasta:</label><input type="text" class="form-control" style="width:70px;">
-                        </div>
-                        <div class="form-group" style="margin-left: 10px;">
-                            <label>Fin desde:</label><input type="text" class="form-control" style="width:70px;">
-                            <label>hasta:</label><input type="text" class="form-control" style="width:70px;">
-                        </div>
-                    </div>
-
-                    <div class="search-row" style="margin-top: 10px;">
-                        <div class="form-group" style="color: var(--title-red); font-weight: 700;">
-                            <label style="color: inherit;">Alumnos NO conectados antes del 15%</label>
-                            <input type="checkbox" name="no_conec_15">
-                        </div>
-                        <div class="form-group" style="color: var(--title-red); font-weight: 700; margin-left: 20px;">
-                            <label style="color: inherit;">Alumnos NO conectados antes del 25%</label>
-                            <input type="checkbox" name="no_conec_25">
-                        </div>
-                    </div>
-
-                    <div style="text-align: center; margin-top: 15px;">
-                        <button type="submit" class="btn-buscar">Buscar</button>
+                    <div style="text-align: center; margin-top: 2rem;">
+                        <button type="submit" class="btn btn-primary" style="padding: 0 2.5rem; height: 42px;"><i class="fas fa-search"></i> Buscar</button>
                     </div>
                 </form>
             </div>
 
             <!-- RESULTADOS -->
-            <div class="results-section">
-                <div class="results-header">
-                    <div style="font-size: 0.65rem; display: flex; align-items: center; gap: 5px; margin-bottom: 5px;">
-                        <input type="checkbox"> Ordenar múltiple
+            <div class="card-premium" style="margin-top: 20px;">
+                <div class="card-header-premium">
+                    <h2><i class="fas fa-list-alt"></i> Resultado de la Búsqueda</h2>
+                    <div style="font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" id="ord_mult_3" style="width: 16px; height: 16px;">
+                        <label for="ord_mult_3" style="color: var(--text-muted); cursor: pointer;">Ordenar múltiple</label>
                     </div>
-                    <h2>RESULTADO DE LA BÚSQUEDA</h2>
                 </div>
-                
+
                 <div class="status-header">
                     <div class="status-box bg-orange">Curso suspendido</div>
                     <div class="status-box bg-cyan">Curso regalo</div>
@@ -1135,7 +1160,7 @@ $current_page = 'tutorias.php';
                 </div>
 
                 <div class="table-responsive">
-                    <table class="table-custom">
+                    <table class="table-premium">
                         <thead>
                             <tr>
                                 <th><span class="sort-icon"><svg width="10" viewBox="0 0 24 24"><path d="M12 21l-12-18h24z"/></svg></span>Plan</th>
@@ -1170,7 +1195,7 @@ $current_page = 'tutorias.php';
                         </thead>
                         <tbody>
                             <tr>
-                                <td colspan="22" style="text-align: center; padding: 2rem; color: #64748b;">
+                                <td colspan="28" style="text-align: center; padding: 3rem; color: #94a3b8; font-style: italic;">
                                     Utilice los filtros para realizar una búsqueda.
                                 </td>
                             </tr>
