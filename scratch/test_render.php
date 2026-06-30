@@ -57,11 +57,11 @@ try {
                     <?php
                     $estado_val = strtolower($res['estado'] ?? '');
                     $badge_class = 'badge-default';
-                    if (str_contains($estado_val, 'admitido')) $badge_class = 'badge-admitido';
-                    elseif (str_contains($estado_val, 'inscrito') || str_contains($estado_val, 'preinscrito')) $badge_class = 'badge-inscrito';
-                    elseif (str_contains($estado_val, 'espera') || str_contains($estado_val, 'pendiente')) $badge_class = 'badge-espera';
-                    elseif (str_contains($estado_val, 'baja') || str_contains($estado_val, 'abandono')) $badge_class = 'badge-baja';
-                    elseif (str_contains($estado_val, 'finalizado')) $badge_class = 'badge-finalizado';
+                    if (stripos($estado_val, 'admitido') !== false) $badge_class = 'badge-admitido';
+                    elseif (stripos($estado_val, 'inscrito') !== false || stripos($estado_val, 'preinscrito') !== false) $badge_class = 'badge-inscrito';
+                    elseif (stripos($estado_val, 'espera') !== false || stripos($estado_val, 'pendiente') !== false) $badge_class = 'badge-espera';
+                    elseif (stripos($estado_val, 'baja') !== false || stripos($estado_val, 'abandono') !== false) $badge_class = 'badge-baja';
+                    elseif (stripos($estado_val, 'finalizado') !== false) $badge_class = 'badge-finalizado';
                     ?>
                     <span class="badge <?= $badge_class ?>"><?= htmlspecialchars($res['estado']) ?></span>
                 </td>
