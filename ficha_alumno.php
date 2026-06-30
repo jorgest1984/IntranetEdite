@@ -635,11 +635,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                     <input type="hidden" name="action" value="update_personales">
                     
-                    <div style="display: grid; grid-template-columns: 280px 1fr; gap: 2rem; align-items: start; margin-bottom: 2rem;">
-                        <!-- Columna Izquierda: Perfil / Foto / Checkboxes -->
+                    <div style="display: grid; grid-template-columns: 280px 1fr; gap: 2rem; align-items: stretch; margin-bottom: 2rem;">
+                        <!-- Columna Izquierda: Perfil / Foto -->
                         <div>
                             <!-- Foto de Perfil del Alumno -->
-                            <div class="card-section-premium" style="text-align: center; display: flex; flex-direction: column; align-items: center; padding: 2rem 1.5rem; margin-bottom: 1.5rem;">
+                            <div class="card-section-premium" style="text-align: center; display: flex; flex-direction: column; align-items: center; padding: 2rem 1.5rem; margin-bottom: 0; height: 100%; justify-content: center; box-sizing: border-box;">
                                 <div class="avatar-wrapper" style="position: relative; width: 140px; height: 140px; border-radius: 50%; overflow: hidden; border: 4px solid var(--primary-color); background: #f8fafc; cursor: pointer; box-shadow: 0 8px 24px rgba(0,0,0,0.06); transition: transform 0.3s ease;">
                                     <div id="avatar-preview" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
                                         <?php 
@@ -662,99 +662,101 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                     <span style="font-size: 0.72rem; color: #64748b; display: block;">Formatos: JPG, PNG, WEBP</span>
                                 </div>
                             </div>
-
-                            <!-- Checkboxes de Control -->
-                            <div class="card-section-premium" style="padding: 1.5rem; margin-bottom: 0;">
-                                <h4 class="card-section-title" style="margin-bottom: 1rem;"><i class="fas fa-toggle-on"></i> Estado y Control</h4>
-                                
-                                <div class="checkbox-group-custom" style="padding-top: 5px;">
-                                    <input type="checkbox" name="bloqueado" id="bloqueado" <?= ($alumno['bloqueado'] ?? 0) ? 'checked' : '' ?>>
-                                    <label for="bloqueado" style="color: #ef4444; cursor: pointer;">🚫 BLOQUEADO</label>
-                                </div>
-                                <div class="checkbox-group-custom" style="padding-top: 5px;">
-                                    <input type="checkbox" name="restringido" id="restringido" <?= ($alumno['restringido'] ?? 0) ? 'checked' : '' ?>>
-                                    <label for="restringido" style="color: #f59e0b; cursor: pointer;">⚠️ RESTRINGIDO</label>
-                                </div>
-                                <div class="checkbox-group-custom" style="padding-top: 5px;">
-                                    <input type="checkbox" name="baja" id="baja" <?= ($alumno['baja'] ?? 0) ? 'checked' : '' ?>>
-                                    <label for="baja" style="color: #64748b; cursor: pointer;">📉 BAJA</label>
-                                </div>
-                                <div class="checkbox-group-custom" style="padding-top: 5px; color: var(--primary-color);">
-                                    <input type="checkbox" name="es_nuestro" id="es_nuestro" <?= ($alumno['es_nuestro'] ?? 0) ? 'checked' : '' ?>>
-                                    <label for="es_nuestro" style="color: var(--primary-color); cursor: pointer;">⭐ ES NUESTRO</label>
-                                </div>
-                            </div>
                         </div>
 
                         <!-- Columna Derecha: Datos Personales -->
                         <div>
                             <!-- SECCIÓN 1: DATOS PERSONALES -->
-                            <div class="card-section-premium" style="margin-bottom: 0;">
-                                <h3 class="card-section-title"><i class="fas fa-id-card"></i> Datos Personales y de Identificación</h3>
-                                <div class="form-grid">
-                                    <div class="form-group-custom span-3">
-                                        <label class="label-red">Nombre *</label>
-                                        <input type="text" name="nombre" class="form-control-edit" value="<?= htmlspecialchars($alumno['nombre'] ?? '') ?>" required>
-                                    </div>
-                                    <div class="form-group-custom span-3">
-                                        <label class="label-red">1º Apellido *</label>
-                                        <input type="text" name="primer_apellido" class="form-control-edit" value="<?= htmlspecialchars($alumno['primer_apellido'] ?? '') ?>" required>
-                                    </div>
-                                    <div class="form-group-custom span-3">
-                                        <label>2º Apellido</label>
-                                        <input type="text" name="segundo_apellido" class="form-control-edit" value="<?= htmlspecialchars($alumno['segundo_apellido'] ?? '') ?>">
-                                    </div>
-                                    <div class="form-group-custom span-3">
-                                        <label class="label-red">NIF / NIE *</label>
-                                        <input type="text" name="dni" class="form-control-edit" value="<?= htmlspecialchars($alumno['dni'] ?? '') ?>" required>
-                                    </div>
+                            <div class="card-section-premium" style="margin-bottom: 0; height: 100%; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between;">
+                                <div>
+                                    <h3 class="card-section-title" style="margin-bottom: 1.25rem;"><i class="fas fa-id-card"></i> Datos Personales y de Identificación</h3>
+                                    <div class="form-grid">
+                                        <div class="form-group-custom span-3">
+                                            <label class="label-red">Nombre *</label>
+                                            <input type="text" name="nombre" class="form-control-edit" value="<?= htmlspecialchars($alumno['nombre'] ?? '') ?>" required>
+                                        </div>
+                                        <div class="form-group-custom span-3">
+                                            <label class="label-red">1º Apellido *</label>
+                                            <input type="text" name="primer_apellido" class="form-control-edit" value="<?= htmlspecialchars($alumno['primer_apellido'] ?? '') ?>" required>
+                                        </div>
+                                        <div class="form-group-custom span-3">
+                                            <label>2º Apellido</label>
+                                            <input type="text" name="segundo_apellido" class="form-control-edit" value="<?= htmlspecialchars($alumno['segundo_apellido'] ?? '') ?>">
+                                        </div>
+                                        <div class="form-group-custom span-3">
+                                            <label class="label-red">NIF / NIE *</label>
+                                            <input type="text" name="dni" class="form-control-edit" value="<?= htmlspecialchars($alumno['dni'] ?? '') ?>" required>
+                                        </div>
 
-                                    <div class="form-group-custom span-4">
-                                        <label>Comercial Asignado</label>
-                                        <select name="comercial_id" class="form-control-edit">
-                                            <option value="">---</option>
-                                            <?php foreach ($comerciales as $c): ?>
-                                                <option value="<?= $c['id'] ?>" <?= ($alumno['comercial_id'] ?? '') == $c['id'] ? 'selected' : '' ?>><?= htmlspecialchars($c['nombre'] . ' ' . $c['apellidos']) ?></option>
-                                            <?php endforeach; ?>
-                                        </select>
-                                    </div>
-                                    <div class="form-group-custom span-4">
-                                        <label>Alias / Apodo</label>
-                                        <input type="text" name="alias" class="form-control-edit" value="<?= htmlspecialchars($alumno['alias'] ?? '') ?>">
-                                    </div>
-                                    <div class="form-group-custom span-4">
-                                        <label>Fecha Nacimiento</label>
-                                        <input type="date" name="fecha_nacimiento" class="form-control-edit" value="<?= htmlspecialchars($alumno['fecha_nacimiento'] ?? '') ?>">
-                                    </div>
+                                        <div class="form-group-custom span-4">
+                                            <label>Comercial Asignado</label>
+                                            <select name="comercial_id" class="form-control-edit">
+                                                <option value="">---</option>
+                                                <?php foreach ($comerciales as $c): ?>
+                                                    <option value="<?= $c['id'] ?>" <?= ($alumno['comercial_id'] ?? '') == $c['id'] ? 'selected' : '' ?>><?= htmlspecialchars($c['nombre'] . ' ' . $c['apellidos']) ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                        <div class="form-group-custom span-4">
+                                            <label>Alias / Apodo</label>
+                                            <input type="text" name="alias" class="form-control-edit" value="<?= htmlspecialchars($alumno['alias'] ?? '') ?>">
+                                        </div>
+                                        <div class="form-group-custom span-4">
+                                            <label>Fecha Nacimiento</label>
+                                            <input type="date" name="fecha_nacimiento" class="form-control-edit" value="<?= htmlspecialchars($alumno['fecha_nacimiento'] ?? '') ?>">
+                                        </div>
 
-                                    <div class="form-group-custom span-3">
-                                        <label>Nº Seguridad Social</label>
-                                        <input type="text" name="seguridad_social" class="form-control-edit" value="<?= htmlspecialchars($alumno['seguridad_social'] ?? '') ?>">
+                                        <div class="form-group-custom span-3">
+                                            <label>Nº Seguridad Social</label>
+                                            <input type="text" name="seguridad_social" class="form-control-edit" value="<?= htmlspecialchars($alumno['seguridad_social'] ?? '') ?>">
+                                        </div>
+                                        <div class="form-group-custom span-3">
+                                            <label>Profesión</label>
+                                            <input type="text" name="profesion" class="form-control-edit" value="<?= htmlspecialchars($alumno['profesion'] ?? '') ?>">
+                                        </div>
+                                        <div class="form-group-custom span-3">
+                                            <label>Sexo</label>
+                                            <select name="sexo" class="form-control-edit">
+                                                <option value="">---</option>
+                                                <option value="Hombre" <?= ($alumno['sexo'] ?? '') == 'Hombre' ? 'selected' : '' ?>>Hombre</option>
+                                                <option value="Mujer" <?= ($alumno['sexo'] ?? '') == 'Mujer' ? 'selected' : '' ?>>Mujer</option>
+                                                <option value="Otro" <?= ($alumno['sexo'] ?? '') == 'Otro' ? 'selected' : '' ?>>Otro</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group-custom span-3">
+                                            <label>Nivel de Estudios</label>
+                                            <select name="estudios" class="form-control-edit">
+                                                <option value="">---</option>
+                                                <?php 
+                                                $opcionesEstudios = ["Sin estudios", "Primaria", "ESO/EGB", "Bachillerato", "FP Grado Medio", "FP Grado Superior", "Universidad"];
+                                                foreach ($opcionesEstudios as $est):
+                                                ?>
+                                                    <option <?= ($alumno['estudios'] ?? '') == $est ? 'selected' : '' ?>><?= $est ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
                                     </div>
-                                    <div class="form-group-custom span-3">
-                                        <label>Profesión</label>
-                                        <input type="text" name="profesion" class="form-control-edit" value="<?= htmlspecialchars($alumno['profesion'] ?? '') ?>">
-                                    </div>
-                                    <div class="form-group-custom span-3">
-                                        <label>Sexo</label>
-                                        <select name="sexo" class="form-control-edit">
-                                            <option value="">---</option>
-                                            <option value="Hombre" <?= ($alumno['sexo'] ?? '') == 'Hombre' ? 'selected' : '' ?>>Hombre</option>
-                                            <option value="Mujer" <?= ($alumno['sexo'] ?? '') == 'Mujer' ? 'selected' : '' ?>>Mujer</option>
-                                            <option value="Otro" <?= ($alumno['sexo'] ?? '') == 'Otro' ? 'selected' : '' ?>>Otro</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group-custom span-3">
-                                        <label>Nivel de Estudios</label>
-                                        <select name="estudios" class="form-control-edit">
-                                            <option value="">---</option>
-                                            <?php 
-                                            $opcionesEstudios = ["Sin estudios", "Primaria", "ESO/EGB", "Bachillerato", "FP Grado Medio", "FP Grado Superior", "Universidad"];
-                                            foreach ($opcionesEstudios as $est):
-                                            ?>
-                                                <option <?= ($alumno['estudios'] ?? '') == $est ? 'selected' : '' ?>><?= $est ?></option>
-                                            <?php endforeach; ?>
-                                        </select>
+                                </div>
+
+                                <!-- Fila inferior de Checkboxes de Control -->
+                                <div style="border-top: 1px solid var(--border-color); padding-top: 1.25rem; margin-top: 1.25rem;">
+                                    <div class="form-grid">
+                                        <div class="checkbox-group-custom span-3" style="padding-top: 0;">
+                                            <input type="checkbox" name="bloqueado" id="bloqueado" <?= ($alumno['bloqueado'] ?? 0) ? 'checked' : '' ?>>
+                                            <label for="bloqueado" style="color: #ef4444; cursor: pointer;">🚫 BLOQUEADO</label>
+                                        </div>
+                                        <div class="checkbox-group-custom span-3" style="padding-top: 0;">
+                                            <input type="checkbox" name="restringido" id="restringido" <?= ($alumno['restringido'] ?? 0) ? 'checked' : '' ?>>
+                                            <label for="restringido" style="color: #f59e0b; cursor: pointer;">⚠️ RESTRINGIDO</label>
+                                        </div>
+                                        <div class="checkbox-group-custom span-3" style="padding-top: 0;">
+                                            <input type="checkbox" name="baja" id="baja" <?= ($alumno['baja'] ?? 0) ? 'checked' : '' ?>>
+                                            <label for="baja" style="color: #64748b; cursor: pointer;">📉 BAJA</label>
+                                        </div>
+                                        <div class="checkbox-group-custom span-3" style="padding-top: 0; color: var(--primary-color);">
+                                            <input type="checkbox" name="es_nuestro" id="es_nuestro" <?= ($alumno['es_nuestro'] ?? 0) ? 'checked' : '' ?>>
+                                            <label for="es_nuestro" style="color: var(--primary-color); cursor: pointer;">⭐ ES NUESTRO</label>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
