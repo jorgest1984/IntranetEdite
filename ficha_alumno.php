@@ -407,7 +407,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     <title>Ficha Alumno: <?= htmlspecialchars($alumno['nombre'] . ' ' . $alumno['primer_apellido']) ?> - <?= APP_NAME ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/main.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         /* Tabs Premium Navigation */
         .tabs-header {
@@ -1127,7 +1127,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                             <td style="font-weight: 500;"><?= !empty($mat['grupo_fin']) && $mat['grupo_fin'] != '0000-00-00' ? date('d/m/Y', strtotime($mat['grupo_fin'])) : '' ?></td>
                                             <td style="text-align: center;">
                                                 <a href="ficha_matricula.php?id=<?= $mat['id'] ?>" class="btn btn-secondary" style="padding: 6px; border-radius: 6px; min-width: auto; background: rgba(30,64,175,0.05); color: var(--primary-color); border: 1px solid rgba(30,64,175,0.1); display: inline-flex;" title="Editar Matrícula">
-                                                    <i class="fas fa-edit" style="font-size: 0.85rem;"></i>
+                                                    <i class="fa-solid fa-pen" style="font-size: 0.85rem;"></i>
                                                 </a>
                                             </td>
                                             <td style="text-align: center;">
@@ -1136,7 +1136,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                                     <input type="hidden" name="action" value="delete_inscripcion">
                                                     <input type="hidden" name="matricula_id" value="<?= $mat['id'] ?>">
                                                     <button type="submit" class="btn" style="padding: 6px; border-radius: 6px; min-width: auto; background: rgba(239,68,68,0.05); color: #ef4444; border: 1px solid rgba(239,68,68,0.1); display: inline-flex; cursor: pointer;">
-                                                        <i class="fas fa-trash-alt" style="font-size: 0.85rem;"></i>
+                                                        <i class="fa-solid fa-trash" style="font-size: 0.85rem;"></i>
                                                     </button>
                                                 </form>
                                             </td>
