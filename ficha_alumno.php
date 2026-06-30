@@ -24,11 +24,15 @@ if (!$alumno) {
     die("Alumno no encontrado.");
 }
 
-// Migración automática: Añadir columna `accion_id` a la tabla `documentos_alumno` si no existe
+// Migración automática: Añadir columnas si no existen
 try {
     $checkColumn = $pdo->query("SHOW COLUMNS FROM `documentos_alumno` LIKE 'accion_id'")->fetch();
     if (!$checkColumn) {
         $pdo->exec("ALTER TABLE `documentos_alumno` ADD COLUMN `accion_id` INT(11) DEFAULT NULL AFTER `usuario_id`");
+    }
+    $checkColumnFoto = $pdo->query("SHOW COLUMNS FROM `alumnos` LIKE 'foto'")->fetch();
+    if (!$checkColumnFoto) {
+        $pdo->exec("ALTER TABLE `alumnos` ADD COLUMN `foto` VARCHAR(255) DEFAULT NULL AFTER `teams`");
     }
 } catch (Exception $e) {
     // Ignorar errores silenciosamente en producción
@@ -227,6 +231,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             'entrega_cp', 'entrega_localidad', 'entrega_provincia'
         ];
         
+        // Procesar subida de foto de perfil
+        if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
+            $allowed = ['jpg', 'jpeg', 'png', 'webp'];
+            $file_ext = strtolower(pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION));
+            if (in_array($file_ext, $allowed)) {
+                $upload_dir = 'uploads/alumnos/' . $id . '/';
+                if (!is_dir($upload_dir)) {
+                    mkdir($upload_dir, 0777, true);
+                }
+                // Borrar foto anterior si existe
+                if (!empty($alumno['foto']) && file_exists(__DIR__ . '/' . $alumno['foto'])) {
+                    @unlink(__DIR__ . '/' . $alumno['foto']);
+                }
+                $new_avatar_path = $upload_dir . 'avatar_' . time() . '.' . $file_ext;
+                if (move_uploaded_file($_FILES['foto']['tmp_name'], __DIR__ . '/' . $new_avatar_path)) {
+                    $pdo->prepare("UPDATE alumnos SET foto = ? WHERE id = ?")->execute([$new_avatar_path, $id]);
+                    $alumno['foto'] = $new_avatar_path; // Actualizar en memoria
+                }
+            }
+        }
+
         $set = [];
         $params = [];
         foreach($fields as $f) {
@@ -363,49 +388,202 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     <title>Ficha Alumno: <?= htmlspecialchars($alumno['nombre'] . ' ' . $alumno['primer_apellido']) ?> - <?= APP_NAME ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/main.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
+        /* Tabs Premium Navigation */
         .tabs-header {
             display: flex;
-            background: #f8fafc;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
             border: 1px solid var(--border-color);
-            border-radius: 12px 12px 0 0;
+            border-radius: 14px 14px 0 0;
+            padding: 0.5rem 0.5rem 0 0.5rem;
+            gap: 4px;
             overflow-x: auto;
         }
         .tab-btn {
-            padding: 1rem 1.5rem;
+            padding: 0.8rem 1.6rem;
             border: none;
             background: none;
             font-size: 0.85rem;
-            font-weight: 500;
+            font-weight: 600;
             color: var(--text-muted);
             cursor: pointer;
             white-space: nowrap;
-            border-right: 1px solid var(--border-color);
+            border-radius: 10px 10px 0 0;
+            transition: all 0.3s ease;
+            position: relative;
         }
-        .tab-btn.active { background: white; color: var(--primary-color); font-weight: 600; border-bottom: 2px solid var(--primary-color); }
-        .tab-panel {
-            background: white;
-            padding: 2rem;
-            border-radius: 0 0 12px 12px;
+        .tab-btn:hover {
+            color: var(--primary-color);
+            background: rgba(30, 64, 175, 0.05);
+        }
+        .tab-btn.active {
+            background: var(--card-bg);
+            color: var(--primary-color);
             border: 1px solid var(--border-color);
-            border-top: none;
-            min-height: 400px;
+            border-bottom: 2px solid var(--card-bg);
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.03);
+            margin-bottom: -1px;
+            z-index: 10;
+        }
+        .tab-panel {
+            background: var(--card-bg);
+            padding: 2.2rem;
+            border-radius: 0 0 16px 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--card-shadow);
+            min-height: 450px;
+            margin-bottom: 2rem;
         }
         
-        .prof-form-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
-        .prof-form-label { width: 140px; font-weight: 600; font-size: 0.9rem; color: var(--text-color); }
-        .prof-form-input { flex: 1; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; }
+        /* Grid Form Layout */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1rem 1.25rem;
+        }
+        .form-group-custom {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+        .form-group-custom label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #475569;
+        }
+        .form-group-custom label.label-red {
+            color: #ef4444 !important;
+        }
+        .form-control-edit {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.82rem;
+            background: var(--input-bg);
+            color: var(--text-color);
+            outline: none;
+            transition: all 0.2s ease;
+            width: 100%;
+            box-sizing: border-box;
+            height: 38px;
+        }
+        .form-control-edit:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.15);
+            background: #fff;
+        }
+        textarea.form-control-edit {
+            height: auto;
+            min-height: 80px;
+            resize: vertical;
+        }
         
-        .form-section { border-bottom: 1px solid #e2e8f0; padding: 15px 0; }
-        .form-section:last-child { border-bottom: none; }
-        .field-row { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 15px; align-items: center; }
-        .field-group { display: flex; align-items: center; gap: 5px; }
-        .field-group label { font-weight: 700; color: #1e40af; white-space: nowrap; font-size: 0.75rem; }
-        .field-group input, .field-group select, .field-group textarea { font-size: 0.8rem; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px; background-color: #fff; }
-        .label-red { color: #b91c1c !important; font-weight: 800 !important; }
-        .checkbox-group { display: flex; align-items: center; gap: 4px; font-weight: 700; color: #b91c1c; font-size: 0.75rem; }
-        .section-header { font-weight: 800; color: #1e40af; text-transform: uppercase; margin-bottom: 15px; font-size: 0.8rem; border-left: 3px solid #1e40af; padding-left: 8px; }
-        .w-60 { width: 60px; } .w-100 { width: 100px; } .w-150 { width: 150px; } .w-200 { width: 200px; } .w-250 { width: 250px; } .w-300 { width: 300px; }
+        /* Columns sizing */
+        .span-1 { grid-column: span 1; }
+        .span-2 { grid-column: span 2; }
+        .span-3 { grid-column: span 3; }
+        .span-4 { grid-column: span 4; }
+        .span-5 { grid-column: span 5; }
+        .span-6 { grid-column: span 6; }
+        .span-7 { grid-column: span 7; }
+        .span-8 { grid-column: span 8; }
+        .span-9 { grid-column: span 9; }
+        .span-10 { grid-column: span 10; }
+        .span-11 { grid-column: span 11; }
+        .span-12 { grid-column: span 12; }
+
+        /* Card Section Styles */
+        .card-section-premium {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.01);
+        }
+        .card-section-title {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            margin-bottom: 1.25rem;
+            border-left: 4px solid var(--primary-color);
+            padding-left: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .card-section-moodle {
+            background: #f0f9ff;
+            border-color: #bae6fd;
+        }
+        .card-section-moodle .card-section-title {
+            color: #0369a1;
+            border-left-color: #0369a1;
+        }
+        .card-section-entrega {
+            background: #faf5ff;
+            border-color: #f3e8ff;
+        }
+        .card-section-entrega .card-section-title {
+            color: #6b21a8;
+            border-left-color: #6b21a8;
+        }
+
+        /* Checkbox Layout */
+        .checkbox-group-custom {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            height: 38px;
+            padding-top: 15px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            color: #ef4444;
+        }
+        .checkbox-group-custom input[type="checkbox"] {
+            width: 17px;
+            height: 17px;
+            cursor: pointer;
+            accent-color: var(--primary-color);
+        }
+
+        /* Avatar styles */
+        .avatar-wrapper:hover .avatar-upload-overlay {
+            opacity: 1 !important;
+        }
+        .avatar-wrapper:hover {
+            transform: scale(1.02);
+        }
+
+        /* Table styles */
+        .table-premium-dense {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+        .table-premium-dense th {
+            background: #f8fafc;
+            padding: 10px 12px;
+            font-weight: 700;
+            color: #334155;
+            border-bottom: 2px solid var(--border-color);
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.5px;
+        }
+        .table-premium-dense td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-color);
+        }
+        .table-premium-dense tbody tr:hover {
+            background: #f8fafc;
+        }
     </style>
 </head>
 <body>
@@ -453,316 +631,391 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 
             <!-- TAB: Personales -->
             <div id="tab-personales" style="<?= $active_tab == 'personales' ? '' : 'display:none;' ?>">
-                <form method="POST" id="editForm">
+                <form method="POST" id="editForm" enctype="multipart/form-data">
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                     <input type="hidden" name="action" value="update_personales">
                     
-                    <!-- SECCIÓN 1: DATOS PERSONALES -->
-                    <div class="form-section" style="padding-top: 0;">
-                        <div class="section-header">Datos Personales y de Control</div>
-                        <div class="field-row">
-                            <div class="field-group">
-                                <label class="label-red">NOMBRE *</label>
-                                <input type="text" name="nombre" class="w-150" value="<?= htmlspecialchars($alumno['nombre'] ?? '') ?>" required>
+                    <div style="display: grid; grid-template-columns: 280px 1fr; gap: 2rem; align-items: start;">
+                        <!-- Columna Izquierda: Perfil / Foto / Checkboxes -->
+                        <div style="position: sticky; top: 20px;">
+                            <!-- Foto de Perfil del Alumno -->
+                            <div class="card-section-premium" style="text-align: center; display: flex; flex-direction: column; align-items: center; padding: 2rem 1.5rem;">
+                                <div class="avatar-wrapper" style="position: relative; width: 140px; height: 140px; border-radius: 50%; overflow: hidden; border: 4px solid var(--primary-color); background: #f8fafc; cursor: pointer; box-shadow: 0 8px 24px rgba(0,0,0,0.06); transition: transform 0.3s ease;">
+                                    <div id="avatar-preview" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+                                        <?php 
+                                        $foto_path = $alumno['foto'] ?? '';
+                                        if (!empty($foto_path) && file_exists(__DIR__ . '/' . $foto_path)) {
+                                            echo '<img src="' . htmlspecialchars($foto_path) . '" alt="Foto Alumno" style="width: 100%; height: 100%; object-fit: cover;">';
+                                        } else {
+                                            echo '<i class="fas fa-user-circle" style="font-size: 140px; color: #cbd5e1;"></i>';
+                                        }
+                                        ?>
+                                    </div>
+                                    <div class="avatar-upload-overlay" onclick="document.getElementById('foto').click();" style="position: absolute; inset: 0; background: rgba(0, 0, 0, 0.4); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; opacity: 0; transition: opacity 0.2s ease; font-size: 0.8rem; gap: 5px; backdrop-filter: blur(2px);">
+                                        <i class="fas fa-camera" style="font-size: 1.5rem;"></i>
+                                        <span>Cambiar Foto</span>
+                                    </div>
+                                </div>
+                                <input type="file" name="foto" id="foto" accept="image/*" style="display: none;" onchange="previewImage(this);">
+                                
+                                <div style="margin-top: 15px; text-align: center;">
+                                    <span style="font-size: 0.72rem; color: #64748b; display: block;">Formatos: JPG, PNG, WEBP</span>
+                                </div>
                             </div>
-                            <div class="field-group">
-                                <label class="label-red">1º APELLIDO *</label>
-                                <input type="text" name="primer_apellido" class="w-150" value="<?= htmlspecialchars($alumno['primer_apellido'] ?? '') ?>" required>
-                            </div>
-                            <div class="field-group">
-                                <label>2º APELLIDO</label>
-                                <input type="text" name="segundo_apellido" class="w-150" value="<?= htmlspecialchars($alumno['segundo_apellido'] ?? '') ?>">
-                            </div>
-                            <div class="field-group">
-                                <label class="label-red">NIF/NIE *</label>
-                                <input type="text" name="dni" class="w-100" value="<?= htmlspecialchars($alumno['dni'] ?? '') ?>" required>
+
+                            <!-- Checkboxes de Control -->
+                            <div class="card-section-premium" style="padding: 1.5rem;">
+                                <h4 class="card-section-title" style="margin-bottom: 1rem;"><i class="fas fa-toggle-on"></i> Estado y Control</h4>
+                                
+                                <div class="checkbox-group-custom" style="padding-top: 5px;">
+                                    <input type="checkbox" name="bloqueado" id="bloqueado" <?= ($alumno['bloqueado'] ?? 0) ? 'checked' : '' ?>>
+                                    <label for="bloqueado" style="color: #ef4444; cursor: pointer;">🚫 BLOQUEADO</label>
+                                </div>
+                                <div class="checkbox-group-custom" style="padding-top: 5px;">
+                                    <input type="checkbox" name="restringido" id="restringido" <?= ($alumno['restringido'] ?? 0) ? 'checked' : '' ?>>
+                                    <label for="restringido" style="color: #f59e0b; cursor: pointer;">⚠️ RESTRINGIDO</label>
+                                </div>
+                                <div class="checkbox-group-custom" style="padding-top: 5px;">
+                                    <input type="checkbox" name="baja" id="baja" <?= ($alumno['baja'] ?? 0) ? 'checked' : '' ?>>
+                                    <label for="baja" style="color: #64748b; cursor: pointer;">📉 BAJA</label>
+                                </div>
+                                <div class="checkbox-group-custom" style="padding-top: 5px; color: var(--primary-color);">
+                                    <input type="checkbox" name="es_nuestro" id="es_nuestro" <?= ($alumno['es_nuestro'] ?? 0) ? 'checked' : '' ?>>
+                                    <label for="es_nuestro" style="color: var(--primary-color); cursor: pointer;">⭐ ES NUESTRO</label>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="field-row">
-                            <div class="field-group">
-                                <label>COMERCIAL</label>
-                                <select name="comercial_id" class="w-150">
-                                    <option value="">---</option>
-                                    <?php foreach ($comerciales as $c): ?>
-                                        <option value="<?= $c['id'] ?>" <?= ($alumno['comercial_id'] ?? '') == $c['id'] ? 'selected' : '' ?>><?= htmlspecialchars($c['nombre'] . ' ' . $c['apellidos']) ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            <div class="checkbox-group" style="margin-left: 20px;">
-                                <input type="checkbox" name="bloqueado" id="bloqueado" <?= ($alumno['bloqueado'] ?? 0) ? 'checked' : '' ?>>
-                                <label for="bloqueado">BLOQUEADO</label>
-                            </div>
-                            <div class="checkbox-group">
-                                <input type="checkbox" name="restringido" id="restringido" <?= ($alumno['restringido'] ?? 0) ? 'checked' : '' ?>>
-                                <label for="restringido">RESTRINGIDO</label>
-                            </div>
-                            <div class="checkbox-group">
-                                <input type="checkbox" name="baja" id="baja" <?= ($alumno['baja'] ?? 0) ? 'checked' : '' ?>>
-                                <label for="baja">BAJA</label>
-                            </div>
-                            <div class="checkbox-group">
-                                <input type="checkbox" name="es_nuestro" id="es_nuestro" <?= ($alumno['es_nuestro'] ?? 0) ? 'checked' : '' ?>>
-                                <label for="es_nuestro">ES NUESTRO</label>
-                            </div>
-                        </div>
+                        <!-- Columna Derecha: Formulario Completo categorizado -->
+                        <div>
+                            <!-- SECCIÓN 1: DATOS PERSONALES -->
+                            <div class="card-section-premium">
+                                <h3 class="card-section-title"><i class="fas fa-id-card"></i> Datos Personales y de Identificación</h3>
+                                <div class="form-grid">
+                                    <div class="form-group-custom span-3">
+                                        <label class="label-red">Nombre *</label>
+                                        <input type="text" name="nombre" class="form-control-edit" value="<?= htmlspecialchars($alumno['nombre'] ?? '') ?>" required>
+                                    </div>
+                                    <div class="form-group-custom span-3">
+                                        <label class="label-red">1º Apellido *</label>
+                                        <input type="text" name="primer_apellido" class="form-control-edit" value="<?= htmlspecialchars($alumno['primer_apellido'] ?? '') ?>" required>
+                                    </div>
+                                    <div class="form-group-custom span-3">
+                                        <label>2º Apellido</label>
+                                        <input type="text" name="segundo_apellido" class="form-control-edit" value="<?= htmlspecialchars($alumno['segundo_apellido'] ?? '') ?>">
+                                    </div>
+                                    <div class="form-group-custom span-3">
+                                        <label class="label-red">NIF / NIE *</label>
+                                        <input type="text" name="dni" class="form-control-edit" value="<?= htmlspecialchars($alumno['dni'] ?? '') ?>" required>
+                                    </div>
 
-                        <div class="field-row">
-                            <div class="field-group">
-                                <label>ALIAS</label>
-                                <input type="text" name="alias" class="w-150" value="<?= htmlspecialchars($alumno['alias'] ?? '') ?>">
-                            </div>
-                            <div class="field-group">
-                                <label>F. NACIMIENTO</label>
-                                <input type="date" name="fecha_nacimiento" style="padding: 4px 6px;" value="<?= htmlspecialchars($alumno['fecha_nacimiento'] ?? '') ?>">
-                            </div>
-                            <div class="field-group">
-                                <label>Nº S. SOCIAL</label>
-                                <input type="text" name="seguridad_social" class="w-100" value="<?= htmlspecialchars($alumno['seguridad_social'] ?? '') ?>">
-                            </div>
-                            <div class="field-group">
-                                <label>PROFESIÓN</label>
-                                <input type="text" name="profesion" class="w-150" value="<?= htmlspecialchars($alumno['profesion'] ?? '') ?>">
-                            </div>
-                            <div class="field-group">
-                                <label>SEXO</label>
-                                <select name="sexo">
-                                    <option <?= ($alumno['sexo'] ?? '') == 'Hombre' ? 'selected' : '' ?>>Hombre</option>
-                                    <option <?= ($alumno['sexo'] ?? '') == 'Mujer' ? 'selected' : '' ?>>Mujer</option>
-                                </select>
-                            </div>
-                            <div class="field-group">
-                                <label>ESTUDIOS</label>
-                                <select name="estudios">
-                                    <option value="">---</option>
-                                    <?php 
-                                    $opcionesEstudios = ["Sin estudios", "Primaria", "ESO/EGB", "Bachillerato", "FP Grado Medio", "FP Grado Superior", "Universidad"];
-                                    foreach ($opcionesEstudios as $est):
-                                    ?>
-                                        <option <?= ($alumno['estudios'] ?? '') == $est ? 'selected' : '' ?>><?= $est ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
+                                    <div class="form-group-custom span-4">
+                                        <label>Comercial Asignado</label>
+                                        <select name="comercial_id" class="form-control-edit">
+                                            <option value="">---</option>
+                                            <?php foreach ($comerciales as $c): ?>
+                                                <option value="<?= $c['id'] ?>" <?= ($alumno['comercial_id'] ?? '') == $c['id'] ? 'selected' : '' ?>><?= htmlspecialchars($c['nombre'] . ' ' . $c['apellidos']) ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <div class="form-group-custom span-4">
+                                        <label>Alias / Apodo</label>
+                                        <input type="text" name="alias" class="form-control-edit" value="<?= htmlspecialchars($alumno['alias'] ?? '') ?>">
+                                    </div>
+                                    <div class="form-group-custom span-4">
+                                        <label>Fecha Nacimiento</label>
+                                        <input type="date" name="fecha_nacimiento" class="form-control-edit" value="<?= htmlspecialchars($alumno['fecha_nacimiento'] ?? '') ?>">
+                                    </div>
 
-                    <!-- SECCIÓN 2: DIRECCIÓN Y CONTACTO -->
-                    <div class="form-section">
-                        <div class="section-header">Domicilio y Contacto</div>
-                        <div class="field-row">
-                            <div class="field-group">
-                                <label>TIPO VÍA</label>
-                                <select name="tipo_via" class="w-100">
-                                    <?php 
-                                    $vias = ["Calle", "Avenida", "Plaza", "Carretera", "Paseo"];
-                                    foreach($vias as $v):
-                                    ?>
-                                        <option <?= ($alumno['tipo_via'] ?? '') == $v ? 'selected' : '' ?>><?= $v ?></option>
-                                    <?php endforeach; ?>
-                                </select>
+                                    <div class="form-group-custom span-3">
+                                        <label>Nº Seguridad Social</label>
+                                        <input type="text" name="seguridad_social" class="form-control-edit" value="<?= htmlspecialchars($alumno['seguridad_social'] ?? '') ?>">
+                                    </div>
+                                    <div class="form-group-custom span-3">
+                                        <label>Profesión</label>
+                                        <input type="text" name="profesion" class="form-control-edit" value="<?= htmlspecialchars($alumno['profesion'] ?? '') ?>">
+                                    </div>
+                                    <div class="form-group-custom span-3">
+                                        <label>Sexo</label>
+                                        <select name="sexo" class="form-control-edit">
+                                            <option value="">---</option>
+                                            <option value="Hombre" <?= ($alumno['sexo'] ?? '') == 'Hombre' ? 'selected' : '' ?>>Hombre</option>
+                                            <option value="Mujer" <?= ($alumno['sexo'] ?? '') == 'Mujer' ? 'selected' : '' ?>>Mujer</option>
+                                            <option value="Otro" <?= ($alumno['sexo'] ?? '') == 'Otro' ? 'selected' : '' ?>>Otro</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group-custom span-3">
+                                        <label>Nivel de Estudios</label>
+                                        <select name="estudios" class="form-control-edit">
+                                            <option value="">---</option>
+                                            <?php 
+                                            $opcionesEstudios = ["Sin estudios", "Primaria", "ESO/EGB", "Bachillerato", "FP Grado Medio", "FP Grado Superior", "Universidad"];
+                                            foreach ($opcionesEstudios as $est):
+                                            ?>
+                                                <option <?= ($alumno['estudios'] ?? '') == $est ? 'selected' : '' ?>><?= $est ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="field-group">
-                                <label>NOMBRE VÍA</label>
-                                <input type="text" name="nombre_via" class="w-250" value="<?= htmlspecialchars($alumno['nombre_via'] ?? '') ?>">
-                            </div>
-                            <div class="field-group">
-                                <label>TIPO Nº</label>
-                                <select name="tipo_num">
-                                    <option <?= ($alumno['tipo_num'] ?? '') == 'Número' ? 'selected' : '' ?>>Número</option>
-                                    <option <?= ($alumno['tipo_num'] ?? '') == 'Kilómetro' ? 'selected' : '' ?>>Kilómetro</option>
-                                    <option <?= ($alumno['tipo_num'] ?? '') == 'Sin Número' ? 'selected' : '' ?>>Sin Número</option>
-                                </select>
-                            </div>
-                            <div class="field-group">
-                                <label>Nº</label>
-                                <input type="text" name="num_domicilio" class="w-60" value="<?= htmlspecialchars($alumno['num_domicilio'] ?? '') ?>">
-                            </div>
-                            <div class="field-group">
-                                <label>CALIFICADOR</label>
-                                <select name="calificador">
-                                    <option value=""></option>
-                                    <option <?= ($alumno['calificador'] ?? '') == 'Bis' ? 'selected' : '' ?>>Bis</option>
-                                    <option <?= ($alumno['calificador'] ?? '') == 'Duplicado' ? 'selected' : '' ?>>Duplicado</option>
-                                    <option <?= ($alumno['calificador'] ?? '') == 'Moderno' ? 'selected' : '' ?>>Moderno</option>
-                                </select>
-                            </div>
-                        </div>
 
-                        <div class="field-row">
-                            <div class="field-group"><label>BLOQUE</label><input type="text" name="bloque" class="w-60" value="<?= htmlspecialchars($alumno['bloque'] ?? '') ?>"></div>
-                            <div class="field-group"><label>PORTAL</label><input type="text" name="portal" class="w-60" value="<?= htmlspecialchars($alumno['portal'] ?? '') ?>"></div>
-                            <div class="field-group"><label>ESCALERA</label><input type="text" name="escalera" class="w-60" value="<?= htmlspecialchars($alumno['escalera'] ?? '') ?>"></div>
-                            <div class="field-group"><label>PLANTA</label><input type="text" name="planta" class="w-60" value="<?= htmlspecialchars($alumno['planta'] ?? '') ?>"></div>
-                            <div class="field-group"><label>PUERTA</label><input type="text" name="puerta" class="w-60" value="<?= htmlspecialchars($alumno['puerta'] ?? '') ?>"></div>
-                            <div class="field-group"><label>COMPLEMENTO</label><input type="text" name="complemento" class="w-150" value="<?= htmlspecialchars($alumno['complemento'] ?? '') ?>"></div>
-                        </div>
-                        
-                        <input type="hidden" name="domicilio_full" id="domicilio_full">
+                            <!-- SECCIÓN 2: DIRECCIÓN Y CONTACTO -->
+                            <div class="card-section-premium">
+                                <h3 class="card-section-title"><i class="fas fa-map-marked-alt"></i> Domicilio y Contacto</h3>
+                                <div class="form-grid">
+                                    <div class="form-group-custom span-2">
+                                        <label>Tipo Vía</label>
+                                        <select name="tipo_via" class="form-control-edit">
+                                            <option value="">---</option>
+                                            <?php 
+                                            $vias = ["Calle", "Avenida", "Plaza", "Carretera", "Paseo"];
+                                            foreach($vias as $v):
+                                            ?>
+                                                <option <?= ($alumno['tipo_via'] ?? '') == $v ? 'selected' : '' ?>><?= $v ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <div class="form-group-custom span-5">
+                                        <label>Nombre de la Vía</label>
+                                        <input type="text" name="nombre_via" class="form-control-edit" value="<?= htmlspecialchars($alumno['nombre_via'] ?? '') ?>">
+                                    </div>
+                                    <div class="form-group-custom span-3">
+                                        <label>Tipo Número</label>
+                                        <select name="tipo_num" class="form-control-edit">
+                                            <option <?= ($alumno['tipo_num'] ?? '') == 'Número' ? 'selected' : '' ?>>Número</option>
+                                            <option <?= ($alumno['tipo_num'] ?? '') == 'Kilómetro' ? 'selected' : '' ?>>Kilómetro</option>
+                                            <option <?= ($alumno['tipo_num'] ?? '') == 'Sin Número' ? 'selected' : '' ?>>Sin Número</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group-custom span-2">
+                                        <label>Número</label>
+                                        <input type="text" name="num_domicilio" class="form-control-edit" value="<?= htmlspecialchars($alumno['num_domicilio'] ?? '') ?>">
+                                    </div>
 
-                        <div class="field-row" style="margin-top: 10px;">
-                            <div class="field-group"><label>CP</label><input type="text" name="cp" class="w-60" value="<?= htmlspecialchars($alumno['cp'] ?? '') ?>"></div>
-                            <div class="field-group"><label>LOCALIDAD</label><input type="text" name="localidad" class="w-150" value="<?= htmlspecialchars($alumno['localidad'] ?? '') ?>"></div>
-                            <div class="field-group">
-                                <label>PROVINCIA</label>
-                                <select name="provincia" class="w-150">
-                                    <option value="">---</option>
-                                    <?php foreach ($provincias as $p): ?>
-                                        <option value="<?= $p ?>" <?= ($alumno['provincia'] ?? '') == $p ? 'selected' : '' ?>><?= $p ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                        </div>
+                                    <div class="form-group-custom span-2">
+                                        <label>Bloque</label>
+                                        <input type="text" name="bloque" class="form-control-edit" value="<?= htmlspecialchars($alumno['bloque'] ?? '') ?>">
+                                    </div>
+                                    <div class="form-group-custom span-2">
+                                        <label>Portal</label>
+                                        <input type="text" name="portal" class="form-control-edit" value="<?= htmlspecialchars($alumno['portal'] ?? '') ?>">
+                                    </div>
+                                    <div class="form-group-custom span-2">
+                                        <label>Escalera</label>
+                                        <input type="text" name="escalera" class="form-control-edit" value="<?= htmlspecialchars($alumno['escalera'] ?? '') ?>">
+                                    </div>
+                                    <div class="form-group-custom span-2">
+                                        <label>Planta</label>
+                                        <input type="text" name="planta" class="form-control-edit" value="<?= htmlspecialchars($alumno['planta'] ?? '') ?>">
+                                    </div>
+                                    <div class="form-group-custom span-2">
+                                        <label>Puerta</label>
+                                        <input type="text" name="puerta" class="form-control-edit" value="<?= htmlspecialchars($alumno['puerta'] ?? '') ?>">
+                                    </div>
+                                    <div class="form-group-custom span-2">
+                                        <label>Calificador</label>
+                                        <select name="calificador" class="form-control-edit">
+                                            <option value=""></option>
+                                            <option <?= ($alumno['calificador'] ?? '') == 'Bis' ? 'selected' : '' ?>>Bis</option>
+                                            <option <?= ($alumno['calificador'] ?? '') == 'Duplicado' ? 'selected' : '' ?>>Duplicado</option>
+                                            <option <?= ($alumno['calificador'] ?? '') == 'Moderno' ? 'selected' : '' ?>>Moderno</option>
+                                        </select>
+                                    </div>
 
-                        <div class="field-row" style="margin-top: 15px;">
-                            <div class="field-group">
-                                <label>TELÉFONO</label>
-                                <input type="text" name="telefono" class="w-100" value="<?= htmlspecialchars($alumno['telefono'] ?? '') ?>">
-                            </div>
-                            <div class="field-group">
-                                <label>MÓVIL / EMPRESA</label>
-                                <input type="text" name="telefono_empresa" class="w-100" value="<?= htmlspecialchars($alumno['telefono_empresa'] ?? '') ?>">
-                            </div>
-                            <div class="field-group">
-                                <label class="label-red">EMAIL PRINCIPAL *</label>
-                                <input type="email" name="email" class="w-200" value="<?= htmlspecialchars($alumno['email'] ?? '') ?>" required>
-                            </div>
-                            <div class="field-group">
-                                <label>EMAIL SECUNDARIO</label>
-                                <input type="email" name="email_2" class="w-200" value="<?= htmlspecialchars($alumno['email_2'] ?? '') ?>">
-                            </div>
-                        </div>
+                                    <div class="form-group-custom span-8">
+                                        <label>Complemento Dirección</label>
+                                        <input type="text" name="complemento" class="form-control-edit" value="<?= htmlspecialchars($alumno['complemento'] ?? '') ?>">
+                                    </div>
+                                    <div class="form-group-custom span-4">
+                                        <label>Dirección Corta (Compatibilidad)</label>
+                                        <input type="text" name="domicilio" class="form-control-edit" value="<?= htmlspecialchars($alumno['domicilio'] ?? '') ?>">
+                                    </div>
+                                    
+                                    <input type="hidden" name="domicilio_full" id="domicilio_full">
 
-                        <div class="field-row">
-                            <div class="field-group">
-                                <label>EMAIL PERSONAL</label>
-                                <input type="email" name="email_personal" class="w-200" value="<?= htmlspecialchars($alumno['email_personal'] ?? '') ?>">
-                            </div>
-                            <div class="field-group">
-                                <label>TEAMS</label>
-                                <input type="text" name="teams" class="w-150" value="<?= htmlspecialchars($alumno['teams'] ?? '') ?>">
-                            </div>
-                            <div class="field-group">
-                                <label>NACIONALIDAD</label>
-                                <input type="text" name="nacionalidad" class="w-150" value="<?= htmlspecialchars($alumno['nacionalidad'] ?? '') ?>">
-                            </div>
-                            <div class="field-group">
-                                <label>ACTIVO HASTA</label>
-                                <input type="date" name="activo_hasta" style="padding: 4px 6px;" value="<?= htmlspecialchars($alumno['activo_hasta'] ?? '') ?>">
-                            </div>
-                        </div>
-                    </div>
+                                    <div class="form-group-custom span-2">
+                                        <label>Código Postal</label>
+                                        <input type="text" name="cp" class="form-control-edit" value="<?= htmlspecialchars($alumno['cp'] ?? '') ?>">
+                                    </div>
+                                    <div class="form-group-custom span-5">
+                                        <label>Localidad</label>
+                                        <input type="text" name="localidad" class="form-control-edit" value="<?= htmlspecialchars($alumno['localidad'] ?? '') ?>">
+                                    </div>
+                                    <div class="form-group-custom span-5">
+                                        <label>Provincia</label>
+                                        <select name="provincia" class="form-control-edit">
+                                            <option value="">---</option>
+                                            <?php foreach ($provincias as $p): ?>
+                                                <option value="<?= $p ?>" <?= ($alumno['provincia'] ?? '') == $p ? 'selected' : '' ?>><?= $p ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
 
-                    <!-- SECCIÓN 3: PLATAFORMA MOODLE -->
-                    <div class="form-section" style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
-                        <div class="section-header" style="color: #0369a1; border-left-color: #0369a1;">Configuración Moodle (Intranet)</div>
-                        <div class="field-row">
-                            <div class="field-group">
-                                <label>USUARIO PLAT.</label>
-                                <input type="text" name="plat_usuario" class="w-150" value="<?= htmlspecialchars($alumno['plat_usuario'] ?? '') ?>">
-                            </div>
-                            <div class="field-group">
-                                <label>CLAVE PLAT.</label>
-                                <input type="text" name="plat_clave" class="w-150" value="<?= htmlspecialchars($alumno['plat_clave'] ?? '') ?>">
-                            </div>
-                            <div class="field-group">
-                                <label>ID PLAT. 2015</label>
-                                <input type="text" name="id_plat_2015" class="w-100" value="<?= htmlspecialchars($alumno['id_plat_2015'] ?? '') ?>">
-                            </div>
-                            <div class="field-group">
-                                <label>ID PLAT. 2016</label>
-                                <input type="text" name="id_plat_2016" class="w-100" value="<?= htmlspecialchars($alumno['id_plat_2016'] ?? '') ?>">
-                            </div>
-                            <div class="checkbox-group" style="margin-left: 20px; color: #0369a1;">
-                                <input type="checkbox" name="enviar_emails" id="enviar_emails" <?= ($alumno['enviar_emails'] ?? 1) ? 'checked' : '' ?>>
-                                <label for="enviar_emails">NOTIFICAR POR EMAIL</label>
-                            </div>
-                        </div>
-                    </div>
+                                    <div class="form-group-custom span-3">
+                                        <label>Teléfono Principal</label>
+                                        <input type="text" name="telefono" class="form-control-edit" value="<?= htmlspecialchars($alumno['telefono'] ?? '') ?>">
+                                    </div>
+                                    <div class="form-group-custom span-3">
+                                        <label>Móvil / Trabajo</label>
+                                        <input type="text" name="telefono_empresa" class="form-control-edit" value="<?= htmlspecialchars($alumno['telefono_empresa'] ?? '') ?>">
+                                    </div>
+                                    <div class="form-group-custom span-3">
+                                        <label class="label-red">Email Académico *</label>
+                                        <input type="email" name="email" class="form-control-edit" value="<?= htmlspecialchars($alumno['email'] ?? '') ?>" required>
+                                    </div>
+                                    <div class="form-group-custom span-3">
+                                        <label>Email Secundario</label>
+                                        <input type="email" name="email_2" class="form-control-edit" value="<?= htmlspecialchars($alumno['email_2'] ?? '') ?>">
+                                    </div>
 
-                    <!-- SECCIÓN 4: INFORMACIÓN LABORAL Y ACADÉMICA -->
-                    <div class="form-section">
-                        <div class="section-header">Información Académica y Laboral</div>
-                        <div class="field-row">
-                            <div class="field-group">
-                                <label>CUENTA BANCARIA</label>
-                                <input type="text" name="cuenta_bancaria" class="w-250" value="<?= htmlspecialchars($alumno['cuenta_bancaria'] ?? '') ?>" placeholder="ES00 0000 0000 0000 0000 0000">
+                                    <div class="form-group-custom span-4">
+                                        <label>Email Personal</label>
+                                        <input type="email" name="email_personal" class="form-control-edit" value="<?= htmlspecialchars($alumno['email_personal'] ?? '') ?>">
+                                    </div>
+                                    <div class="form-group-custom span-3">
+                                        <label>Nacionalidad</label>
+                                        <input type="text" name="nacionalidad" class="form-control-edit" value="<?= htmlspecialchars($alumno['nacionalidad'] ?? '') ?>">
+                                    </div>
+                                    <div class="form-group-custom span-3">
+                                        <label>Usuario Teams</label>
+                                        <input type="text" name="teams" class="form-control-edit" value="<?= htmlspecialchars($alumno['teams'] ?? '') ?>">
+                                    </div>
+                                    <div class="form-group-custom span-2">
+                                        <label>Activo Hasta</label>
+                                        <input type="date" name="activo_hasta" class="form-control-edit" value="<?= htmlspecialchars($alumno['activo_hasta'] ?? '') ?>">
+                                    </div>
+                                </div>
                             </div>
-                            <div class="field-group">
-                                <label>ÚLTIMA EMPRESA</label>
-                                <select name="ultima_empresa_id" class="w-200">
-                                    <option value="">---</option>
-                                    <?php foreach ($empresas as $e): ?>
-                                        <option value="<?= $e['id'] ?>" <?= ($alumno['ultima_empresa_id'] ?? '') == $e['id'] ? 'selected' : '' ?>><?= htmlspecialchars($e['nombre']) ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            <div class="field-group">
-                                <label>CENTRO TRABAJO</label>
-                                <input type="text" name="centro_trabajo" class="w-200" value="<?= htmlspecialchars($alumno['centro_trabajo'] ?? '') ?>">
-                            </div>
-                        </div>
 
-                        <div class="field-row">
-                            <div class="field-group">
-                                <label>PREF. PRESENCIAL</label>
-                                <input type="text" name="pref_presencial" class="w-150" value="<?= htmlspecialchars($alumno['pref_presencial'] ?? '') ?>">
+                            <!-- SECCIÓN 3: CONFIGURACIÓN MOODLE -->
+                            <div class="card-section-premium card-section-moodle">
+                                <h3 class="card-section-title"><i class="fas fa-graduation-cap"></i> Acceso Plataforma Moodle (Datos Manuales)</h3>
+                                <div class="form-grid">
+                                    <div class="form-group-custom span-3">
+                                        <label>Usuario Moodle</label>
+                                        <input type="text" name="plat_usuario" class="form-control-edit" value="<?= htmlspecialchars($alumno['plat_usuario'] ?? '') ?>">
+                                    </div>
+                                    <div class="form-group-custom span-3">
+                                        <label>Clave Acceso</label>
+                                        <input type="text" name="plat_clave" class="form-control-edit" value="<?= htmlspecialchars($alumno['plat_clave'] ?? '') ?>">
+                                    </div>
+                                    <div class="form-group-custom span-2">
+                                        <label>ID Moodle 2015</label>
+                                        <input type="text" name="id_plat_2015" class="form-control-edit" value="<?= htmlspecialchars($alumno['id_plat_2015'] ?? '') ?>">
+                                    </div>
+                                    <div class="form-group-custom span-2">
+                                        <label>ID Moodle 2016</label>
+                                        <input type="text" name="id_plat_2016" class="form-control-edit" value="<?= htmlspecialchars($alumno['id_plat_2016'] ?? '') ?>">
+                                    </div>
+                                    <div class="form-group-custom span-2">
+                                        <div class="checkbox-group-custom" style="color: #0369a1; padding-top: 15px;">
+                                            <input type="checkbox" name="enviar_emails" id="enviar_emails" <?= ($alumno['enviar_emails'] ?? 1) ? 'checked' : '' ?>>
+                                            <label for="enviar_emails" style="color: #0369a1; cursor: pointer;">Notificaciones</label>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="field-group">
-                                <label>MODULACIÓN</label>
-                                <input type="text" name="modulacion" class="w-150" value="<?= htmlspecialchars($alumno['modulacion'] ?? '') ?>">
-                            </div>
-                            <div class="field-group">
-                                <label>HORARIOS DISP.</label>
-                                <input type="text" name="horarios" class="w-200" value="<?= htmlspecialchars($alumno['horarios'] ?? '') ?>">
-                            </div>
-                        </div>
 
-                        <div class="field-row">
-                            <div class="field-group"><label>MAÑANAS DE</label><input type="text" name="mananas_desde" class="w-60" value="<?= htmlspecialchars($alumno['mananas_desde'] ?? '') ?>"></div>
-                            <div class="field-group"><label>HASTA</label><input type="text" name="mananas_hasta" class="w-60" value="<?= htmlspecialchars($alumno['mananas_hasta'] ?? '') ?>"></div>
-                            <div class="field-group" style="margin-left: 20px;"><label>TARDES DE</label><input type="text" name="tardes_desde" class="w-60" value="<?= htmlspecialchars($alumno['tardes_desde'] ?? '') ?>"></div>
-                            <div class="field-group"><label>HASTA</label><input type="text" name="tardes_hasta" class="w-60" value="<?= htmlspecialchars($alumno['tardes_hasta'] ?? '') ?>"></div>
-                            <div class="field-group" style="margin-left: 20px;"><label>SOLO LOS</label><input type="text" name="solo_los" class="w-150" value="<?= htmlspecialchars($alumno['solo_los'] ?? '') ?>"></div>
-                        </div>
+                            <!-- SECCIÓN 4: INFORMACIÓN LABORAL Y ACADÉMICA -->
+                            <div class="card-section-premium">
+                                <h3 class="card-section-title"><i class="fas fa-briefcase"></i> Información Laboral y Académica</h3>
+                                <div class="form-grid">
+                                    <div class="form-group-custom span-4">
+                                        <label>IBAN Cuenta Bancaria</label>
+                                        <input type="text" name="cuenta_bancaria" class="form-control-edit" value="<?= htmlspecialchars($alumno['cuenta_bancaria'] ?? '') ?>" placeholder="ES00 0000 0000 0000 0000 0000">
+                                    </div>
+                                    <div class="form-group-custom span-4">
+                                        <label>Empresa Actual (Vínculo)</label>
+                                        <select name="ultima_empresa_id" class="form-control-edit">
+                                            <option value="">---</option>
+                                            <?php foreach ($empresas as $e): ?>
+                                                <option value="<?= $e['id'] ?>" <?= ($alumno['ultima_empresa_id'] ?? '') == $e['id'] ? 'selected' : '' ?>><?= htmlspecialchars($e['nombre']) ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <div class="form-group-custom span-4">
+                                        <label>Centro de Trabajo</label>
+                                        <input type="text" name="centro_trabajo" class="form-control-edit" value="<?= htmlspecialchars($alumno['centro_trabajo'] ?? '') ?>">
+                                    </div>
 
-                        <div class="field-row" style="margin-top: 15px;">
-                            <div class="field-group">
-                                <label>OBSERVACIONES</label>
-                                <textarea name="observaciones" rows="3" style="width: 600px; border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 10px;"><?= htmlspecialchars($alumno['observaciones'] ?? '') ?></textarea>
-                            </div>
-                        </div>
-                    </div>
+                                    <div class="form-group-custom span-4">
+                                        <label>Preferencia Presencialidad</label>
+                                        <input type="text" name="pref_presencial" class="form-control-edit" value="<?= htmlspecialchars($alumno['pref_presencial'] ?? '') ?>">
+                                    </div>
+                                    <div class="form-group-custom span-4">
+                                        <label>Modulación</label>
+                                        <input type="text" name="modulacion" class="form-control-edit" value="<?= htmlspecialchars($alumno['modulacion'] ?? '') ?>">
+                                    </div>
+                                    <div class="form-group-custom span-4">
+                                        <label>Horarios Disponibles</label>
+                                        <input type="text" name="horarios" class="form-control-edit" value="<?= htmlspecialchars($alumno['horarios'] ?? '') ?>">
+                                    </div>
 
-                    <!-- SECCIÓN 5: DIRECCIÓN DE ENTREGA -->
-                    <div class="form-section" style="background: #faf5ff; border: 1px solid #f3e8ff; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
-                        <div class="section-header" style="color: #6b21a8; border-left-color: #6b21a8;">Dirección de Entrega de Material</div>
-                        <div class="field-row">
-                            <div class="field-group">
-                                <label>ATENCIÓN A</label>
-                                <input type="text" name="entrega_atencion" class="w-200" value="<?= htmlspecialchars($alumno['entrega_atencion'] ?? '') ?>">
-                            </div>
-                            <div class="field-group">
-                                <label>DOMICILIO</label>
-                                <input type="text" name="entrega_domicilio" class="w-300" value="<?= htmlspecialchars($alumno['entrega_domicilio'] ?? '') ?>">
-                            </div>
-                        </div>
-                        <div class="field-row">
-                            <div class="field-group"><label>CP</label><input type="text" name="entrega_cp" class="w-60" value="<?= htmlspecialchars($alumno['entrega_cp'] ?? '') ?>"></div>
-                            <div class="field-group"><label>LOCALIDAD</label><input type="text" name="entrega_localidad" class="w-150" value="<?= htmlspecialchars($alumno['entrega_localidad'] ?? '') ?>"></div>
-                            <div class="field-group">
-                                <label>PROVINCIA</label>
-                                <select name="entrega_provincia" class="w-150">
-                                    <option value="">---</option>
-                                    <?php foreach ($provincias as $p): ?>
-                                        <option value="<?= $p ?>" <?= ($alumno['entrega_provincia'] ?? '') == $p ? 'selected' : '' ?>><?= $p ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
+                                    <div class="form-group-custom span-2">
+                                        <label>Mañanas Desde</label>
+                                        <input type="text" name="mananas_desde" class="form-control-edit" value="<?= htmlspecialchars($alumno['mananas_desde'] ?? '') ?>">
+                                    </div>
+                                    <div class="form-group-custom span-2">
+                                        <label>Mañanas Hasta</label>
+                                        <input type="text" name="mananas_hasta" class="form-control-edit" value="<?= htmlspecialchars($alumno['mananas_hasta'] ?? '') ?>">
+                                    </div>
+                                    <div class="form-group-custom span-2">
+                                        <label>Tardes Desde</label>
+                                        <input type="text" name="tardes_desde" class="form-control-edit" value="<?= htmlspecialchars($alumno['tardes_desde'] ?? '') ?>">
+                                    </div>
+                                    <div class="form-group-custom span-2">
+                                        <label>Tardes Hasta</label>
+                                        <input type="text" name="tardes_hasta" class="form-control-edit" value="<?= htmlspecialchars($alumno['tardes_hasta'] ?? '') ?>">
+                                    </div>
+                                    <div class="form-group-custom span-4">
+                                        <label>Solo los días</label>
+                                        <input type="text" name="solo_los" class="form-control-edit" value="<?= htmlspecialchars($alumno['solo_los'] ?? '') ?>">
+                                    </div>
 
-                    <div style="margin-top: 2rem; text-align: right; border-top: 1px solid #e2e8f0; padding-top: 1.5rem;">
-                        <button type="submit" class="btn btn-primary" style="padding: 12px 30px; font-weight: 700; font-size: 0.9rem;">💾 Guardar Todos los Cambios</button>
+                                    <div class="form-group-custom span-12">
+                                        <label>Observaciones Generales</label>
+                                        <textarea name="observaciones" class="form-control-edit" rows="3"><?= htmlspecialchars($alumno['observaciones'] ?? '') ?></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SECCIÓN 5: DIRECCIÓN DE ENTREGA -->
+                            <div class="card-section-premium card-section-entrega">
+                                <h3 class="card-section-title"><i class="fas fa-truck"></i> Dirección de Entrega de Material</h3>
+                                <div class="form-grid">
+                                    <div class="form-group-custom span-4">
+                                        <label>A la atención de</label>
+                                        <input type="text" name="entrega_atencion" class="form-control-edit" value="<?= htmlspecialchars($alumno['entrega_atencion'] ?? '') ?>">
+                                    </div>
+                                    <div class="form-group-custom span-8">
+                                        <label>Dirección de Entrega</label>
+                                        <input type="text" name="entrega_domicilio" class="form-control-edit" value="<?= htmlspecialchars($alumno['entrega_domicilio'] ?? '') ?>">
+                                    </div>
+
+                                    <div class="form-group-custom span-2">
+                                        <label>Código Postal</label>
+                                        <input type="text" name="entrega_cp" class="form-control-edit" value="<?= htmlspecialchars($alumno['entrega_cp'] ?? '') ?>">
+                                    </div>
+                                    <div class="form-group-custom span-5">
+                                        <label>Localidad</label>
+                                        <input type="text" name="entrega_localidad" class="form-control-edit" value="<?= htmlspecialchars($alumno['entrega_localidad'] ?? '') ?>">
+                                    </div>
+                                    <div class="form-group-custom span-5">
+                                        <label>Provincia</label>
+                                        <select name="entrega_provincia" class="form-control-edit">
+                                            <option value="">---</option>
+                                            <?php foreach ($provincias as $p): ?>
+                                                <option value="<?= $p ?>" <?= ($alumno['entrega_provincia'] ?? '') == $p ? 'selected' : '' ?>><?= $p ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="margin-top: 2rem; text-align: right; border-top: 1px solid #e2e8f0; padding-top: 1.5rem;">
+                                <button type="submit" class="btn btn-primary" style="padding: 0.8rem 2.5rem; font-weight: 700; font-size: 0.9rem;">💾 Guardar Todos los Cambios</button>
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -1104,6 +1357,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             const num = document.querySelector('[name="num_domicilio"]').value;
             document.getElementById('domicilio_full').value = via + ' ' + nombre + ', ' + num;
         });
+    }
+
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('avatar-preview').innerHTML = '<img src="' + e.target.result + '" alt="Foto Alumno" style="width: 100%; height: 100%; object-fit: cover;">';
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
     }
 </script>
 </body>
