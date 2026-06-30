@@ -470,6 +470,44 @@ $empresas = $pdo->query("SELECT id, nombre FROM empresas ORDER BY nombre ASC LIM
             color: white;
             border-color: var(--primary-color);
         }
+
+        /* Scroll superior pegajoso para la tabla de alumnos */
+        .table-scroll-wrapper {
+            position: relative;
+        }
+        .table-scroll-top {
+            overflow-x: auto;
+            overflow-y: hidden;
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: #fff;
+            border-bottom: 1px solid var(--border-color);
+            /* Sombra sutil para indicar que hay contenido debajo */
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+            border-radius: 12px 12px 0 0;
+            /* Scrollbar visible y estilizada */
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-color) #e2e8f0;
+        }
+        .table-scroll-top::-webkit-scrollbar { height: 8px; }
+        .table-scroll-top::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        .table-scroll-top::-webkit-scrollbar-thumb { background: var(--primary-color); border-radius: 4px; opacity: 0.7; }
+        .table-scroll-top-inner {
+            /* Ancho se ajusta por JS al mismo ancho que la tabla */
+            height: 1px;
+            min-width: 1100px; /* mismo min-width que .table-custom */
+        }
+        .table-responsive {
+            overflow-x: auto;
+            overflow-y: visible;
+            border-radius: 0 0 12px 12px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-color) #e2e8f0;
+        }
+        .table-responsive::-webkit-scrollbar { height: 8px; }
+        .table-responsive::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        .table-responsive::-webkit-scrollbar-thumb { background: var(--primary-color); border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -551,7 +589,12 @@ $empresas = $pdo->query("SELECT id, nombre FROM empresas ORDER BY nombre ASC LIM
                     </form>
 
                     <!-- Tabla de Alumnos -->
-                    <div class="table-responsive">
+                    <div class="table-scroll-wrapper">
+                        <!-- Scroll superior pegajoso -->
+                        <div class="table-scroll-top" id="scrollTop">
+                            <div class="table-scroll-top-inner" id="scrollTopInner"></div>
+                        </div>
+                        <div class="table-responsive" id="tableResponsive">
                         <table class="table-custom">
                             <thead>
                                 <tr>
@@ -620,7 +663,8 @@ $empresas = $pdo->query("SELECT id, nombre FROM empresas ORDER BY nombre ASC LIM
                                 <?php endif; ?>
                             </tbody>
                         </table>
-                    </div>
+                    </div><!-- /#tableResponsive -->
+                    </div><!-- /.table-scroll-wrapper -->
                 </div>
             <?php else: ?>
                 <div class="tab-panel">
@@ -874,6 +918,38 @@ $empresas = $pdo->query("SELECT id, nombre FROM empresas ORDER BY nombre ASC LIM
                 document.getElementById('domicilio_full').value = via + ' ' + nombre + ', ' + num;
             });
         }
+
+        // Sincronizar scroll superior con el scroll real de la tabla
+        (function() {
+            const scrollTop   = document.getElementById('scrollTop');
+            const tableResp   = document.getElementById('tableResponsive');
+            const innerSpacer = document.getElementById('scrollTopInner');
+            if (!scrollTop || !tableResp || !innerSpacer) return;
+
+            // Ajustar el ancho del espaciador al ancho real del contenido de la tabla
+            function syncWidth() {
+                const tableEl = tableResp.querySelector('table');
+                if (tableEl) innerSpacer.style.width = tableEl.scrollWidth + 'px';
+            }
+            syncWidth();
+            window.addEventListener('resize', syncWidth);
+
+            // Sincronizar scroll: top -> tabla
+            let lockTable = false, lockTop = false;
+            scrollTop.addEventListener('scroll', function() {
+                if (lockTable) return;
+                lockTop = true;
+                tableResp.scrollLeft = scrollTop.scrollLeft;
+                requestAnimationFrame(() => { lockTop = false; });
+            });
+            // Sincronizar scroll: tabla -> top
+            tableResp.addEventListener('scroll', function() {
+                if (lockTop) return;
+                lockTable = true;
+                scrollTop.scrollLeft = tableResp.scrollLeft;
+                requestAnimationFrame(() => { lockTable = false; });
+            });
+        })();
     </script>
 </body>
 </html>
