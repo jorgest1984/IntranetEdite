@@ -51,8 +51,37 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['archivo'])) {
             if ($accion_id <= 0) {
                 $accion_id = null;
             }
-            $stmt = $pdo->prepare("INSERT INTO documentos_alumno (alumno_id, usuario_id, nombre_archivo, ruta_archivo, tipo_documento, accion_id) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$alumno_id, $usuario_id, basename($file['name']), $target_path, $tipo_doc, $accion_id]);
+
+            // 1. Buscar si ya existe un documento del mismo tipo y clasificación para este alumno
+            if ($accion_id) {
+                $stmtCheckDup = $pdo->prepare("SELECT id, ruta_archivo FROM documentos_alumno WHERE alumno_id = ? AND tipo_documento = ? AND accion_id = ?");
+                $stmtCheckDup->execute([$alumno_id, $tipo_doc, $accion_id]);
+            } else {
+                $stmtCheckDup = $pdo->prepare("SELECT id, ruta_archivo FROM documentos_alumno WHERE alumno_id = ? AND tipo_documento = ? AND accion_id IS NULL");
+                $stmtCheckDup->execute([$alumno_id, $tipo_doc]);
+            }
+            $dup = $stmtCheckDup->fetch(PDO::FETCH_ASSOC);
+
+            if ($dup) {
+                // Borrar el archivo anterior del disco
+                if (!empty($dup['ruta_archivo']) && file_exists(__DIR__ . '/' . $dup['ruta_archivo'])) {
+                    @unlink(__DIR__ . '/' . $dup['ruta_archivo']);
+                }
+                
+                // Actualizar el registro existente
+                $stmtUpdateDoc = $pdo->prepare("UPDATE documentos_alumno SET usuario_id = ?, nombre_archivo = ?, ruta_archivo = ?, fecha_subida = CURRENT_TIMESTAMP WHERE id = ?");
+                $stmtUpdateDoc->execute([$usuario_id, basename($file['name']), $target_path, $dup['id']]);
+                
+                $docId = $dup['id'];
+                $auditAction = 'SUSTITUCION_DOC';
+            } else {
+                // Insertar nuevo registro
+                $stmt = $pdo->prepare("INSERT INTO documentos_alumno (alumno_id, usuario_id, nombre_archivo, ruta_archivo, tipo_documento, accion_id) VALUES (?, ?, ?, ?, ?, ?)");
+                $stmt->execute([$alumno_id, $usuario_id, basename($file['name']), $target_path, $tipo_doc, $accion_id]);
+                
+                $docId = $pdo->lastInsertId();
+                $auditAction = 'SUBIDA_DOC';
+            }
             
             // Actualizar de forma inteligente los campos de "documentos entregados" en la tabla matriculas
             if ($tipo_doc === 'DNI') {
@@ -72,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['archivo'])) {
             }
 
             // Registrar en audit log
-            audit_log($pdo, 'SUBIDA_DOC', 'documentos_alumno', $pdo->lastInsertId(), null, ['archivo' => basename($file['name'])]);
+            audit_log($pdo, $auditAction, 'documentos_alumno', $docId, null, ['archivo' => basename($file['name'])]);
             
             header("Location: ficha_alumno.php?id=$alumno_id&tab=documentacion&upload_success=1");
             exit();

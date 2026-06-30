@@ -1220,6 +1220,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                         <thead>
                                             <tr>
                                                 <th>Nombre del Archivo</th>
+                                                <th style="width: 130px;">Tipo Documento</th>
                                                 <th style="width: 140px;">Fecha Subida</th>
                                                 <th style="width: 120px;">Subido Por</th>
                                                 <th style="text-align: center; width: 110px;">Acción</th>
@@ -1229,6 +1230,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                             <?php foreach ($docsGenerales as $doc): ?>
                                                 <tr>
                                                     <td style="font-weight: 600; color: var(--primary-color);"><?= htmlspecialchars($doc['nombre_archivo']) ?></td>
+                                                    <td>
+                                                        <span style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; padding: 2px 6px; border-radius: 4px; font-weight: 600; font-size: 0.72rem;"><?= htmlspecialchars($doc['tipo_documento'] ?? 'General') ?></span>
+                                                    </td>
                                                     <td style="color: var(--text-muted);"><?= date('d/m/Y H:i', strtotime($doc['fecha_subida'])) ?></td>
                                                     <td style="color: var(--text-muted); font-weight: 500;"><?= htmlspecialchars($doc['username']) ?></td>
                                                     <td style="text-align: center;">
@@ -1277,6 +1281,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                                     <thead>
                                                         <tr>
                                                             <th>Nombre del Archivo</th>
+                                                            <th style="width: 130px;">Tipo Documento</th>
                                                             <th style="width: 140px;">Fecha Subida</th>
                                                             <th style="width: 120px;">Subido Por</th>
                                                             <th style="text-align: center; width: 110px;">Acción</th>
@@ -1286,6 +1291,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                                         <?php foreach ($docsAccion as $doc): ?>
                                                             <tr>
                                                                 <td style="font-weight: 600; color: #9d174d;"><?= htmlspecialchars($doc['nombre_archivo']) ?></td>
+                                                                <td>
+                                                                    <span style="background: #fdf2f8; color: #9d174d; border: 1px solid #fbcfe8; padding: 2px 6px; border-radius: 4px; font-weight: 600; font-size: 0.72rem;"><?= htmlspecialchars($doc['tipo_documento'] ?? 'General') ?></span>
+                                                                </td>
                                                                 <td style="color: var(--text-muted);"><?= date('d/m/Y H:i', strtotime($doc['fecha_subida'])) ?></td>
                                                                 <td style="color: var(--text-muted); font-weight: 500;"><?= htmlspecialchars($doc['username']) ?></td>
                                                                 <td style="text-align: center;">
@@ -1322,6 +1330,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                         <thead>
                                             <tr>
                                                 <th>Nombre del Archivo</th>
+                                                <th style="width: 130px;">Tipo Documento</th>
                                                 <th>Curso / Acción Relacionada</th>
                                                 <th style="width: 120px;">Subido Por</th>
                                                 <th style="text-align: center; width: 110px;">Acción</th>
@@ -1331,6 +1340,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                             <?php foreach ($docsOtros as $doc): ?>
                                                 <tr>
                                                     <td style="font-weight: 600; color: #475569;"><?= htmlspecialchars($doc['nombre_archivo']) ?></td>
+                                                    <td>
+                                                        <span style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 2px 6px; border-radius: 4px; font-weight: 600; font-size: 0.72rem;"><?= htmlspecialchars($doc['tipo_documento'] ?? 'General') ?></span>
+                                                    </td>
                                                     <td style="font-weight: 600; color: #9d174d;"><?= htmlspecialchars($doc['accion_titulo'] ?? 'Acción Formativa desvinculada') ?></td>
                                                     <td style="color: var(--text-muted);"><?= htmlspecialchars($doc['username']) ?></td>
                                                     <td style="text-align: center;">
