@@ -489,6 +489,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             width: 100%;
             box-sizing: border-box;
             height: 38px;
+            text-overflow: ellipsis;
+        }
+        select.form-control-edit {
+            padding-right: 2.2rem;
         }
         .form-control-edit:focus {
             border-color: var(--primary-color);

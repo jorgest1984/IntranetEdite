@@ -529,6 +529,11 @@ textarea,
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
+select {
+    padding-right: 2.5rem !important;
+    text-overflow: ellipsis;
+}
+
 input[type="text"]:focus, 
 input[type="email"]:focus, 
 input[type="password"]:focus, 
