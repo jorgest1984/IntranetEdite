@@ -1126,8 +1126,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                             <td style="font-weight: 500;"><?= !empty($mat['grupo_inicio']) && $mat['grupo_inicio'] != '0000-00-00' ? date('d/m/Y', strtotime($mat['grupo_inicio'])) : '' ?></td>
                                             <td style="font-weight: 500;"><?= !empty($mat['grupo_fin']) && $mat['grupo_fin'] != '0000-00-00' ? date('d/m/Y', strtotime($mat['grupo_fin'])) : '' ?></td>
                                             <td style="text-align: center;">
-                                                <a href="ficha_matricula.php?id=<?= $mat['id'] ?>" class="btn btn-secondary" style="padding: 6px; border-radius: 6px; min-width: auto; background: rgba(30,64,175,0.05); color: var(--primary-color); border: 1px solid rgba(30,64,175,0.1); display: inline-flex;" title="Editar Matrícula">
-                                                    <i class="fa-solid fa-pen" style="font-size: 0.85rem;"></i>
+                                                <a href="ficha_matricula.php?id=<?= $mat['id'] ?>" class="btn btn-secondary" style="padding: 6px; border-radius: 6px; min-width: auto; background: rgba(30,64,175,0.05); color: var(--primary-color); border: 1px solid rgba(30,64,175,0.1); display: inline-flex; align-items: center; justify-content: center;" title="Editar Matrícula">
+                                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="display: inline-block;"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
                                                 </a>
                                             </td>
                                             <td style="text-align: center;">
@@ -1135,8 +1135,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                                                     <input type="hidden" name="action" value="delete_inscripcion">
                                                     <input type="hidden" name="matricula_id" value="<?= $mat['id'] ?>">
-                                                    <button type="submit" class="btn" style="padding: 6px; border-radius: 6px; min-width: auto; background: rgba(239,68,68,0.05); color: #ef4444; border: 1px solid rgba(239,68,68,0.1); display: inline-flex; cursor: pointer;">
-                                                        <i class="fa-solid fa-trash" style="font-size: 0.85rem;"></i>
+                                                    <button type="submit" class="btn" style="padding: 6px; border-radius: 6px; min-width: auto; background: rgba(239,68,68,0.05); color: #ef4444; border: 1px solid rgba(239,68,68,0.1); display: inline-flex; align-items: center; justify-content: center; cursor: pointer;">
+                                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="display: inline-block;"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
                                                     </button>
                                                 </form>
                                             </td>
