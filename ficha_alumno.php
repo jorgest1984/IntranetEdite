@@ -151,6 +151,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             'email'     => $alumno['email']
         ]);
         
+        // Sincronizar foto de perfil con Moodle si existe localmente
+        if (!empty($alumno['foto']) && file_exists(__DIR__ . '/' . $alumno['foto'])) {
+            try {
+                $moodle->updateUserPicture($muid, __DIR__ . '/' . $alumno['foto']);
+            } catch (Exception $photoEx) {
+                // Omitir fallos de foto para no bloquear el flujo principal de Moodle
+            }
+        }
+        
         $msg = $was_created ? "&moodle_ok=1&created=1" : "&moodle_ok=1";
         header("Location: ficha_alumno.php?id=$id$msg");
         exit();
@@ -248,6 +257,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                 if (move_uploaded_file($_FILES['foto']['tmp_name'], __DIR__ . '/' . $new_avatar_path)) {
                     $pdo->prepare("UPDATE alumnos SET foto = ? WHERE id = ?")->execute([$new_avatar_path, $id]);
                     $alumno['foto'] = $new_avatar_path; // Actualizar en memoria
+                    
+                    // Sincronizar automáticamente con Moodle si ya tiene cuenta
+                    if (!empty($alumno['moodle_user_id'])) {
+                        try {
+                            $moodle->updateUserPicture($alumno['moodle_user_id'], __DIR__ . '/' . $new_avatar_path);
+                        } catch (Exception $photoEx) {
+                            // Ignorar errores silenciosamente para no interrumpir el guardado local
+                        }
+                    }
                 }
             }
         }

@@ -181,6 +181,73 @@ class MoodleAPI {
     }
 
     /**
+     * Sube un archivo local al área de draft de Moodle y retorna el itemid de draft generado
+     */
+    public function uploadFile($localFilePath) {
+        if (!$this->isConfigured()) {
+            throw new Exception("Moodle no está configurado (URL o Token faltante).");
+        }
+        if (!file_exists($localFilePath)) {
+            throw new Exception("El archivo local no existe: " . $localFilePath);
+        }
+
+        // Obtener URL de webservice/upload.php a partir de la URL de webservice/rest/server.php
+        $uploadUrl = str_replace('/webservice/rest/server.php', '/webservice/upload.php', $this->url);
+        
+        $ch = curl_init($uploadUrl);
+        
+        $cFile = new CurlFile($localFilePath, mime_content_type($localFilePath), basename($localFilePath));
+        
+        $postData = [
+            'token' => $this->token,
+            'filearea' => 'draft',
+            'itemid' => 0,
+            'file' => $cFile
+        ];
+        
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
+        
+        $response = curl_exec($ch);
+        $error = curl_error($ch);
+        curl_close($ch);
+        
+        if ($error) {
+            throw new Exception("Error cURL al subir archivo a Moodle: " . $error);
+        }
+        
+        $result = json_decode($response, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new Exception("Error al decodificar respuesta de subida de Moodle: " . $response);
+        }
+        
+        if (is_array($result) && isset($result[0]['itemid'])) {
+            return (int)$result[0]['itemid'];
+        }
+        
+        if (isset($result['exception'])) {
+            throw new Exception("Excepción al subir archivo a Moodle: " . ($result['message'] ?? $result['exception']));
+        }
+        
+        throw new Exception("Respuesta inesperada al subir archivo a Moodle: " . $response);
+    }
+
+    /**
+     * Sincroniza la foto de un usuario con la de Moodle a partir de una ruta local
+     */
+    public function updateUserPicture($moodleUserId, $localFilePath) {
+        $itemId = $this->uploadFile($localFilePath);
+        if ($itemId > 0) {
+            return $this->updateUser($moodleUserId, ['userpicture' => $itemId]);
+        }
+        return false;
+    }
+
+    /**
      * Actualizar un usuario existente
      */
     public function updateUser($moodleUserId, $data) {
@@ -189,6 +256,7 @@ class MoodleAPI {
         if (isset($data['lastname'])) $user['lastname'] = $data['lastname'];
         if (isset($data['email'])) $user['email'] = strtolower($data['email']);
         if (isset($data['password'])) $user['password'] = $data['password'];
+        if (isset($data['userpicture'])) $user['userpicture'] = $data['userpicture'];
 
         $params = ['users' => [$user]];
         return $this->call('core_user_update_users', $params);
