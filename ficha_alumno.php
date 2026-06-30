@@ -236,7 +236,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             'mananas_desde', 'mananas_hasta', 'tardes_desde', 'tardes_hasta', 'solo_los',
             'email', 'email_2', 'email_personal', 'cuenta_bancaria', 'teams', 'nacionalidad',
             'activo_hasta', 'es_nuestro', 'ultima_empresa_id', 'centro_trabajo', 'enviar_emails',
-            'plat_usuario', 'plat_clave', 'id_plat_2015', 'id_plat_2016', 'pref_presencial',
+            'plat_usuario', 'plat_clave', 'pref_presencial',
             'modulacion', 'horarios', 'observaciones', 'entrega_atencion', 'entrega_domicilio',
             'entrega_cp', 'entrega_localidad', 'entrega_provincia'
         ];
@@ -925,24 +925,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                             <div class="card-section-premium card-section-moodle">
                                 <h3 class="card-section-title"><i class="fas fa-graduation-cap"></i> Acceso Plataforma Moodle (Datos Manuales)</h3>
                                 <div class="form-grid">
-                                    <div class="form-group-custom span-3">
+                                    <div class="form-group-custom span-5">
                                         <label>Usuario Moodle</label>
                                         <input type="text" name="plat_usuario" class="form-control-edit" value="<?= htmlspecialchars($alumno['plat_usuario'] ?? '') ?>">
                                     </div>
-                                    <div class="form-group-custom span-3">
+                                    <div class="form-group-custom span-5">
                                         <label>Clave Acceso</label>
                                         <input type="text" name="plat_clave" class="form-control-edit" value="<?= htmlspecialchars($alumno['plat_clave'] ?? '') ?>">
                                     </div>
                                     <div class="form-group-custom span-2">
-                                        <label>ID Moodle 2015</label>
-                                        <input type="text" name="id_plat_2015" class="form-control-edit" value="<?= htmlspecialchars($alumno['id_plat_2015'] ?? '') ?>">
-                                    </div>
-                                    <div class="form-group-custom span-2">
-                                        <label>ID Moodle 2016</label>
-                                        <input type="text" name="id_plat_2016" class="form-control-edit" value="<?= htmlspecialchars($alumno['id_plat_2016'] ?? '') ?>">
-                                    </div>
-                                    <div class="form-group-custom span-2">
-                                        <div class="checkbox-group-custom" style="color: #0369a1; padding-top: 15px;">
+                                        <div class="checkbox-group-custom" style="color: #0369a1; padding-top: 25px;">
                                             <input type="checkbox" name="enviar_emails" id="enviar_emails" <?= ($alumno['enviar_emails'] ?? 1) ? 'checked' : '' ?>>
                                             <label for="enviar_emails" style="color: #0369a1; cursor: pointer;">Notificaciones</label>
                                         </div>
