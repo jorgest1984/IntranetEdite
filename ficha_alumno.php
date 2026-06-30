@@ -1236,9 +1236,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                                     <td style="color: var(--text-muted);"><?= date('d/m/Y H:i', strtotime($doc['fecha_subida'])) ?></td>
                                                     <td style="color: var(--text-muted); font-weight: 500;"><?= htmlspecialchars($doc['username']) ?></td>
                                                     <td style="text-align: center;">
-                                                        <a href="<?= htmlspecialchars($doc['ruta_archivo']) ?>" target="_blank" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.72rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600; text-decoration: none; background: rgba(30,64,175,0.05); color: var(--primary-color); border: 1px solid rgba(30,64,175,0.1);" title="Descargar Documento">
-                                                            <i class="fas fa-download"></i> Descargar
-                                                        </a>
+                                                        <div style="display: flex; gap: 5px; justify-content: center; flex-wrap: wrap;">
+                                                            <a href="<?= htmlspecialchars($doc['ruta_archivo']) ?>" target="_blank" style="padding: 5px 10px; font-size: 0.72rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600; text-decoration: none; background: rgba(30,64,175,0.05); color: var(--primary-color); border: 1px solid rgba(30,64,175,0.15);" title="Descargar">
+                                                                <i class="fas fa-download"></i>
+                                                            </a>
+                                                            <button type="button" onclick="abrirEditarDoc(<?= $doc['id'] ?>, '<?= htmlspecialchars(addslashes($doc['nombre_archivo'])) ?>', '<?= htmlspecialchars(addslashes($doc['tipo_documento'] ?? 'General')) ?>', <?= $doc['accion_id'] ?? 'null' ?>)" style="padding: 5px 10px; font-size: 0.72rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600; cursor: pointer; background: rgba(234,179,8,0.08); color: #b45309; border: 1px solid rgba(234,179,8,0.25);" title="Editar clasificación">
+                                                                <i class="fas fa-pen"></i>
+                                                            </button>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             <?php endforeach; ?>
@@ -1297,9 +1302,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                                                 <td style="color: var(--text-muted);"><?= date('d/m/Y H:i', strtotime($doc['fecha_subida'])) ?></td>
                                                                 <td style="color: var(--text-muted); font-weight: 500;"><?= htmlspecialchars($doc['username']) ?></td>
                                                                 <td style="text-align: center;">
-                                                                    <a href="<?= htmlspecialchars($doc['ruta_archivo']) ?>" target="_blank" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.72rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600; text-decoration: none; background: rgba(157,23,77,0.05); color: #9d174d; border: 1px solid rgba(157,23,77,0.1);" title="Descargar Documento">
-                                                                        <i class="fas fa-download"></i> Descargar
-                                                                    </a>
+                                                                    <div style="display: flex; gap: 5px; justify-content: center; flex-wrap: wrap;">
+                                                                        <a href="<?= htmlspecialchars($doc['ruta_archivo']) ?>" target="_blank" style="padding: 5px 10px; font-size: 0.72rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600; text-decoration: none; background: rgba(157,23,77,0.05); color: #9d174d; border: 1px solid rgba(157,23,77,0.15);" title="Descargar">
+                                                                            <i class="fas fa-download"></i>
+                                                                        </a>
+                                                                        <button type="button" onclick="abrirEditarDoc(<?= $doc['id'] ?>, '<?= htmlspecialchars(addslashes($doc['nombre_archivo'])) ?>', '<?= htmlspecialchars(addslashes($doc['tipo_documento'] ?? 'General')) ?>', <?= $doc['accion_id'] ?? 'null' ?>)" style="padding: 5px 10px; font-size: 0.72rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600; cursor: pointer; background: rgba(234,179,8,0.08); color: #b45309; border: 1px solid rgba(234,179,8,0.25);" title="Editar clasificación">
+                                                                            <i class="fas fa-pen"></i>
+                                                                        </button>
+                                                                    </div>
                                                                 </td>
                                                             </tr>
                                                         <?php endforeach; ?>
@@ -1346,9 +1356,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                                     <td style="font-weight: 600; color: #9d174d;"><?= htmlspecialchars($doc['accion_titulo'] ?? 'Acción Formativa desvinculada') ?></td>
                                                     <td style="color: var(--text-muted);"><?= htmlspecialchars($doc['username']) ?></td>
                                                     <td style="text-align: center;">
-                                                        <a href="<?= htmlspecialchars($doc['ruta_archivo']) ?>" target="_blank" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.72rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600; text-decoration: none; background: rgba(71,85,105,0.05); color: #475569; border: 1px solid rgba(71,85,105,0.1);" title="Descargar Documento">
-                                                            <i class="fas fa-download"></i> Descargar
-                                                        </a>
+                                                        <div style="display: flex; gap: 5px; justify-content: center; flex-wrap: wrap;">
+                                                            <a href="<?= htmlspecialchars($doc['ruta_archivo']) ?>" target="_blank" style="padding: 5px 10px; font-size: 0.72rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600; text-decoration: none; background: rgba(71,85,105,0.05); color: #475569; border: 1px solid rgba(71,85,105,0.15);" title="Descargar">
+                                                                <i class="fas fa-download"></i>
+                                                            </a>
+                                                            <button type="button" onclick="abrirEditarDoc(<?= $doc['id'] ?>, '<?= htmlspecialchars(addslashes($doc['nombre_archivo'])) ?>', '<?= htmlspecialchars(addslashes($doc['tipo_documento'] ?? 'General')) ?>', <?= $doc['accion_id'] ?? 'null' ?>)" style="padding: 5px 10px; font-size: 0.72rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600; cursor: pointer; background: rgba(234,179,8,0.08); color: #b45309; border: 1px solid rgba(234,179,8,0.25);" title="Editar clasificación">
+                                                                <i class="fas fa-pen"></i>
+                                                            </button>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             <?php endforeach; ?>
@@ -1421,6 +1436,70 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     </main>
 </div>
 
+<!-- Modal Editar Documento -->
+<div id="modalEditarDoc" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(15,23,42,0.55); backdrop-filter:blur(4px); align-items:center; justify-content:center;">
+    <div style="background:#fff; border-radius:16px; padding:2rem; width:92%; max-width:480px; box-shadow:0 25px 50px rgba(0,0,0,0.25); animation:slideInModal 0.2s ease;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+            <div>
+                <h3 style="margin:0; font-size:1.1rem; font-weight:800; color:#1e293b;"><i class="fas fa-pen" style="color:#b45309; margin-right:0.5rem;"></i>Editar Clasificación</h3>
+                <p id="modalEditarDocNombre" style="margin:0.25rem 0 0; font-size:0.78rem; color:#64748b;"></p>
+            </div>
+            <button onclick="cerrarEditarDoc()" style="background:none; border:none; cursor:pointer; color:#94a3b8; font-size:1.3rem; padding:4px; line-height:1;"><i class="fas fa-times"></i></button>
+        </div>
+        <form action="editar_documento.php" method="POST">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
+            <input type="hidden" name="alumno_id" value="<?= $id ?>">
+            <input type="hidden" name="doc_id" id="editar_doc_id">
+
+            <div style="margin-bottom:1.25rem;">
+                <label style="display:block; font-weight:700; font-size:0.72rem; text-transform:uppercase; color:#475569; margin-bottom:0.4rem; letter-spacing:0.5px;">Tipo de Documento</label>
+                <select name="tipo_documento" id="editar_tipo_documento" class="form-control-edit">
+                    <option value="General">General / Otro</option>
+                    <option value="DNI">DNI / NIE</option>
+                    <option value="Contrato">Contrato de Trabajo</option>
+                    <option value="Cabecera_Nomina">Cabecera de Nómina</option>
+                    <option value="Recibo_Autonomo">Recibo de Autónomo</option>
+                    <option value="Vida_Laboral">Vida Laboral</option>
+                    <option value="Anexo1">Anexo 1</option>
+                    <option value="Diploma">Diploma / Certificado</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom:1.75rem;">
+                <label style="display:block; font-weight:700; font-size:0.72rem; text-transform:uppercase; color:#475569; margin-bottom:0.4rem; letter-spacing:0.5px;">Clasificación / Destino</label>
+                <select name="accion_id" id="editar_accion_id" class="form-control-edit">
+                    <option value="0">📁 Documentación Común / General</option>
+                    <?php if (!empty($acciones_inscrito)): ?>
+                        <optgroup label="Cursos / Acciones Formativas">
+                            <?php foreach ($acciones_inscrito as $acc): ?>
+                                <option value="<?= $acc['accion_id'] ?>">
+                                    🎓 [<?= htmlspecialchars($acc['curso_codigo']) ?>] <?= htmlspecialchars($acc['curso_titulo']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </optgroup>
+                    <?php endif; ?>
+                </select>
+            </div>
+
+            <div style="display:flex; gap:0.75rem;">
+                <button type="button" onclick="cerrarEditarDoc()" style="flex:1; padding:0.7rem; border:1px solid #e2e8f0; border-radius:8px; background:#f8fafc; color:#64748b; font-weight:600; cursor:pointer; font-size:0.875rem;">Cancelar</button>
+                <button type="submit" style="flex:1; padding:0.7rem; border:none; border-radius:8px; background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff; font-weight:700; cursor:pointer; font-size:0.875rem; display:flex; align-items:center; justify-content:center; gap:0.5rem;"><i class="fas fa-save"></i> Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+<style>
+    @keyframes slideInModal { from { transform:translateY(-20px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+</style>
+<?php if (isset($_GET['edit_success'])): ?>
+<div id="notifEditOk" style="position:fixed; bottom:1.5rem; right:1.5rem; z-index:10000; background:#166534; color:#fff; padding:0.85rem 1.25rem; border-radius:10px; font-weight:700; font-size:0.875rem; display:flex; align-items:center; gap:0.6rem; box-shadow:0 8px 24px rgba(0,0,0,0.18); animation:slideInModal 0.3s ease;"><i class="fas fa-check-circle"></i> Clasificación actualizada correctamente.</div>
+<script>setTimeout(()=>{const n=document.getElementById('notifEditOk'); if(n)n.remove();}, 3500);</script>
+<?php endif; ?>
+<?php if (isset($_GET['edit_error']) && $_GET['edit_error'] === 'dup'): ?>
+<div id="notifEditErr" style="position:fixed; bottom:1.5rem; right:1.5rem; z-index:10000; background:#991b1b; color:#fff; padding:0.85rem 1.25rem; border-radius:10px; font-weight:700; font-size:0.875rem; display:flex; align-items:center; gap:0.6rem; box-shadow:0 8px 24px rgba(0,0,0,0.18); animation:slideInModal 0.3s ease;"><i class="fas fa-exclamation-triangle"></i> Ya existe otro documento de ese tipo en ese destino.</div>
+<script>setTimeout(()=>{const n=document.getElementById('notifEditErr'); if(n)n.remove();}, 5000);</script>
+<?php endif; ?>
+
 <script>
     const editForm = document.getElementById('editForm');
     if (editForm) {
@@ -1441,6 +1520,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             reader.readAsDataURL(input.files[0]);
         }
     }
+
+    function abrirEditarDoc(docId, nombre, tipoDoc, accionId) {
+        document.getElementById('editar_doc_id').value = docId;
+        document.getElementById('modalEditarDocNombre').textContent = nombre;
+        const selTipo = document.getElementById('editar_tipo_documento');
+        const selAccion = document.getElementById('editar_accion_id');
+        // Seleccionar tipo
+        for (let opt of selTipo.options) { opt.selected = (opt.value === tipoDoc); }
+        // Seleccionar accion
+        const accionVal = accionId ? String(accionId) : '0';
+        for (let opt of selAccion.options) { opt.selected = (opt.value === accionVal); }
+        const modal = document.getElementById('modalEditarDoc');
+        modal.style.display = 'flex';
+    }
+
+    function cerrarEditarDoc() {
+        document.getElementById('modalEditarDoc').style.display = 'none';
+    }
+
+    document.getElementById('modalEditarDoc').addEventListener('click', function(e) {
+        if (e.target === this) cerrarEditarDoc();
+    });
 </script>
 </body>
 </html>
