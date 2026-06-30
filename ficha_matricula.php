@@ -40,6 +40,7 @@ if (!$matricula) {
 
 $empresas = $pdo->query("SELECT id, nombre FROM empresas ORDER BY nombre ASC")->fetchAll(PDO::FETCH_ASSOC);
 $planes = $pdo->query("SELECT id, nombre FROM planes ORDER BY nombre ASC")->fetchAll(PDO::FETCH_ASSOC);
+$todos_cursos = $pdo->query("SELECT id, nombre_corto, nombre_largo FROM cursos ORDER BY nombre_corto ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 // Cargar Comerciales, Tutores y lista de Grupos
 $comerciales = $pdo->query("SELECT u.id, u.nombre, u.apellidos FROM usuarios u JOIN roles r ON u.rol_id = r.id WHERE r.nombre LIKE '%Comercial%' AND u.activo = 1 ORDER BY u.nombre ASC")->fetchAll(PDO::FETCH_ASSOC);
@@ -316,13 +317,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 ]);
             }
             
-            // Número de acción formativa
-            if (isset($_POST['af_num_accion'])) {
-                $stmtAccionNum = $pdo->prepare("UPDATE acciones_formativas SET num_accion = ? WHERE id = (SELECT accion_id FROM grupos WHERE id = ?)");
-                $stmtAccionNum->execute([
-                    $_POST['af_num_accion'],
-                    $target_grupo_id
-                ]);
+            // Número de acción formativa, abreviatura y curso asignado
+            if (isset($_POST['af_num_accion']) || isset($_POST['af_abreviatura']) || isset($_POST['curso_id'])) {
+                $stmtGetAcc = $pdo->prepare("SELECT accion_id FROM grupos WHERE id = ?");
+                $stmtGetAcc->execute([$target_grupo_id]);
+                $accion_id = $stmtGetAcc->fetchColumn();
+                
+                if ($accion_id) {
+                    $update_af = [];
+                    $update_af_params = [];
+                    
+                    if (isset($_POST['af_num_accion'])) {
+                        $update_af[] = "`num_accion` = ?";
+                        $update_af_params[] = $_POST['af_num_accion'];
+                    }
+                    if (isset($_POST['af_abreviatura'])) {
+                        $update_af[] = "`abreviatura` = ?";
+                        $update_af_params[] = $_POST['af_abreviatura'];
+                    }
+                    if (isset($_POST['curso_id'])) {
+                        $update_af[] = "`curso_id` = ?";
+                        $update_af_params[] = !empty($_POST['curso_id']) ? (int)$_POST['curso_id'] : null;
+                    }
+                    
+                    if (!empty($update_af)) {
+                        $update_af_params[] = $accion_id;
+                        $sqlAF = "UPDATE acciones_formativas SET " . implode(', ', $update_af) . " WHERE id = ?";
+                        $pdo->prepare($sqlAF)->execute($update_af_params);
+                    }
+                }
             }
         }
         
@@ -598,6 +621,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <div class="resumen-item">
                             <label class="resumen-label" style="font-weight: 700; margin-bottom: 4px;">Nº de Acción</label>
                             <input type="text" name="af_num_accion" class="form-control" value="<?= htmlspecialchars($matricula['af_num_accion'] ?? '') ?>" placeholder="Ej: 0001" style="padding: 6px; font-size: 0.85rem; height: 32px;">
+                        </div>
+
+                        <div class="resumen-item">
+                            <label class="resumen-label" style="font-weight: 700; margin-bottom: 4px;">Abreviatura Acción</label>
+                            <input type="text" name="af_abreviatura" class="form-control" value="<?= htmlspecialchars($matricula['af_abreviatura'] ?? '') ?>" placeholder="Ej: PRUEBA26" style="padding: 6px; font-size: 0.85rem; height: 32px;">
+                        </div>
+
+                        <div class="resumen-item" style="grid-column: span 2;">
+                            <label class="resumen-label" style="font-weight: 700; margin-bottom: 4px;">Asignar Curso</label>
+                            <select name="curso_id" class="form-control" style="padding: 6px; font-size: 0.85rem; height: 32px;">
+                                <option value="">Seleccione Curso...</option>
+                                <?php foreach ($todos_cursos as $c): ?>
+                                    <option value="<?= $c['id'] ?>" <?= ($matricula['curso_id'] ?? '') == $c['id'] ? 'selected' : '' ?>>
+                                        [<?= htmlspecialchars($c['nombre_corto']) ?>] <?= htmlspecialchars($c['nombre_largo']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
 
                         <div class="resumen-item">
