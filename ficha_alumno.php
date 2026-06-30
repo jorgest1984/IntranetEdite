@@ -1198,7 +1198,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             <!-- TAB: Documentación -->
             <div id="tab-documentacion" style="<?= $active_tab == 'documentacion' ? '' : 'display:none;' ?>">
                 
-                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; align-items: start;">
+                <div style="display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: 2rem; align-items: start;">
                     
                     <!-- Columna Izquierda: Documentos Categorizados -->
                     <div>
@@ -1399,7 +1399,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                 <div style="margin-bottom: 1.25rem;">
                                     <label style="display: block; font-weight: 700; font-size: 0.72rem; text-transform: uppercase; color: #475569; margin-bottom: 0.4rem; letter-spacing: 0.5px;">Clasificación / Destino *</label>
                                     <select name="accion_id" class="form-control-edit">
-                                        <option value="0">📁 Documentación Común / General</option>
+                                        <option value="0">📁 General / Común</option>
                                         <?php if (!empty($acciones_inscrito)): ?>
                                             <optgroup label="Cursos / Acciones Formativas">
                                                 <?php foreach ($acciones_inscrito as $acc): ?>
@@ -1474,7 +1474,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             <div style="margin-bottom:1.75rem;">
                 <label style="display:block; font-weight:700; font-size:0.72rem; text-transform:uppercase; color:#475569; margin-bottom:0.4rem; letter-spacing:0.5px;">Clasificación / Destino</label>
                 <select name="accion_id" id="editar_accion_id" class="form-control-edit">
-                    <option value="0">📁 Documentación Común / General</option>
+                    <option value="0">📁 General / Común</option>
                     <?php if (!empty($acciones_inscrito)): ?>
                         <optgroup label="Cursos / Acciones Formativas">
                             <?php foreach ($acciones_inscrito as $acc): ?>
