@@ -5,10 +5,16 @@ require_once 'includes/moodle_api.php';
 
 $moodle = new MoodleAPI($pdo);
 
-$alumno_id = 48; // Let's use Jorge's ID (which was shown in the screenshot)
-$stmt = $pdo->prepare("SELECT * FROM alumnos WHERE id = ?");
-$stmt->execute([$alumno_id]);
+$stmt = $pdo->prepare("SELECT * FROM alumnos WHERE foto IS NOT NULL AND foto != '' AND moodle_user_id IS NOT NULL AND moodle_user_id > 0 LIMIT 1");
+$stmt->execute();
 $alumno = $stmt->fetch();
+
+if (!$alumno) {
+    // Si no hay ninguno con moodle_user_id, buscar sólo con foto y le asignamos un ID temporal o avisamos
+    $stmt = $pdo->prepare("SELECT * FROM alumnos WHERE foto IS NOT NULL AND foto != '' LIMIT 1");
+    $stmt->execute();
+    $alumno = $stmt->fetch();
+}
 
 if (!$alumno) {
     die("Alumno no encontrado.");
