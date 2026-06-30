@@ -1,8 +1,6 @@
 <?php
 // scratch/debug_inscripciones.php
-define('ROLE_ADMIN', 1);
-define('ROLE_TUTOR', 2);
-require_once '../includes/auth.php';
+require_once '../includes/config.php';
 
 $where = ["1=1"];
 $params = [];
