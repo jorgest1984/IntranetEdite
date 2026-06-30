@@ -1076,6 +1076,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                         <option value="Cabecera_Nomina">Cabecera de Nómina</option>
                                         <option value="Recibo_Autonomo">Recibo de Autónomo</option>
                                         <option value="Vida_Laboral">Vida Laboral</option>
+                                        <option value="Anexo1">Anexo 1</option>
                                         <option value="Diploma">Diploma / Certificado</option>
                                     </select>
                                 </div>

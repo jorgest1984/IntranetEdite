@@ -54,6 +54,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['archivo'])) {
             $stmt = $pdo->prepare("INSERT INTO documentos_alumno (alumno_id, usuario_id, nombre_archivo, ruta_archivo, tipo_documento, accion_id) VALUES (?, ?, ?, ?, ?, ?)");
             $stmt->execute([$alumno_id, $usuario_id, basename($file['name']), $target_path, $tipo_doc, $accion_id]);
             
+            // Actualizar de forma inteligente los campos de "documentos entregados" en la tabla matriculas
+            if ($tipo_doc === 'DNI') {
+                $stmtUpdate = $pdo->prepare("UPDATE matriculas SET dni_entregado = 1 WHERE alumno_id = ?");
+                $stmtUpdate->execute([$alumno_id]);
+            } elseif (in_array($tipo_doc, ['Cabecera_Nomina', 'Recibo_Autonomo', 'Vida_Laboral', 'Contrato'])) {
+                $stmtUpdate = $pdo->prepare("UPDATE matriculas SET nomina_entregada = 1 WHERE alumno_id = ?");
+                $stmtUpdate->execute([$alumno_id]);
+            } elseif ($tipo_doc === 'Anexo1') {
+                if ($accion_id) {
+                    $stmtUpdate = $pdo->prepare("UPDATE matriculas SET anexo1_entregado = 'SI' WHERE alumno_id = ? AND grupo_id IN (SELECT id FROM grupos WHERE accion_id = ?)");
+                    $stmtUpdate->execute([$alumno_id, $accion_id]);
+                } else {
+                    $stmtUpdate = $pdo->prepare("UPDATE matriculas SET anexo1_entregado = 'SI' WHERE alumno_id = ?");
+                    $stmtUpdate->execute([$alumno_id]);
+                }
+            }
+
             // Registrar en audit log
             audit_log($pdo, 'SUBIDA_DOC', 'documentos_alumno', $pdo->lastInsertId(), null, ['archivo' => basename($file['name'])]);
             
