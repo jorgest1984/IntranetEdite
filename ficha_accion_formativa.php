@@ -314,7 +314,7 @@ try {
             letter-spacing: 0.5px;
         }
 
-        .form-group input, .form-group select {
+        .form-group input {
             width: 100%;
             padding: 0.5rem 0.75rem;
             border: 1px solid var(--border-color);
@@ -326,6 +326,21 @@ try {
             box-sizing: border-box;
             height: 38px;
             outline: none;
+        }
+
+        .form-group select {
+            width: 100%;
+            padding: 0 2.5rem 0 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            background: rgba(248, 250, 252, 0.8);
+            color: var(--text-color);
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+            height: 38px;
+            outline: none;
+            line-height: 36px;
         }
 
         .form-group input:focus, .form-group select:focus {
