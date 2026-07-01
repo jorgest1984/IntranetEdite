@@ -332,6 +332,109 @@ try {
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* Premium Checkbox Cards and Layout for Material Tab */
+        .material-layout-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 2rem;
+        }
+        @media (max-width: 1024px) {
+            .material-layout-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .card-premium-material {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.75rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .card-title-premium {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #1e293b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 1.25rem;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title-premium i {
+            color: #b91c1c;
+        }
+
+        .checkbox-grid-premium {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+        }
+
+        .checkbox-card-premium {
+            background: rgba(248, 250, 252, 0.5);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+        }
+
+        .checkbox-card-premium:hover {
+            border-color: rgba(185, 28, 28, 0.25);
+            background: #fef2f2;
+            transform: translateY(-1px);
+        }
+
+        .checkbox-card-premium input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #b91c1c;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .checkbox-card-premium span {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .checkbox-card-premium.active {
+            border-color: #b91c1c;
+            background: #fef2f2;
+        }
+
+        .banner-material-info {
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.03), rgba(30, 58, 138, 0.05));
+            border-left: 4px solid #1e3a8a;
+            color: #1e3a8a;
+            padding: 1rem 1.25rem;
+            border-radius: 0 12px 12px 0;
+            margin-bottom: 2rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            line-height: 1.5;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .banner-material-info i {
+            font-size: 1.15rem;
+            margin-top: 2px;
+        }
+
         .form-section-title {
             text-align: center;
             color: #b91c1c;
@@ -961,7 +1064,11 @@ try {
                 <button type="button" class="tab-btn active" onclick="switchTab(event, 'datos-generales')">Datos Generales</button>
                 <button type="button" class="tab-btn" onclick="switchTab(event, 'grupos')">Grupos</button>
                 <button type="button" class="tab-btn" onclick="switchTab(event, 'contenidos')">Contenidos</button>
-                <button type="button" class="tab-btn" onclick="switchTab(event, 'material')">Material</button>
+                <?php
+                $modality = $accion['modalidad'] ?? 'Teleformacion';
+                $show_material = ($modality === 'Presencial' || $modality === 'Mixta');
+                ?>
+                <button type="button" class="tab-btn" id="tab-btn-material" style="<?= $show_material ? '' : 'display: none;' ?>" onclick="switchTab(event, 'material')">Material</button>
                 <button type="button" class="tab-btn" onclick="switchTab(event, 'gestion')">Gestión</button>
                 <button type="button" class="tab-btn" onclick="switchTab(event, 'ejecucion')">Ejecución</button>
                 <button type="button" class="tab-btn" onclick="switchTab(event, 'instalacion')">Instalación</button>
@@ -1607,73 +1714,105 @@ try {
             </div>
 
             <div class="tab-content" id="material" style="display: none;">
-                <div class="form-section-title" style="color: #d32f2f; text-align: center; font-weight: bold; margin-bottom: 25px;">
-                    DATOS DE MATERIAL, ENVÍOS...
-                </div>
+                <div class="form-section-title">Logística, Material y Envíos</div>
                 
-                <div class="info-grid" style="grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 25px;">
-                    <div class="info-box">
-                        <label class="info-label" style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                            <input type="checkbox" name="hay_material" value="1" <?= ($accion['hay_material'] ?? 0) ? 'checked' : '' ?>>
-                            HAY MATERIAL
-                        </label>
-                    </div>
-                    <div class="info-box">
-                        <label class="info-label">Nº ENTREGAS</label>
-                        <input type="number" class="info-value" name="num_entregas" value="<?= htmlspecialchars($accion['num_entregas'] ?? '0') ?>">
-                    </div>
-                    <div class="info-box">
-                        <label class="info-label">CÓDIGO ENTREGAS</label>
-                        <select class="info-value" name="codigo_entregas">
-                            <option value="">Seleccione...</option>
-                            <option value="ESTANDAR" <?= ($accion['codigo_entregas'] ?? '') == 'ESTANDAR' ? 'selected' : '' ?>>ESTÁNDAR</option>
-                            <option value="ESPECIAL" <?= ($accion['codigo_entregas'] ?? '') == 'ESPECIAL' ? 'selected' : '' ?>>ESPECIAL</option>
-                        </select>
-                    </div>
-                    <div class="info-box">
-                        <label class="info-label">Nº MÓDULOS</label>
-                        <input type="number" class="info-value" name="num_modulos" value="<?= htmlspecialchars($accion['num_modulos'] ?? '0') ?>">
+                <div class="banner-material-info">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                    <div>
+                        <strong>Gestión Logística de Envíos:</strong> Esta sección permite configurar las entregas de materiales didácticos físicos para los alumnos. <em>Esta funcionalidad solo está disponible para los cursos en modalidad Presencial o Mixta.</em>
                     </div>
                 </div>
 
-                <div class="editor-container" style="margin-bottom: 25px;">
-                    <h2 class="section-title-blue" style="font-size: 0.9rem; margin-bottom: 5px;">Detalle entregas:</h2>
-                    <textarea class="editor-textarea textarea-grey" name="detalle_entregas" style="height: 100px;"><?= htmlspecialchars($accion['detalle_entregas'] ?? '') ?></textarea>
-                </div>
+                <div class="material-layout-grid">
+                    <!-- Tarjeta 1: Logística y Envíos -->
+                    <div class="card-premium-material">
+                        <div class="card-title-premium">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                            Logística y Envíos
+                        </div>
 
-                <div class="info-box" style="margin-bottom: 25px;">
-                    <label class="section-title-blue" style="font-size: 0.9rem; margin-bottom: 15px; display: block;">Material:</label>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
-                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #1e293b; font-size: 0.85rem;">
-                            <input type="checkbox" name="manual_curso" value="1" <?= ($accion['manual_curso'] ?? 0) ? 'checked' : '' ?>> MANUAL CURSO
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #1e293b; font-size: 0.85rem;">
-                            <input type="checkbox" name="manual_sensibilizacion" value="1" <?= ($accion['manual_sensibilizacion'] ?? 0) ? 'checked' : '' ?>> MANUAL SENSIBILIZACIÓN
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #1e293b; font-size: 0.85rem;">
-                            <input type="checkbox" name="carpeta_clasificadora" value="1" <?= ($accion['carpeta_clasificadora'] ?? 0) ? 'checked' : '' ?>> CARPETA CLASIFICADORA
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #1e293b; font-size: 0.85rem;">
-                            <input type="checkbox" name="cuaderno_a4" value="1" <?= ($accion['cuaderno_a4'] ?? 0) ? 'checked' : '' ?>> CUADERNO A4
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #1e293b; font-size: 0.85rem;">
-                            <input type="checkbox" name="boligrafo" value="1" <?= ($accion['boligrafo'] ?? 0) ? 'checked' : '' ?>> BOLÍGRAFO
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #1e293b; font-size: 0.85rem;">
-                            <input type="checkbox" name="maletin" value="1" <?= ($accion['maletin'] ?? 0) ? 'checked' : '' ?>> MALETÍN
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #1e293b; font-size: 0.85rem;">
-                            <input type="checkbox" name="otros_materiales" value="1" <?= ($accion['otros_materiales'] ?? 0) ? 'checked' : '' ?>> OTROS
-                        </label>
+                        <div class="form-row">
+                            <div class="form-group form-col" style="width: 100%; margin-bottom: 1.25rem;">
+                                <label class="checkbox-card-premium" style="display: flex;">
+                                    <input type="checkbox" name="hay_material" value="1" <?= ($accion['hay_material'] ?? 0) ? 'checked' : '' ?>>
+                                    <span>¿SE REQUIERE ENVÍO DE MATERIAL?</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group form-col" style="width: 33%;">
+                                <label>Nº Entregas:</label>
+                                <input type="number" class="form-group select" style="padding: 0.5rem 0.75rem;" name="num_entregas" value="<?= htmlspecialchars($accion['num_entregas'] ?? '0') ?>">
+                            </div>
+                            <div class="form-group form-col" style="width: 34%;">
+                                <label>Código Entregas:</label>
+                                <select class="form-group select" name="codigo_entregas">
+                                    <option value="">Seleccione...</option>
+                                    <option value="ESTANDAR" <?= ($accion['codigo_entregas'] ?? '') == 'ESTANDAR' ? 'selected' : '' ?>>ESTÁNDAR</option>
+                                    <option value="ESPECIAL" <?= ($accion['codigo_entregas'] ?? '') == 'ESPECIAL' ? 'selected' : '' ?>>ESPECIAL</option>
+                                </select>
+                            </div>
+                            <div class="form-group form-col" style="width: 33%;">
+                                <label>Nº Módulos:</label>
+                                <input type="number" class="form-group select" style="padding: 0.5rem 0.75rem;" name="num_modulos" value="<?= htmlspecialchars($accion['num_modulos'] ?? '0') ?>">
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 1rem;">
+                            <label>Detalle de entregas (Direcciones, Fechas, Notas):</label>
+                            <textarea class="editor-textarea textarea-grey" name="detalle_entregas" style="height: 120px; border-radius: 8px; border: 1px solid var(--border-color); width: 100%; padding: 12px; font-family: inherit; font-size: 0.85rem; box-sizing: border-box; outline:none; resize:vertical;"><?= htmlspecialchars($accion['detalle_entregas'] ?? '') ?></textarea>
+                        </div>
                     </div>
-                </div>
 
-                <div class="editor-container">
-                    <textarea class="editor-textarea textarea-grey" name="otros_materiales_txt" style="height: 100px;"><?= htmlspecialchars($accion['otros_materiales_txt'] ?? '') ?></textarea>
-                </div>
-                
-                <div style="margin-top: 20px;">
-                    <input type="text" class="info-value" name="material_extra_info" style="width: 100%;" placeholder="...">
+                    <!-- Tarjeta 2: Checklist de Materiales -->
+                    <div class="card-premium-material">
+                        <div class="card-title-premium">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                            Materiales Incluidos
+                        </div>
+
+                        <div class="checkbox-grid-premium" style="margin-bottom: 1.5rem;">
+                            <label class="checkbox-card-premium">
+                                <input type="checkbox" name="manual_curso" value="1" <?= ($accion['manual_curso'] ?? 0) ? 'checked' : '' ?>>
+                                <span>Manual del Curso</span>
+                            </label>
+                            <label class="checkbox-card-premium">
+                                <input type="checkbox" name="manual_sensibilizacion" value="1" <?= ($accion['manual_sensibilizacion'] ?? 0) ? 'checked' : '' ?>>
+                                <span>Manual Sensibilización</span>
+                            </label>
+                            <label class="checkbox-card-premium">
+                                <input type="checkbox" name="carpeta_clasificadora" value="1" <?= ($accion['carpeta_clasificadora'] ?? 0) ? 'checked' : '' ?>>
+                                <span>Carpeta Clasificadora</span>
+                            </label>
+                            <label class="checkbox-card-premium">
+                                <input type="checkbox" name="cuaderno_a4" value="1" <?= ($accion['cuaderno_a4'] ?? 0) ? 'checked' : '' ?>>
+                                <span>Cuaderno A4</span>
+                            </label>
+                            <label class="checkbox-card-premium">
+                                <input type="checkbox" name="boligrafo" value="1" <?= ($accion['boligrafo'] ?? 0) ? 'checked' : '' ?>>
+                                <span>Bolígrafo corporativo</span>
+                            </label>
+                            <label class="checkbox-card-premium">
+                                <input type="checkbox" name="maletin" value="1" <?= ($accion['maletin'] ?? 0) ? 'checked' : '' ?>>
+                                <span>Maletín / Mochila</span>
+                            </label>
+                            <label class="checkbox-card-premium">
+                                <input type="checkbox" name="otros_materiales" value="1" <?= ($accion['otros_materiales'] ?? 0) ? 'checked' : '' ?>>
+                                <span>Otros Materiales</span>
+                            </label>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 1.25rem;">
+                            <label>Especificar otros materiales:</label>
+                            <textarea class="editor-textarea textarea-grey" name="otros_materiales_txt" style="height: 80px; border-radius: 8px; border: 1px solid var(--border-color); width: 100%; padding: 12px; font-family: inherit; font-size: 0.85rem; box-sizing: border-box; outline:none; resize:vertical;"><?= htmlspecialchars($accion['otros_materiales_txt'] ?? '') ?></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Información extra o incidencias de material:</label>
+                            <input type="text" class="form-group select" style="padding: 0.5rem 0.75rem;" name="material_extra_info" value="<?= htmlspecialchars($accion['material_extra_info'] ?? '') ?>" placeholder="Ej: Entregar en horario de mañanas únicamente...">
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -2424,6 +2563,27 @@ try {
                 if (tabBtn) {
                     tabBtn.click();
                 }
+            }
+
+            // Modalidad change logic to show/hide Material tab
+            const modalitySelect = document.querySelector('select[name="modalidad"]');
+            const materialTabBtn = document.getElementById('tab-btn-material');
+            if (modalitySelect && materialTabBtn) {
+                const updateMaterialTab = () => {
+                    const val = modalitySelect.value;
+                    if (val === 'Presencial' || val === 'Mixta') {
+                        materialTabBtn.style.display = '';
+                    } else {
+                        materialTabBtn.style.display = 'none';
+                        // Switch tab to Datos Generales if Material was active
+                        if (materialTabBtn.classList.contains('active')) {
+                            const genBtn = document.querySelector('.tab-btn[onclick*="datos-generales"]');
+                            if (genBtn) genBtn.click();
+                        }
+                    }
+                };
+                modalitySelect.addEventListener('change', updateMaterialTab);
+                updateMaterialTab(); // Run once initially
             }
         });
     </script>
