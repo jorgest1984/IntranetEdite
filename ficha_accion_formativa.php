@@ -1,5 +1,8 @@
 <?php
 // ficha_accion_formativa.php
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
 require_once 'includes/auth.php';
 
 if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA, ROLE_FORMADOR])) {
@@ -1051,7 +1054,7 @@ try {
                 <a href="#" class="btn-header">Duplicar Acción Formativa</a>
                 <a href="#" class="btn-header">Duplicar en Bonificados</a>
                 <a href="#" class="btn-header">Peticiones</a>
-                <button type="submit" form="main-form" class="btn-header">Guardar registro</button>
+                <button type="button" id="btn-save-record" class="btn-header" onclick="submitMainForm()">Guardar registro</button>
             </div>
         </header>
 
@@ -2359,6 +2362,13 @@ try {
     </main>
 
     <script>
+        function submitMainForm() {
+            const form = document.getElementById('main-form');
+            if (form) {
+                form.submit();
+            }
+        }
+
         function switchTab(event, tabId) {
             if (event) {
                 event.preventDefault();
