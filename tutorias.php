@@ -137,6 +137,20 @@ $current_page = 'tutorias.php';
             gap: 0.35rem;
         }
 
+        /* Grid Column Spans */
+        .span-1 { grid-column: span 1; }
+        .span-2 { grid-column: span 2; }
+        .span-3 { grid-column: span 3; }
+        .span-4 { grid-column: span 4; }
+        .span-5 { grid-column: span 5; }
+        .span-6 { grid-column: span 6; }
+        .span-7 { grid-column: span 7; }
+        .span-8 { grid-column: span 8; }
+        .span-9 { grid-column: span 9; }
+        .span-10 { grid-column: span 10; }
+        .span-11 { grid-column: span 11; }
+        .span-12 { grid-column: span 12; }
+
         .form-group-custom label {
             font-size: 0.72rem;
             font-weight: 700;
@@ -225,44 +239,62 @@ $current_page = 'tutorias.php';
             display: flex;
             gap: 0.75rem;
             flex-wrap: wrap;
-            background: #fff;
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
             padding: 1.25rem;
-            border: 1px solid var(--border-color);
-            border-radius: 14px;
-            margin-bottom: 2rem;
-            box-shadow: var(--card-shadow);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            margin-bottom: 2.5rem;
+            box-shadow: var(--glass-shadow);
         }
 
         .action-bar .btn-action {
-            padding: 0.55rem 1.1rem;
-            font-size: 0.82rem;
+            padding: 0.7rem 1.25rem;
+            font-size: 0.85rem;
             font-weight: 600;
-            color: var(--text-muted);
-            background: #fff;
+            color: var(--sidebar-text);
+            background: var(--card-bg);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
             text-decoration: none;
-            transition: all 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.01);
-            height: auto;
+            gap: 0.6rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);
+            height: 42px;
+            box-sizing: border-box;
+        }
+
+        .action-bar .btn-action i {
+            font-size: 0.95rem;
+            color: var(--primary-color);
+            transition: transform 0.3s ease;
         }
 
         .action-bar .btn-action:hover {
             color: var(--primary-color);
-            border-color: var(--primary-color);
-            background: rgba(0, 108, 228, 0.04);
-            transform: translateY(-1px);
+            border-color: var(--primary-hover);
+            background: #eff6ff;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 108, 228, 0.1);
+        }
+
+        .action-bar .btn-action:hover i {
+            transform: scale(1.15) rotate(5deg);
         }
 
         .action-bar .btn-action.active-btn {
-            background: var(--primary-color);
-            color: #fff !important;
-            border-color: var(--primary-color);
-            box-shadow: 0 4px 12px rgba(0, 108, 228, 0.15);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+            color: #ffffff !important;
+            border-color: transparent;
+            box-shadow: 0 8px 20px rgba(0, 108, 228, 0.25);
+        }
+
+        .action-bar .btn-action.active-btn i {
+            color: #ffffff !important;
         }
 
         /* Premium Table dense */
@@ -309,6 +341,38 @@ $current_page = 'tutorias.php';
             border-bottom: none;
         }
 
+        /* Custom Scrollbar for Results Table */
+        .table-responsive::-webkit-scrollbar {
+            height: 8px;
+            width: 8px;
+        }
+
+        .table-responsive::-webkit-scrollbar-track {
+            background: transparent;
+            border-radius: 9999px;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+        
+        .dark-theme .table-responsive::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+        
+        .dark-theme .table-responsive::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
         /* Status colors & Badges */
         .status-badge {
             display: inline-flex;
@@ -342,25 +406,30 @@ $current_page = 'tutorias.php';
         /* Status Header layout */
         .status-header {
             display: flex;
-            gap: 8px;
-            padding: 0.75rem 1rem;
+            gap: 10px;
+            padding: 1rem;
             flex-wrap: wrap;
-            background: #fff;
+            background: rgba(248, 250, 252, 0.5);
             border-bottom: 1px solid var(--border-color);
+            border-radius: 12px 12px 0 0;
         }
 
         .status-box {
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 0.72rem;
+            padding: 5px 12px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
             font-weight: 700;
-            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            border: 1px solid rgba(0,0,0,0.04);
         }
-        .bg-orange { background: #f97316; }
-        .bg-cyan { background: #06b6d4; }
-        .bg-pink { background: #ec4899; }
-        .bg-teal { background: #14b8a6; }
-        .bg-green { background: #16a34a; }
+
+        .status-box.bg-orange { background: #ffedd5; color: #ea580c; border-color: #fed7aa; }
+        .status-box.bg-cyan { background: #ecfeff; color: #0891b2; border-color: #cffafe; }
+        .status-box.bg-pink { background: #fdf2f8; color: #db2777; border-color: #fbcfe8; }
+        .status-box.bg-green { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
     </style>
 </head>
 <body>
