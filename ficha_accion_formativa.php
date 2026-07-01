@@ -468,7 +468,7 @@ try {
             letter-spacing: 0.5px;
         }
 
-        .form-group input {
+        .form-group input:not([type="checkbox"]):not([type="radio"]) {
             width: 100%;
             padding: 0.5rem 0.75rem;
             border: 1px solid var(--border-color);
@@ -497,11 +497,20 @@ try {
             line-height: 36px;
         }
 
-        .form-group input:focus, .form-group select:focus {
+        .form-group input:not([type="checkbox"]):not([type="radio"]):focus, .form-group select:focus {
             outline: none;
             border-color: #b91c1c;
             box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.12);
             background: #ffffff;
+        }
+
+        input[type="checkbox"] {
+            width: 16px !important;
+            height: 16px !important;
+            cursor: pointer;
+            accent-color: #b91c1c;
+            margin: 0;
+            vertical-align: middle;
         }
 
         select {
