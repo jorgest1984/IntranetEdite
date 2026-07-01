@@ -80,6 +80,9 @@ if ($id) {
         $stmt = $pdo->prepare("SELECT * FROM acciones_formativas WHERE id = ?");
         $stmt->execute([$id]);
         $accion = $stmt->fetch();
+        if (!$accion) {
+            $id = null;
+        } else {
 
         // Fetch groups
         $stmtGrupos = $pdo->prepare("SELECT g.*, e.nombre as centro_nombre, CONCAT(a.nombre, ' ', a.primer_apellido, ' ', COALESCE(a.segundo_apellido, '')) as tutor_nombre 
@@ -112,6 +115,7 @@ if ($id) {
         $moodleDb = new MoodleDB();
         $moodle_connected = $moodleDb->isConnected();
         $moodle_error = $moodleDb->getError();
+        }
 
     } catch (Throwable $e) { }
 }

@@ -4,7 +4,6 @@ require_once 'includes/config.php';
 require_once 'includes/auth.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    @file_put_contents(__DIR__ . '/scratch/post_log.txt', date('Y-m-d H:i:s') . " - URL: " . $_SERVER['REQUEST_URI'] . " - POST: " . print_r($_POST, true) . "\n\n", FILE_APPEND);
     // Sanitización básica y recolección de datos
     $id = isset($_POST['id']) ? (int)$_POST['id'] : null;
     
