@@ -189,7 +189,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Audit log
         audit_log($pdo, $id ? 'UPDATE' : 'INSERT', 'acciones_formativas', $new_id, null, $data);
         
-        header("Location: ficha_accion_formativa.php?id=$new_id&success=1");
+        $active_tab = $_POST['active_tab'] ?? 'datos-generales';
+        header("Location: ficha_accion_formativa.php?id=$new_id&success=1&tab=$active_tab");
         exit();
 
     } catch (Throwable $e) {

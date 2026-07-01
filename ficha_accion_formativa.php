@@ -1068,6 +1068,7 @@ try {
         <?php if ($id): ?>
             <input type="hidden" name="id" value="<?= $id ?>">
         <?php endif; ?>
+        <input type="hidden" name="active_tab" id="active-tab-input" value="datos-generales">
         <div class="tabs-container">
             <div class="tabs-header">
                 <button type="button" class="tab-btn active" onclick="switchTab(event, 'datos-generales')">Datos Generales</button>
@@ -2362,6 +2363,11 @@ try {
             if (event) {
                 event.preventDefault();
                 event.stopPropagation();
+            }
+            
+            const tabInput = document.getElementById('active-tab-input');
+            if (tabInput) {
+                tabInput.value = tabId;
             }
             
             // Hide all tab contents
