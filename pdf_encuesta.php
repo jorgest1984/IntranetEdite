@@ -38,15 +38,23 @@ if (!$survey) {
 class FundaeSurveyPDF extends FPDF {
     function Header() {
         // Logo o Encabezado Oficial
-        $this->SetFillColor(185, 28, 28); // Rojo Fundae
-        $this->Rect(10, 10, 190, 3, 'F');
+        if (file_exists('img/cabecera_fundae.png')) {
+            $this->Image('img/cabecera_fundae.png', 10, 8, 190);
+            $this->SetY(24);
+        } else {
+            $this->SetFillColor(185, 28, 28); // Rojo Fundae
+            $this->Rect(10, 10, 190, 3, 'F');
+            $this->SetY(15);
+        }
         
-        $this->SetFont('Arial', 'B', 10);
-        $this->SetTextColor(30, 58, 138); // Azul Oscuro
-        $this->Cell(0, 10, utf8_decode("CUESTIONARIO DE EVALUACIÓN PARA LA CALIDAD DE LAS ACCIONES FORMATIVAS"), 0, 1, 'C');
-        $this->SetFont('Arial', '', 9);
-        $this->Cell(0, 4, utf8_decode("SISTEMA DE FORMACIÓN PARA EL EMPLEO - FORMACIÓN DE OFERTA (Orden TAS/718/2008)"), 0, 1, 'C');
-        $this->Ln(4);
+        $this->SetFont('Arial', 'B', 8.5);
+        $this->SetTextColor(153, 27, 27); // Rojo oscuro
+        $this->Cell(0, 4, utf8_decode("CUESTIONARIO DE LA EVALUACIÓN PARA LA CALIDAD DE LAS ACCIONES"), 0, 1, 'C');
+        $this->Cell(0, 4, utf8_decode("FORMATIVAS EN EL MARCO DEL SISTEMA DE FORMACIÓN PARA EL EMPLEO"), 0, 1, 'C');
+        $this->Cell(0, 4, utf8_decode("FORMACIÓN DE OFERTA"), 0, 1, 'C');
+        $this->SetFont('Arial', 'B', 8);
+        $this->Cell(0, 4, utf8_decode("(Orden TAS/718/2008, de 7 de Marzo)"), 0, 1, 'C');
+        $this->Ln(3);
     }
 
     function Footer() {

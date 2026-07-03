@@ -417,8 +417,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <img src="img/cabecera_fundae.png" alt="Logos Ministerio y Fundae" style="max-width: 100%; height: auto; max-height: 80px;">
         </div>
         <header class="form-header">
-            <h1>Evaluación de la Calidad</h1>
-            <p>Cuestionario oficial Fundae (Oferta) - Orden TAS/718/2008</p>
+            <h1 style="font-size: 1.15rem; line-height: 1.4; margin-bottom: 5px;">CUESTIONARIO DE LA EVALUACIÓN PARA LA CALIDAD DE LAS ACCIONES FORMATIVAS EN EL MARCO DEL SISTEMA DE FORMACIÓN PARA EL EMPLEO<br><span style="color: var(--primary-light);">FORMACIÓN DE OFERTA</span></h1>
+            <p style="font-size: 0.85rem; margin-top: 5px; font-weight: 600;">(Orden TAS/718/2008, de 7 de Marzo)</p>
         </header>
 
         <form method="POST" action="" class="form-body" id="fundaeForm">
