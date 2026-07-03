@@ -413,6 +413,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
     <div class="container">
+        <div style="background: white; padding: 15px 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: center; align-items: center;">
+            <img src="img/cabecera_fundae.png" alt="Logos Ministerio y Fundae" style="max-width: 100%; height: auto; max-height: 80px;">
+        </div>
         <header class="form-header">
             <h1>Evaluación de la Calidad</h1>
             <p>Cuestionario oficial Fundae (Oferta) - Orden TAS/718/2008</p>
