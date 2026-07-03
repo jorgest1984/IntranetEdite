@@ -413,9 +413,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
     <div class="container">
-        <div style="background: white; padding: 20px; border-bottom: 3px solid var(--primary); display: flex; justify-content: center; align-items: center;">
-            <img src="img/cabecera_fundae.png" alt="Logos Ministerio y Fundae" style="max-width: 100%; height: auto; max-height: 90px;">
+        <div style="background: white; padding: 15px 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: center; align-items: center;">
+            <img src="img/cabecera_fundae.png" alt="Logos Ministerio y Fundae" style="max-width: 100%; height: auto; max-height: 80px;">
         </div>
+        <header class="form-header">
+            <h1 style="font-size: 1.15rem; line-height: 1.4; margin-bottom: 5px;">CUESTIONARIO DE LA EVALUACIÓN PARA LA CALIDAD DE LAS ACCIONES FORMATIVAS EN EL MARCO DEL SISTEMA DE FORMACIÓN PARA EL EMPLEO<br><span style="color: var(--primary-light);">FORMACIÓN DE OFERTA</span></h1>
+            <p style="font-size: 0.85rem; margin-top: 5px; font-weight: 600;">(Orden TAS/718/2008, de 7 de Marzo)</p>
+        </header>
 
         <form method="POST" action="" class="form-body" id="fundaeForm">
             <?php if (isset($error_msg)): ?>
