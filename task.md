@@ -1,0 +1,6 @@
+- [x] Create `encuesta_fundae.php` for capturing survey inputs.
+- [x] Create `encuesta_success.php` for displaying thank you message and download PDF action.
+- [x] Create `pdf_encuesta.php` for generating Fundae PDF.
+- [x] Create `exportar_encuestas_excel.php` for exporting consolidated data to Excel/CSV.
+- [x] Modify `ficha_accion_formativa.php` to link and display survey details in "Gestión" tab.
+- [x] Deploy and verify the flow.

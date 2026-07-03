@@ -117,6 +117,23 @@ if ($id) {
         $moodle_error = $moodleDb->getError();
         }
 
+        // Fetch all survey completions for this action formativa
+        $encuestas_completadas = [];
+        try {
+            $stmtEnc = $pdo->prepare("
+                SELECT er.id as encuesta_id, m.alumno_id, er.fecha_realizacion
+                FROM encuestas_resultados er
+                JOIN matriculas m ON er.matricula_id = m.id
+                JOIN grupos g ON m.grupo_id = g.id
+                WHERE g.accion_id = ?
+            ");
+            $stmtEnc->execute([$id]);
+            $encuestas_raw = $stmtEnc->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($encuestas_raw as $enc) {
+                $encuestas_completadas[$enc['alumno_id']] = $enc;
+            }
+        } catch (Throwable $e) {}
+
     } catch (Throwable $e) { }
 }
 
@@ -1091,6 +1108,7 @@ try {
                 <button type="button" class="tab-btn" onclick="switchTab(event, 'instalacion')">Instalación</button>
                 <?php if ($id): ?>
                     <button type="button" class="tab-btn" onclick="switchTab(event, 'seguimiento-moodle')">Seguimiento Moodle</button>
+                    <button type="button" class="tab-btn" onclick="switchTab(event, 'encuestas')">Encuestas Fundae</button>
                 <?php endif; ?>
             </div>
 
@@ -2340,6 +2358,97 @@ try {
                     </div>
                 <?php endif; ?>
             </div>
+
+            <div class="tab-content" id="encuestas" style="display: none;">
+                <div class="form-section-title">Encuestas de Calidad Fundae</div>
+                
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+                    <h4 style="font-size: 0.95rem; font-weight: 700; color: #1e3a8a; margin-bottom: 10px;">Enlace para insertar en Moodle</h4>
+                    <p style="font-size: 0.85rem; color: #64748b; line-height: 1.5; margin-bottom: 15px;">
+                        Copia este enlace y configúralo en Moodle para que los alumnos puedan rellenar la encuesta directamente. Moodle reemplazará las variables <code style="background:#e2e8f0; padding:2px 4px; border-radius:3px;">{id_alumno}</code> y <code style="background:#e2e8f0; padding:2px 4px; border-radius:3px;">{moodle_user_id}</code> automáticamente.
+                    </p>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="text" id="moodle-survey-link" readonly value="https://<?= $_SERVER['HTTP_HOST'] ?>/encuesta_fundae.php?id_curso=<?= $id ?>&id_alumno={id_alumno}&moodle_user_id={moodle_user_id}" style="flex: 1; height: 38px; border: 1px solid #cbd5e1; border-radius: 6px; padding: 0 10px; font-family: monospace; font-size: 0.82rem; background: #fff;">
+                        <button type="button" class="btn-sync-moodle" onclick="copySurveyLink()" style="background-color: #1e3a8a; border-color: #172554; height: 38px; padding: 0 15px; margin: 0; font-size: 0.85rem;">Copiar Enlace</button>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <div style="font-size: 0.9rem; color: #64748b; font-weight: 600;">
+                        Total Completadas: <strong style="color: #10b981;"><?= count($encuestas_completadas) ?></strong> / <strong><?= count($alumnos_seguimiento) ?></strong>
+                    </div>
+                    
+                    <a href="exportar_encuestas_excel.php?id=<?= $id ?>" class="btn-sync-moodle" style="background-color: #16a34a; border-color: #15803d; text-decoration: none; color: white; display: inline-flex; align-items: center; height: 38px; padding: 0 15px; font-size: 0.85rem;" <?= empty($encuestas_completadas) ? 'onclick="event.preventDefault(); alert(\'No hay encuestas completadas para exportar.\');"' : '' ?>>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="margin-right: 8px;">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Exportar Encuestas (Excel/XML)
+                    </a>
+                </div>
+
+                <div class="table-responsive" style="margin-top: 15px;">
+                    <table class="moodle-tracking-table" style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                        <thead>
+                            <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                                <th style="padding: 12px; text-align: left; font-weight: 700; color: #1e293b;">Alumno</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 700; color: #1e293b;">DNI</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 700; color: #1e293b;">Moodle ID</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 700; color: #1e293b;">Estado Encuesta</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 700; color: #1e293b;">Fecha Envío</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 700; color: #1e293b;">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (empty($alumnos_seguimiento)): ?>
+                                <tr>
+                                    <td colspan="6" style="text-align: center; padding: 30px; color: #64748b;">No hay alumnos matriculados en los grupos vinculados.</td>
+                                </tr>
+                            <?php else: ?>
+                                <?php foreach ($alumnos_seguimiento as $al): 
+                                    $hasSurvey = isset($encuestas_completadas[$al['alumno_id']]);
+                                    $surveyData = $hasSurvey ? $encuestas_completadas[$al['alumno_id']] : null;
+                                ?>
+                                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                                        <td style="padding: 12px; font-weight: 500; color: #0f172a;">
+                                            <?= htmlspecialchars($al['nombre'] . ' ' . $al['primer_apellido'] . ($al['segundo_apellido'] ? ' ' . $al['segundo_apellido'] : '')) ?>
+                                        </td>
+                                        <td style="padding: 12px; font-family: monospace; font-weight: 600;"><?= htmlspecialchars($al['dni']) ?></td>
+                                        <td style="padding: 12px; text-align: center; font-family: monospace;"><?= $al['moodle_user_id'] ?: '---' ?></td>
+                                        <td style="padding: 12px; text-align: center;">
+                                            <?php if ($hasSurvey): ?>
+                                                <span style="background-color: #dcfce7; color: #15803d; border: 1px solid #86efac; padding: 3px 10px; border-radius: 4px; font-weight: 700; font-size: 0.78rem; text-transform: uppercase;">Completada</span>
+                                            <?php else: ?>
+                                                <span style="background-color: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; padding: 3px 10px; border-radius: 4px; font-weight: 700; font-size: 0.78rem; text-transform: uppercase;">Pendiente</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td style="padding: 12px; text-align: center; font-size: 0.82rem; color: #64748b;">
+                                            <?= $hasSurvey ? date('d/m/Y H:i', strtotime($surveyData['fecha_realizacion'])) : '---' ?>
+                                        </td>
+                                        <td style="padding: 12px; text-align: center;">
+                                            <?php if ($hasSurvey): ?>
+                                                <a href="pdf_encuesta.php?id=<?= $surveyData['encuesta_id'] ?>" target="_blank" class="btn-sync-moodle" style="background-color: #0f172a; border-color: #020617; text-decoration: none; color: white; padding: 4px 10px; font-size: 0.78rem; height: auto; display: inline-flex; align-items: center; margin: 0;">
+                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="margin-right: 4px;">
+                                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                                        <polyline points="7 10 12 15 17 10"></polyline>
+                                                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                                                    </svg>
+                                                    Descargar PDF
+                                                </a>
+                                            <?php else: ?>
+                                                <a href="encuesta_fundae.php?id_curso=<?= $id ?>&id_alumno=<?= $al['alumno_id'] ?>" target="_blank" class="btn-sync-moodle" style="background-color: #cbd5e1; border-color: #94a3b8; text-decoration: none; color: #475569; padding: 4px 10px; font-size: 0.78rem; height: auto; display: inline-flex; align-items: center; margin: 0;">
+                                                    Rellenar
+                                                </a>
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
             <?php endif; ?>
         </div>
         </form>
@@ -2370,6 +2479,14 @@ try {
             const form = document.getElementById('main-form');
             if (form) {
                 form.submit();
+            }
+        function copySurveyLink() {
+            const copyText = document.getElementById("moodle-survey-link");
+            if (copyText) {
+                copyText.select();
+                copyText.setSelectionRange(0, 99999);
+                navigator.clipboard.writeText(copyText.value);
+                alert("¡Enlace copiado al portapapeles con éxito!");
             }
         }
 
