@@ -2480,6 +2480,8 @@ try {
             if (form) {
                 form.submit();
             }
+        }
+
         function copySurveyLink() {
             const copyText = document.getElementById("moodle-survey-link");
             if (copyText) {
