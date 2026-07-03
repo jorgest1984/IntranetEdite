@@ -17,6 +17,7 @@ try {
                a.nombre, a.primer_apellido, a.segundo_apellido, a.dni, a.sexo as alumno_sexo
         FROM encuestas_resultados er
         JOIN matriculas m ON er.matricula_id = m.id
+        JOIN alumnos a ON m.alumno_id = a.id
         JOIN grupos g ON m.grupo_id = g.id
         JOIN acciones_formativas af ON g.accion_id = af.id
         LEFT JOIN planes pl ON af.plan_id = pl.id
