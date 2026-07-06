@@ -2133,9 +2133,18 @@ try {
                             }
                         }
                         ?>
-                        <span style="font-size: 0.8rem; color: #64748b; font-weight: 600; background: #e2e8f0; padding: 4px 12px; border-radius: 4px;">
-                            Última Sincronización: <strong><?= $last_sync_time ?></strong>
-                        </span>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <button type="button" class="btn-sync-moodle" onclick="unlinkMoodleCourse(<?= $id ?>)" style="background-color: #dc2626; border-color: #991b1b; margin: 0; height: 28px; padding: 0 10px; font-size: 0.78rem; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                    <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+                                    <line x1="12" y1="2" x2="12" y2="12"></line>
+                                </svg>
+                                Desvincular Moodle
+                            </button>
+                            <span style="font-size: 0.8rem; color: #64748b; font-weight: 600; background: #e2e8f0; padding: 4px 12px; border-radius: 4px; height: 28px; display: inline-flex; align-items: center;">
+                                Última Sincronización: <strong>&nbsp;<?= $last_sync_time ?></strong>
+                            </span>
+                        </div>
                     </div>
 
                     <?php if ($moodle_connected): ?>
@@ -2756,6 +2765,41 @@ try {
                 .catch(error => {
                     btn.disabled = false;
                     msgDiv.innerHTML = '<span style="color:#991b1b;">❌ Error de conexión de red.</span>';
+                    console.error('Error:', error);
+                });
+        }
+
+        // Moodle unlink course AJAX function
+        function unlinkMoodleCourse(actionId) {
+            if (!confirm('¿Estás seguro de que deseas desvincular esta acción formativa de Moodle? Los datos de seguimiento y notas no se mostrarán hasta que vuelvas a vincular un curso.')) {
+                return;
+            }
+            
+            const btn = document.querySelector('#seguimiento-moodle button[onclick*="unlinkMoodleCourse"]');
+            if (btn) btn.disabled = true;
+            
+            const csrf = '<?= $_SESSION['csrf_token'] ?? '' ?>';
+            const formData = new FormData();
+            formData.append('id', actionId);
+            formData.append('csrf_token', csrf);
+            
+            fetch('api_unlink_moodle_course.php', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        window.location.href = `ficha_accion_formativa.php?id=${actionId}&tab=seguimiento-moodle`;
+                    } else {
+                        if (btn) btn.disabled = false;
+                        alert(`Error: ${data.error}`);
+                    }
+                })
+                .catch(error => {
+                    if (btn) btn.disabled = false;
+                    alert('Error de conexión de red.');
                     console.error('Error:', error);
                 });
         }
