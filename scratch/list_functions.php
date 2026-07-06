@@ -11,9 +11,7 @@ try {
         sort($funcs);
         echo "Available Functions (" . count($funcs) . "):\n";
         foreach ($funcs as $fn) {
-            if (strpos($fn, 'course') !== false || strpos($fn, 'enrol') !== false) {
-                echo " - " . $fn . "\n";
-            }
+            echo " - " . $fn . "\n";
         }
     } else {
         print_r($info);
