@@ -413,8 +413,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
     <div class="container">
-        <div style="background: white; padding: 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: center; align-items: center;">
-            <img src="img/cabecera_fundae.png" alt="Logos Ministerio y Fundae" style="max-width: 100%; height: auto; max-height: 90px; object-fit: contain;">
+        <div style="background: white; padding: 20px 30px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap;">
+            <img src="img/logo_sepe.png" alt="Ministerio de Trabajo y SEPE" style="height: 65px; max-width: 100%; object-fit: contain;">
+            <img src="img/logo_fundae.png" alt="Fundae" style="height: 55px; max-width: 100%; object-fit: contain;">
         </div>
         <header class="form-header">
             <h1 style="font-size: 1.15rem; line-height: 1.4; margin-bottom: 5px;">CUESTIONARIO DE LA EVALUACIÓN PARA LA CALIDAD DE LAS ACCIONES FORMATIVAS EN EL MARCO DEL SISTEMA DE FORMACIÓN PARA EL EMPLEO<br><span style="color: var(--primary-light);">FORMACIÓN DE OFERTA</span></h1>
