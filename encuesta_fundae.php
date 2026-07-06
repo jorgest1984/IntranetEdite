@@ -19,6 +19,9 @@ if (!$id_curso || !$id_alumno) {
 
 // Buscar la matrícula del alumno y los datos del curso y grupo
 try {
+    $matricula = null;
+    
+    // Intento 1: Buscar por IDs de Moodle (id_curso = id_plataforma, id_alumno = moodle_user_id)
     $stmt = $pdo->prepare("
         SELECT m.id as matricula_id, af.id as accion_id, af.titulo as curso_nombre, af.abreviatura, af.duracion,
                af.modalidad, af.num_accion, g.numero_grupo, g.fecha_inicio, g.fecha_fin,
@@ -30,11 +33,31 @@ try {
         JOIN acciones_formativas af ON g.accion_id = af.id
         LEFT JOIN planes pl ON af.plan_id = pl.id
         LEFT JOIN convocatorias co ON pl.convocatoria_id = co.id
-        WHERE a.id = ? AND af.id = ?
+        WHERE a.moodle_user_id = ? AND af.id_plataforma = ?
         LIMIT 1
     ");
     $stmt->execute([$id_alumno, $id_curso]);
     $matricula = $stmt->fetch();
+    
+    // Intento 2 (Fallback): Buscar por IDs internos de la Intranet (id_curso = af.id, id_alumno = a.id)
+    if (!$matricula) {
+        $stmt = $pdo->prepare("
+            SELECT m.id as matricula_id, af.id as accion_id, af.titulo as curso_nombre, af.abreviatura, af.duracion,
+                   af.modalidad, af.num_accion, g.numero_grupo, g.fecha_inicio, g.fecha_fin,
+                   co.codigo_expediente,
+                   a.nombre, a.primer_apellido, a.segundo_apellido, a.dni, a.sexo, a.email
+            FROM matriculas m
+            JOIN alumnos a ON m.alumno_id = a.id
+            JOIN grupos g ON m.grupo_id = g.id
+            JOIN acciones_formativas af ON g.accion_id = af.id
+            LEFT JOIN planes pl ON af.plan_id = pl.id
+            LEFT JOIN convocatorias co ON pl.convocatoria_id = co.id
+            WHERE a.id = ? AND af.id = ?
+            LIMIT 1
+        ");
+        $stmt->execute([$id_alumno, $id_curso]);
+        $matricula = $stmt->fetch();
+    }
 } catch (Exception $e) {
     die("Error al consultar la matrícula: " . $e->getMessage());
 }
