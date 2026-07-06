@@ -67,15 +67,25 @@ try {
 
     // 5. Registrar/Actualizar el curso local
     $local_curso_id = $af['local_curso_id'];
-    if (empty($local_curso_id)) {
-        // Crear en tabla cursos
-        $stmtCurso = $pdo->prepare("INSERT INTO cursos (nombre_largo, nombre_corto, visible, moodle_id) VALUES (?, ?, 1, ?)");
-        $stmtCurso->execute([$fullname, $shortname, $moodle_course_id]);
-        $local_curso_id = $pdo->lastInsertId();
+    // 5. Verificar si ya existe un curso registrado localmente con ese moodle_course_id
+    $stmtCheckLocal = $pdo->prepare("SELECT id FROM cursos WHERE moodle_id = ? LIMIT 1");
+    $stmtCheckLocal->execute([$moodle_course_id]);
+    $existingLocalCourse = $stmtCheckLocal->fetch();
+
+    if ($existingLocalCourse) {
+        $local_curso_id = $existingLocalCourse['id'];
     } else {
-        // Actualizar moodle_id en curso existente
-        $stmtCurso = $pdo->prepare("UPDATE cursos SET moodle_id = ? WHERE id = ?");
-        $stmtCurso->execute([$moodle_course_id, $local_curso_id]);
+        $local_curso_id = $af['local_curso_id'];
+        if (empty($local_curso_id)) {
+            // Crear en tabla cursos
+            $stmtCurso = $pdo->prepare("INSERT INTO cursos (nombre_largo, nombre_corto, visible, moodle_id) VALUES (?, ?, 1, ?)");
+            $stmtCurso->execute([$fullname, $shortname, $moodle_course_id]);
+            $local_curso_id = $pdo->lastInsertId();
+        } else {
+            // Actualizar moodle_id en curso existente
+            $stmtCurso = $pdo->prepare("UPDATE cursos SET moodle_id = ? WHERE id = ?");
+            $stmtCurso->execute([$moodle_course_id, $local_curso_id]);
+        }
     }
 
     // 6. Actualizar la acción formativa
