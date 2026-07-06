@@ -29,7 +29,7 @@ try {
     $pdo->beginTransaction();
 
     // Actualizar la acción formativa para quitar la vinculación con Moodle
-    $stmtUpdateAF = $pdo->prepare("UPDATE acciones_formativas SET id_plataforma = NULL, curso_id = NULL WHERE id = ?");
+    $stmtUpdateAF = $pdo->prepare("UPDATE acciones_formativas SET id_plataforma = NULL, curso_id = 0 WHERE id = ?");
     $stmtUpdateAF->execute([$af_id]);
 
     $pdo->commit();
