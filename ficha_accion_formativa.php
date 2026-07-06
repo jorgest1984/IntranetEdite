@@ -2101,6 +2101,24 @@ try {
                             </svg>
                             Crear Curso en Moodle
                         </button>
+
+                        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 2rem 0;">
+                        
+                        <h4 style="font-size: 1rem; font-weight: 700; color: #1e293b; margin: 0 0 0.5rem 0;">Vincular a un curso ya existente de Moodle</h4>
+                        <p style="color: #64748b; font-size: 0.85rem; line-height: 1.5; margin: 0 0 1.5rem 0;">
+                            Si el curso ya está creado en Moodle, elígelo de la lista para asociarlo a esta acción formativa.
+                        </p>
+                        
+                        <div id="moodle-link-status-msg" style="margin-bottom: 1.5rem; font-size: 0.85rem; font-weight: 600;"></div>
+                        
+                        <div style="display: flex; gap: 10px; justify-content: center; max-width: 450px; margin: 0 auto;">
+                            <select id="moodle-existing-courses-select" style="flex: 1; height: 38px; border: 1px solid #cbd5e1; border-radius: 6px; padding: 0 10px; font-size: 0.85rem; background: #fff; max-width: 300px;">
+                                <option value="">Cargando cursos disponibles...</option>
+                            </select>
+                            <button type="button" class="btn-sync-moodle" onclick="linkExistingMoodleCourse(<?= $id ?>)" style="background-color: #16a34a; border-color: #15803d; margin: 0; height: 38px; padding: 0 15px; font-size: 0.85rem;">
+                                Vincular Curso
+                            </button>
+                        </div>
                     </div>
                 <?php else: ?>
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
@@ -2670,6 +2688,82 @@ try {
                     console.error('Error:', error);
                 });
         }
+
+        // Moodle load existing courses AJAX function
+        function loadMoodleCourses() {
+            const selectEl = document.getElementById('moodle-existing-courses-select');
+            if (!selectEl) return;
+            
+            fetch('api_get_moodle_courses.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        selectEl.innerHTML = '<option value="">-- Selecciona un curso de Moodle --</option>';
+                        data.courses.forEach(c => {
+                            const opt = document.createElement('option');
+                            opt.value = c.id;
+                            opt.textContent = `[ID: ${c.id}] ${c.fullname} (${c.shortname})`;
+                            selectEl.appendChild(opt);
+                        });
+                    } else {
+                        selectEl.innerHTML = `<option value="">Error: ${data.error}</option>`;
+                    }
+                })
+                .catch(error => {
+                    selectEl.innerHTML = '<option value="">Error de conexión al cargar cursos</option>';
+                    console.error('Error al cargar cursos de Moodle:', error);
+                });
+        }
+
+        // Moodle link existing course AJAX function
+        function linkExistingMoodleCourse(actionId) {
+            const selectEl = document.getElementById('moodle-existing-courses-select');
+            const btn = document.querySelector('#seguimiento-moodle button[onclick*="linkExistingMoodleCourse"]');
+            const msgDiv = document.getElementById('moodle-link-status-msg');
+            
+            if (!selectEl || !selectEl.value) {
+                alert('Por favor, selecciona un curso de Moodle.');
+                return;
+            }
+            
+            const moodleCourseId = selectEl.value;
+            btn.disabled = true;
+            msgDiv.innerHTML = '<span style="color:#475569;">Vinculando curso, por favor espera...</span>';
+            
+            const csrf = '<?= $_SESSION['csrf_token'] ?? '' ?>';
+            
+            const formData = new FormData();
+            formData.append('id', actionId);
+            formData.append('moodle_course_id', moodleCourseId);
+            formData.append('csrf_token', csrf);
+            
+            fetch('api_link_moodle_course.php', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        msgDiv.innerHTML = `<span style="color:#166534;">✓ ${data.message}</span>`;
+                        setTimeout(() => {
+                            window.location.href = `ficha_accion_formativa.php?id=${actionId}&tab=seguimiento-moodle`;
+                        }, 1500);
+                    } else {
+                        btn.disabled = false;
+                        msgDiv.innerHTML = `<span style="color:#991b1b;">❌ Error: ${data.error}</span>`;
+                    }
+                })
+                .catch(error => {
+                    btn.disabled = false;
+                    msgDiv.innerHTML = '<span style="color:#991b1b;">❌ Error de conexión de red.</span>';
+                    console.error('Error:', error);
+                });
+        }
+        
+        // Auto-load on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadMoodleCourses();
+        });
 
         // Borrar grupo AJAX
         function deleteGrupo(grupoId, numeroGrupo) {
