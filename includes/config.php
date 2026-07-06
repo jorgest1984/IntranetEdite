@@ -65,7 +65,7 @@ if ($is_local) {
     // Configuración para Producción (Plesk) con conexión local directa a MySQL
     define('DB_HOST', 'localhost');
     define('DB_USER', 'gestion.efp2026');
-    define('DB_PASS', 'Oy0v?ggswFBr6d0~');
+    define('DB_PASS', '5g39zT!e4');
     define('DB_NAME', 'intranet_formacion');
     
     // Moodle Overrides (Production values)
