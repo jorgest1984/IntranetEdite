@@ -9,18 +9,38 @@ if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_TUTOR])) {
 }
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-if (!$id) {
-    die("ID de acción formativa no proporcionado.");
-}
+$moodle_id = isset($_GET['moodle_id']) ? (int)$_GET['moodle_id'] : 0;
+$source = isset($_GET['source']) ? $_GET['source'] : '';
 
-// Fetch Action
-$stmt = $pdo->prepare("SELECT * FROM acciones_formativas WHERE id = ?");
-$stmt->execute([$id]);
-$accion = $stmt->fetch();
+$accion = null;
+
+if ($moodle_id) {
+    $stmt = $pdo->prepare("SELECT * FROM acciones_formativas WHERE id_plataforma = ?");
+    $stmt->execute([$moodle_id]);
+    $accion = $stmt->fetch();
+} elseif ($source === 'moodle' && $id) {
+    $stmt = $pdo->prepare("SELECT * FROM acciones_formativas WHERE id_plataforma = ?");
+    $stmt->execute([$id]);
+    $accion = $stmt->fetch();
+} elseif ($id) {
+    $stmt = $pdo->prepare("SELECT * FROM acciones_formativas WHERE id = ?");
+    $stmt->execute([$id]);
+    $accion = $stmt->fetch();
+    
+    // Fallback: si no se encuentra por ID interno, intentamos por id_plataforma
+    if (!$accion) {
+        $stmt = $pdo->prepare("SELECT * FROM acciones_formativas WHERE id_plataforma = ?");
+        $stmt->execute([$id]);
+        $accion = $stmt->fetch();
+    }
+}
 
 if (!$accion) {
     die("Acción formativa no encontrada.");
 }
+
+// Reasignar el ID real de la intranet para que el resto del script funcione igual
+$id = (int)$accion['id'];
 
 // Fetch Plan for Expediente
 $expediente = '---';
