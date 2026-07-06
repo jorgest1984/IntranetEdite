@@ -2106,18 +2106,41 @@ try {
                         
                         <h4 style="font-size: 1rem; font-weight: 700; color: #1e293b; margin: 0 0 0.5rem 0;">Vincular a un curso ya existente de Moodle</h4>
                         <p style="color: #64748b; font-size: 0.85rem; line-height: 1.5; margin: 0 0 1.5rem 0;">
-                            Si el curso ya está creado en Moodle, elígelo de la lista para asociarlo a esta acción formativa.
+                            Introduce directamente el ID del curso de Moodle, o selecciónalo de la lista si está disponible.
                         </p>
                         
                         <div id="moodle-link-status-msg" style="margin-bottom: 1.5rem; font-size: 0.85rem; font-weight: 600;"></div>
                         
-                        <div style="display: flex; gap: 10px; justify-content: center; max-width: 450px; margin: 0 auto;">
-                            <select id="moodle-existing-courses-select" style="flex: 1; height: 38px; border: 1px solid #cbd5e1; border-radius: 6px; padding: 0 10px; font-size: 0.85rem; background: #fff; max-width: 300px;">
-                                <option value="">Cargando cursos disponibles...</option>
-                            </select>
-                            <button type="button" class="btn-sync-moodle" onclick="linkExistingMoodleCourse(<?= $id ?>)" style="background-color: #16a34a; border-color: #15803d; margin: 0; height: 38px; padding: 0 15px; font-size: 0.85rem;">
-                                Vincular Curso
-                            </button>
+                        <div style="display: flex; flex-direction: column; gap: 15px; align-items: center; max-width: 480px; margin: 0 auto; background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px;">
+                            <!-- Opción 1: Entrada manual de ID (Recomendado debido a restricciones de token) -->
+                            <div style="display: flex; gap: 10px; width: 100%; align-items: center;">
+                                <div style="flex: 1; text-align: left;">
+                                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">ID del Curso en Moodle:</label>
+                                    <input type="number" id="moodle-course-id-input" placeholder="Ej: 53" style="width: 100%; height: 38px; border: 1px solid #cbd5e1; border-radius: 6px; padding: 0 10px; font-size: 0.85rem; background: #fff;">
+                                </div>
+                                <div style="margin-top: 20px;">
+                                    <button type="button" class="btn-sync-moodle" onclick="linkExistingMoodleCourse(<?= $id ?>, true)" style="background-color: #16a34a; border-color: #15803d; margin: 0; height: 38px; padding: 0 15px; font-size: 0.85rem; white-space: nowrap;">
+                                        Vincular por ID
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div style="width: 100%; height: 1px; background: #e2e8f0; margin: 5px 0;"></div>
+                            
+                            <!-- Opción 2: Selector AJAX -->
+                            <div style="display: flex; gap: 10px; width: 100%; align-items: flex-end;">
+                                <div style="flex: 1; text-align: left;">
+                                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">O búscalo en la lista:</label>
+                                    <select id="moodle-existing-courses-select" style="width: 100%; height: 38px; border: 1px solid #cbd5e1; border-radius: 6px; padding: 0 10px; font-size: 0.85rem; background: #fff;">
+                                        <option value="">Cargando cursos disponibles...</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <button type="button" class="btn-sync-moodle" onclick="linkExistingMoodleCourse(<?= $id ?>, false)" style="background-color: #475569; border-color: #334155; margin: 0; height: 38px; padding: 0 15px; font-size: 0.85rem; white-space: nowrap;">
+                                        Vincular
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 <?php else: ?>
@@ -2725,18 +2748,33 @@ try {
         }
 
         // Moodle link existing course AJAX function
-        function linkExistingMoodleCourse(actionId) {
+        function linkExistingMoodleCourse(actionId, isManual = false) {
             const selectEl = document.getElementById('moodle-existing-courses-select');
-            const btn = document.querySelector('#seguimiento-moodle button[onclick*="linkExistingMoodleCourse"]');
+            const inputEl = document.getElementById('moodle-course-id-input');
             const msgDiv = document.getElementById('moodle-link-status-msg');
             
-            if (!selectEl || !selectEl.value) {
-                alert('Por favor, selecciona un curso de Moodle.');
-                return;
+            let moodleCourseId = '';
+            let btnSelector = '';
+            
+            if (isManual) {
+                moodleCourseId = inputEl ? inputEl.value.trim() : '';
+                btnSelector = 'button[onclick*="linkExistingMoodleCourse"][onclick*="true"]';
+                if (!moodleCourseId) {
+                    alert('Por favor, introduce el ID del curso de Moodle.');
+                    return;
+                }
+            } else {
+                moodleCourseId = selectEl ? selectEl.value : '';
+                btnSelector = 'button[onclick*="linkExistingMoodleCourse"][onclick*="false"]';
+                if (!moodleCourseId) {
+                    alert('Por favor, selecciona un curso de Moodle.');
+                    return;
+                }
             }
             
-            const moodleCourseId = selectEl.value;
-            btn.disabled = true;
+            const btn = document.querySelector(`#seguimiento-moodle ${btnSelector}`);
+            if (btn) btn.disabled = true;
+            
             msgDiv.innerHTML = '<span style="color:#475569;">Vinculando curso, por favor espera...</span>';
             
             const csrf = '<?= $_SESSION['csrf_token'] ?? '' ?>';
@@ -2758,12 +2796,12 @@ try {
                             window.location.href = `ficha_accion_formativa.php?id=${actionId}&tab=seguimiento-moodle`;
                         }, 1500);
                     } else {
-                        btn.disabled = false;
+                        if (btn) btn.disabled = false;
                         msgDiv.innerHTML = `<span style="color:#991b1b;">❌ Error: ${data.error}</span>`;
                     }
                 })
                 .catch(error => {
-                    btn.disabled = false;
+                    if (btn) btn.disabled = false;
                     msgDiv.innerHTML = '<span style="color:#991b1b;">❌ Error de conexión de red.</span>';
                     console.error('Error:', error);
                 });
