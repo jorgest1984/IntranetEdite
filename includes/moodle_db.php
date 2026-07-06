@@ -39,6 +39,10 @@ class MoodleDB {
         return $this->connected;
     }
 
+    public function getPDO() {
+        return $this->mpdo;
+    }
+
     public function getError() {
         return $this->error;
     }

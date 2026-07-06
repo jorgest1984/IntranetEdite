@@ -3,6 +3,7 @@
 require_once 'includes/auth.php';
 require_once 'includes/config.php';
 require_once 'includes/moodle_api.php';
+require_once 'includes/moodle_db.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -52,14 +53,34 @@ try {
         exit();
     }
 
-    // 4. Instanciar Moodle API y consultar alumnos matriculados
-    $moodleApi = new MoodleAPI($pdo);
-    if (!$moodleApi->isConfigured()) {
-        echo json_encode(['success' => false, 'error' => 'Moodle no está configurado correctamente en el sistema.']);
-        exit();
+    // 4. Consultar alumnos matriculados (Primero por base de datos, luego fallback a la API)
+    $moodleUsers = [];
+    $moodleDb = new MoodleDB();
+    if ($moodleDb->isConnected()) {
+        try {
+            $mpdo = $moodleDb->getPDO();
+            $prefix = defined('MOODLE_DB_PREFIX') ? MOODLE_DB_PREFIX : 'mdl_';
+            $sqlUsers = "SELECT u.id, u.username, u.firstname, u.lastname, u.email
+                         FROM {$prefix}user u
+                         JOIN {$prefix}user_enrolments ue ON ue.userid = u.id
+                         JOIN {$prefix}enrol e ON e.id = ue.enrolid
+                         WHERE e.courseid = ? AND u.deleted = 0";
+            $stmtUsers = $mpdo->prepare($sqlUsers);
+            $stmtUsers->execute([$courseMoodleId]);
+            $moodleUsers = $stmtUsers->fetchAll();
+        } catch (Exception $dbEx) {
+            $moodleUsers = [];
+        }
     }
 
-    $moodleUsers = $moodleApi->getEnrolledUsers($courseMoodleId);
+    // Fallback a la API si la consulta por BD no devolvió nada o no está conectada
+    if (empty($moodleUsers)) {
+        $moodleApi = new MoodleAPI($pdo);
+        if ($moodleApi->isConfigured()) {
+            $moodleUsers = $moodleApi->getEnrolledUsers($courseMoodleId);
+        }
+    }
+
     if (empty($moodleUsers) || !is_array($moodleUsers)) {
         echo json_encode(['success' => false, 'error' => 'No se encontraron alumnos matriculados en el curso de Moodle.']);
         exit();
