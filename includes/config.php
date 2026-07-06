@@ -75,10 +75,10 @@ if ($is_local) {
     // Moodle Database Config (Production)
     define('MOODLE_DB_HOST', 'localhost');
     define('MOODLE_DB_PORT', '3306');
-    define('MOODLE_DB_USER', 'moodle_prod');
-    define('MOODLE_DB_PASS', 'Oy0v?ggswFBr6d0~');
-    define('MOODLE_DB_NAME', 'moodle_prod');
-    define('MOODLE_DB_PREFIX', 'mdl_');
+    define('MOODLE_DB_USER', 'aulavirtual_efp');
+    define('MOODLE_DB_PASS', 'EfP@v1rtu4l2024!');
+    define('MOODLE_DB_NAME', 'aulavirtual_efpdb');
+    define('MOODLE_DB_PREFIX', 'avefp_');
     
     try {
         $pdo = new PDO("mysql:host=".DB_HOST.";dbname=".DB_NAME.";charset=utf8mb4", DB_USER, DB_PASS);
