@@ -5,8 +5,8 @@ require_once dirname(__DIR__) . '/includes/config.php';
 header('Content-Type: text/plain; charset=utf-8');
 
 function test_smtp_send($to, $subject, $body) {
-    $host = 'grupoefp.es';
-    $port = 587; // Probamos primero el puerto 587 (SMTP seguro estándar)
+    $host = 'ssl://grupoefp.es';
+    $port = 465; // Puerto SSL seguro estándar
     $user = 'admin@grupoefp.es';
     $pass = 'Estacion.2025';
     $from = 'admin@grupoefp.es';
@@ -15,13 +15,8 @@ function test_smtp_send($to, $subject, $body) {
     $socket = @fsockopen($host, $port, $errno, $errstr, 15);
     
     if (!$socket) {
-        echo "❌ No se pudo conectar al puerto $port. Error: $errstr ($errno). Intentando puerto 25...\n";
-        $port = 25; // Fallback al puerto 25
-        $socket = @fsockopen($host, $port, $errno, $errstr, 15);
-        if (!$socket) {
-            echo "❌ No se pudo conectar al puerto 25 tampoco. Error: $errstr ($errno).\n";
-            return false;
-        }
+        echo "❌ No se pudo conectar al puerto SSL $port. Error: $errstr ($errno).\n";
+        return false;
     }
     
     echo "Connected! Leyendo banner...\n";
@@ -45,7 +40,7 @@ function test_smtp_send($to, $subject, $body) {
 
     $read(); // banner
 
-    $write("EHLO " . $host);
+    $write("EHLO grupoefp.es");
     $read();
 
     // Iniciar Auth Login
@@ -93,5 +88,5 @@ function test_smtp_send($to, $subject, $body) {
     return true;
 }
 
-test_smtp_send('sisqogr@gmail.com', 'Prueba SMTP Autenticado Intranet', 'Hola Jorge, este correo ha sido enviado usando SMTP autenticado con las claves de Moodle.');
+test_smtp_send('sisqogr@gmail.com', 'Prueba SMTP SSL Autenticado Intranet', 'Hola Jorge, este correo ha sido enviado usando SMTP SSL autenticado por el puerto 465.');
 ?>
