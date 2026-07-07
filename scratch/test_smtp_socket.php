@@ -5,17 +5,15 @@ require_once dirname(__DIR__) . '/includes/config.php';
 header('Content-Type: text/plain; charset=utf-8');
 
 function test_smtp_send($to, $subject, $body) {
-    $host = 'ssl://grupoefp.es';
-    $port = 465; // Puerto SSL seguro estándar
-    $user = 'admin@grupoefp.es';
-    $pass = 'Estacion.2025';
-    $from = 'admin@grupoefp.es';
+    $host = '127.0.0.1';
+    $port = 25; // Conectar al puerto local 25 sin cifrado
+    $from = 'intranet@grupoefp.es';
 
-    echo "Conectando a $host:$port...\n";
+    echo "Conectando a local SMTP $host:$port...\n";
     $socket = @fsockopen($host, $port, $errno, $errstr, 15);
     
     if (!$socket) {
-        echo "❌ No se pudo conectar al puerto SSL $port. Error: $errstr ($errno).\n";
+        echo "❌ No se pudo conectar a localhost:25. Error: $errstr ($errno).\n";
         return false;
     }
     
@@ -40,28 +38,10 @@ function test_smtp_send($to, $subject, $body) {
 
     $read(); // banner
 
-    $write("EHLO grupoefp.es");
+    $write("EHLO localhost");
     $read();
 
-    // Iniciar Auth Login
-    $write("AUTH LOGIN");
-    $read();
-
-    $write(base64_encode($user));
-    $read();
-
-    $write(base64_encode($pass));
-    $resp = $read();
-    
-    if (strpos($resp, '235') === false) {
-        echo "❌ Autenticación SMTP fallida.\n";
-        $write("QUIT");
-        fclose($socket);
-        return false;
-    }
-    
-    echo "✅ Autenticación SMTP exitosa!\n";
-
+    // No enviamos AUTH LOGIN, probamos envío directo como localhost de confianza
     $write("MAIL FROM:<" . $from . ">");
     $read();
 
@@ -84,9 +64,9 @@ function test_smtp_send($to, $subject, $body) {
     $read();
     
     fclose($socket);
-    echo "✅ Correo enviado e hilo cerrado con éxito!\n";
+    echo "✅ Correo enviado con éxito como localhost!\n";
     return true;
 }
 
-test_smtp_send('sisqogr@gmail.com', 'Prueba SMTP SSL Autenticado Intranet', 'Hola Jorge, este correo ha sido enviado usando SMTP SSL autenticado por el puerto 465.');
+test_smtp_send('sisqogr@gmail.com', 'Prueba SMTP Localhost Sin Auth', 'Hola Jorge, este correo ha sido enviado vía SMTP local sin autenticación desde el servidor.');
 ?>
