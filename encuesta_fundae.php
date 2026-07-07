@@ -8,6 +8,9 @@ header("Pragma: no-cache");
 // pero realizamos una validación rigurosa de los parámetros de consulta.
 require_once 'includes/config.php';
 
+// Log temporal para depuración de los parámetros enviados por Moodle
+file_put_contents(__DIR__ . '/encuesta_debug.log', date('Y-m-d H:i:s') . ' - QUERY_STRING: ' . ($_SERVER['QUERY_STRING'] ?? '') . ' - GET: ' . json_encode($_GET) . "\n", FILE_APPEND);
+
 $id_curso = isset($_GET['id_curso']) ? (int)$_GET['id_curso'] : 0;
 if (!$id_curso && isset($_GET['moodle_course_id'])) {
     $id_curso = (int)$_GET['moodle_course_id'];
