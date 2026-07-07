@@ -3,8 +3,13 @@
 
 class Papelera {
     
+    private static $tableChecked = false;
+    
     // Asegurar que existe la tabla papelera
     public static function checkTable($pdo) {
+        if (self::$tableChecked) {
+            return;
+        }
         $pdo->exec("CREATE TABLE IF NOT EXISTS papelera (
             id INT AUTO_INCREMENT PRIMARY KEY,
             tabla VARCHAR(100) NOT NULL,
@@ -14,6 +19,7 @@ class Papelera {
             usuario_id INT NULL,
             fecha_borrado TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+        self::$tableChecked = true;
     }
 
     /**
