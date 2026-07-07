@@ -2079,10 +2079,10 @@ Equipo de Soporte de Formación</textarea>
     const modalClaves = document.getElementById('modal-envio-claves');
     
     window.openClavesModal = function() {
-        const alumnoNombre = "<?= htmlspecialchars(trim($matricula['nombre'] . ' ' . ($matricula['primer_apellido'] ?? '') . ' ' . ($matricula['segundo_apellido'] ?? ''))) ?>";
-        const alumnoEmail = "<?= htmlspecialchars($matricula['email'] ?? '') ?>";
-        const alumnoUsuario = "<?= htmlspecialchars($matricula['plat_usuario'] ?? '') ?>" || "<?= htmlspecialchars(strtolower(explode('@', $matricula['email'] ?? '')[0])) ?>";
-        const alumnoClave = "<?= htmlspecialchars($matricula['plat_clave'] ?? '') ?>" || "Efp2026!";
+        const alumnoNombre = <?= json_encode(trim(($matricula['nombre'] ?? '') . ' ' . ($matricula['primer_apellido'] ?? '') . ' ' . ($matricula['segundo_apellido'] ?? ''))) ?>;
+        const alumnoEmail = <?= json_encode($matricula['email'] ?? '') ?>;
+        const alumnoUsuario = <?= json_encode($matricula['plat_usuario'] ?? '') ?> || <?= json_encode(!empty($matricula['email']) ? strtolower(explode('@', $matricula['email'])[0]) : '') ?>;
+        const alumnoClave = <?= json_encode($matricula['plat_clave'] ?? '') ?> || "Efp2026!";
         
         document.getElementById('m-alumno-nombre').textContent = alumnoNombre;
         document.getElementById('m-alumno-email').textContent = alumnoEmail;
