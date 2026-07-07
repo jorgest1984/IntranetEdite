@@ -80,34 +80,45 @@ try {
     $final_subject = str_replace(array_keys($placeholders), array_values($placeholders), $subject);
     $final_body = str_replace(array_keys($placeholders), array_values($placeholders), $body);
 
-    // 6. Enviar correo electrónico usando el relay send_mail.php
-    $bridge_url = defined('APP_URL') ? rtrim(APP_URL, '/') . '/send_mail.php' : 'https://gestion.grupoefp.es/send_mail.php';
-    $bridge_token = 'dbbea329538b1694971d7ee66cc3e4673';
+    // 6. Enviar correo electrónico directamente
+    $from = 'intranet@grupoefp.es';
+    $headers  = "From: " . strip_tags($from) . "\r\n";
+    $headers .= "Reply-To: " . strip_tags($from) . "\r\n";
+    $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
+    $headers .= "X-Mailer: PHP/" . phpversion();
 
-    $postData = http_build_query([
-        'token' => $bridge_token,
-        'to' => $to_email,
-        'from' => 'intranet@grupoefp.es',
-        'subject' => $final_subject,
-        'body' => $final_body
-    ]);
+    $sent = @mail($to_email, $final_subject, $final_body, $headers);
 
-    $ch = curl_init($bridge_url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+    if (!$sent) {
+        // Fallback: Si falla mail() local (ej. en local o Vercel), usar el relay cURL
+        $bridge_url = defined('APP_URL') ? rtrim(APP_URL, '/') . '/send_mail.php' : 'https://gestion.grupoefp.es/send_mail.php';
+        $bridge_token = 'dbbea329538b1694971d7ee66cc3e4673';
 
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
+        $postData = http_build_query([
+            'token' => $bridge_token,
+            'to' => $to_email,
+            'from' => $from,
+            'subject' => $final_subject,
+            'body' => $final_body
+        ]);
 
-    if ($httpCode !== 200) {
-        $resultData = json_decode($response, true);
-        $relayError = $resultData['error'] ?? 'Error desconocido en el servidor de correo.';
-        echo json_encode(['success' => false, 'error' => "Error al enviar el correo a través del servidor de correo. (HTTP $httpCode: $relayError)"]);
-        exit();
+        $ch = curl_init($bridge_url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode !== 200) {
+            $resultData = json_decode($response, true);
+            $relayError = $resultData['error'] ?? 'Error desconocido en el servidor de correo.';
+            echo json_encode(['success' => false, 'error' => "Error al enviar el correo (directo fallido y HTTP relay $httpCode: $relayError)"]);
+            exit();
+        }
     }
 
     // 7. En caso de éxito, actualizar los estados de envío de claves en la base de datos
