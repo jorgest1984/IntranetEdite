@@ -1765,7 +1765,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         </label>
 
                         <div style="margin-left: auto;">
-                            <button type="button" class="btn-modern" onclick="window.open('envio_claves.php?id=<?= $id ?>', '_blank')" style="background: #f59e0b; color: white; border: 1px solid #d97706; font-weight: 700; padding: 0.4rem 1.2rem;">
+                            <button type="button" class="btn-modern" onclick="openClavesModal()" style="background: #2563eb; color: white; border: 1px solid #1d4ed8; font-weight: 700; padding: 0.4rem 1.2rem;">
                                 Enviar Claves
                             </button>
                         </div>
@@ -2018,6 +2018,125 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             });
         }
     });
+</script>
+
+<!-- Modal para Enviar Claves de Acceso -->
+<div id="modal-envio-claves" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center; padding: 20px;">
+    <div style="background: white; width: 100%; max-width: 650px; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); overflow: hidden; display: flex; flex-direction: column; animation: modalFadeIn 0.3s ease;">
+        <div style="background: #1e3a8a; color: white; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: white;">📨 Enviar Claves de Acceso a Moodle</h3>
+            <button type="button" onclick="closeClavesModal()" style="background: transparent; border: none; color: white; font-size: 1.5rem; cursor: pointer; line-height: 1;">&times;</button>
+        </div>
+        <div style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; font-size: 0.85rem;">
+                <div><strong>Alumno:</strong> <span id="m-alumno-nombre">Cargando...</span></div>
+                <div><strong>E-mail:</strong> <span id="m-alumno-email">Cargando...</span></div>
+                <div><strong>Usuario Moodle:</strong> <span id="m-alumno-usuario">Cargando...</span></div>
+                <div><strong>Contraseña:</strong> <span id="m-alumno-clave">Cargando...</span></div>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-weight: 600; color: #334155; font-size: 0.85rem; text-align: left; display: block;">Asunto del Correo:</label>
+                <input type="text" id="m-correo-subject" class="form-control" style="font-family: inherit; font-size: 0.9rem;" value="Datos de Acceso al Aula Virtual - {curso}">
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-weight: 600; color: #334155; font-size: 0.85rem; text-align: left; display: block;">Cuerpo del Mensaje (Soporta marcadores: {nombre}, {curso}, {url}, {usuario}, {contrasena}):</label>
+                <textarea id="m-correo-body" style="height: 180px; width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; font-family: inherit; font-size: 0.85rem; line-height: 1.4; resize: vertical;">Estimado/a {nombre},
+
+Nos complace darte la bienvenida al curso "{curso}".
+
+A continuación, te facilitamos tus datos de acceso al Aula Virtual:
+
+Plataforma: {url}
+Usuario: {usuario}
+Contraseña: {contrasena}
+
+Te recomendamos acceder a la plataforma lo antes posible para comenzar tu formación.
+
+Quedamos a tu entera disposición para cualquier consulta.
+
+Un cordial saludo,
+Equipo de Soporte de Formación</textarea>
+            </div>
+        </div>
+        <div style="background: #f1f5f9; padding: 1rem 1.5rem; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #e2e8f0;">
+            <button type="button" onclick="closeClavesModal()" class="btn-modern" style="background: #e2e8f0; color: #475569; border: 1px solid #cbd5e1; font-weight: 600; padding: 0.4rem 1rem;">Cancelar</button>
+            <button type="button" id="btn-confirm-send-claves" onclick="sendClavesAction()" class="btn-modern btn-primary-modern" style="background: #2563eb; color: white; border: 1px solid #1d4ed8; font-weight: 600; min-width: 130px; padding: 0.4rem 1rem;">Enviar Claves</button>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<script>
+    // Modal de envío de claves
+    const modalClaves = document.getElementById('modal-envio-claves');
+    
+    window.openClavesModal = function() {
+        const alumnoNombre = "<?= htmlspecialchars(trim($matricula['nombre'] . ' ' . ($matricula['primer_apellido'] ?? '') . ' ' . ($matricula['segundo_apellido'] ?? ''))) ?>";
+        const alumnoEmail = "<?= htmlspecialchars($matricula['email'] ?? '') ?>";
+        const alumnoUsuario = "<?= htmlspecialchars($matricula['plat_usuario'] ?? '') ?>" || "<?= htmlspecialchars(strtolower(explode('@', $matricula['email'] ?? '')[0])) ?>";
+        const alumnoClave = "<?= htmlspecialchars($matricula['plat_clave'] ?? '') ?>" || "Efp2026!";
+        
+        document.getElementById('m-alumno-nombre').textContent = alumnoNombre;
+        document.getElementById('m-alumno-email').textContent = alumnoEmail;
+        document.getElementById('m-alumno-usuario').textContent = alumnoUsuario;
+        document.getElementById('m-alumno-clave').textContent = alumnoClave;
+        
+        modalClaves.style.display = 'flex';
+    };
+    
+    window.closeClavesModal = function() {
+        modalClaves.style.display = 'none';
+    };
+    
+    window.sendClavesAction = function() {
+        const btn = document.getElementById('btn-confirm-send-claves');
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'Enviando...';
+        
+        const formData = new FormData();
+        formData.append('matricula_id', '<?= $id ?>');
+        formData.append('subject', document.getElementById('m-correo-subject').value);
+        formData.append('body', document.getElementById('m-correo-body').value);
+        
+        fetch('api_send_matricula_keys.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.textContent = originalText;
+            if (data.success) {
+                alert(data.message);
+                
+                // Marcar el checkbox en el formulario principal
+                const checkboxClaves = document.querySelector('input[name="envio_claves"]');
+                if (checkboxClaves) checkboxClaves.checked = true;
+                
+                // Actualizar la fecha del input fecha_claves
+                const inputFecha = document.querySelector('input[name="fecha_claves"]');
+                if (inputFecha) inputFecha.value = data.fecha_claves;
+                
+                closeClavesModal();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.textContent = originalText;
+            alert('Error de red al intentar enviar las claves.');
+        });
+    };
 </script>
 
 </body>
