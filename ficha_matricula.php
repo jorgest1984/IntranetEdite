@@ -256,20 +256,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         
         foreach ($matriculas_mapping as $post_key => $col_name) {
             if (in_array($col_name, $matriculas_columns)) {
-                if (isset($_POST[$post_key])) {
-                    $val = $_POST[$post_key];
-                    $update_matriculas[] = "`$col_name` = ?";
-                    $update_matriculas_params[] = ($val === '') ? null : $val;
-                } elseif (in_array($col_name, [
+                if (in_array($col_name, [
                     'captado_ugt', 'no_preinscrito', 'no_desmatricular', 'diploma_entregado', 'comunicado', 'comunicado_ugt', 
                     'nomina_entregada', 'correcto', 'recibi_material', 'asistencia', 'evaluacion_docente', 'entrega_mat_1',
                     'envio_claves', 'email_admision_enviado', 'encuesta', 'conectado', 'email_1_check', 'email_2_check', 
                     'email_3_check', 'email_4_check', 'email_5_check', 'email_6_check', 'email_7_check', 'llamada_inicio', 
                     'llamada_mitad', 'llamada_7dias', 'llamada_cierre', 'no_pedir_nomina'
                 ])) {
-                    // Checkbox no enviado = 0
                     $update_matriculas[] = "`$col_name` = ?";
-                    $update_matriculas_params[] = 0;
+                    $update_matriculas_params[] = isset($_POST[$post_key]) ? 1 : 0;
+                } else {
+                    if (isset($_POST[$post_key])) {
+                        $val = $_POST[$post_key];
+                        $update_matriculas[] = "`$col_name` = ?";
+                        $update_matriculas_params[] = ($val === '') ? null : $val;
+                    }
                 }
             }
         }
@@ -279,14 +280,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $update_alumnos_params = [];
         foreach ($alumnos_mapping as $post_key => $col_name) {
             if (in_array($col_name, $alumnos_columns)) {
-                if (isset($_POST[$post_key])) {
-                    $val = $_POST[$post_key];
+                if (in_array($col_name, ['enviar_emails', 'bloqueado'])) {
                     $update_alumnos[] = "`$col_name` = ?";
-                    $update_alumnos_params[] = ($val === '') ? null : $val;
-                } elseif (in_array($col_name, ['enviar_emails', 'bloqueado'])) {
-                    // Checkbox no enviado = 0
-                    $update_alumnos[] = "`$col_name` = ?";
-                    $update_alumnos_params[] = 0;
+                    $update_alumnos_params[] = isset($_POST[$post_key]) ? 1 : 0;
+                } else {
+                    if (isset($_POST[$post_key])) {
+                        $val = $_POST[$post_key];
+                        $update_alumnos[] = "`$col_name` = ?";
+                        $update_alumnos_params[] = ($val === '') ? null : $val;
+                    }
                 }
             }
         }
