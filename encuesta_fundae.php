@@ -9,9 +9,20 @@ header("Pragma: no-cache");
 require_once 'includes/config.php';
 
 $id_curso = isset($_GET['id_curso']) ? (int)$_GET['id_curso'] : 0;
+if (!$id_curso && isset($_GET['moodle_course_id'])) {
+    $id_curso = (int)$_GET['moodle_course_id'];
+}
+if (!$id_curso && isset($_GET['id'])) {
+    $id_curso = (int)$_GET['id'];
+}
+
 $id_alumno = isset($_GET['id_alumno']) ? (int)$_GET['id_alumno'] : 0;
-$moodle_user_id = isset($_GET['moodle_user_id']) ? (int)$_GET['moodle_user_id'] : null;
-$moodle_course_id = isset($_GET['moodle_course_id']) ? (int)$_GET['moodle_course_id'] : null;
+if (!$id_alumno && isset($_GET['moodle_user_id'])) {
+    $id_alumno = (int)$_GET['moodle_user_id'];
+}
+if (!$id_alumno && isset($_GET['user_id'])) {
+    $id_alumno = (int)$_GET['user_id'];
+}
 
 if (!$id_curso || !$id_alumno) {
     die("Acceso denegado: Parámetros requeridos inválidos.");
