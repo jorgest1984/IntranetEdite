@@ -29,8 +29,8 @@ try {
                a.plat_usuario, a.plat_clave, a.moodle_user_id
         FROM matriculas m
         JOIN alumnos a ON m.alumno_id = a.id
-        JOIN grupos g ON m.grupo_id = g.id
-        JOIN acciones_formativas af ON g.accion_id = af.id
+        LEFT JOIN grupos g ON m.grupo_id = g.id
+        LEFT JOIN acciones_formativas af ON g.accion_id = af.id
         WHERE m.id = ?
         LIMIT 1
     ");
@@ -69,9 +69,11 @@ try {
     // 5. Reemplazar placeholders en el asunto y el cuerpo del mensaje
     $alumno_nombre_completo = trim($matricula['nombre'] . ' ' . ($matricula['primer_apellido'] ?? '') . ' ' . ($matricula['segundo_apellido'] ?? ''));
     
+    $curso_display = !empty($matricula['curso_nombre']) ? $matricula['curso_nombre'] : 'Aula Virtual';
+
     $placeholders = [
         '{nombre}' => $alumno_nombre_completo,
-        '{curso}' => $matricula['curso_nombre'],
+        '{curso}' => $curso_display,
         '{url}' => $moodle_url,
         '{usuario}' => $username,
         '{contrasena}' => $password

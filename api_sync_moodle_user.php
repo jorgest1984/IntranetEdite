@@ -25,8 +25,8 @@ try {
                a.plat_usuario, a.plat_clave, a.moodle_user_id
         FROM matriculas m
         JOIN alumnos a ON m.alumno_id = a.id
-        JOIN grupos g ON m.grupo_id = g.id
-        JOIN acciones_formativas af ON g.accion_id = af.id
+        LEFT JOIN grupos g ON m.grupo_id = g.id
+        LEFT JOIN acciones_formativas af ON g.accion_id = af.id
         WHERE m.id = ?
         LIMIT 1
     ");
