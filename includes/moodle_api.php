@@ -456,6 +456,32 @@ class MoodleAPI {
      * Desmatricular usuario de un curso (manual unenrol)
      */
     public function unenrolUser($userId, $courseId) {
+        // 1. Intentar por base de datos primero (para evitar el bloqueo de permisos del token)
+        require_once __DIR__ . '/moodle_db.php';
+        $moodleDb = new MoodleDB();
+        if ($moodleDb->isConnected()) {
+            try {
+                $mpdo = $moodleDb->getPDO();
+                $prefix = defined('MOODLE_DB_PREFIX') ? MOODLE_DB_PREFIX : 'avefp_';
+                
+                // Buscar el ID del método de matriculación manual para este curso
+                $stmtEnrol = $mpdo->prepare("SELECT id FROM {$prefix}enrol WHERE courseid = ? AND enrol = 'manual' LIMIT 1");
+                $stmtEnrol->execute([(int)$courseId]);
+                $enrolRow = $stmtEnrol->fetch();
+                
+                if ($enrolRow) {
+                    $enrolId = (int)$enrolRow['id'];
+                    // Borrar el registro de la matrícula del usuario
+                    $stmtUnenrol = $mpdo->prepare("DELETE FROM {$prefix}user_enrolments WHERE userid = ? AND enrolid = ?");
+                    $stmtUnenrol->execute([(int)$userId, $enrolId]);
+                    return ['status' => true];
+                }
+            } catch (Exception $dbEx) {
+                // Si falla por base de datos, dejamos que pase al fallback de la API
+            }
+        }
+
+        // 2. Fallback a la API de Moodle
         $params = [
             'enrolments' => [
                 [

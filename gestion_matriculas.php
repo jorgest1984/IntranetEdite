@@ -120,6 +120,11 @@ if (isset($_GET['remove_id'])) {
 
     // Iniciar transacción de BD para archivar en Papelera y eliminar localmente
     try {
+        // Asegurar que la tabla Papelera existe ANTES de iniciar la transacción.
+        // Esto evita que el DDL implícito (CREATE TABLE) de Papelera rompa la transacción PDO activa.
+        require_once 'includes/Papelera.php';
+        Papelera::checkTable($pdo);
+
         $pdo->beginTransaction();
 
         // Obtener el registro limpio de la matrícula para archivar en Papelera
