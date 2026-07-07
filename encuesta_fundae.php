@@ -12,6 +12,9 @@ require_once 'includes/config.php';
 file_put_contents(__DIR__ . '/encuesta_debug.log', date('Y-m-d H:i:s') . ' - QUERY_STRING: ' . ($_SERVER['QUERY_STRING'] ?? '') . ' - GET: ' . json_encode($_GET) . "\n", FILE_APPEND);
 
 $id_curso = isset($_GET['id_curso']) ? (int)$_GET['id_curso'] : 0;
+if (!$id_curso && isset($_GET['idcurso'])) {
+    $id_curso = (int)$_GET['idcurso'];
+}
 if (!$id_curso && isset($_GET['moodle_course_id'])) {
     $id_curso = (int)$_GET['moodle_course_id'];
 }
@@ -20,6 +23,9 @@ if (!$id_curso && isset($_GET['id'])) {
 }
 
 $id_alumno = isset($_GET['id_alumno']) ? (int)$_GET['id_alumno'] : 0;
+if (!$id_alumno && isset($_GET['idalumno'])) {
+    $id_alumno = (int)$_GET['idalumno'];
+}
 if (!$id_alumno && isset($_GET['moodle_user_id'])) {
     $id_alumno = (int)$_GET['moodle_user_id'];
 }
