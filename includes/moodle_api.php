@@ -344,6 +344,60 @@ class MoodleAPI {
      * Matricular usuario en un curso (manual enrol)
      */
     public function enrolUser($userId, $courseId, $roleId = 5) { // 5 suele ser student
+        // 1. Intentar por base de datos primero (para evitar bloqueos de token)
+        require_once __DIR__ . '/moodle_db.php';
+        $moodleDb = new MoodleDB();
+        if ($moodleDb->isConnected()) {
+            try {
+                $mpdo = $moodleDb->getPDO();
+                $prefix = defined('MOODLE_DB_PREFIX') ? MOODLE_DB_PREFIX : 'avefp_';
+                
+                // Buscar el ID del método de matriculación manual para este curso
+                $stmtEnrol = $mpdo->prepare("SELECT id FROM {$prefix}enrol WHERE courseid = ? AND enrol = 'manual' LIMIT 1");
+                $stmtEnrol->execute([(int)$courseId]);
+                $enrolRow = $stmtEnrol->fetch();
+                
+                if ($enrolRow) {
+                    $enrolId = (int)$enrolRow['id'];
+                    $now = time();
+                    
+                    // Comprobar si ya está matriculado para evitar duplicados
+                    $stmtCheck = $mpdo->prepare("SELECT id FROM {$prefix}user_enrolments WHERE userid = ? AND enrolid = ?");
+                    $stmtCheck->execute([(int)$userId, $enrolId]);
+                    
+                    if (!$stmtCheck->fetch()) {
+                        // Insertar la matriculación
+                        $stmtEnrolUser = $mpdo->prepare("
+                            INSERT INTO {$prefix}user_enrolments (status, enrolid, userid, timestart, timeend, modifierid, timecreated, timemodified)
+                            VALUES (0, ?, ?, ?, 0, 2, ?, ?)
+                        ");
+                        $stmtEnrolUser->execute([$enrolId, (int)$userId, $now, $now, $now]);
+                    }
+                    
+                    // Asignar rol de estudiante en el contexto del curso si no lo tiene (contextlevel = 50)
+                    $stmtContext = $mpdo->prepare("SELECT id FROM {$prefix}context WHERE contextlevel = 50 AND instanceid = ? LIMIT 1");
+                    $stmtContext->execute([(int)$courseId]);
+                    $contextRow = $stmtContext->fetch();
+                    if ($contextRow) {
+                        $contextId = (int)$contextRow['id'];
+                        $stmtRoleCheck = $mpdo->prepare("SELECT id FROM {$prefix}role_assignments WHERE roleid = ? AND userid = ? AND contextid = ?");
+                        $stmtRoleCheck->execute([(int)$roleId, (int)$userId, $contextId]);
+                        if (!$stmtRoleCheck->fetch()) {
+                            $stmtAssign = $mpdo->prepare("
+                                INSERT INTO {$prefix}role_assignments (roleid, contextid, userid, timemodified, modifierid, component, itemid, sortorder)
+                                VALUES (?, ?, ?, ?, 2, '', 0, 0)
+                            ");
+                            $stmtAssign->execute([(int)$roleId, $contextId, (int)$userId, $now]);
+                        }
+                    }
+                    return ['status' => true];
+                }
+            } catch (Exception $dbEx) {
+                // Si falla, dejamos pasar al fallback de la API
+            }
+        }
+
+        // 2. Fallback a la API de Moodle
         $params = [
             'enrolments' => [
                 [

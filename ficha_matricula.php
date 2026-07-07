@@ -663,11 +663,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         <!-- ACCIONES RÁPIDAS (Migradas del Top Bar antiguo) -->
         <div class="actions-bar">
-            <button class="btn-outline">📄 Documentos</button>
-            <button class="btn-outline">⚠️ Incidencia</button>
-            <button class="btn-outline">🔄 Sincronizar Moodle</button>
-            <button class="btn-outline">📥 Notificar Baja/Aban</button>
-            <button class="btn-outline">🔑 Envío Claves</button>
+            <button type="button" class="btn-outline" onclick="document.querySelector('.tab-btn[data-target=\'tab-docs\']').click()">📄 Documentos</button>
+            <button type="button" class="btn-outline" onclick="window.location.href='incidencias.php'">⚠️ Incidencia</button>
+            <button type="button" id="btn-quick-sync-moodle" class="btn-outline" onclick="syncMoodleUser()">🔄 Sincronizar Moodle</button>
+            <button type="button" class="btn-outline" onclick="goToBajasSection()">📥 Notificar Baja/Aban</button>
+            <button type="button" class="btn-outline" onclick="openClavesModal()">🔑 Envío Claves</button>
         </div>
 
         <!-- TABS MODERNOS -->
@@ -2135,6 +2135,53 @@ Equipo de Soporte de Formación</textarea>
             btn.disabled = false;
             btn.textContent = originalText;
             alert('Error de red al intentar enviar las claves.');
+        });
+    };
+
+    // Ir a la sección de Bajas y resaltar
+    window.goToBajasSection = function() {
+        // Cambiar a Datos Personales si no está activo
+        document.querySelector('.tab-btn[data-target="tab-personales"]').click();
+        // Scroll hasta el selector de motivo_baja
+        const selectBaja = document.querySelector('select[name="motivo_baja"]');
+        if (selectBaja) {
+            selectBaja.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            selectBaja.focus();
+            selectBaja.style.outline = '3px solid #ef4444';
+            setTimeout(() => {
+                selectBaja.style.outline = '';
+            }, 2000);
+        }
+    };
+
+    // Sincronizar usuario y matrícula con Moodle
+    window.syncMoodleUser = function() {
+        const btn = document.getElementById('btn-quick-sync-moodle');
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '🔄 Sincronizando...';
+
+        const formData = new FormData();
+        formData.append('matricula_id', '<?= $id ?>');
+
+        fetch('api_sync_moodle_user.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            alert(data.message || data.error);
+            if (data.success) {
+                // Recargar para ver los datos de acceso actualizados en la ficha si corresponde
+                window.location.reload();
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            alert('Error de red al sincronizar con Moodle.');
         });
     };
 </script>
