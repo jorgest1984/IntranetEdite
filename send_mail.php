@@ -35,16 +35,13 @@ if (empty($to) || empty($subject) || empty($body)) {
     exit;
 }
 
-$headers  = "From: " . strip_tags($from) . "\r\n";
-$headers .= "Reply-To: " . strip_tags($from) . "\r\n";
-$headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
-$headers .= "X-Mailer: PHP/" . phpversion();
+require_once 'includes/smtp_mailer.php';
 
-$sent = @mail($to, $subject, $body, $headers);
+$sent = send_smtp_email($to, $subject, $body);
 
 if ($sent) {
     echo json_encode(['success' => true, 'message' => 'Correo enviado correctamente']);
 } else {
     http_response_code(500);
-    echo json_encode(['error' => 'No se pudo enviar el correo.']);
+    echo json_encode(['error' => 'No se pudo enviar el correo a través de SMTP.']);
 }
