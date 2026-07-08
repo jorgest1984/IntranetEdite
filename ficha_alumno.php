@@ -785,7 +785,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                                 $opcionesEstudios = ["Sin estudios", "Primaria", "ESO/EGB", "Bachillerato", "FP Grado Medio", "FP Grado Superior", "Universidad"];
                                                 foreach ($opcionesEstudios as $est):
                                                 ?>
-                                                    <option <?= ($alumno['estudios'] ?? '') == $est ? 'selected' : '' ?>><?= $est ?></option>
+                                                    <option value="<?= htmlspecialchars($est) ?>" <?= ($alumno['estudios'] ?? '') == $est ? 'selected' : '' ?>><?= htmlspecialchars($est) ?></option>
                                                 <?php endforeach; ?>
                                             </select>
                                         </div>
