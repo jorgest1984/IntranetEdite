@@ -741,6 +741,7 @@ $empresas = $pdo->query("SELECT id, nombre FROM empresas ORDER BY nombre ASC LIM
                                 <option>FP Grado Medio</option>
                                 <option>FP Grado Superior</option>
                                 <option>Universidad</option>
+                                <option>Carnet Profesional</option>
                             </select>
                         </div>
                     </div>
