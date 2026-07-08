@@ -15,8 +15,9 @@ try {
         throw new Exception("Moodle no está configurado correctamente en la base de datos.");
     }
 
-    // 1. Obtener datos de la Acción Formativa, su Curso Moodle y su Convocatoria
-    $stmt = $pdo->prepare("SELECT af.*, c.moodle_id as curso_moodle_id, c.nombre_largo as titulo, c.nombre_corto, conv.nombre as convocatoria_nombre
+    // 1. Obtener datos de la Acción Formativa y su Convocatoria
+    // Usamos af.id_plataforma como ID del curso en Moodle (se edita desde editar_af.php)
+    $stmt = $pdo->prepare("SELECT af.*, c.nombre_largo as titulo, c.nombre_corto, conv.nombre as convocatoria_nombre
                            FROM acciones_formativas af 
                            JOIN cursos c ON af.curso_id = c.id 
                            LEFT JOIN planes p ON af.plan_id = p.id
@@ -27,37 +28,36 @@ try {
 
     if (!$af) throw new Exception("Acción Formativa no encontrada.");
 
-    $courseId = $af['curso_moodle_id'];
+    // El ID del curso en Moodle se guarda en acciones_formativas.id_plataforma
+    $courseId = $af['id_plataforma'] ?: null;
     
-    // Validar si el curso guardado localmente realmente existe en Moodle
+    // Validar si el curso guardado realmente existe en Moodle
     if ($courseId) {
         if (!$moodle->courseExists($courseId)) {
             $courseId = null;
             // Limpiar localmente para forzar su recreación
-            $pdo->prepare("UPDATE cursos SET moodle_id = NULL WHERE id = ?")->execute([$af['curso_id']]);
+            $pdo->prepare("UPDATE acciones_formativas SET id_plataforma = NULL WHERE id = ?")->execute([$af_id]);
         }
     }
     
-    // 2. Si el curso no tiene ID de Moodle, lo creamos
+    // 2. Si la AF no tiene ID de Moodle, crear el curso
     if (!$courseId) {
         $categoryId = 1; // Por defecto, Miscellaneous
         if (!empty($af['convocatoria_nombre'])) {
             try {
                 $categoryId = $moodle->getOrCreateCategory($af['convocatoria_nombre']);
             } catch (Exception $ex) {
-                // Fallback gracioso si no se tienen permisos o funciones para crear categorías
                 $categoryId = 1;
             }
         }
 
         $fullname = $af['titulo'];
-        $shortname = $af['abreviatura'] ?: 'CURSO-' . $af['id'];
+        $shortname = $af['abreviatura'] ?: 'CURSO-' . $af_id;
         $moodleResult = $moodle->createCourse($fullname, $shortname, $categoryId);
         if (isset($moodleResult[0]['id'])) {
             $courseId = $moodleResult[0]['id'];
-            // Guardamos el ID en nuestra base de datos local para futuros usos
-            $upd = $pdo->prepare("UPDATE cursos SET moodle_id = ? WHERE id = ?");
-            $upd->execute([$courseId, $af['curso_id']]);
+            // Guardar el nuevo ID en acciones_formativas.id_plataforma
+            $pdo->prepare("UPDATE acciones_formativas SET id_plataforma = ? WHERE id = ?")->execute([$courseId, $af_id]);
         } else {
             throw new Exception("No se pudo crear el curso en Moodle.");
         }

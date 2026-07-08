@@ -73,13 +73,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $pdo->prepare($sql);
             $stmt->execute($data);
             
-            // Actualizar moodle_id en la tabla cursos vinculada a esta Acción Formativa
-            $moodle_id = isset($_POST['moodle_id']) && $_POST['moodle_id'] !== '' ? (int)$_POST['moodle_id'] : null;
+            // Actualizar id_plataforma (ID Moodle) directamente en acciones_formativas
+            $id_plataforma = isset($_POST['moodle_id']) ? trim($_POST['moodle_id']) : '';
             
-            $logMsg = "Executing update: moodle_id = " . var_export($moodle_id, true) . ", id = $id\n";
+            $logMsg = "Updating id_plataforma = '$id_plataforma' para af.id = $id\n";
             
-            $stmtC = $pdo->prepare("UPDATE cursos SET moodle_id = ? WHERE id = (SELECT curso_id FROM acciones_formativas WHERE id = ?)");
-            $stmtC->execute([$moodle_id, $id]);
+            $stmtC = $pdo->prepare("UPDATE acciones_formativas SET id_plataforma = ? WHERE id = ?");
+            $stmtC->execute([$id_plataforma ?: null, $id]);
             
             $logMsg .= "Rows affected: " . $stmtC->rowCount() . "\n";
             file_put_contents(__DIR__ . '/uploads/save_log.txt', $logMsg);
@@ -182,7 +182,7 @@ if (!$af) die("No se encontró la Acción Formativa");
                     </div>
                     <div class="form-group">
                         <label style="color: #ea580c; font-weight: 800;">ID Curso Moodle (Plataforma)</label>
-                        <input type="number" name="moodle_id" class="form-control" style="border: 2px solid #fdba74;" value="<?= htmlspecialchars($af['curso_moodle_id'] ?? '') ?>" placeholder="Ej: 48 (Dejar vacío si no existe)">
+                        <input type="number" name="moodle_id" class="form-control" style="border: 2px solid #fdba74;" value="<?= htmlspecialchars($af['id_plataforma'] ?? '') ?>" placeholder="Ej: 48 (Dejar vacío si no existe)">
                     </div>
                     <div class="form-group full-width">
                         <label>Objetivos Generales</label>
