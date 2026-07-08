@@ -306,6 +306,19 @@ class MoodleAPI {
     }
 
     /**
+     * Verificar si un grupo existe en Moodle por su ID
+     */
+    public function groupExists($groupId) {
+        try {
+            $res = $this->call('core_group_get_groups', ['groupids' => [(int)$groupId]]);
+            return is_array($res) && !empty($res);
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
+
+    /**
      * Crear una categoría de curso en Moodle
      */
     public function createCategory($name, $parentId = 0, $description = '') {

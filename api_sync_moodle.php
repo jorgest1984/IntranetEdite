@@ -70,7 +70,16 @@ try {
     $grupo_id_local = $grupo['id'];
     $moodleGroupId = $grupo['id_plataforma'];
 
-    // 4. Si el grupo no tiene ID de plataforma (Moodle), lo creamos en Moodle
+    // Validar si el grupo guardado realmente existe en Moodle
+    if ($moodleGroupId) {
+        if (!$moodle->groupExists($moodleGroupId)) {
+            $moodleGroupId = null;
+            // Limpiar localmente para forzar su recreación
+            $pdo->prepare("UPDATE grupos SET id_plataforma = NULL WHERE id = ?")->execute([$grupo_id_local]);
+        }
+    }
+
+    // 4. Si el grupo no tiene ID de plataforma (Moodle) válido, lo creamos en Moodle
     if (!$moodleGroupId) {
         $moodleGroupResult = $moodle->createGroup($courseId, "GRUPO-" . $grupo_id_local);
         if (isset($moodleGroupResult[0]['id'])) {
@@ -78,6 +87,7 @@ try {
             $pdo->prepare("UPDATE grupos SET id_plataforma = ? WHERE id = ?")->execute([$moodleGroupId, $grupo_id_local]);
         }
     }
+
 
     // 5. Obtener alumnos matriculados localmente
     $stmt = $pdo->prepare("SELECT a.* FROM matriculas m JOIN alumnos a ON m.alumno_id = a.id WHERE m.grupo_id = ?");
