@@ -370,7 +370,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edición de Matrícula - <?= htmlspecialchars($matricula['nombre'] ?? '') ?> - <?= APP_NAME ?? 'Gestión' ?></title>
+    <title>Edición de Matrícula - <?= htmlspecialchars(trim(($matricula['nombre'] ?? '') . ' ' . ($matricula['primer_apellido'] ?? '') . ' ' . ($matricula['segundo_apellido'] ?? ''))) ?> - <?= APP_NAME ?? 'Gestión' ?></title>
     <link rel="icon" type="image/png" href="/img/logo_efp.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/main.css">
@@ -538,7 +538,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             <div>
                 <a href="ficha_alumno.php?id=<?= $matricula['alumno_id'] ?>" class="btn-back" style="text-decoration:none; color: var(--primary-color); font-weight:700;">⬅ Volver a Ficha de Alumno</a>
                 <h1 style="margin-top: 0.8rem; margin-bottom:0.4rem; font-size: 1.8rem; color: #1e293b;">
-                    Edición: <?= htmlspecialchars($matricula['nombre'] ?? '') ?> <?= htmlspecialchars($matricula['primer_apellido'] ?? '') ?>
+                    Edición: <?= htmlspecialchars(trim(($matricula['nombre'] ?? '') . ' ' . ($matricula['primer_apellido'] ?? '') . ' ' . ($matricula['segundo_apellido'] ?? ''))) ?>
                 </h1>
                 <p style="margin:0; color:#64748b; font-weight:500;">
                     DNI: <strong style="color:#0f172a;"><?= htmlspecialchars($matricula['dni'] ?? 'N/A') ?></strong> | 
