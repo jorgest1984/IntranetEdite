@@ -110,14 +110,29 @@ class MoodleAPI {
     }
 
     /**
-     * Verificar si un curso existe por su ID de Moodle
+     * Verificar si un curso existe por su ID de Moodle (comprueba BD de Moodle primero)
      */
     public function courseExists($courseId) {
+        require_once __DIR__ . '/moodle_db.php';
+        $moodleDb = new MoodleDB();
+        if ($moodleDb->isConnected()) {
+            try {
+                $mpdo = $moodleDb->getPDO();
+                $prefix = defined('MOODLE_DB_PREFIX') ? MOODLE_DB_PREFIX : 'avefp_';
+                $stmt = $mpdo->prepare("SELECT id FROM {$prefix}course WHERE id = ? LIMIT 1");
+                $stmt->execute([(int)$courseId]);
+                return (bool)$stmt->fetchColumn();
+            } catch (Exception $e) {
+                // Fallback
+            }
+        }
+
         try {
             $res = $this->call('core_course_get_courses_by_field', ['field' => 'id', 'value' => (int)$courseId]);
             return !empty($res['courses']);
         } catch (Exception $e) {
-            return false;
+            // Si la API falla pero no pudimos conectar a la BD, asumimos true para no borrarlo localmente
+            return true;
         }
     }
 
