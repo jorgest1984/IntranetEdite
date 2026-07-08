@@ -110,6 +110,18 @@ class MoodleAPI {
     }
 
     /**
+     * Verificar si un curso existe por su ID de Moodle
+     */
+    public function courseExists($courseId) {
+        try {
+            $res = $this->call('core_course_get_courses_by_field', ['field' => 'id', 'value' => (int)$courseId]);
+            return !empty($res['courses']);
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
+    /**
      * Obtener todos los usuarios (requiere permiso de admin en el token)
      */
     public function getAllUsers() {

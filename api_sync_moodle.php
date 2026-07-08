@@ -29,6 +29,15 @@ try {
 
     $courseId = $af['curso_moodle_id'];
     
+    // Validar si el curso guardado localmente realmente existe en Moodle
+    if ($courseId) {
+        if (!$moodle->courseExists($courseId)) {
+            $courseId = null;
+            // Limpiar localmente para forzar su recreación
+            $pdo->prepare("UPDATE cursos SET moodle_id = NULL WHERE id = ?")->execute([$af['curso_id']]);
+        }
+    }
+    
     // 2. Si el curso no tiene ID de Moodle, lo creamos
     if (!$courseId) {
         $categoryId = 1; // Por defecto, Miscellaneous
