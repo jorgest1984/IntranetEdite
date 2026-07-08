@@ -3,11 +3,10 @@
 header('Content-Type: text/plain; charset=utf-8');
 
 $paths = [
+    dirname(__DIR__) . '/uploads/post_debug.txt',
     __DIR__ . '/../post_debug.log',
     __DIR__ . '/post_debug.log',
-    dirname(__DIR__, 2) . '/post_debug.log',
-    __DIR__ . '/../post_debug.txt',
-    __DIR__ . '/post_debug.txt'
+    __DIR__ . '/../post_debug.txt'
 ];
 
 $found = false;
