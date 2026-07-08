@@ -1,26 +1,10 @@
 <?php
 // scratch/read_debug.php
-header('Content-Type: text/plain; charset=utf-8');
-
-$paths = [
-    dirname(__DIR__) . '/uploads/post_debug.txt',
-    __DIR__ . '/../post_debug.log',
-    __DIR__ . '/post_debug.log',
-    __DIR__ . '/../post_debug.txt'
-];
-
-$found = false;
-foreach ($paths as $path) {
-    if (file_exists($path)) {
-        echo "--- Encontrado en: $path ---\n";
-        echo file_get_contents($path);
-        $found = true;
-        break;
-    }
-}
-
-if (!$found) {
-    echo "El archivo de log no se encontró en ninguna de las rutas esperadas:\n";
-    print_r($paths);
+$file = dirname(__DIR__) . '/uploads/post_af_debug.txt';
+if (file_exists($file)) {
+    echo "=== CONTENIDO DEL POST REGISTRADO ===\n";
+    echo file_get_contents($file);
+} else {
+    echo "El archivo de log temporal no existe. Comprueba que el formulario se esté enviando.";
 }
 ?>
