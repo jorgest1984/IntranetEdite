@@ -541,13 +541,16 @@ $tareas = $stmt_tareas->fetchAll();
     <?php include 'includes/sidebar.php'; ?>
 
     <main class="main-content">
-        <div class="trabajador-header">
+        <div class="trabajador-header" style="display: flex; justify-content: space-between; align-items: center;">
             <div>
                 <a href="usuarios.php" class="btn-back" style="text-decoration:none; color:#64748b; font-size:0.85rem;">← Volver a Usuarios</a>
                 <h1 style="margin-top: 0.5rem; color: #1e3a8a;"><?= htmlspecialchars(($trabajador['nombre'] ?? '') . ' ' . ($trabajador['apellidos'] ?? '')) ?></h1>
                 <p style="color: #64748b; margin: 0; font-size:0.9rem;"><?= htmlspecialchars($trabajador['email'] ?? '') ?> | Perfil de Trabajador</p>
             </div>
-            <div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <button type="button" onclick="openSendKeysModal()" style="background: #0284c7; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15); transition: all 0.2s;">
+                    <i class="fas fa-envelope"></i> Enviar Claves Intranet
+                </button>
                 <span class="badge" style="background: #fee2e2; color: #b91c1c; padding: 0.5rem 1rem; border-radius: 99px; font-weight: 700; font-size:0.75rem;">TRABAJADOR</span>
             </div>
         </div>
@@ -2371,5 +2374,177 @@ $tareas = $stmt_tareas->fetchAll();
             </div>
         </div>
     </div>
+
+    <!-- MODAL: Enviar Claves de Acceso Intranet -->
+    <div class="modal-overlay" id="modalSendKeys" style="display: none; justify-content: center; align-items: center; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 10000; opacity: 0; transition: opacity 0.3s ease;">
+        <div class="modal-container" style="max-width: 650px; background: white; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); overflow: hidden; width: 90%; transform: scale(0.9); transition: transform 0.3s ease; box-sizing: border-box; text-align: left;">
+            <div class="modal-header" style="border-bottom: 1px solid #e2e8f0; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; box-sizing: border-box;">
+                <h2 style="color: #1e3a8a; font-size: 1.1rem; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 8px;">
+                    ✉️ Enviar Claves de Acceso a Intranet
+                </h2>
+                <button type="button" onclick="closeSendKeysModal()" style="background: none; border: none; cursor: pointer; color: #64748b; padding: 4px;">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 1.5rem; box-sizing: border-box;">
+                <div id="sendKeysError" style="display: none; background: #fee2e2; color: #b91c1c; padding: 0.75rem 1rem; border-radius: 6px; margin-bottom: 1rem; border-left: 4px solid #ef4444; font-size: 0.85rem; font-weight: 600;"></div>
+                
+                <form id="sendKeysForm" onsubmit="submitSendKeys(event);">
+                    <input type="hidden" name="trabajador_id" value="<?= $id ?>">
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div>
+                            <label style="display: block; font-weight: 700; color: #475569; margin-bottom: 5px; font-size: 0.85rem;">Destinatario (Email)</label>
+                            <input type="email" name="email" id="sendKeysEmail" value="<?= htmlspecialchars($trabajador['email'] ?? '') ?>" required style="width: 100%; border: 1px solid #cbd5e1; padding: 8px 12px; border-radius: 6px; font-size: 0.9rem; box-sizing: border-box;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: 700; color: #475569; margin-bottom: 5px; font-size: 0.85rem;">Nombre de Usuario (Log-in)</label>
+                            <input type="text" value="<?= htmlspecialchars($trabajador['username'] ?? '') ?>" disabled style="width: 100%; border: 1px solid #cbd5e1; padding: 8px 12px; border-radius: 6px; font-size: 0.9rem; background: #f1f5f9; color: #64748b; box-sizing: border-box;">
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; font-weight: 700; color: #475569; margin-bottom: 5px; font-size: 0.85rem;">Establecer Nueva Contraseña (Opcional)</label>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <input type="text" name="password" id="sendKeysPassword" placeholder="Dejar en blanco para mantener la actual" style="flex: 1; border: 1px solid #cbd5e1; padding: 8px 12px; border-radius: 6px; font-size: 0.9rem; box-sizing: border-box;" oninput="updateKeysEmailBody();">
+                            <button type="button" onclick="generateSendKeysPassword()" style="padding: 8px 12px; border-radius: 6px; background: #2563eb; color: white; border: 1px solid #2563eb; cursor: pointer; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;">
+                                🔑 Generar
+                            </button>
+                        </div>
+                        <span style="font-size: 0.72rem; color: #64748b; display: block; margin-top: 4px;">⚠️ Si escribe una contraseña aquí, se guardará y actualizará en la base de datos al enviar el correo.</span>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; font-weight: 700; color: #475569; margin-bottom: 5px; font-size: 0.85rem;">Asunto del Correo</label>
+                        <input type="text" name="subject" id="sendKeysSubject" value="Claves de acceso a la Intranet - Grupo EFP" required style="width: 100%; border: 1px solid #cbd5e1; padding: 8px 12px; border-radius: 6px; font-size: 0.9rem; box-sizing: border-box;">
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; font-weight: 700; color: #475569; margin-bottom: 5px; font-size: 0.85rem;">Cuerpo del Correo (Editable)</label>
+                        <textarea name="body" id="sendKeysBody" rows="8" required style="width: 100%; border: 1px solid #cbd5e1; padding: 10px 12px; border-radius: 6px; font-size: 0.9rem; font-family: monospace; resize: vertical; box-sizing: border-box;"></textarea>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #e2e8f0; padding-top: 1.25rem; margin-top: 1.25rem; box-sizing: border-box;">
+                        <button type="button" onclick="closeSendKeysModal()" style="padding: 8px 16px; border-radius: 6px; background: white; border: 1px solid #cbd5e1; color: #475569; cursor: pointer; font-weight: 600;">Cancelar</button>
+                        <button type="submit" id="sendKeysSubmitBtn" style="padding: 8px 24px; border-radius: 6px; background: #0284c7; border: 1px solid #0284c7; color: white; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                            🚀 Enviar Correo
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const workerUsername = <?= json_encode($trabajador['username'] ?? '') ?>;
+        const workerNombre = <?= json_encode($trabajador['nombre'] ?? '') ?>;
+
+        function openSendKeysModal() {
+            const overlay = document.getElementById('modalSendKeys');
+            const container = overlay.querySelector('.modal-container');
+            
+            // Limpiar errores e inputs
+            document.getElementById('sendKeysError').style.display = 'none';
+            document.getElementById('sendKeysPassword').value = '';
+            
+            updateKeysEmailBody();
+            
+            overlay.style.display = 'flex';
+            // Force reflow
+            overlay.offsetHeight;
+            overlay.style.opacity = '1';
+            container.style.transform = 'scale(1)';
+        }
+
+        function closeSendKeysModal() {
+            const overlay = document.getElementById('modalSendKeys');
+            const container = overlay.querySelector('.modal-container');
+            
+            overlay.style.opacity = '0';
+            container.style.transform = 'scale(0.9)';
+            
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 300);
+        }
+
+        function generateSendKeysPassword() {
+            const uppers = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const lowers = "abcdefghijklmnopqrstuvwxyz";
+            const numbers = "0123456789";
+            const specials = "@$!%*?&#";
+            const all = uppers + lowers + numbers + specials;
+            
+            let password = "";
+            password += uppers.charAt(Math.floor(Math.random() * uppers.length));
+            password += lowers.charAt(Math.floor(Math.random() * lowers.length));
+            password += numbers.charAt(Math.floor(Math.random() * numbers.length));
+            password += specials.charAt(Math.floor(Math.random() * specials.length));
+            
+            for (let i = 0; i < 8; i++) {
+                password += all.charAt(Math.floor(Math.random() * all.length));
+            }
+            
+            password = password.split('').sort(() => 0.5 - Math.random()).join('');
+            
+            document.getElementById('sendKeysPassword').value = password;
+            updateKeysEmailBody();
+        }
+
+        function updateKeysEmailBody() {
+            const passVal = document.getElementById('sendKeysPassword').value;
+            const passwordText = passVal ? passVal : '[Mantiene su contraseña actual]';
+            
+            const bodyText = `Hola ${workerNombre},
+
+Te facilitamos tus credenciales para acceder a la Intranet de Grupo EFP:
+
+Dirección de acceso: https://gestion.grupoefp.es/
+Usuario: ${workerUsername}
+Contraseña: ${passwordText}
+
+Por favor, guarde estos datos en un lugar seguro. Si se le ha generado una contraseña temporal, recuerde cambiarla tras su primer inicio de sesión desde su perfil.
+
+Un saludo,
+El equipo de administración.`;
+
+            document.getElementById('sendKeysBody').value = bodyText;
+        }
+
+        function submitSendKeys(e) {
+            e.preventDefault();
+            const btn = document.getElementById('sendKeysSubmitBtn');
+            const errDiv = document.getElementById('sendKeysError');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+            errDiv.style.display = 'none';
+            
+            const formData = new FormData(document.getElementById('sendKeysForm'));
+            
+            fetch('api_send_trabajador_keys.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('¡Claves enviadas correctamente por correo electrónico!');
+                    closeSendKeysModal();
+                } else {
+                    errDiv.textContent = data.error || 'Ocurrió un error inesperado al enviar.';
+                    errDiv.style.display = 'block';
+                    btn.disabled = false;
+                    btn.innerHTML = '🚀 Enviar Correo';
+                }
+            })
+            .catch(error => {
+                errDiv.textContent = 'Error de conexión con el servidor.';
+                errDiv.style.display = 'block';
+                btn.disabled = false;
+                btn.innerHTML = '🚀 Enviar Correo';
+            });
+        }
+    </script>
 </body>
 </html>
