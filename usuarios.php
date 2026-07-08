@@ -1031,12 +1031,12 @@ $roles = $pdo->query("SELECT * FROM roles WHERE id != " . ROLE_LECTURA . " ORDER
         }
     }
 
-    // Generar contraseña segura y válida según requisitos de complejidad
+    // Generar contraseña segura y válida según requisitos de complejidad (mínimo 12 caracteres, especiales: @$!%*?&#)
     function generateSecurePassword() {
         const uppers = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         const lowers = "abcdefghijklmnopqrstuvwxyz";
         const numbers = "0123456789";
-        const specials = "!@#$%^*()-_=+[]{}|;:,.";
+        const specials = "@$!%*?&#";
         const all = uppers + lowers + numbers + specials;
         
         let password = "";
