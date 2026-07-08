@@ -52,6 +52,7 @@ $familias = [
 
 // Procesar actualización
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    file_put_contents(__DIR__ . '/uploads/post_af_debug.txt', print_r($_POST, true));
     $csrf_token = $_POST['csrf_token'] ?? '';
     if (!isset($_SESSION['csrf_token']) || empty($csrf_token) || !hash_equals($_SESSION['csrf_token'], $csrf_token)) {
         $error = "Error de seguridad (CSRF). Por favor, refresque la página e inténtelo de nuevo.";
