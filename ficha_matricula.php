@@ -331,7 +331,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     
                     if (isset($_POST['af_num_accion'])) {
                         $update_af[] = "`num_accion` = ?";
-                        $update_af_params[] = $_POST['af_num_accion'];
+                        $val_num = trim($_POST['af_num_accion']);
+                        $update_af_params[] = ($val_num === '') ? null : (int)$val_num;
                     }
                     if (isset($_POST['af_abreviatura'])) {
                         $update_af[] = "`abreviatura` = ?";
