@@ -70,13 +70,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $stmt = $pdo->prepare($sql);
             $stmt->execute($data);
+            
+            // Actualizar moodle_id en la tabla cursos vinculada a esta Acción Formativa
+            $moodle_id = isset($_POST['moodle_id']) && $_POST['moodle_id'] !== '' ? (int)$_POST['moodle_id'] : null;
+            $stmtC = $pdo->prepare("UPDATE cursos SET moodle_id = ? WHERE id = (SELECT curso_id FROM acciones_formativas WHERE id = ?)");
+            $stmtC->execute([$moodle_id, $id]);
+            
             $success = "Parámetros actualizados con éxito.";
         } catch (Exception $e) { $error = $e->getMessage(); }
     }
 }
 
 // Obtener datos actuales
-$stmt = $pdo->prepare("SELECT af.*, c.nombre_largo as titulo FROM acciones_formativas af JOIN cursos c ON af.curso_id = c.id WHERE af.id = ?");
+$stmt = $pdo->prepare("SELECT af.*, c.nombre_largo as titulo, c.moodle_id as curso_moodle_id FROM acciones_formativas af JOIN cursos c ON af.curso_id = c.id WHERE af.id = ?");
 $stmt->execute([$id]);
 $af = $stmt->fetch();
 
@@ -162,6 +168,10 @@ if (!$af) die("No se encontró la Acción Formativa");
                                 <option value="<?= htmlspecialchars($f) ?>" <?= ($af['familia_profesional'] ?? '') == $f ? 'selected' : '' ?>><?= htmlspecialchars($f) ?></option>
                             <?php endforeach; ?>
                         </select>
+                    </div>
+                    <div class="form-group">
+                        <label style="color: #ea580c; font-weight: 800;">ID Curso Moodle (Plataforma)</label>
+                        <input type="number" name="moodle_id" class="form-control" style="border: 2px solid #fdba74;" value="<?= htmlspecialchars($af['curso_moodle_id'] ?? '') ?>" placeholder="Ej: 48 (Dejar vacío si no existe)">
                     </div>
                     <div class="form-group full-width">
                         <label>Objetivos Generales</label>
