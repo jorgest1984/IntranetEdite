@@ -230,6 +230,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 
 // Acción: Actualizar Datos Personales
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'update_personales') {
+    file_put_contents(__DIR__ . '/post_debug.log', print_r($_POST, true));
     try {
         $fields = [
             'nombre', 'primer_apellido', 'segundo_apellido', 'dni', 'comercial_id',
