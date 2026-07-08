@@ -230,17 +230,22 @@ $alumnos = $matriculados->fetchAll();
                 <h1 style="margin: 5px 0;"><?= htmlspecialchars($accion['titulo']) ?></h1>
                 <p>Grupo ID: <strong><?= $grupo_id ?></strong> | Modalidad: <strong><?= $accion['modalidad'] ?></strong></p>
             </div>
-            <div style="display: flex; gap: 15px;">
+            <div style="display: flex; gap: 10px; align-items: center;">
                 <?php if (has_permission([ROLE_ADMIN])): ?>
-                    <a href="papelera.php" class="btn" style="background: #ef4444; color: white; text-decoration:none; padding: 10px 20px; border-radius:8px; font-weight:700; display: inline-flex; align-items: center; gap: 6px;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    <a href="papelera.php" class="btn" style="background: #ef4444; color: white; text-decoration:none; padding: 10px 15px; border-radius:8px; font-weight:700; display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                         Papelera
                     </a>
                 <?php endif; ?>
-                <button id="btnSyncMoodle" onclick="syncMoodle(<?= $af_id ?>)" class="btn btn-primary" style="background: #ea580c; border: none;">
+                <button id="btnSyncMoodle" onclick="syncMoodle(<?= $af_id ?>)" class="btn btn-primary" style="background: #ea580c; border: none; font-size: 0.85rem; padding: 10px 15px; border-radius: 8px;">
                     🚀 Volcar al Aula Virtual
                 </button>
-                <a href="acciones_formativas.php?plan_id=<?= $accion['plan_id'] ?>" class="btn" style="background: #f1f5f9; color: #1e3a8a; text-decoration:none; padding: 10px 20px; border-radius:8px; font-weight:700;">Volver</a>
+                <?php if (!empty($alumnos)): ?>
+                    <button type="button" onclick="openMassKeysModal()" class="btn" style="background: #0284c7; color: white; border: none; font-weight: 700; padding: 10px 15px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem;">
+                        📨 Envío Masivo Claves
+                    </button>
+                <?php endif; ?>
+                <a href="acciones_formativas.php?plan_id=<?= $accion['plan_id'] ?>" class="btn" style="background: #f1f5f9; color: #1e3a8a; text-decoration:none; padding: 10px 15px; border-radius:8px; font-weight:700; font-size: 0.85rem;">Volver</a>
             </div>
         </header>
 
@@ -294,12 +299,19 @@ $alumnos = $matriculados->fetchAll();
                                 <div style="font-weight: 700; color: #1e293b;"><?= htmlspecialchars($a['nombre'] . ' ' . ($a['primer_apellido'] ?? '') . ' ' . ($a['segundo_apellido'] ?? '')) ?></div>
                                 <small style="color: #64748b; font-weight: 600;"><?= $a['dni'] ?> | <?= $a['email'] ?></small>
                             </div>
-                            <a href="?af_id=<?= $af_id ?>&remove_id=<?= $a['matricula_id'] ?>" 
-                               onclick="return confirm('¿Dar de baja a este alumno?')"
-                               style="color: #ef4444; padding: 8px; border-radius: 8px; transition: background 0.2s;"
-                               title="Dar de baja">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                            </a>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <!-- Enviar Claves Individual -->
+                                <button type="button" onclick="openSingleKeysModal(<?= $a['matricula_id'] ?>, <?= htmlspecialchars(json_encode($a['nombre'] . ' ' . ($a['primer_apellido'] ?? '') . ' ' . ($a['segundo_apellido'] ?? ''))) ?>, <?= htmlspecialchars(json_encode($a['email'])) ?>, <?= htmlspecialchars(json_encode($a['plat_usuario'] ?? '')) ?>, <?= htmlspecialchars(json_encode($a['plat_clave'] ?? '')) ?>)" style="background: none; border: none; cursor: pointer; color: #0284c7; padding: 6px; display: inline-flex; align-items: center; justify-content: center; hover:color: #0369a1;" title="Enviar Claves de Acceso">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                                </button>
+                                
+                                <a href="?af_id=<?= $af_id ?>&remove_id=<?= $a['matricula_id'] ?>" 
+                                   onclick="return confirm('¿Dar de baja a este alumno?')"
+                                   style="color: #ef4444; padding: 6px; border-radius: 8px; transition: background 0.2s; display: inline-flex; align-items: center; justify-content: center;"
+                                   title="Dar de baja">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                </a>
+                            </div>
                         </div>
                     <?php endforeach; ?>
                 <?php endif; ?>
@@ -519,6 +531,273 @@ function syncMoodle(afId) {
             console.error('Sync error:', err);
         });
 }
+</script>
+
+<!-- MODAL: Enviar Claves Individual -->
+<div id="modal-envio-claves-single" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;">
+    <div style="background: white; width: 100%; max-width: 600px; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); overflow: hidden; display: flex; flex-direction: column; animation: modalFadeIn 0.3s ease;">
+        <div style="background: #1e3a8a; color: white; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box;">
+            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: white;">📨 Enviar Claves de Acceso a Moodle</h3>
+            <button type="button" onclick="closeSingleKeysModal()" style="background: transparent; border: none; color: white; font-size: 1.5rem; cursor: pointer; line-height: 1;">&times;</button>
+        </div>
+        <form id="singleKeysForm" onsubmit="submitSingleKeys(event);" style="margin: 0;">
+            <input type="hidden" name="matricula_id" id="single-matricula-id">
+            
+            <div style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; box-sizing: border-box; text-align: left;">
+                <div id="singleKeysError" style="display: none; background: #fee2e2; color: #b91c1c; padding: 0.75rem 1rem; border-radius: 6px; border-left: 4px solid #ef4444; font-size: 0.85rem; font-weight: 600;"></div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; font-size: 0.85rem; box-sizing: border-box;">
+                    <div><strong>Alumno:</strong> <span id="s-alumno-nombre">Cargando...</span></div>
+                    <div><strong>E-mail:</strong> <span id="s-alumno-email">Cargando...</span></div>
+                    <div><strong>Usuario Moodle:</strong> <span id="s-alumno-usuario">Cargando...</span></div>
+                    <div><strong>Contraseña:</strong> <span id="s-alumno-clave">Cargando...</span></div>
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+                    <label style="font-weight: 600; color: #334155; font-size: 0.85rem;">Asunto del Correo:</label>
+                    <input type="text" name="subject" id="s-correo-subject" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-family: inherit; font-size: 0.9rem; box-sizing: border-box;" value="Datos de Acceso al Aula Virtual - {curso}">
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+                    <label style="font-weight: 600; color: #334155; font-size: 0.85rem;">Cuerpo del Mensaje (Placeholders: {nombre}, {curso}, {url}, {usuario}, {contrasena}):</label>
+                    <textarea name="body" id="s-correo-body" style="height: 180px; width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; font-family: inherit; font-size: 0.85rem; line-height: 1.4; resize: vertical; box-sizing: border-box;">Estimado/a {nombre},
+
+Nos complace darte la bienvenida al curso "{curso}".
+
+A continuación, te facilitamos tus datos de acceso al Aula Virtual:
+
+Plataforma: {url}
+Usuario: {usuario}
+Contraseña: {contrasena}
+
+Te recomendamos acceder a la plataforma lo antes posible para comenzar tu formación.
+
+Quedamos a tu entera disposición para cualquier consulta.
+
+Un cordial saludo,
+Equipo de Soporte de Formación</textarea>
+                </div>
+            </div>
+            <div style="background: #f1f5f9; padding: 1rem 1.5rem; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #e2e8f0; box-sizing: border-box;">
+                <button type="button" onclick="closeSingleKeysModal()" class="btn-modern" style="background: #e2e8f0; color: #475569; border: 1px solid #cbd5e1; font-weight: 600; padding: 0.5rem 1.25rem; border-radius: 6px; cursor: pointer;">Cancelar</button>
+                <button type="submit" id="btn-confirm-send-single" class="btn-modern btn-primary-modern" style="background: #2563eb; color: white; border: 1px solid #1d4ed8; font-weight: 600; min-width: 130px; padding: 0.5rem 1.25rem; border-radius: 6px; cursor: pointer;">Enviar Claves</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: Envío Masivo de Claves -->
+<div id="modal-envio-claves-mass" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;">
+    <div style="background: white; width: 100%; max-width: 650px; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); overflow: hidden; display: flex; flex-direction: column; animation: modalFadeIn 0.3s ease;">
+        <div style="background: #0284c7; color: white; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box;">
+            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: white;">📨 Envío Masivo de Claves (<?= count($alumnos) ?> alumnos)</h3>
+            <button type="button" onclick="closeMassKeysModal()" id="btn-close-mass-modal" style="background: transparent; border: none; color: white; font-size: 1.5rem; cursor: pointer; line-height: 1;">&times;</button>
+        </div>
+        
+        <div id="mass-setup-view" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; box-sizing: border-box; text-align: left;">
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-weight: 600; color: #334155; font-size: 0.85rem;">Asunto del Correo para todos:</label>
+                <input type="text" id="m-mass-subject" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-family: inherit; font-size: 0.9rem; box-sizing: border-box;" value="Datos de Acceso al Aula Virtual - {curso}">
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-weight: 600; color: #334155; font-size: 0.85rem;">Cuerpo del Mensaje (Placeholders: {nombre}, {curso}, {url}, {usuario}, {contrasena}):</label>
+                <textarea id="m-mass-body" style="height: 180px; width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; font-family: inherit; font-size: 0.85rem; line-height: 1.4; resize: vertical; box-sizing: border-box;">Estimado/a {nombre},
+
+Nos complace darte la bienvenida al curso "{curso}".
+
+A continuación, te facilitamos tus datos de acceso al Aula Virtual:
+
+Plataforma: {url}
+Usuario: {usuario}
+Contraseña: {contrasena}
+
+Te recomendamos acceder a la plataforma lo antes posible para comenzar tu formación.
+
+Quedamos a tu entera disposición para cualquier consulta.
+
+Un cordial saludo,
+Equipo de Soporte de Formación</textarea>
+            </div>
+            
+            <div style="background: #f1f5f9; padding: 1rem; border-radius: 8px; font-size: 0.82rem; color: #475569; border-left: 4px solid #0284c7; box-sizing: border-box;">
+                ℹ️ Esta acción procesará secuencialmente el envío individual a cada uno de los <strong><?= count($alumnos) ?></strong> alumnos. El proceso es transparente y podrás ver su evolución en tiempo real.
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #e2e8f0; padding-top: 1rem; box-sizing: border-box;">
+                <button type="button" onclick="closeMassKeysModal()" class="btn-modern" style="background: #e2e8f0; color: #475569; border: 1px solid #cbd5e1; font-weight: 600; padding: 0.5rem 1.25rem; border-radius: 6px; cursor: pointer;">Cancelar</button>
+                <button type="button" onclick="startMassSending()" class="btn-modern" style="background: #0284c7; color: white; border: 1px solid #025a87; font-weight: 600; padding: 0.5rem 1.25rem; border-radius: 6px; cursor: pointer;">Iniciar Envío Masivo</button>
+            </div>
+        </div>
+
+        <div id="mass-progress-view" style="display: none; padding: 1.5rem; flex-direction: column; gap: 1rem; box-sizing: border-box; text-align: left;">
+            <div style="font-weight: 700; color: #1e293b; font-size: 1rem;" id="mass-progress-title">Procesando envíos...</div>
+            
+            <!-- Progress Bar -->
+            <div style="width: 100%; height: 16px; background: #e2e8f0; border-radius: 99px; overflow: hidden; position: relative;">
+                <div id="mass-progress-bar" style="width: 0%; height: 100%; background: #0284c7; transition: width 0.3s ease;"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #64748b; font-weight: 600;">
+                <span id="mass-progress-pct">0% completado</span>
+                <span id="mass-progress-counts">0 / 0 enviados</span>
+            </div>
+
+            <!-- Logging Area -->
+            <div id="mass-sending-log" style="height: 180px; overflow-y: auto; background: #0f172a; color: #38bdf8; font-family: monospace; font-size: 0.78rem; padding: 10px; border-radius: 8px; border: 1px solid #1e293b; box-sizing: border-box; line-height: 1.5;">
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; border-top: 1px solid #e2e8f0; padding-top: 1rem; box-sizing: border-box;">
+                <button type="button" id="btn-finish-mass" disabled onclick="location.reload();" class="btn-modern" style="background: #e2e8f0; color: #94a3b8; border: 1px solid #cbd5e1; font-weight: 600; padding: 0.5rem 1.5rem; border-radius: 6px; cursor: not-allowed;">Espere a que termine...</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Inyección de alumnos para uso del bucle de JS
+    const alumnosParaEnvio = <?= json_encode($alumnos) ?>;
+    
+    // Modal Single Claves
+    function openSingleKeysModal(matriculaId, nombre, email, usuario, clave) {
+        document.getElementById('single-matricula-id').value = matriculaId;
+        document.getElementById('s-alumno-nombre').textContent = nombre;
+        document.getElementById('s-alumno-email').textContent = email;
+        document.getElementById('s-alumno-usuario').textContent = usuario || '---';
+        document.getElementById('s-alumno-clave').textContent = clave || '---';
+        document.getElementById('singleKeysError').style.display = 'none';
+        
+        document.getElementById('modal-envio-claves-single').style.display = 'flex';
+    }
+
+    function closeSingleKeysModal() {
+        document.getElementById('modal-envio-claves-single').style.display = 'none';
+    }
+
+    function submitSingleKeys(e) {
+        e.preventDefault();
+        const btn = document.getElementById('btn-confirm-send-single');
+        const originalText = btn.innerHTML;
+        const errDiv = document.getElementById('singleKeysError');
+        
+        btn.disabled = true;
+        btn.innerHTML = '⌛ Enviando...';
+        errDiv.style.display = 'none';
+        
+        const formData = new FormData(document.getElementById('singleKeysForm'));
+        
+        fetch('api_send_matricula_keys.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            if (data.success) {
+                alert('¡Claves de acceso enviadas correctamente al alumno!');
+                closeSingleKeysModal();
+                location.reload();
+            } else {
+                errDiv.textContent = data.error || 'Ocurrió un error inesperado al enviar.';
+                errDiv.style.display = 'block';
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            errDiv.textContent = 'Error de comunicación con el servidor.';
+            errDiv.style.display = 'block';
+        });
+    }
+
+    // Modal Mass Claves
+    function openMassKeysModal() {
+        if (!alumnosParaEnvio || alumnosParaEnvio.length === 0) {
+            alert('No hay alumnos matriculados en este curso para realizar envíos.');
+            return;
+        }
+        document.getElementById('mass-setup-view').style.display = 'flex';
+        document.getElementById('mass-progress-view').style.display = 'none';
+        document.getElementById('modal-envio-claves-mass').style.display = 'flex';
+    }
+
+    function closeMassKeysModal() {
+        document.getElementById('modal-envio-claves-mass').style.display = 'none';
+    }
+
+    async function startMassSending() {
+        // Ocultar modal close button temporalmente para evitar interrupciones
+        document.getElementById('btn-close-mass-modal').style.display = 'none';
+        document.getElementById('mass-setup-view').style.display = 'none';
+        document.getElementById('mass-progress-view').style.display = 'flex';
+        
+        const subject = document.getElementById('m-mass-subject').value;
+        const body = document.getElementById('m-mass-body').value;
+        const logArea = document.getElementById('mass-sending-log');
+        const progressBar = document.getElementById('mass-progress-bar');
+        const progressPct = document.getElementById('mass-progress-pct');
+        const progressCounts = document.getElementById('mass-progress-counts');
+        const finishBtn = document.getElementById('btn-finish-mass');
+        
+        logArea.innerHTML = '';
+        logArea.innerHTML += `> Iniciando envío masivo para ${alumnosParaEnvio.length} alumnos...\n`;
+        
+        let successCount = 0;
+        let errorCount = 0;
+        
+        for (let i = 0; i < alumnosParaEnvio.length; i++) {
+            const student = alumnosParaEnvio[i];
+            const name = student.nombre + ' ' + (student.primer_apellido || '') + ' ' + (student.segundo_apellido || '');
+            
+            logArea.innerHTML += `> [${i+1}/${alumnosParaEnvio.length}] Procesando: ${name}... `;
+            logArea.scrollTop = logArea.scrollHeight;
+            
+            const formData = new FormData();
+            formData.append('matricula_id', student.matricula_id);
+            formData.append('subject', subject);
+            formData.append('body', body);
+            
+            try {
+                const response = await fetch('api_send_matricula_keys.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    successCount++;
+                    logArea.innerHTML += `<span style="color:#22c55e;">[ÉXITO]</span>\n`;
+                } else {
+                    errorCount++;
+                    logArea.innerHTML += `<span style="color:#ef4444;">[ERROR: ${data.error}]</span>\n`;
+                }
+            } catch (err) {
+                errorCount++;
+                logArea.innerHTML += `<span style="color:#ef4444;">[ERROR CONEXIÓN]</span>\n`;
+            }
+            
+            // Actualizar interfaz
+            const pct = Math.round(((i + 1) / alumnosParaEnvio.length) * 100);
+            progressBar.style.width = `${pct}%`;
+            progressPct.textContent = `${pct}% completado`;
+            progressCounts.textContent = `${i + 1} / ${alumnosParaEnvio.length} procesados`;
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+        
+        logArea.innerHTML += `\n> --- PROCESO COMPLETADO ---\n`;
+        logArea.innerHTML += `> Envíos con éxito: ${successCount}\n`;
+        logArea.innerHTML += `> Errores / Omisiones: ${errorCount}\n`;
+        logArea.scrollTop = logArea.scrollHeight;
+        
+        document.getElementById('mass-progress-title').textContent = '¡Proceso masivo completado!';
+        finishBtn.disabled = false;
+        finishBtn.style.background = '#10b981';
+        finishBtn.style.color = 'white';
+        finishBtn.style.border = '1px solid #059669';
+        finishBtn.style.cursor = 'pointer';
+        finishBtn.textContent = 'Cerrar y Actualizar';
+        document.getElementById('btn-close-mass-modal').style.display = 'block';
+    }
 </script>
 </body>
 </html>
