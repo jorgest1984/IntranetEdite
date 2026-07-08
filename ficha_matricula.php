@@ -338,9 +338,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         $update_af[] = "`abreviatura` = ?";
                         $update_af_params[] = $_POST['af_abreviatura'];
                     }
-                    if (isset($_POST['curso_id'])) {
+                    if (isset($_POST['curso_id']) && !empty($_POST['curso_id'])) {
                         $update_af[] = "`curso_id` = ?";
-                        $update_af_params[] = !empty($_POST['curso_id']) ? (int)$_POST['curso_id'] : null;
+                        $update_af_params[] = (int)$_POST['curso_id'];
                     }
                     
                     if (!empty($update_af)) {
