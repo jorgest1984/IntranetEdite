@@ -16,7 +16,12 @@ if (!$id) {
 }
 
 // Cargar datos del alumno
-$stmt = $pdo->prepare("SELECT * FROM alumnos WHERE id = ?");
+$stmt = $pdo->prepare("
+    SELECT a.*, e.nombre as empresa_nombre 
+    FROM alumnos a 
+    LEFT JOIN empresas e ON a.ultima_empresa_id = e.id 
+    WHERE a.id = ?
+");
 $stmt->execute([$id]);
 $alumno = $stmt->fetch();
 
@@ -268,6 +273,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                         }
                     }
                 }
+            }
+        }
+
+        // Procesar campo de texto libre para la empresa
+        if (isset($_POST['empresa_actual_txt'])) {
+            $empresa_txt = trim($_POST['empresa_actual_txt']);
+            if (empty($empresa_txt)) {
+                $_POST['ultima_empresa_id'] = null;
+            } else {
+                $stmtEmp = $pdo->prepare("SELECT id FROM empresas WHERE LOWER(nombre) = LOWER(?) LIMIT 1");
+                $stmtEmp->execute([$empresa_txt]);
+                $empresa_id = $stmtEmp->fetchColumn();
+                
+                if (!$empresa_id) {
+                    $stmtIns = $pdo->prepare("INSERT INTO empresas (nombre) VALUES (?)");
+                    $stmtIns->execute([$empresa_txt]);
+                    $empresa_id = $pdo->lastInsertId();
+                }
+                $_POST['ultima_empresa_id'] = $empresa_id;
             }
         }
 
@@ -951,13 +975,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                         <input type="text" name="cuenta_bancaria" class="form-control-edit" value="<?= htmlspecialchars($alumno['cuenta_bancaria'] ?? '') ?>" placeholder="ES00 0000 0000 0000 0000 0000">
                                     </div>
                                     <div class="form-group-custom span-4">
-                                        <label>Empresa Actual (Vínculo)</label>
-                                        <select name="ultima_empresa_id" class="form-control-edit">
-                                            <option value="">---</option>
-                                            <?php foreach ($empresas as $e): ?>
-                                                <option value="<?= $e['id'] ?>" <?= ($alumno['ultima_empresa_id'] ?? '') == $e['id'] ? 'selected' : '' ?>><?= htmlspecialchars($e['nombre']) ?></option>
-                                            <?php endforeach; ?>
-                                        </select>
+                                        <label>Empresa Actual</label>
+                                        <input type="text" name="empresa_actual_txt" class="form-control-edit" value="<?= htmlspecialchars($alumno['empresa_nombre'] ?? '') ?>" placeholder="Escriba el nombre de la empresa...">
                                     </div>
                                     <div class="form-group-custom span-4">
                                         <label>Centro de Trabajo</label>
