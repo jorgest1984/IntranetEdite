@@ -908,7 +908,15 @@ $roles = $pdo->query("SELECT * FROM roles WHERE id != " . ROLE_LECTURA . " ORDER
                 
                 <div class="premium-field">
                     <label>Contraseña Provisional</label>
-                    <input type="password" name="password" placeholder="Mínimo 8 caracteres" required>
+                    <div style="display: flex; gap: 10px; align-items: center; position: relative;">
+                        <input type="password" name="password" id="user_password" placeholder="Mínimo 8 caracteres" style="flex: 1; padding: 0.75rem;" required>
+                        <button type="button" class="btn-outline" onclick="togglePasswordVisibility()" style="padding: 0.6rem 0.8rem; border-radius: 6px; font-weight: 600; cursor: pointer; background: white; border: 1px solid #cbd5e1; color: #475569;" title="Mostrar/Ocultar contraseña">
+                            <i class="fas fa-eye" id="togglePasswordIcon"></i>
+                        </button>
+                        <button type="button" class="btn-outline" onclick="generateSecurePassword()" style="padding: 0.6rem 1rem; border-radius: 6px; font-weight: 600; cursor: pointer; background: #2563eb; border: 1px solid #2563eb; color: white;" title="Generar contraseña segura">
+                            🔑 Generar
+                        </button>
+                    </div>
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
@@ -1001,6 +1009,59 @@ $roles = $pdo->query("SELECT * FROM roles WHERE id != " . ROLE_LECTURA . " ORDER
         const overlay = document.getElementById('modalOverlay');
         if (event.target == overlay) {
             closeModal();
+        }
+    }
+
+    // Mostrar/Ocultar contraseña
+    function togglePasswordVisibility() {
+        const input = document.getElementById('user_password');
+        const icon = document.getElementById('togglePasswordIcon');
+        if (input.type === 'password') {
+            input.type = 'text';
+            if (icon) {
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            }
+        } else {
+            input.type = 'password';
+            if (icon) {
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    }
+
+    // Generar contraseña segura y válida según requisitos de complejidad
+    function generateSecurePassword() {
+        const uppers = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const lowers = "abcdefghijklmnopqrstuvwxyz";
+        const numbers = "0123456789";
+        const specials = "!@#$%^*()-_=+[]{}|;:,.";
+        const all = uppers + lowers + numbers + specials;
+        
+        let password = "";
+        password += uppers.charAt(Math.floor(Math.random() * uppers.length));
+        password += lowers.charAt(Math.floor(Math.random() * lowers.length));
+        password += numbers.charAt(Math.floor(Math.random() * numbers.length));
+        password += specials.charAt(Math.floor(Math.random() * specials.length));
+        
+        // Generar el resto de caracteres (12 en total)
+        for (let i = 0; i < 8; i++) {
+            password += all.charAt(Math.floor(Math.random() * all.length));
+        }
+        
+        // Mezclar los caracteres
+        password = password.split('').sort(() => 0.5 - Math.random()).join('');
+        
+        const input = document.getElementById('user_password');
+        input.value = password;
+        
+        // Mostrar la contraseña en texto plano para que el usuario la vea y la copie
+        input.type = 'text';
+        const icon = document.getElementById('togglePasswordIcon');
+        if (icon) {
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
         }
     }
 </script>

@@ -1530,10 +1530,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     const editForm = document.getElementById('editForm');
     if (editForm) {
         editForm.addEventListener('submit', function() {
-            const via = document.querySelector('[name="tipo_via"]').value;
-            const nombre = document.querySelector('[name="nombre_via"]').value;
-            const num = document.querySelector('[name="num_domicilio"]').value;
-            document.getElementById('domicilio_full').value = via + ' ' + nombre + ', ' + num;
+            const viaEl = document.querySelector('[name="tipo_via"]');
+            const nombreEl = document.querySelector('[name="nombre_via"]');
+            const numEl = document.querySelector('[name="num_domicilio"]');
+            
+            const via = viaEl ? viaEl.value : '';
+            const nombre = nombreEl ? nombreEl.value : '';
+            const num = numEl ? numEl.value : '';
+            
+            const domFullEl = document.getElementById('domicilio_full');
+            if (domFullEl) {
+                domFullEl.value = (via + ' ' + nombre + ', ' + num).trim();
+            }
         });
     }
 
