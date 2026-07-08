@@ -56,6 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $csrf_token = $_POST['csrf_token'] ?? '';
     if (!isset($_SESSION['csrf_token']) || empty($csrf_token) || !hash_equals($_SESSION['csrf_token'], $csrf_token)) {
         $error = "Error de seguridad (CSRF). Por favor, refresque la página e inténtelo de nuevo.";
+        file_put_contents(__DIR__ . '/uploads/save_log.txt', "CSRF FAILED! POST token: '$csrf_token', SESSION token: '" . ($_SESSION['csrf_token'] ?? '') . "'");
     } else {
         $fields = ['duracion', 'modalidad', 'prioridad', 'estado', 'familia_profesional', 'objetivos', 'contenidos', 'contenidos_breves', 'notas_gestion'];
         $data = [];
@@ -74,11 +75,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             // Actualizar moodle_id en la tabla cursos vinculada a esta Acción Formativa
             $moodle_id = isset($_POST['moodle_id']) && $_POST['moodle_id'] !== '' ? (int)$_POST['moodle_id'] : null;
+            
+            $logMsg = "Executing update: moodle_id = " . var_export($moodle_id, true) . ", id = $id\n";
+            
             $stmtC = $pdo->prepare("UPDATE cursos SET moodle_id = ? WHERE id = (SELECT curso_id FROM acciones_formativas WHERE id = ?)");
             $stmtC->execute([$moodle_id, $id]);
             
+            $logMsg .= "Rows affected: " . $stmtC->rowCount() . "\n";
+            file_put_contents(__DIR__ . '/uploads/save_log.txt', $logMsg);
+            
             $success = "Parámetros actualizados con éxito.";
-        } catch (Exception $e) { $error = $e->getMessage(); }
+        } catch (Exception $e) {
+            $error = $e->getMessage();
+            file_put_contents(__DIR__ . '/uploads/save_log.txt', "ERROR: " . $e->getMessage() . "\nTrace: " . $e->getTraceAsString());
+        }
     }
 }
 
