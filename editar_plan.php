@@ -115,7 +115,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         ];
 
         $params = [];
-        foreach ($fields as $f) { $params[$f] = $_POST[$f] ?? null; }
+        foreach ($fields as $f) {
+            $val = isset($_POST[$f]) ? trim($_POST[$f]) : '';
+            $params[$f] = ($val === '') ? null : $val;
+        }
         
         // Checkboxes / Radios
         $params['programacion_automatica'] = isset($_POST['programacion_automatica']) ? 1 : 0;
