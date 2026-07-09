@@ -123,44 +123,56 @@ $current_page = 'grupos.php'; // Para marcar activo en la sidebar
     <link rel="stylesheet" href="css/main.css">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-        .main-content { padding: 2rem; max-width: 100%; box-sizing: border-box; }
+        .main-content { padding: 1.5rem; max-width: 100%; box-sizing: border-box; }
         
         .relacion-header {
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px 20px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
         }
         
         .relacion-header h1 {
             color: #b91c1c;
-            font-size: 1.4rem;
+            font-size: 1.25rem;
             font-weight: 800;
-            margin-bottom: 5px;
+            margin-top: 0;
+            margin-bottom: 6px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
         }
         
         .relacion-header .sub-info {
-            color: #b91c1c;
+            color: #475569;
+            font-weight: 600;
+            font-size: 0.82rem;
+            line-height: 1.6;
+        }
+
+        .relacion-header .highlight-group {
+            color: #1e3a8a;
             font-weight: 700;
-            font-size: 0.9rem;
-            line-height: 1.5;
         }
 
         .table-responsive {
             overflow-x: auto;
-            max-height: calc(100vh - 260px);
+            max-height: calc(100vh - 250px);
             overflow-y: auto;
             width: 100%;
             background: #fff;
             border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
             border: 1px solid #cbd5e1;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .table-responsive::-webkit-scrollbar {
-            width: 12px;
-            height: 12px;
+            width: 10px;
+            height: 10px;
         }
         .table-responsive::-webkit-scrollbar-track {
             background: #f1f5f9;
@@ -169,7 +181,7 @@ $current_page = 'grupos.php'; // Para marcar activo en la sidebar
         .table-responsive::-webkit-scrollbar-thumb {
             background: #cbd5e1;
             border-radius: 6px;
-            border: 3px solid #f1f5f9;
+            border: 2px solid #f1f5f9;
         }
         .table-responsive::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
@@ -178,7 +190,7 @@ $current_page = 'grupos.php'; // Para marcar activo en la sidebar
         .table-relacion {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             text-align: left;
         }
 
@@ -186,18 +198,19 @@ $current_page = 'grupos.php'; // Para marcar activo en la sidebar
             position: sticky;
             top: 0;
             z-index: 10;
-            background-color: #1e3a8a;
+            background: linear-gradient(180deg, #1e3a8a 0%, #172554 100%);
             color: #ffffff;
-            font-weight: 700;
-            padding: 12px 14px;
-            border: 1px solid #cbd5e1;
+            font-weight: 600;
+            padding: 8px 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
             text-transform: uppercase;
-            font-size: 0.78rem;
+            font-size: 0.72rem;
+            letter-spacing: 0.5px;
             white-space: nowrap;
         }
 
         .table-relacion td {
-            padding: 12px 14px;
+            padding: 6px 10px; /* Highly optimized height */
             border: 1px solid #cbd5e1;
             vertical-align: middle;
             color: #334155;
@@ -209,7 +222,7 @@ $current_page = 'grupos.php'; // Para marcar activo en la sidebar
         }
 
         .table-relacion tr:hover td {
-            background-color: #f1f5f9;
+            background-color: #eff6ff; /* Soft blue highlight */
         }
 
         .table-relacion td.alumno-highlight,
@@ -219,54 +232,60 @@ $current_page = 'grupos.php'; // Para marcar activo en la sidebar
 
         .alumno-highlight {
             font-weight: 700;
-            color: #d97706; /* Orange color */
-            text-transform: uppercase;
+            color: #d97706; /* Nice warm orange */
+            font-size: 0.82rem;
         }
 
         .badge-status {
-            padding: 3px 6px;
-            border-radius: 4px;
-            font-size: 0.72rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
 
-        .badge-finalizado { background-color: rgba(22, 163, 74, 0.1); color: #16a34a; }
-        .badge-abandono { background-color: rgba(239, 68, 68, 0.1); color: #ef4444; }
-        .badge-otros { background-color: rgba(100, 116, 139, 0.1); color: #64748b; }
+        .badge-finalizado { background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+        .badge-finalizado::before { content: '•'; font-size: 1rem; line-height: 0; }
+        
+        .badge-abandono { background-color: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+        .badge-abandono::before { content: '•'; font-size: 1rem; line-height: 0; }
+        
+        .badge-otros { background-color: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+        .badge-otros::before { content: '•'; font-size: 1rem; line-height: 0; }
 
         .btn-action-relacion {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 26px;
-            height: 26px;
-            border-radius: 4px;
-            border: 1px solid #cbd5e1;
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
             background: #fff;
-            color: #475569;
+            color: #64748b;
             text-decoration: none;
-            transition: all 0.2s;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
         }
 
         .btn-action-relacion:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
         }
 
-        .btn-edit { color: #d97706; border-color: rgba(217, 119, 6, 0.3); }
-        .btn-edit:hover { background-color: rgba(217, 119, 6, 0.05); }
+        .btn-edit { color: #d97706; background-color: rgba(217, 119, 6, 0.05); border-color: rgba(217, 119, 6, 0.15); }
+        .btn-edit:hover { background-color: #d97706; color: #fff; border-color: #d97706; }
 
-        .btn-user { color: #2563eb; border-color: rgba(37, 99, 237, 0.3); }
-        .btn-user:hover { background-color: rgba(37, 99, 237, 0.05); }
+        .btn-user { color: #2563eb; background-color: rgba(37, 99, 235, 0.05); border-color: rgba(37, 99, 235, 0.15); }
+        .btn-user:hover { background-color: #2563eb; color: #fff; border-color: #2563eb; }
 
-        .btn-doc { color: #475569; border-color: rgba(71, 85, 105, 0.3); }
-        .btn-doc:hover { background-color: rgba(71, 85, 105, 0.05); }
+        .btn-doc { color: #475569; background-color: rgba(71, 85, 105, 0.05); border-color: rgba(71, 85, 105, 0.15); }
+        .btn-doc:hover { background-color: #475569; color: #fff; border-color: #475569; }
 
-        .btn-delete { color: #dc2626; border-color: rgba(220, 38, 38, 0.3); }
-        .btn-delete:hover { background-color: rgba(220, 38, 38, 0.05); }
+        .btn-delete { color: #dc2626; background-color: rgba(220, 38, 38, 0.05); border-color: rgba(220, 38, 38, 0.15); }
+        .btn-delete:hover { background-color: #dc2626; color: #fff; border-color: #dc2626; }
 
         .footer-info {
             display: flex;
@@ -279,47 +298,53 @@ $current_page = 'grupos.php'; // Para marcar activo en la sidebar
         .registros-count {
             font-weight: 700;
             color: #1e3a8a;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
         .btn-volver {
-            background-color: #cbd5e1;
-            color: #334155;
+            background-color: #ffffff;
+            color: #475569;
             padding: 6px 20px;
-            border-radius: 4px;
+            border-radius: 6px;
             text-decoration: none;
             font-weight: 600;
-            font-size: 0.85rem;
-            border: 1px solid #b8c2cc;
-            transition: all 0.2s;
-        }
-
-        .btn-volver:hover {
-            background-color: #b8c2cc;
-        }
-
-        .btn-guardar {
-            background-color: #f1f5f9;
-            color: #334155;
-            padding: 8px 24px;
-            border-radius: 4px;
-            font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             border: 1px solid #cbd5e1;
-            cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
+            display: inline-block;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
 
+        .btn-volver:hover {
+            background-color: #f8fafc;
+            border-color: #94a3b8;
+            color: #1e293b;
+        }
+
+        .btn-guardar {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+            color: #ffffff;
+            padding: 8px 24px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.82rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(30, 58, 138, 0.25);
+        }
+
         .btn-guardar:hover {
-            background-color: #e2e8f0;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 14px rgba(30, 58, 138, 0.35);
+            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
         }
         
         .alert {
             padding: 10px 15px;
             border-radius: 6px;
             margin-bottom: 20px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 500;
         }
         .alert-success { background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
@@ -334,9 +359,9 @@ $current_page = 'grupos.php'; // Para marcar activo en la sidebar
         <div class="relacion-header">
             <h1>RELACIÓN DE ALUMNOS</h1>
             <div class="sub-info">
-                Grupo: <?= htmlspecialchars($group['numero_grupo'] ?? '') ?> <?= htmlspecialchars($group['curso_codigo'] ?? '') ?> - <?= htmlspecialchars($group['curso_titulo'] ?? '') ?><br>
-                <?= htmlspecialchars($group['fecha_inicio'] ? date('d/m/Y', strtotime($group['fecha_inicio'])) : '—') ?> al <?= htmlspecialchars($group['fecha_fin'] ? date('d/m/Y', strtotime($group['fecha_fin'])) : '—') ?><?= !empty($group['horas']) ? ', de 09:00 a 10:00 h' : '' ?><br>
-                Modalidad: <?= htmlspecialchars($group['modalidad'] ?? '—') ?>
+                Grupo: <span class="highlight-group"><?= htmlspecialchars($group['numero_grupo'] ?? '') ?> <?= htmlspecialchars($group['curso_codigo'] ?? '') ?> - <?= htmlspecialchars($group['curso_titulo'] ?? '') ?></span><br>
+                Fechas: <?= htmlspecialchars($group['fecha_inicio'] ? date('d/m/Y', strtotime($group['fecha_inicio'])) : '—') ?> al <?= htmlspecialchars($group['fecha_fin'] ? date('d/m/Y', strtotime($group['fecha_fin'])) : '—') ?><?= !empty($group['horas']) ? ', de 09:00 a 10:00 h' : '' ?><br>
+                Modalidad: <span class="badge-status badge-otros" style="font-weight:700; margin-left:4px;"><?= htmlspecialchars($group['modalidad'] ?? '—') ?></span>
             </div>
         </div>
 
