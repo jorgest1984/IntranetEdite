@@ -9,6 +9,73 @@ if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA, ROLE_FORMADOR])) {
 $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
 $accion_id = isset($_GET['accion_id']) ? (int)$_GET['accion_id'] : null;
 
+// Self-healing database check
+function check_and_add_columns_edit($pdo) {
+    $columns = [
+        'modulacion' => "VARCHAR(150) NULL",
+        'horario_desde' => "VARCHAR(5) NULL",
+        'horario_hasta' => "VARCHAR(5) NULL",
+        'horario_desde_2' => "VARCHAR(5) NULL",
+        'horario_hasta_2' => "VARCHAR(5) NULL",
+        'horario_presencial_desde' => "VARCHAR(5) NULL",
+        'horario_presencial_hasta' => "VARCHAR(5) NULL",
+        'horario_presencial_desde_2' => "VARCHAR(5) NULL",
+        'horario_presencial_hasta_2' => "VARCHAR(5) NULL",
+        'horario_distancia_desde' => "VARCHAR(5) NULL",
+        'horario_distancia_hasta' => "VARCHAR(5) NULL",
+        'horario_distancia_desde_2' => "VARCHAR(5) NULL",
+        'horario_distancia_hasta_2' => "VARCHAR(5) NULL",
+        'horario_telef_desde' => "VARCHAR(5) NULL",
+        'horario_telef_hasta' => "VARCHAR(5) NULL",
+        'horario_telef_desde_2' => "VARCHAR(5) NULL",
+        'horario_telef_hasta_2' => "VARCHAR(5) NULL",
+        'dias_lunes' => "TINYINT(1) DEFAULT 0",
+        'dias_martes' => "TINYINT(1) DEFAULT 0",
+        'dias_miercoles' => "TINYINT(1) DEFAULT 0",
+        'dias_jueves' => "TINYINT(1) DEFAULT 0",
+        'dias_viernes' => "TINYINT(1) DEFAULT 0",
+        'dias_sabado' => "TINYINT(1) DEFAULT 0",
+        'dias_domingo' => "TINYINT(1) DEFAULT 0",
+        'horario_info' => "VARCHAR(100) NULL",
+        'tutor_id_2' => "INT NULL",
+        'mostrar_tutor' => "TINYINT(1) DEFAULT 1",
+        'tutor_reserva_id' => "INT NULL",
+        'teleformador_id' => "INT NULL",
+        'tecnico_id' => "INT NULL",
+        'fecha_modificado' => "DATE NULL",
+        'coste_hora_aula' => "DECIMAL(10,2) DEFAULT 0.00",
+        'coste_hora_profesor' => "DECIMAL(10,2) DEFAULT 0.00",
+        'encuestas_finales' => "INT DEFAULT 0",
+        'doc_ficha_aula' => "TINYINT(1) DEFAULT 0",
+        'doc_cv_profesor' => "TINYINT(1) DEFAULT 0",
+        'doc_contrato_profesor' => "TINYINT(1) DEFAULT 0",
+        'doc_contrato_aula' => "TINYINT(1) DEFAULT 0",
+        'doc_cert_ejecucion' => "TINYINT(1) DEFAULT 0",
+        'observaciones' => "TEXT NULL",
+        'modificacion_texto' => "TEXT NULL",
+        'motivo_anulacion' => "TEXT NULL",
+        'justificacion' => "TEXT NULL",
+        'orientacion_ugt' => "TEXT NULL",
+        'notas_internas' => "TEXT NULL",
+        'material_facturado' => "VARCHAR(5) DEFAULT 'NO'",
+        'inspeccionado' => "TINYINT(1) DEFAULT 0",
+        'fecha_inspeccion' => "DATE NULL"
+    ];
+
+    try {
+        $stmt = $pdo->query("SHOW COLUMNS FROM grupos");
+        $existing = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        
+        foreach ($columns as $name => $definition) {
+            if (!in_array($name, $existing)) {
+                $pdo->exec("ALTER TABLE grupos ADD COLUMN `$name` $definition");
+            }
+        }
+    } catch (Exception $e) {}
+}
+
+check_and_add_columns_edit($pdo);
+
 $grupo = [];
 $accion = [];
 $tutores = [];
@@ -19,7 +86,7 @@ try {
     $stmtTutores = $pdo->query("SELECT u.id, CONCAT(u.nombre, ' ', u.apellidos) as nombre 
                                 FROM usuarios u 
                                 JOIN roles r ON u.rol_id = r.id 
-                                WHERE (r.nombre LIKE '%Tutor%' OR r.nombre LIKE '%Formador%') 
+                                WHERE (r.nombre LIKE '%Tutor%' OR r.nombre LIKE '%Formador%' OR r.nombre LIKE '%Docente%') 
                                 AND u.activo = 1
                                 ORDER BY u.nombre ASC");
     if ($stmtTutores) $tutores = $stmtTutores->fetchAll(PDO::FETCH_ASSOC);
@@ -184,6 +251,7 @@ $asignaciones = ['I', 'E', 'M'];
             border: 1px solid #e2e8f0;
             box-shadow: 0 4px 15px rgba(0,0,0,0.03);
             padding: 24px;
+            margin-bottom: 30px;
         }
 
         .form-section-title {
@@ -195,12 +263,14 @@ $asignaciones = ['I', 'E', 'M'];
             border-bottom: 2px solid #f1f5f9;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            margin-top: 15px;
         }
 
         .form-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 16px;
+            margin-bottom: 15px;
         }
 
         .form-group {
@@ -210,6 +280,7 @@ $asignaciones = ['I', 'E', 'M'];
         }
 
         .form-group.col-span-2 { grid-column: span 2; }
+        .form-group.col-span-3 { grid-column: span 3; }
         .form-group.col-span-4 { grid-column: span 4; }
 
         .form-group label {
@@ -234,17 +305,80 @@ $asignaciones = ['I', 'E', 'M'];
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
+        /* Inline group for schedule inputs */
+        .inline-inputs {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+        }
+
+        .inline-inputs input[type="text"] {
+            width: 80px;
+            text-align: center;
+        }
+
+        /* Checkbox row layout */
+        .checkbox-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding: 10px 0;
+        }
+
+        .checkbox-custom-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #334155;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .checkbox-custom-label input {
+            width: 16px;
+            height: 16px;
+            accent-color: #1e3a8a;
+        }
+
+        /* Radio group */
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .radio-custom-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #334155;
+            cursor: pointer;
+        }
+
+        .radio-custom-label input {
+            width: 16px;
+            height: 16px;
+            accent-color: #1e3a8a;
+        }
+
         .btn-save {
             background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
             color: white;
             border: none;
-            padding: 10px 24px;
+            padding: 12px 35px;
             border-radius: 6px;
             font-weight: 700;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             cursor: pointer;
             transition: all 0.2s;
             box-shadow: 0 4px 10px rgba(30, 58, 138, 0.2);
+            display: block;
+            margin: 0 auto;
         }
 
         .btn-save:hover {
@@ -254,10 +388,9 @@ $asignaciones = ['I', 'E', 'M'];
         }
 
         .footer-actions {
-            margin-top: 24px;
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
         }
     </style>
 </head>
@@ -311,6 +444,7 @@ $asignaciones = ['I', 'E', 'M'];
                 <?php endif; ?>
                 <input type="hidden" name="accion_id" value="<?= $accion_id ?>">
 
+                <!-- SECTION 1: DATOS GENERALES -->
                 <div class="form-section-title">Datos del Grupo</div>
                 
                 <div class="form-grid">
@@ -337,7 +471,20 @@ $asignaciones = ['I', 'E', 'M'];
                         </select>
                     </div>
                     <div class="form-group col-span-2">
-                        <label>Tutor / Docente:</label>
+                        <label>Modalidad:</label>
+                        <select name="modalidad" class="form-control">
+                            <?php foreach ($modalidades as $m): ?>
+                                <option value="<?= $m ?>" <?= ($grupo['modalidad'] ?? '') == $m ? 'selected' : '' ?>><?= $m ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: EQUIPO DOCENTE Y TÉCNICO -->
+                <div class="form-section-title">Equipo Docente y Técnico</div>
+                <div class="form-grid">
+                    <div class="form-group col-span-2">
+                        <label>Tutor / Docente Principal:</label>
                         <select name="tutor_id" class="form-control">
                             <option value="">Seleccione tutor...</option>
                             <?php foreach ($tutores as $t): ?>
@@ -345,13 +492,156 @@ $asignaciones = ['I', 'E', 'M'];
                             <?php endforeach; ?>
                         </select>
                     </div>
+                    <div class="form-group col-span-2">
+                        <label>Tutor 2:</label>
+                        <select name="tutor_id_2" class="form-control">
+                            <option value="">Seleccione tutor 2...</option>
+                            <?php foreach ($tutores as $t): ?>
+                                <option value="<?= $t['id'] ?>" <?= ($grupo['tutor_id_2'] ?? '') == $t['id'] ? 'selected' : '' ?>><?= htmlspecialchars($t['nombre']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
 
+                    <div class="form-group col-span-2">
+                        <label>Tutor de Reserva:</label>
+                        <select name="tutor_reserva_id" class="form-control">
+                            <option value="">Seleccione tutor de reserva...</option>
+                            <?php foreach ($tutores as $t): ?>
+                                <option value="<?= $t['id'] ?>" <?= ($grupo['tutor_reserva_id'] ?? '') == $t['id'] ? 'selected' : '' ?>><?= htmlspecialchars($t['nombre']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group col-span-2">
+                        <div style="margin-top: 25px;">
+                            <label class="checkbox-custom-label">
+                                <input type="checkbox" name="mostrar_tutor" value="1" <?= ($grupo['mostrar_tutor'] ?? 1) ? 'checked' : '' ?>>
+                                Mostrar tutor en plataforma
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group col-span-2">
+                        <label>Teleformador / Formador Moodle:</label>
+                        <select name="teleformador_id" class="form-control">
+                            <option value="">Seleccione teleformador...</option>
+                            <?php foreach ($tutores as $t): ?>
+                                <option value="<?= $t['id'] ?>" <?= ($grupo['teleformador_id'] ?? '') == $t['id'] ? 'selected' : '' ?>><?= htmlspecialchars($t['nombre']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group col-span-2">
+                        <label>Técnico de Apoyo:</label>
+                        <select name="tecnico_id" class="form-control">
+                            <option value="">Seleccione técnico...</option>
+                            <?php foreach ($tutores as $t): ?>
+                                <option value="<?= $t['id'] ?>" <?= ($grupo['tecnico_id'] ?? '') == $t['id'] ? 'selected' : '' ?>><?= htmlspecialchars($t['nombre']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- SECTION 3: MODULACIÓN Y HORARIOS -->
+                <div class="form-section-title">Modulación y Horarios de Impartición</div>
+                <div class="form-grid">
+                    <div class="form-group col-span-2">
+                        <label>Modulación (Días de clase):</label>
+                        <input type="text" name="modulacion" class="form-control" value="<?= htmlspecialchars($grupo['modulacion'] ?? 'Lunes a Viernes') ?>" placeholder="Ej: Lunes a Viernes">
+                    </div>
+                    <div class="form-group col-span-2">
+                        <label>Horario General (Formato: hh:mm):</label>
+                        <div class="inline-inputs">
+                            <span>desde</span>
+                            <input type="text" name="horario_desde" class="form-control" value="<?= htmlspecialchars($grupo['horario_desde'] ?? '') ?>" placeholder="09:00">
+                            <span>hasta</span>
+                            <input type="text" name="horario_hasta" class="form-control" value="<?= htmlspecialchars($grupo['horario_hasta'] ?? '') ?>" placeholder="10:00">
+                            <span>y desde</span>
+                            <input type="text" name="horario_desde_2" class="form-control" value="<?= htmlspecialchars($grupo['horario_desde_2'] ?? '') ?>" placeholder="00:00">
+                            <span>hasta</span>
+                            <input type="text" name="horario_hasta_2" class="form-control" value="<?= htmlspecialchars($grupo['horario_hasta_2'] ?? '') ?>" placeholder="00:00">
+                        </div>
+                    </div>
+
+                    <div class="form-group col-span-4">
+                        <label>Horarios por Modalidad Específica</label>
+                        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 5px;">
+                            <div class="inline-inputs">
+                                <span style="width: 140px; font-weight: 600; color: #475569;">Horario Presencial:</span>
+                                <span>desde</span>
+                                <input type="text" name="horario_presencial_desde" class="form-control" value="<?= htmlspecialchars($grupo['horario_presencial_desde'] ?? '') ?>" placeholder="00:00">
+                                <span>hasta</span>
+                                <input type="text" name="horario_presencial_hasta" class="form-control" value="<?= htmlspecialchars($grupo['horario_presencial_hasta'] ?? '') ?>" placeholder="00:00">
+                                <span>y desde</span>
+                                <input type="text" name="horario_presencial_desde_2" class="form-control" value="<?= htmlspecialchars($grupo['horario_presencial_desde_2'] ?? '') ?>" placeholder="00:00">
+                                <span>hasta</span>
+                                <input type="text" name="horario_presencial_hasta_2" class="form-control" value="<?= htmlspecialchars($grupo['horario_presencial_hasta_2'] ?? '') ?>" placeholder="00:00">
+                            </div>
+                            <div class="inline-inputs">
+                                <span style="width: 140px; font-weight: 600; color: #475569;">Horario Distancia:</span>
+                                <span>desde</span>
+                                <input type="text" name="horario_distancia_desde" class="form-control" value="<?= htmlspecialchars($grupo['horario_distancia_desde'] ?? '') ?>" placeholder="00:00">
+                                <span>hasta</span>
+                                <input type="text" name="horario_distancia_hasta" class="form-control" value="<?= htmlspecialchars($grupo['horario_distancia_hasta'] ?? '') ?>" placeholder="00:00">
+                                <span>y desde</span>
+                                <input type="text" name="horario_distancia_desde_2" class="form-control" value="<?= htmlspecialchars($grupo['horario_distancia_desde_2'] ?? '') ?>" placeholder="00:00">
+                                <span>hasta</span>
+                                <input type="text" name="horario_distancia_hasta_2" class="form-control" value="<?= htmlspecialchars($grupo['horario_distancia_hasta_2'] ?? '') ?>" placeholder="00:00">
+                            </div>
+                            <div class="inline-inputs">
+                                <span style="width: 140px; font-weight: 600; color: #475569;">Horario Telefónico:</span>
+                                <span>desde</span>
+                                <input type="text" name="horario_telef_desde" class="form-control" value="<?= htmlspecialchars($grupo['horario_telef_desde'] ?? '') ?>" placeholder="00:00">
+                                <span>hasta</span>
+                                <input type="text" name="horario_telef_hasta" class="form-control" value="<?= htmlspecialchars($grupo['horario_telef_hasta'] ?? '') ?>" placeholder="00:00">
+                                <span>y desde</span>
+                                <input type="text" name="horario_telef_desde_2" class="form-control" value="<?= htmlspecialchars($grupo['horario_telef_desde_2'] ?? '') ?>" placeholder="00:00">
+                                <span>hasta</span>
+                                <input type="text" name="horario_telef_hasta_2" class="form-control" value="<?= htmlspecialchars($grupo['horario_telef_hasta_2'] ?? '') ?>" placeholder="00:00">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group col-span-4">
+                        <label>Días de Impartición:</label>
+                        <div class="checkbox-row">
+                            <label class="checkbox-custom-label">
+                                <input type="checkbox" name="dias_lunes" value="1" <?= ($grupo['dias_lunes'] ?? 1) ? 'checked' : '' ?>> Lunes
+                            </label>
+                            <label class="checkbox-custom-label">
+                                <input type="checkbox" name="dias_martes" value="1" <?= ($grupo['dias_martes'] ?? 1) ? 'checked' : '' ?>> Martes
+                            </label>
+                            <label class="checkbox-custom-label">
+                                <input type="checkbox" name="dias_miercoles" value="1" <?= ($grupo['dias_miercoles'] ?? 1) ? 'checked' : '' ?>> Miércoles
+                            </label>
+                            <label class="checkbox-custom-label">
+                                <input type="checkbox" name="dias_jueves" value="1" <?= ($grupo['dias_jueves'] ?? 1) ? 'checked' : '' ?>> Jueves
+                            </label>
+                            <label class="checkbox-custom-label">
+                                <input type="checkbox" name="dias_viernes" value="1" <?= ($grupo['dias_viernes'] ?? 1) ? 'checked' : '' ?>> Viernes
+                            </label>
+                            <label class="checkbox-custom-label">
+                                <input type="checkbox" name="dias_sabado" value="1" <?= ($grupo['dias_sabado'] ?? 0) ? 'checked' : '' ?>> Sábado
+                            </label>
+                            <label class="checkbox-custom-label">
+                                <input type="checkbox" name="dias_domingo" value="1" <?= ($grupo['dias_domingo'] ?? 0) ? 'checked' : '' ?>> Domingo
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group col-span-4">
+                        <label>Información del Horario (Texto libre):</label>
+                        <input type="text" name="horario_info" class="form-control" value="<?= htmlspecialchars($grupo['horario_info'] ?? '09:00 a 10:00 h') ?>" placeholder="Ej: 09:00 a 10:00 h">
+                    </div>
+                </div>
+
+                <!-- SECTION 4: FECHAS Y CONTROL -->
+                <div class="form-section-title">Fechas clave y Seguimiento</div>
+                <div class="form-grid">
                     <div class="form-group">
                         <label>Fecha Inicio:</label>
                         <input type="date" name="fecha_inicio" class="form-control" value="<?= $grupo['fecha_inicio'] ?? '' ?>">
                     </div>
                     <div class="form-group">
-                        <label>Fecha Mitad:</label>
+                        <label>Fecha Mitad (50%):</label>
                         <input type="date" name="fecha_mitad" class="form-control" value="<?= $grupo['fecha_mitad'] ?? '' ?>">
                     </div>
                     <div class="form-group">
@@ -364,12 +654,16 @@ $asignaciones = ['I', 'E', 'M'];
                     </div>
 
                     <div class="form-group">
-                        <label>Modalidad:</label>
-                        <select name="modalidad" class="form-control">
-                            <?php foreach ($modalidades as $m): ?>
-                                <option value="<?= $m ?>" <?= ($grupo['modalidad'] ?? '') == $m ? 'selected' : '' ?>><?= $m ?></option>
+                        <label>Situación / Estado:</label>
+                        <select name="situacion" class="form-control">
+                            <?php foreach ($situaciones as $s): ?>
+                                <option value="<?= $s ?>" <?= ($grupo['situacion'] ?? '') == $s ? 'selected' : '' ?>><?= $s ?></option>
                             <?php endforeach; ?>
                         </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Modificado el (Fecha):</label>
+                        <input type="date" name="fecha_modificado" class="form-control" value="<?= $grupo['fecha_modificado'] ?? '' ?>">
                     </div>
                     <div class="form-group">
                         <label>Asignación:</label>
@@ -381,21 +675,107 @@ $asignaciones = ['I', 'E', 'M'];
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Situación:</label>
-                        <select name="situacion" class="form-control">
-                            <?php foreach ($situaciones as $s): ?>
-                                <option value="<?= $s ?>" <?= ($grupo['situacion'] ?? '') == $s ? 'selected' : '' ?>><?= $s ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Horas:</label>
+                        <label>Nº Total de Horas:</label>
                         <input type="number" name="horas" class="form-control" value="<?= $grupo['horas'] ?? '' ?>">
                     </div>
                 </div>
 
+                <!-- SECTION 5: COSTES Y ENCUESTAS -->
+                <div class="form-section-title">Costes y Encuestas</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Coste/Hora Aula:</label>
+                        <input type="number" step="0.01" name="coste_hora_aula" class="form-control" value="<?= htmlspecialchars($grupo['coste_hora_aula'] ?? '0.00') ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Coste/Hora Profesor:</label>
+                        <input type="number" step="0.01" name="coste_hora_profesor" class="form-control" value="<?= htmlspecialchars($grupo['coste_hora_profesor'] ?? '0.00') ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Nº Encuestas Finales:</label>
+                        <input type="number" name="encuestas_finales" class="form-control" value="<?= htmlspecialchars($grupo['encuestas_finales'] ?? '0') ?>">
+                    </div>
+                </div>
+
+                <!-- SECTION 6: CHECKLIST DE DOCUMENTACIÓN -->
+                <div class="form-section-title">Documentación y Checklist</div>
+                <div class="checkbox-row" style="margin-bottom: 20px;">
+                    <label class="checkbox-custom-label">
+                        <input type="checkbox" name="doc_ficha_aula" value="1" <?= ($grupo['doc_ficha_aula'] ?? 0) ? 'checked' : '' ?>> Ficha Aula
+                    </label>
+                    <label class="checkbox-custom-label">
+                        <input type="checkbox" name="doc_cv_profesor" value="1" <?= ($grupo['doc_cv_profesor'] ?? 0) ? 'checked' : '' ?>> CV Profesor
+                    </label>
+                    <label class="checkbox-custom-label">
+                        <input type="checkbox" name="doc_contrato_profesor" value="1" <?= ($grupo['doc_contrato_profesor'] ?? 0) ? 'checked' : '' ?>> Contrato Profesor
+                    </label>
+                    <label class="checkbox-custom-label">
+                        <input type="checkbox" name="doc_contrato_aula" value="1" <?= ($grupo['doc_contrato_aula'] ?? 0) ? 'checked' : '' ?>> Contrato Aula
+                    </label>
+                    <label class="checkbox-custom-label">
+                        <input type="checkbox" name="doc_cert_ejecucion" value="1" <?= ($grupo['doc_cert_ejecucion'] ?? 0) ? 'checked' : '' ?>> Cert. Ejecución
+                    </label>
+                </div>
+
+                <!-- SECTION 7: TEXTOS DE GESTIÓN Y OBSERVACIONES -->
+                <div class="form-section-title">Textos de Gestión y Observaciones</div>
+                <div class="form-grid">
+                    <div class="form-group col-span-4">
+                        <label>Modificaciones:</label>
+                        <textarea name="modificacion_texto" class="form-control" rows="3" placeholder="Indique modificaciones realizadas..."><?= htmlspecialchars($grupo['modificacion_texto'] ?? '') ?></textarea>
+                    </div>
+                    <div class="form-group col-span-4">
+                        <label>Motivo de Anulación (en su caso):</label>
+                        <textarea name="motivo_anulacion" class="form-control" rows="3" placeholder="Indique el motivo en caso de anular el grupo..."><?= htmlspecialchars($grupo['motivo_anulacion'] ?? '') ?></textarea>
+                    </div>
+                    <div class="form-group col-span-4">
+                        <label>Justificación:</label>
+                        <textarea name="justificacion" class="form-control" rows="3"><?= htmlspecialchars($grupo['justificacion'] ?? '') ?></textarea>
+                    </div>
+                    <div class="form-group col-span-4">
+                        <label>Observaciones:</label>
+                        <textarea name="observaciones" class="form-control" rows="4"><?= htmlspecialchars($grupo['observaciones'] ?? "Del 01/08/2025 al 29/08/2025 no hay tutorías por periodo vacacional.\nLos participantes tienen la opción de conectarse a la plataforma las 24 horas del día los 7 días de la semana.") ?></textarea>
+                    </div>
+                    <div class="form-group col-span-4">
+                        <label>Servicio de orientación sociolaboral-FES UGT:</label>
+                        <textarea name="orientacion_ugt" class="form-control" rows="3"><?= htmlspecialchars($grupo['orientacion_ugt'] ?? '') ?></textarea>
+                    </div>
+                    <div class="form-group col-span-4">
+                        <label>Notas Internas:</label>
+                        <textarea name="notas_internas" class="form-control" rows="3"><?= htmlspecialchars($grupo['notas_internas'] ?? '') ?></textarea>
+                    </div>
+                </div>
+
+                <!-- BOTTOM ROW: FACTURACIÓN E INSPECCIÓN -->
+                <div class="form-section-title">Facturación e Inspección</div>
+                <div class="form-grid" style="align-items: center;">
+                    <div class="form-group col-span-2">
+                        <label>Material didáctico facturado:</label>
+                        <div class="radio-group" style="margin-top: 5px;">
+                            <label class="radio-custom-label">
+                                <input type="radio" name="material_facturado" value="SI" <?= ($grupo['material_facturado'] ?? 'NO') === 'SI' ? 'checked' : '' ?>> SÍ
+                            </label>
+                            <label class="radio-custom-label">
+                                <input type="radio" name="material_facturado" value="NO" <?= ($grupo['material_facturado'] ?? 'NO') === 'NO' ? 'checked' : '' ?>> NO
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div style="margin-top: 15px;">
+                            <label class="checkbox-custom-label">
+                                <input type="checkbox" name="inspeccionado" value="1" <?= ($grupo['inspeccionado'] ?? 0) ? 'checked' : '' ?>>
+                                Inspeccionado
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha Inspección:</label>
+                        <input type="date" name="fecha_inspeccion" class="form-control" value="<?= $grupo['fecha_inspeccion'] ?? '' ?>">
+                    </div>
+                </div>
+
                 <div class="footer-actions">
-                    <button type="submit" class="btn-save">Guardar Cambios</button>
+                    <button type="submit" class="btn-save">Guardar registro</button>
                 </div>
             </form>
         </main>
