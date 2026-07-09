@@ -12,6 +12,49 @@ $accion_id = isset($_GET['accion_id']) ? (int)$_GET['accion_id'] : null;
 // Self-healing database check
 function check_and_add_columns_edit($pdo) {
     $columns = [
+        'convocatoria_id' => "INT NULL",
+        'plan_id' => "INT NULL",
+        'expediente' => "VARCHAR(100) NULL",
+        'consultora_id' => "INT NULL",
+        'curso_id' => "INT NULL",
+        'codigo_plat' => "VARCHAR(50) NULL",
+        'denominacion_grupo' => "VARCHAR(255) NULL",
+        'fecha_solicitud_desempleados' => "DATE NULL",
+        'hay_desempleados' => "VARCHAR(5) DEFAULT 'NO'",
+        'contestacion_ca' => "VARCHAR(5) DEFAULT 'NO'",
+        'comunidad_autonoma' => "VARCHAR(100) NULL",
+        'usuario_gestor' => "VARCHAR(100) NULL",
+        'contrasena_gestor' => "VARCHAR(100) NULL",
+        'plazo_hoja_seleccion' => "DATE NULL",
+        'comunicacion_finalizacion' => "DATE NULL",
+        'fecha_tramitacion_becas' => "DATE NULL",
+        'fecha_ds15' => "DATE NULL",
+        'fecha_actas_evaluacion' => "DATE NULL",
+        'fecha_cuestionarios_calidad' => "DATE NULL",
+        'num_ac' => "INT DEFAULT 1",
+        'fecha_25' => "DATE NULL",
+        'plazo_s10' => "DATE NULL",
+        'modificacion_s10' => "DATE NULL",
+        'plazo_s20' => "DATE NULL",
+        'modificacion_s20' => "DATE NULL",
+        'fecha_1_2_curso' => "DATE NULL",
+        'fecha_7_dias_fin' => "DATE NULL",
+        'fecha_3_dias_fin' => "DATE NULL",
+        'total_sesiones' => "INT DEFAULT 0",
+        'sesion_15' => "VARCHAR(100) NULL",
+        'sesion_25' => "VARCHAR(100) NULL",
+        'sesion_anterior' => "DATE NULL",
+        'sesion_50' => "VARCHAR(100) NULL",
+        'comunicado' => "TINYINT(1) DEFAULT 0",
+        'fecha_comunicacion' => "DATE NULL",
+        'horas_tutorias_programadas' => "DECIMAL(10,2) DEFAULT 0.00",
+        'horas_af' => "INT DEFAULT 0",
+        'provincia' => "VARCHAR(100) NULL",
+        'sede' => "VARCHAR(150) NULL",
+        'no_certificar' => "TINYINT(1) DEFAULT 0",
+        'objeto_control' => "TINYINT(1) DEFAULT 0",
+        'material' => "TEXT NULL",
+
         'modulacion' => "VARCHAR(150) NULL",
         'horario_desde' => "VARCHAR(5) NULL",
         'horario_hasta' => "VARCHAR(5) NULL",
@@ -80,9 +123,13 @@ $grupo = [];
 $accion = [];
 $tutores = [];
 $centros = [];
+$convocatorias = [];
+$planes = [];
+$cursos = [];
+$consultoras = [];
 
 try {
-    // Tutors (Docentes) - Fetching from usuarios with Tutor/Formador roles
+    // Tutors
     $stmtTutores = $pdo->query("SELECT u.id, CONCAT(u.nombre, ' ', u.apellidos) as nombre 
                                 FROM usuarios u 
                                 JOIN roles r ON u.rol_id = r.id 
@@ -91,9 +138,24 @@ try {
                                 ORDER BY u.nombre ASC");
     if ($stmtTutores) $tutores = $stmtTutores->fetchAll(PDO::FETCH_ASSOC);
 
-    // Centers
+    // Centers / Consultoras
     $stmtCentros = $pdo->query("SELECT id, nombre FROM empresas ORDER BY nombre ASC");
-    if ($stmtCentros) $centros = $stmtCentros->fetchAll(PDO::FETCH_ASSOC);
+    if ($stmtCentros) {
+        $centros = $stmtCentros->fetchAll(PDO::FETCH_ASSOC);
+        $consultoras = $centros;
+    }
+
+    // Convocatorias
+    $stmtConv = $pdo->query("SELECT id, nombre FROM convocatorias ORDER BY nombre ASC");
+    if ($stmtConv) $convocatorias = $stmtConv->fetchAll(PDO::FETCH_ASSOC);
+
+    // Planes
+    $stmtPlanes = $pdo->query("SELECT id, nombre FROM planes ORDER BY nombre ASC");
+    if ($stmtPlanes) $planes = $stmtPlanes->fetchAll(PDO::FETCH_ASSOC);
+
+    // Cursos
+    $stmtCursos = $pdo->query("SELECT id, CONCAT(nombre_corto, ' - ', nombre_largo) as nombre FROM cursos ORDER BY nombre_largo ASC");
+    if ($stmtCursos) $cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
 
     if ($id) {
         $stmt = $pdo->prepare("SELECT * FROM grupos WHERE id = ?");
@@ -111,12 +173,18 @@ try {
     }
 
 } catch (Throwable $e) {
-    // Silently fail or log
+    // Silently fail
 }
 
 $modalidades = ['Teleformación', 'Presencial', 'Mixta', 'Aula Virtual'];
 $situaciones = ['Válido', 'Suspendido', 'Finalizado', 'Lista espera', 'Inactivo'];
 $asignaciones = ['I', 'E', 'M'];
+
+$ccaa = [
+    'Andalucía', 'Aragón', 'Asturias', 'Baleares', 'Canarias', 'Cantabria', 'Castilla y León', 
+    'Castilla-La Mancha', 'Cataluña', 'Comunidad Valenciana', 'Extremadura', 'Galicia', 
+    'Madrid', 'Murcia', 'Navarra', 'País Vasco', 'La Rioja', 'Ceuta', 'Melilla'
+];
 
 ?>
 <!DOCTYPE html>
@@ -132,7 +200,7 @@ $asignaciones = ['I', 'E', 'M'];
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
         .main-content { padding: 1.5rem 2rem; max-width: 1400px; box-sizing: border-box; }
         
-        /* Top crimson banner matching screenshot */
+        /* Top banner matching screenshot */
         .top-banner {
             background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
             padding: 10px 16px;
@@ -446,43 +514,213 @@ $asignaciones = ['I', 'E', 'M'];
                 <?php endif; ?>
                 <input type="hidden" name="accion_id" value="<?= $accion_id ?>">
 
-                <!-- SECTION 1: DATOS GENERALES -->
-                <div class="form-section-title">Datos del Grupo</div>
-                
+                <!-- SECTION 1: IDENTIFICACIÓN Y PLANIFICACIÓN -->
+                <div class="form-section-title">Identificación y Planificación del Grupo</div>
                 <div class="form-grid">
+                    <div class="form-group">
+                        <label>COD (ID Registro):</label>
+                        <input type="text" class="form-control" style="background-color: #f1f5f9; font-weight:700;" value="<?= $id ?: 'Nuevo' ?>" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Convocatoria:</label>
+                        <select name="convocatoria_id" class="form-control">
+                            <option value="">Todas</option>
+                            <?php foreach ($convocatorias as $c): ?>
+                                <option value="<?= $c['id'] ?>" <?= ($grupo['convocatoria_id'] ?? '') == $c['id'] ? 'selected' : '' ?>><?= htmlspecialchars($c['nombre']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group col-span-2">
+                        <label>Plan Formativo:</label>
+                        <select name="plan_id" class="form-control">
+                            <option value="">Seleccione plan...</option>
+                            <?php foreach ($planes as $p): ?>
+                                <option value="<?= $p['id'] ?>" <?= ($grupo['plan_id'] ?? '') == $p['id'] ? 'selected' : '' ?>><?= htmlspecialchars($p['nombre']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Expediente:</label>
+                        <input type="text" name="expediente" class="form-control" value="<?= htmlspecialchars($grupo['expediente'] ?? '') ?>" placeholder="Ej: EXP-2024">
+                    </div>
+                    <div class="form-group col-span-2">
+                        <label>Consultora:</label>
+                        <select name="consultora_id" class="form-control">
+                            <option value="">Seleccione consultora...</option>
+                            <?php foreach ($consultoras as $con): ?>
+                                <option value="<?= $con['id'] ?>" <?= ($grupo['consultora_id'] ?? '') == $con['id'] ? 'selected' : '' ?>><?= htmlspecialchars($con['nombre']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Código Plat.:</label>
+                        <input type="text" name="codigo_plat" class="form-control" value="<?= htmlspecialchars($grupo['codigo_plat'] ?? '') ?>" placeholder="Ej: 1218">
+                    </div>
+
+                    <div class="form-group col-span-4">
+                        <label>Curso:</label>
+                        <select name="curso_id" class="form-control">
+                            <option value="">Seleccione curso...</option>
+                            <?php foreach ($cursos as $cur): ?>
+                                <option value="<?= $cur['id'] ?>" <?= ($grupo['curso_id'] ?? '') == $cur['id'] ? 'selected' : '' ?>><?= htmlspecialchars($cur['nombre']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="form-group col-span-2">
+                        <label>Denominación del Grupo:</label>
+                        <input type="text" name="denominacion_grupo" class="form-control" value="<?= htmlspecialchars($grupo['denominacion_grupo'] ?? '') ?>" placeholder="Ej: ARGG031PO - ADOBE ILLUSTRATOR AVANZADO CC">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha solicitud desempleados:</label>
+                        <input type="date" name="fecha_solicitud_desempleados" class="form-control" value="<?= $grupo['fecha_solicitud_desempleados'] ?? '' ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Hay desempleados:</label>
+                        <select name="hay_desempleados" class="form-control">
+                            <option value="NO" <?= ($grupo['hay_desempleados'] ?? 'NO') === 'NO' ? 'selected' : '' ?>>NO</option>
+                            <option value="SI" <?= ($grupo['hay_desempleados'] ?? 'NO') === 'SI' ? 'selected' : '' ?>>SÍ</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Contestación por CA:</label>
+                        <select name="contestacion_ca" class="form-control">
+                            <option value="NO" <?= ($grupo['contestacion_ca'] ?? 'NO') === 'NO' ? 'selected' : '' ?>>NO</option>
+                            <option value="SI" <?= ($grupo['contestacion_ca'] ?? 'NO') === 'SI' ? 'selected' : '' ?>>SÍ</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Comunidad Autónoma:</label>
+                        <select name="comunidad_autonoma" class="form-control">
+                            <option value=""></option>
+                            <?php foreach ($ccaa as $com): ?>
+                                <option value="<?= $com ?>" <?= ($grupo['comunidad_autonoma'] ?? '') == $com ? 'selected' : '' ?>><?= $com ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Usuario Gestor:</label>
+                        <input type="text" name="usuario_gestor" class="form-control" value="<?= htmlspecialchars($grupo['usuario_gestor'] ?? '') ?>" placeholder="Ej: u24041g1">
+                    </div>
+                    <div class="form-group">
+                        <label>Contraseña Gestor:</label>
+                        <input type="text" name="contrasena_gestor" class="form-control" value="<?= htmlspecialchars($grupo['contrasena_gestor'] ?? '') ?>">
+                    </div>
+                </div>
+
+                <!-- SECTION 2: PLAZOS Y TRÁMITES ADMINISTRATIVOS -->
+                <div class="form-section-title">Plazos y Trámites Administrativos</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Plazo Hoja Selección:</label>
+                        <input type="date" name="plazo_hoja_seleccion" class="form-control" value="<?= $grupo['plazo_hoja_seleccion'] ?? '' ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Com. finalización y Evaluación:</label>
+                        <input type="date" name="comunicacion_finalizacion" class="form-control" value="<?= $grupo['comunicacion_finalizacion'] ?? '' ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha tramitación Becas:</label>
+                        <input type="date" name="fecha_tramitacion_becas" class="form-control" value="<?= $grupo['fecha_tramitacion_becas'] ?? '' ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha DS-15:</label>
+                        <input type="date" name="fecha_ds15" class="form-control" value="<?= $grupo['fecha_ds15'] ?? '' ?>">
+                    </div>
+
+                    <div class="form-group col-span-2">
+                        <label>Fecha Actas, informes, pruebas y cuestionarios:</label>
+                        <input type="date" name="fecha_actas_evaluacion" class="form-control" value="<?= $grupo['fecha_actas_evaluacion'] ?? '' ?>">
+                    </div>
+                    <div class="form-group col-span-2">
+                        <label>Fecha Cuestionarios Calidad:</label>
+                        <input type="date" name="fecha_cuestionarios_calidad" class="form-control" value="<?= $grupo['fecha_cuestionarios_calidad'] ?? '' ?>">
+                    </div>
+                </div>
+
+                <!-- SECTION 3: GRUPOS Y SEGUIMIENTO DIARIO -->
+                <div class="form-section-title">Parámetros de Seguimiento y Fechas Hito</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Nº ac.:</label>
+                        <input type="number" name="num_ac" class="form-control" value="<?= htmlspecialchars($grupo['num_ac'] ?? '1') ?>">
+                    </div>
                     <div class="form-group">
                         <label>Nº Grupo:</label>
                         <input type="text" name="numero_grupo" class="form-control" value="<?= htmlspecialchars($grupo['numero_grupo'] ?? '') ?>" placeholder="Ej: G1">
                     </div>
-                    <div class="form-group col-span-2">
-                        <label>Código Plataforma:</label>
-                        <input type="text" name="codigo_plataforma" class="form-control" value="<?= htmlspecialchars($grupo['codigo_plataforma'] ?? '') ?>" placeholder="Ej: ADT-2024-01">
+                    <div class="form-group">
+                        <label>Fecha Inicio:</label>
+                        <input type="date" name="fecha_inicio" class="form-control" value="<?= $grupo['fecha_inicio'] ?? '' ?>">
                     </div>
                     <div class="form-group">
-                        <label>ID Plataforma (Moodle):</label>
-                        <input type="text" name="id_plataforma" class="form-control" value="<?= htmlspecialchars($grupo['id_plataforma'] ?? '') ?>">
+                        <label>Fecha Fin:</label>
+                        <input type="date" name="fecha_fin" class="form-control" value="<?= $grupo['fecha_fin'] ?? '' ?>">
                     </div>
 
-                    <div class="form-group col-span-2">
-                        <label>Centro de Impartición:</label>
-                        <select name="centro_id" class="form-control">
-                            <option value="">Seleccione centro...</option>
-                            <?php foreach ($centros as $c): ?>
-                                <option value="<?= $c['id'] ?>" <?= ($grupo['centro_id'] ?? '') == $c['id'] ? 'selected' : '' ?>><?= htmlspecialchars($c['nombre']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
+                    <div class="form-group">
+                        <label>Fecha 25%:</label>
+                        <input type="date" name="fecha_25" class="form-control" value="<?= $grupo['fecha_25'] ?? '' ?>">
                     </div>
-                    <div class="form-group col-span-2">
-                        <label>Modalidad:</label>
-                        <select name="modalidad" class="form-control">
-                            <?php foreach ($modalidades as $m): ?>
-                                <option value="<?= $m ?>" <?= ($grupo['modalidad'] ?? '') == $m ? 'selected' : '' ?>><?= $m ?></option>
-                            <?php endforeach; ?>
-                        </select>
+                    <div class="form-group">
+                        <label>Plazo S10:</label>
+                        <input type="date" name="plazo_s10" class="form-control" value="<?= $grupo['plazo_s10'] ?? '' ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Modificación S10:</label>
+                        <input type="date" name="modificacion_s10" class="form-control" value="<?= $grupo['modificacion_s10'] ?? '' ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Plazo S20:</label>
+                        <input type="date" name="plazo_s20" class="form-control" value="<?= $grupo['plazo_s20'] ?? '' ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Modificación S20:</label>
+                        <input type="date" name="modificacion_s20" class="form-control" value="<?= $grupo['modificacion_s20'] ?? '' ?>">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Fecha 1/2 curso:</label>
+                        <input type="date" name="fecha_1_2_curso" class="form-control" value="<?= $grupo['fecha_1_2_curso'] ?? '' ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha 7 días fin:</label>
+                        <input type="date" name="fecha_7_dias_fin" class="form-control" value="<?= $grupo['fecha_7_dias_fin'] ?? '' ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha 3 días fin:</label>
+                        <input type="date" name="fecha_3_dias_fin" class="form-control" value="<?= $grupo['fecha_3_dias_fin'] ?? '' ?>">
                     </div>
                 </div>
 
-                <!-- SECTION 2: EQUIPO DOCENTE Y TÉCNICO -->
+                <!-- SECTION 4: SESIONES E HITOS -->
+                <div class="form-section-title">Sesiones e Hitos de Seguimiento</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Nº Total Sesiones:</label>
+                        <input type="number" name="total_sesiones" class="form-control" value="<?= htmlspecialchars($grupo['total_sesiones'] ?? '0') ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Hito 15%:</label>
+                        <input type="text" name="sesion_15" class="form-control" value="<?= htmlspecialchars($grupo['sesion_15'] ?? '') ?>" placeholder="Ej: sesión 3 - 23/07/2025">
+                    </div>
+                    <div class="form-group">
+                        <label>Hito 25%:</label>
+                        <input type="text" name="sesion_25" class="form-control" value="<?= htmlspecialchars($grupo['sesion_25'] ?? '') ?>" placeholder="Ej: sesión 6 - 29/07/2025">
+                    </div>
+                    <div class="form-group">
+                        <label>Sesión Anterior:</label>
+                        <input type="date" name="sesion_anterior" class="form-control" value="<?= $grupo['sesion_anterior'] ?? '' ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Sesión del 50%:</label>
+                        <input type="text" name="sesion_50" class="form-control" value="<?= htmlspecialchars($grupo['sesion_50'] ?? '') ?>" placeholder="Ej: sesión 12 - 03/09/2025">
+                    </div>
+                </div>
+
+                <!-- SECTION 5: EQUIPO DOCENTE Y TÉCNICO -->
                 <div class="form-section-title">Equipo Docente y Técnico</div>
                 <div class="form-grid">
                     <div class="form-group col-span-2">
@@ -542,7 +780,7 @@ $asignaciones = ['I', 'E', 'M'];
                     </div>
                 </div>
 
-                <!-- SECTION 3: MODULACIÓN Y HORARIOS -->
+                <!-- SECTION 6: MODULACIÓN Y HORARIOS -->
                 <div class="form-section-title">Modulación y Horarios de Impartición</div>
                 <div class="form-grid">
                     <div class="form-group col-span-2">
@@ -635,54 +873,69 @@ $asignaciones = ['I', 'E', 'M'];
                     </div>
                 </div>
 
-                <!-- SECTION 4: FECHAS Y CONTROL -->
-                <div class="form-section-title">Fechas clave y Seguimiento</div>
+                <!-- SECTION 7: COMUNICACIÓN Y PLANIFICACIÓN HORARIA -->
+                <div class="form-section-title">Horas y Comunicaciones</div>
                 <div class="form-grid">
-                    <div class="form-group">
-                        <label>Fecha Inicio:</label>
-                        <input type="date" name="fecha_inicio" class="form-control" value="<?= $grupo['fecha_inicio'] ?? '' ?>">
+                    <div class="form-group col-span-2" style="justify-content: center;">
+                        <label class="checkbox-custom-label">
+                            <input type="checkbox" name="comunicado" value="1" <?= ($grupo['comunicado'] ?? 1) ? 'checked' : '' ?>>
+                            Comunicado
+                        </label>
                     </div>
                     <div class="form-group">
-                        <label>Fecha Mitad (50%):</label>
-                        <input type="date" name="fecha_mitad" class="form-control" value="<?= $grupo['fecha_mitad'] ?? '' ?>">
+                        <label>Fecha comunicación:</label>
+                        <input type="date" name="fecha_communication" class="form-control" value="<?= $grupo['fecha_comunicacion'] ?? '' ?>">
                     </div>
                     <div class="form-group">
-                        <label>Fecha 7 Días:</label>
-                        <input type="date" name="fecha_7_dias" class="form-control" value="<?= $grupo['fecha_7_dias'] ?? '' ?>">
+                        <label>Horas de tutorías programadas:</label>
+                        <input type="number" step="0.01" name="horas_tutorias_programadas" class="form-control" value="<?= htmlspecialchars($grupo['horas_tutorias_programadas'] ?? '25.00') ?>">
                     </div>
                     <div class="form-group">
-                        <label>Fecha Fin:</label>
-                        <input type="date" name="fecha_fin" class="form-control" value="<?= $grupo['fecha_fin'] ?? '' ?>">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Situación / Estado:</label>
-                        <select name="situacion" class="form-control">
-                            <?php foreach ($situaciones as $s): ?>
-                                <option value="<?= $s ?>" <?= ($grupo['situacion'] ?? '') == $s ? 'selected' : '' ?>><?= $s ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Modificado el (Fecha):</label>
-                        <input type="date" name="fecha_modificado" class="form-control" value="<?= $grupo['fecha_modificado'] ?? '' ?>">
-                    </div>
-                    <div class="form-group">
-                        <label>Asignación:</label>
-                        <select name="asignacion" class="form-control">
-                            <option value=""></option>
-                            <?php foreach ($asignaciones as $a): ?>
-                                <option value="<?= $a ?>" <?= ($grupo['asignacion'] ?? '') == $a ? 'selected' : '' ?>><?= $a ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Nº Total de Horas:</label>
-                        <input type="number" name="horas" class="form-control" value="<?= $grupo['horas'] ?? '' ?>">
+                        <label>Horas A.F.:</label>
+                        <input type="number" name="horas_af" class="form-control" value="<?= htmlspecialchars($grupo['horas_af'] ?? '25') ?>">
                     </div>
                 </div>
 
-                <!-- SECTION 5: COSTES Y ENCUESTAS -->
+                <!-- SECTION 8: UBICACIÓN Y CONTROL -->
+                <div class="form-section-title">Ubicación y Centro de Impartición</div>
+                <div class="form-grid">
+                    <div class="form-group col-span-2">
+                        <label>Centro:</label>
+                        <select name="centro_id" class="form-control">
+                            <option value="">Seleccione centro...</option>
+                            <?php foreach ($centros as $c): ?>
+                                <option value="<?= $c['id'] ?>" <?= ($grupo['centro_id'] ?? '') == $c['id'] ? 'selected' : '' ?>><?= htmlspecialchars($c['nombre']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Provincia:</label>
+                        <input type="text" name="provincia" class="form-control" value="<?= htmlspecialchars($grupo['provincia'] ?? 'GRANADA') ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Sede:</label>
+                        <input type="text" name="sede" class="form-control" value="<?= htmlspecialchars($grupo['sede'] ?? '') ?>" placeholder="Ej: Marsdigital S.L (Granada)">
+                    </div>
+
+                    <div class="form-group">
+                        <div style="margin-top: 15px;">
+                            <label class="checkbox-custom-label">
+                                <input type="checkbox" name="no_certificar" value="1" <?= ($grupo['no_certificar'] ?? 0) ? 'checked' : '' ?>>
+                                No certificar
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div style="margin-top: 15px;">
+                            <label class="checkbox-custom-label">
+                                <input type="checkbox" name="objeto_control" value="1" <?= ($grupo['objeto_control'] ?? 0) ? 'checked' : '' ?>>
+                                Objeto de control
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 9: COSTES Y SEGUIMIENTO -->
                 <div class="form-section-title">Costes y Encuestas</div>
                 <div class="form-grid">
                     <div class="form-group">
@@ -697,9 +950,17 @@ $asignaciones = ['I', 'E', 'M'];
                         <label>Nº Encuestas Finales:</label>
                         <input type="number" name="encuestas_finales" class="form-control" value="<?= htmlspecialchars($grupo['encuestas_finales'] ?? '0') ?>">
                     </div>
+                    <div class="form-group">
+                        <label>Situación / Estado:</label>
+                        <select name="situacion" class="form-control">
+                            <?php foreach ($situaciones as $s): ?>
+                                <option value="<?= $s ?>" <?= ($grupo['situacion'] ?? '') == $s ? 'selected' : '' ?>><?= $s ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
                 </div>
 
-                <!-- SECTION 6: CHECKLIST DE DOCUMENTACIÓN -->
+                <!-- SECTION 10: CHECKLIST DE DOCUMENTACIÓN -->
                 <div class="form-section-title">Documentación y Checklist</div>
                 <div class="checkbox-row" style="margin-bottom: 20px;">
                     <label class="checkbox-custom-label">
@@ -719,9 +980,13 @@ $asignaciones = ['I', 'E', 'M'];
                     </label>
                 </div>
 
-                <!-- SECTION 7: TEXTOS DE GESTIÓN Y OBSERVACIONES -->
+                <!-- SECTION 11: TEXTOS DE GESTIÓN Y OBSERVACIONES -->
                 <div class="form-section-title">Textos de Gestión y Observaciones</div>
                 <div class="form-grid">
+                    <div class="form-group col-span-4">
+                        <label>Material / Descripción:</label>
+                        <textarea name="material" class="form-control" rows="3" placeholder="Indique materiales..."><?= htmlspecialchars($grupo['material'] ?? '') ?></textarea>
+                    </div>
                     <div class="form-group col-span-4">
                         <label>Modificaciones:</label>
                         <textarea name="modificacion_texto" class="form-control" rows="3" placeholder="Indique modificaciones realizadas..."><?= htmlspecialchars($grupo['modificacion_texto'] ?? '') ?></textarea>
@@ -748,7 +1013,7 @@ $asignaciones = ['I', 'E', 'M'];
                     </div>
                 </div>
 
-                <!-- BOTTOM ROW: FACTURACIÓN E INSPECCIÓN -->
+                <!-- SECTION 12: FACTURACIÓN E INSPECCIÓN -->
                 <div class="form-section-title">Facturación e Inspección</div>
                 <div class="form-grid" style="align-items: center;">
                     <div class="form-group col-span-2">
