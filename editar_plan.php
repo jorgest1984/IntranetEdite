@@ -15,6 +15,69 @@ if (!$conv_id) {
     exit();
 }
 
+// Self-healing database check
+function check_and_add_columns_planes($pdo) {
+    $columns = [
+        'nombre' => "VARCHAR(255) NULL",
+        'codigo' => "VARCHAR(100) NULL",
+        'fecha_inicio_oficial' => "DATE NULL",
+        'anio_convocatoria' => "INT NULL",
+        'tope_horas_alumno' => "INT NULL",
+        'fecha_fin_convocatoria' => "DATE NULL",
+        'expediente' => "VARCHAR(150) NULL",
+        'ambito' => "VARCHAR(150) NULL",
+        'cod_acceso' => "VARCHAR(100) NULL",
+        'entidad' => "VARCHAR(150) NULL",
+        'solicitante' => "VARCHAR(150) NULL",
+        'sector' => "VARCHAR(150) NULL",
+        'grupo_sector' => "VARCHAR(150) NULL",
+        'coordinador' => "VARCHAR(150) NULL",
+        'porc_frar' => "DECIMAL(10,2) DEFAULT 0.00",
+        'porc_calidad' => "DECIMAL(10,2) DEFAULT 0.00",
+        'porc_costes_indirectos' => "DECIMAL(10,2) DEFAULT 0.00",
+        'subvencion' => "DECIMAL(15,2) DEFAULT 0.00",
+        'cofin_fse' => "DECIMAL(10,2) DEFAULT 0.00",
+        'grupo_zona_1' => "VARCHAR(150) NULL",
+        'grupo_zona_2' => "VARCHAR(150) NULL",
+        'ejecutar_edite' => "VARCHAR(150) NULL",
+        'cofinanciado_edite' => "VARCHAR(150) NULL",
+        'prioridad_sectorial' => "DECIMAL(10,2) DEFAULT 0.00",
+        'prioridad_sectorial_colchon' => "DECIMAL(10,2) DEFAULT 0.00",
+        'transversal' => "DECIMAL(10,2) DEFAULT 0.00",
+        'transversal_colchon' => "DECIMAL(10,2) DEFAULT 0.00",
+        'minima' => "DECIMAL(10,2) DEFAULT 0.00",
+        'minima_colchon' => "DECIMAL(10,2) DEFAULT 0.00",
+        'reconfiguracion' => "DECIMAL(10,2) DEFAULT 0.00",
+        'porc_au' => "DECIMAL(10,2) DEFAULT 0.00",
+        'porc_mujeres' => "DECIMAL(10,2) DEFAULT 0.00",
+        'porc_colectivos_prioritarios' => "DECIMAL(10,2) DEFAULT 0.00",
+        'porc_max_desempleados' => "DECIMAL(10,2) DEFAULT 0.00",
+        'cant_ref_cofinanciada' => "DECIMAL(15,2) DEFAULT 0.00",
+        'cant_ref_no_cofinanciada' => "DECIMAL(15,2) DEFAULT 0.00",
+        'fecha_convenio' => "DATE NULL",
+        'observaciones' => "TEXT NULL",
+        'programacion_automatica' => "TINYINT(1) DEFAULT 0",
+        'mostrar' => "TINYINT(1) DEFAULT 1",
+        'nuestro' => "TINYINT(1) DEFAULT 0",
+        'facturar_por_grupos' => "TINYINT(1) DEFAULT 0",
+        'activo' => "TINYINT(1) DEFAULT 1",
+        'convocatoria_id' => "INT NULL"
+    ];
+
+    try {
+        $stmt = $pdo->query("SHOW COLUMNS FROM planes");
+        $existing = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        
+        foreach ($columns as $name => $definition) {
+            if (!in_array($name, $existing)) {
+                $pdo->exec("ALTER TABLE planes ADD COLUMN `$name` $definition");
+            }
+        }
+    } catch (Exception $e) {}
+}
+
+check_and_add_columns_planes($pdo);
+
 // Obtener datos de la convocatoria
 $stmtConv = $pdo->prepare("SELECT id, nombre, anio FROM convocatorias WHERE id = ?");
 $stmtConv->execute([$conv_id]);
