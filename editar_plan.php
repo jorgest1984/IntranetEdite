@@ -171,7 +171,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             $sql = "UPDATE planes SET " . implode(', ', $setClauses) . " WHERE id = :id_filter";
             $params['id_filter'] = $plan_id;
             $stmt = $pdo->prepare($sql);
-            $stmt->execute($params);
+            foreach ($params as $key => $val) {
+                if ($val === null) {
+                    $stmt->bindValue(":$key", null, PDO::PARAM_NULL);
+                } else {
+                    $stmt->bindValue(":$key", $val);
+                }
+            }
+            $stmt->execute();
             $success = "Plan actualizado correctamente.";
         } else {
             // Insert
@@ -179,7 +186,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             $vals = ':' . implode(', :', array_keys($params));
             $sql = "INSERT INTO planes ($cols) VALUES ($vals)";
             $stmt = $pdo->prepare($sql);
-            $stmt->execute($params);
+            foreach ($params as $key => $val) {
+                if ($val === null) {
+                    $stmt->bindValue(":$key", null, PDO::PARAM_NULL);
+                } else {
+                    $stmt->bindValue(":$key", $val);
+                }
+            }
+            $stmt->execute();
             $plan_id = $pdo->lastInsertId();
             $success = "Plan creado correctamente.";
             header("Location: editar_plan.php?id=$plan_id&convocatoria_id=$conv_id&success=1");
