@@ -12,12 +12,14 @@ $planes = [];
 $convocatorias = [];
 $tutores = [];
 $centros = [];
+$resultados = [];
+$error = '';
 
 try {
     $planes = $pdo->query("SELECT id, nombre, codigo FROM planes ORDER BY nombre ASC")->fetchAll(PDO::FETCH_ASSOC);
     $convocatorias = $pdo->query("SELECT id, nombre, codigo_expediente FROM convocatorias ORDER BY nombre ASC")->fetchAll(PDO::FETCH_ASSOC);
     
-    // Tutoress (Docentes)
+    // Tutores (Docentes)
     $stmtTutores = $pdo->query("SELECT a.id, CONCAT(a.nombre, ' ', a.primer_apellido) as nombre 
                                 FROM alumnos a 
                                 JOIN profesorado_detalles p ON a.id = p.alumno_id 
@@ -28,8 +30,110 @@ try {
     $stmtCentros = $pdo->query("SELECT id, nombre FROM empresas ORDER BY nombre ASC");
     if ($stmtCentros) $centros = $stmtCentros->fetchAll(PDO::FETCH_ASSOC);
 
+    // --- LÓGICA DE BÚSQUEDA ---
+    $where = ["1=1"];
+    $params = [];
+
+    if (!empty($_GET['curso'])) {
+        $where[] = "(cu.nombre_largo LIKE ? OR cu.nombre_corto LIKE ?)";
+        $params[] = "%" . $_GET['curso'] . "%";
+        $params[] = "%" . $_GET['curso'] . "%";
+    }
+    if (!empty($_GET['convocatoria_id'])) {
+        $where[] = "p.convocatoria_id = ?";
+        $params[] = (int)$_GET['convocatoria_id'];
+    }
+    if (!empty($_GET['plan_id'])) {
+        $where[] = "af.plan_id = ?";
+        $params[] = (int)$_GET['plan_id'];
+    }
+    if (!empty($_GET['codigo_grupo'])) {
+        $where[] = "g.codigo_plataforma LIKE ?";
+        $params[] = "%" . $_GET['codigo_grupo'] . "%";
+    }
+    if (!empty($_GET['accion'])) {
+        $where[] = "(af.id = ? OR af.abreviatura LIKE ?)";
+        $params[] = (int)$_GET['accion'];
+        $params[] = "%" . $_GET['accion'] . "%";
+    }
+    if (!empty($_GET['grupo_num'])) {
+        $where[] = "g.numero_grupo LIKE ?";
+        $params[] = "%" . $_GET['grupo_num'] . "%";
+    }
+    if (!empty($_GET['modalidad'])) {
+        $where[] = "g.modalidad = ?";
+        $params[] = $_GET['modalidad'];
+    }
+    if (!empty($_GET['asignacion'])) {
+        $where[] = "g.asignacion = ?";
+        $params[] = $_GET['asignacion'];
+    }
+    if (!empty($_GET['tutor'])) {
+        $where[] = "g.tutor_id = ?";
+        $params[] = (int)$_GET['tutor'];
+    }
+    if (!empty($_GET['centro'])) {
+        $where[] = "e.nombre LIKE ?";
+        $params[] = "%" . $_GET['centro'] . "%";
+    }
+    if (!empty($_GET['provincia'])) {
+        $where[] = "e.provincia LIKE ?";
+        $params[] = "%" . $_GET['provincia'] . "%";
+    }
+    if (isset($_GET['sin_fechas'])) {
+        $where[] = "(g.fecha_inicio IS NULL OR g.fecha_fin IS NULL)";
+    } else {
+        if (!empty($_GET['fecha_ini_desde'])) {
+            $where[] = "g.fecha_inicio >= ?";
+            $params[] = $_GET['fecha_ini_desde'];
+        }
+        if (!empty($_GET['fecha_ini_hasta'])) {
+            $where[] = "g.fecha_inicio <= ?";
+            $params[] = $_GET['fecha_ini_hasta'];
+        }
+        if (!empty($_GET['fecha_fin_desde'])) {
+            $where[] = "g.fecha_fin >= ?";
+            $params[] = $_GET['fecha_fin_desde'];
+        }
+        if (!empty($_GET['fecha_fin_hasta'])) {
+            $where[] = "g.fecha_fin <= ?";
+            $params[] = $_GET['fecha_fin_hasta'];
+        }
+    }
+    if (!empty($_GET['situacion'])) {
+        $where[] = "g.situacion = ?";
+        $params[] = $_GET['situacion'];
+    }
+
+    $sql = "SELECT g.*, 
+                   conv.nombre as convocatoria_nombre,
+                   p.nombre as plan_nombre,
+                   cu.nombre_largo as curso_titulo,
+                   cu.nombre_corto as curso_codigo,
+                   e.nombre as centro_nombre,
+                   e.provincia as centro_provincia,
+                   COALESCE(CONCAT(u_tutor.nombre, ' ', u_tutor.apellidos), CONCAT(altut.nombre, ' ', altut.primer_apellido), '-') as tutor1_nombre,
+                   (SELECT COUNT(*) FROM matriculas m_inscr WHERE m_inscr.grupo_id = g.id) as total_inscritos,
+                   (SELECT COUNT(*) FROM matriculas m_admit WHERE m_admit.grupo_id = g.id AND m_admit.estado = 'Activo') as total_admitidos,
+                   (SELECT COUNT(*) FROM matriculas m_final WHERE m_final.grupo_id = g.id AND m_final.estado = 'Finalizada') as total_finalizados
+            FROM grupos g
+            INNER JOIN acciones_formativas af ON g.accion_id = af.id
+            INNER JOIN cursos cu ON af.curso_id = cu.id
+            LEFT JOIN planes p ON af.plan_id = p.id
+            LEFT JOIN convocatorias conv ON p.convocatoria_id = conv.id
+            LEFT JOIN usuarios u_tutor ON g.tutor_id = u_tutor.id
+            LEFT JOIN alumnos altut ON g.tutor_id = altut.id
+            LEFT JOIN empresas e ON g.centro_id = e.id
+            WHERE " . implode(" AND ", $where) . "
+            ORDER BY g.fecha_inicio DESC, g.id DESC
+            LIMIT 150";
+
+    $stmtSearch = $pdo->prepare($sql);
+    $stmtSearch->execute($params);
+    $resultados = $stmtSearch->fetchAll(PDO::FETCH_ASSOC);
+
 } catch (Exception $e) {
-    // Silently fail or log
+    $error = "Error al buscar grupos: " . $e->getMessage();
 }
 
 $current_page = 'grupos.php';
@@ -293,7 +397,7 @@ $current_page = 'grupos.php';
 </head>
 <body>
 <div class="app-container">
-    <?php include 'includes/sidebar.php'; ?>
+    <?php include 'includes/fp_sidebar.php'; ?>
 
     <main class="main-content" style="flex: 1; overflow-y: auto;">
         <header class="page-header">
@@ -730,42 +834,62 @@ $current_page = 'grupos.php';
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Demo Row -->
-                        <tr>
-                            <td>Formación TIC 2024</td>
-                            <td>Plan Digitalización</td>
-                            <td>Teleformación</td>
-                            <td>001</td>
-                            <td>G1</td>
-                            <td>PLAT-01</td>
-                            <td style="font-weight: 700; white-space: normal; min-width: 250px;"><?= htmlspecialchars('CIBERSEGURIDAD AVANZADA') ?></td>
-                            <td>Madrid</td>
-                            <td>JUAN PÉREZ</td>
-                            <td>SÍ</td>
-                            <td>-</td>
-                            <td>01/10/2024</td>
-                            <td>15/10/2024</td>
-                            <td>24/10/2024</td>
-                            <td>30/10/2024</td>
-                            <td>18:00</td>
-                            <td><span class="badge badge-green">Válido</span></td>
-                            <td>ENVIADO</td>
-                            <td>20/09/2024</td>
-                            <td style="text-align: center; font-weight: 700;">25</td>
-                            <td style="text-align: center; font-weight: 700;">20</td>
-                            <td style="text-align: center; font-weight: 700;">18</td>
-                            <td style="text-align: center;">0</td>
-                            <td style="text-align: center;">0</td>
-                            <td>EFP S.L.</td>
-                            <td>SÍ</td>
-                            <td style="border-right:none;">
-                                <div style="display: flex; gap: 8px; justify-content: flex-end; padding-right: 1.5rem;">
-                                    <a href="ficha_grupo_edicion.php?id=1" class="btn-action" title="Editar Grupo">
-                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
+                        <?php if (empty($resultados)): ?>
+                            <tr>
+                                <td colspan="27" style="text-align: center; padding: 2rem; color: var(--text-muted);">No se encontraron grupos con los filtros aplicados.</td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($resultados as $row): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($row['convocatoria_nombre'] ?? '—') ?></td>
+                                    <td><?= htmlspecialchars($row['plan_nombre'] ?? '—') ?></td>
+                                    <td><?= htmlspecialchars($row['modalidad'] ?? '—') ?></td>
+                                    <td><?= htmlspecialchars($row['accion_id'] ?? '—') ?></td>
+                                    <td><?= htmlspecialchars($row['numero_grupo'] ?? '—') ?></td>
+                                    <td><?= htmlspecialchars($row['codigo_plataforma'] ?? '—') ?></td>
+                                    <td style="font-weight: 700; white-space: normal; min-width: 250px;"><?= htmlspecialchars($row['curso_titulo'] ?? '—') ?></td>
+                                    <td><?= htmlspecialchars($row['centro_provincia'] ?? '—') ?></td>
+                                    <td><?= htmlspecialchars($row['tutor1_nombre'] ?? '—') ?></td>
+                                    <td><?= !empty($row['tutor_id']) ? 'SÍ' : '-' ?></td>
+                                    <td>-</td>
+                                    <td><?= $row['fecha_inicio'] ? date('d/m/Y', strtotime($row['fecha_inicio'])) : '—' ?></td>
+                                    <td><?= $row['fecha_mitad'] ? date('d/m/Y', strtotime($row['fecha_mitad'])) : '—' ?></td>
+                                    <td><?= $row['fecha_7_dias'] ? date('d/m/Y', strtotime($row['fecha_7_dias'])) : '—' ?></td>
+                                    <td><?= $row['fecha_fin'] ? date('d/m/Y', strtotime($row['fecha_fin'])) : '—' ?></td>
+                                    <td>-</td>
+                                    <td>
+                                        <?php 
+                                        $sit = mb_strtolower($row['situacion'] ?? '');
+                                        if (strpos($sit, 'val') !== false) {
+                                            echo '<span class="badge badge-green">Válido</span>';
+                                        } elseif (strpos($sit, 'sus') !== false || strpos($sit, 'inac') !== false) {
+                                            echo '<span class="badge badge-red">Inactivo</span>';
+                                        } elseif (strpos($sit, 'fin') !== false) {
+                                            echo '<span class="badge badge-blue">Finalizado</span>';
+                                        } else {
+                                            echo '<span class="badge badge-yellow">' . htmlspecialchars($row['situacion'] ?? '—') . '</span>';
+                                        }
+                                        ?>
+                                    </td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td style="text-align: center; font-weight: 700;"><?= (int)$row['total_inscritos'] ?></td>
+                                    <td style="text-align: center; font-weight: 700;"><?= (int)$row['total_admitidos'] ?></td>
+                                    <td style="text-align: center; font-weight: 700;"><?= (int)$row['total_finalizados'] ?></td>
+                                    <td style="text-align: center;">0</td>
+                                    <td style="text-align: center;">0</td>
+                                    <td><?= htmlspecialchars($row['centro_nombre'] ?? '—') ?></td>
+                                    <td>-</td>
+                                    <td style="border-right:none;">
+                                        <div style="display: flex; gap: 8px; justify-content: flex-end; padding-right: 1.5rem;">
+                                            <a href="ficha_grupo_edicion.php?id=<?= $row['id'] ?>" class="btn-action" title="Editar Grupo">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
