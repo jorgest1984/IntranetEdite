@@ -293,22 +293,133 @@ class MoodleAPI {
      * Crear un grupo en un curso
      */
     public function createGroup($courseId, $groupName, $description = '') {
-        $params = [
-            'groups' => [
-                [
-                    'courseid' => $courseId,
-                    'name' => $groupName,
-                    'description' => $description
+        // 1. Intentar buscar en la base de datos de Moodle primero
+        require_once __DIR__ . '/moodle_db.php';
+        $moodleDb = new MoodleDB();
+        if ($moodleDb->isConnected()) {
+            try {
+                $mpdo = $moodleDb->getPDO();
+                $prefix = defined('MOODLE_DB_PREFIX') ? MOODLE_DB_PREFIX : 'avefp_';
+                $stmt = $mpdo->prepare("SELECT id FROM {$prefix}groups WHERE courseid = ? AND name = ? LIMIT 1");
+                $stmt->execute([(int)$courseId, $groupName]);
+                $row = $stmt->fetch();
+                if ($row) {
+                    return [
+                        [
+                            'id' => (int)$row['id'],
+                            'courseid' => (int)$courseId,
+                            'name' => $groupName
+                        ]
+                    ];
+                }
+            } catch (Exception $e) {
+                // Silencioso, continuamos
+            }
+        }
+
+        // 2. Intentar buscar mediante la API de Moodle si no se encontró en DB
+        try {
+            $groups = $this->call('core_group_get_course_groups', ['courseid' => (int)$courseId]);
+            if (is_array($groups)) {
+                foreach ($groups as $group) {
+                    if (isset($group['name']) && $group['name'] === $groupName) {
+                        return [
+                            [
+                                'id' => (int)$group['id'],
+                                'courseid' => (int)$courseId,
+                                'name' => $groupName
+                            ]
+                        ];
+                    }
+                }
+            }
+        } catch (Exception $e) {
+            // Silencioso, continuamos
+        }
+
+        // 3. Crear el grupo si no existía
+        try {
+            $params = [
+                'groups' => [
+                    [
+                        'courseid' => $courseId,
+                        'name' => $groupName,
+                        'description' => $description
+                    ]
                 ]
-            ]
-        ];
-        return $this->call('core_group_create_groups', $params);
+            ];
+            return $this->call('core_group_create_groups', $params);
+        } catch (Exception $e) {
+            // 4. Si da error de "ya existe", intentar buscar una última vez en la base de datos o por API (por si acaso)
+            if (strpos($e->getMessage(), 'already exists') !== false || strpos($e->getMessage(), 'existe') !== false) {
+                // Intentar por DB de nuevo
+                if ($moodleDb->isConnected()) {
+                    try {
+                        $mpdo = $moodleDb->getPDO();
+                        $prefix = defined('MOODLE_DB_PREFIX') ? MOODLE_DB_PREFIX : 'avefp_';
+                        $stmt = $mpdo->prepare("SELECT id FROM {$prefix}groups WHERE courseid = ? AND name = ? LIMIT 1");
+                        $stmt->execute([(int)$courseId, $groupName]);
+                        $row = $stmt->fetch();
+                        if ($row) {
+                            return [
+                                [
+                                    'id' => (int)$row['id'],
+                                    'courseid' => (int)$courseId,
+                                    'name' => $groupName
+                                ]
+                            ];
+                        }
+                    } catch (Exception $dbEx) {
+                    }
+                }
+                
+                // O intentar por API de nuevo
+                try {
+                    $groups = $this->call('core_group_get_course_groups', ['courseid' => (int)$courseId]);
+                    if (is_array($groups)) {
+                        foreach ($groups as $group) {
+                            if (isset($group['name']) && $group['name'] === $groupName) {
+                                return [
+                                    [
+                                        'id' => (int)$group['id'],
+                                        'courseid' => (int)$courseId,
+                                        'name' => $groupName
+                                    ]
+                                ];
+                            }
+                        }
+                    }
+                } catch (Exception $apiEx) {
+                }
+            }
+            // Si todo falló, relanzar la excepción original
+            throw $e;
+        }
     }
 
     /**
      * Verificar si un grupo existe en Moodle por su ID
      */
     public function groupExists($groupId) {
+        // 1. Intentar por DB
+        require_once __DIR__ . '/moodle_db.php';
+        $moodleDb = new MoodleDB();
+        if ($moodleDb->isConnected()) {
+            try {
+                $mpdo = $moodleDb->getPDO();
+                $prefix = defined('MOODLE_DB_PREFIX') ? MOODLE_DB_PREFIX : 'avefp_';
+                $stmt = $mpdo->prepare("SELECT id FROM {$prefix}groups WHERE id = ? LIMIT 1");
+                $stmt->execute([(int)$groupId]);
+                $row = $stmt->fetch();
+                if ($row) {
+                    return true;
+                }
+            } catch (Exception $e) {
+                // Silencioso
+            }
+        }
+
+        // 2. Fallback a API
         try {
             $res = $this->call('core_group_get_groups', ['groupids' => [(int)$groupId]]);
             return is_array($res) && !empty($res);
