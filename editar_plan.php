@@ -114,10 +114,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             'cant_ref_cofinanciada', 'cant_ref_no_cofinanciada', 'fecha_convenio', 'observaciones'
         ];
 
+        $pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+
         $params = [];
+        $numeric_fields = [
+            'anio_convocatoria', 'tope_horas_alumno', 'porc_frar', 'porc_calidad', 
+            'porc_costes_indirectos', 'subvencion', 'cofin_fse', 'prioridad_sectorial', 
+            'prioridad_sectorial_colchon', 'transversal', 'transversal_colchon', 
+            'minima', 'minima_colchon', 'reconfiguracion', 'porc_au', 
+            'porc_mujeres', 'porc_colectivos_prioritarios', 'porc_max_desempleados', 
+            'cant_ref_cofinanciada', 'cant_ref_no_cofinanciada'
+        ];
+
         foreach ($fields as $f) {
             $val = isset($_POST[$f]) ? trim($_POST[$f]) : '';
-            $params[$f] = ($val === '') ? null : $val;
+            if ($val === '') {
+                $params[$f] = null;
+            } elseif (in_array($f, $numeric_fields)) {
+                $params[$f] = (strpos($val, '.') !== false) ? (float)$val : (int)$val;
+            } else {
+                $params[$f] = $val;
+            }
         }
         
         // Checkboxes / Radios
