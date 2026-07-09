@@ -181,6 +181,12 @@ $current_fp_page = basename($_SERVER['PHP_SELF']);
             </ul>
         </li>
         <li>
+            <a href="alumnos.php" class="<?= $current_fp_page == 'alumnos.php' ? 'active' : '' ?>">
+                <svg class="fp-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                Alumnos
+            </a>
+        </li>
+        <li>
             <a href="buscar_empresas.php" class="<?= $current_fp_page == 'buscar_empresas.php' ? 'active' : '' ?>">
                 <svg class="fp-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"></path><path d="M3 7v1a3 3 0 0 0 6 0V7m0 1a3 3 0 0 0 6 0V7m0 1a3 3 0 0 0 6 0V7H3l2-4h14l2 4"></path><path d="M5 21V10.85"></path><path d="M19 21V10.85"></path><path d="M9 21V14"></path><path d="M15 21V14"></path></svg>
                 Empresas
