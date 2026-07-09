@@ -148,12 +148,31 @@ $current_page = 'grupos.php'; // Para marcar activo en la sidebar
 
         .table-responsive {
             overflow-x: auto;
+            max-height: calc(100vh - 260px);
+            overflow-y: auto;
             width: 100%;
             background: #fff;
             border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            border: 1px solid #e2e8f0;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            border: 1px solid #cbd5e1;
             margin-bottom: 20px;
+        }
+
+        .table-responsive::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+        .table-responsive::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 6px;
+        }
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 6px;
+            border: 3px solid #f1f5f9;
+        }
+        .table-responsive::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
 
         .table-relacion {
@@ -164,20 +183,25 @@ $current_page = 'grupos.php'; // Para marcar activo en la sidebar
         }
 
         .table-relacion th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
             background-color: #1e3a8a;
             color: #ffffff;
             font-weight: 700;
-            padding: 10px 12px;
+            padding: 12px 14px;
             border: 1px solid #cbd5e1;
             text-transform: uppercase;
             font-size: 0.78rem;
+            white-space: nowrap;
         }
 
         .table-relacion td {
-            padding: 10px 12px;
+            padding: 12px 14px;
             border: 1px solid #cbd5e1;
             vertical-align: middle;
             color: #334155;
+            white-space: nowrap;
         }
 
         .table-relacion tr:nth-child(even) td {
@@ -186,6 +210,11 @@ $current_page = 'grupos.php'; // Para marcar activo en la sidebar
 
         .table-relacion tr:hover td {
             background-color: #f1f5f9;
+        }
+
+        .table-relacion td.alumno-highlight,
+        .table-relacion td:first-child {
+            white-space: normal;
         }
 
         .alumno-highlight {
