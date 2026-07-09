@@ -64,7 +64,7 @@ try {
     }
 
     // 3. Obtener el Grupo local (o crearlo)
-    $stmt = $pdo->prepare("SELECT id, id_plataforma FROM grupos WHERE accion_id = ? LIMIT 1");
+    $stmt = $pdo->prepare("SELECT id, id_plataforma, usuario_gestor, contrasena_gestor FROM grupos WHERE accion_id = ? LIMIT 1");
     $stmt->execute([$af_id]);
     $grupo = $stmt->fetch();
     $grupo_id_local = $grupo['id'];
@@ -114,9 +114,46 @@ try {
         $syncCount++;
     }
 
+    // 6. Sincronizar el Usuario Gestor (ej: INSPECTOR SEPE)
+    $raw_gestor = trim($grupo['usuario_gestor'] ?? '');
+    $gestor_msg = '';
+    if (!empty($raw_gestor)) {
+        try {
+            // Limpiar nombre de usuario para compatibilidad con Moodle
+            $gestor_username = preg_replace('/[^a-z0-9_.-]/', '', strtolower(str_replace(' ', '_', $raw_gestor)));
+            $gestor_email = $gestor_username . '@avefp.es';
+            $gestor_pass = !empty($grupo['contrasena_gestor']) ? trim($grupo['contrasena_gestor']) : 'InspectorSepe2026!';
+            
+            $existingGestor = $moodle->getUsersByField('username', [$gestor_username]);
+            $gestorUserId = null;
+            if (!empty($existingGestor) && isset($existingGestor['users'][0])) {
+                $gestorUserId = $existingGestor['users'][0]['id'];
+            } else {
+                $newGestor = $moodle->createUser(
+                    $gestor_username,
+                    $gestor_pass,
+                    'Inspector',
+                    'SEPE',
+                    $gestor_email
+                );
+                if (!empty($newGestor) && isset($newGestor[0]['id'])) {
+                    $gestorUserId = $newGestor[0]['id'];
+                }
+            }
+            
+            if ($gestorUserId) {
+                // Matricular como Profesor sin permiso de edición (rol_id = 4)
+                $moodle->enrolUser($gestorUserId, $courseId, 4);
+                $gestor_msg = " | Usuario gestor '$gestor_username' sincronizado en Moodle";
+            }
+        } catch (Exception $gestorEx) {
+            $gestor_msg = " | Error al sincronizar gestor: " . $gestorEx->getMessage();
+        }
+    }
+
     echo json_encode([
         'success' => true, 
-        'message' => "Sincronización exitosa. Curso ID: $courseId, Alumnos sincronizados: $syncCount"
+        'message' => "Sincronización exitosa. Curso ID: $courseId, Alumnos sincronizados: $syncCount" . $gestor_msg
     ]);
 
 } catch (Exception $e) {
