@@ -125,11 +125,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             'porc_mujeres', 'porc_colectivos_prioritarios', 'porc_max_desempleados', 
             'cant_ref_cofinanciada', 'cant_ref_no_cofinanciada'
         ];
+        $date_fields = [
+            'fecha_inicio_oficial', 'fecha_fin_convocatoria', 'fecha_convenio'
+        ];
 
         foreach ($fields as $f) {
             $val = isset($_POST[$f]) ? trim($_POST[$f]) : '';
             if ($val === '') {
-                $params[$f] = null;
+                if (in_array($f, $numeric_fields) || in_array($f, $date_fields)) {
+                    $params[$f] = null;
+                } else {
+                    $params[$f] = '';
+                }
             } elseif (in_array($f, $numeric_fields)) {
                 $params[$f] = (strpos($val, '.') !== false) ? (float)$val : (int)$val;
             } else {
