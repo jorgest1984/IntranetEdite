@@ -339,7 +339,7 @@ if (isset($_GET['success'])) $success = "Plan guardado correctamente.";
                     </div>
 
                     <div class="form-group half-width">
-                        <label class="form-label">Fecha Inicio Ofic. (Facturas):</label>
+                        <label class="form-label">Fecha Inicio Conv.:</label>
                         <input type="date" name="fecha_inicio_oficial" class="form-control" value="<?= htmlspecialchars($plan['fecha_inicio_oficial'] ?? '') ?>">
                     </div>
 
