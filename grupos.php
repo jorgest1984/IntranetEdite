@@ -52,8 +52,9 @@ try {
         $params[] = "%" . $_GET['codigo_grupo'] . "%";
     }
     if (!empty($_GET['accion'])) {
-        $where[] = "(af.id = ? OR af.abreviatura LIKE ?)";
+        $where[] = "(af.id = ? OR af.abreviatura LIKE ? OR af.num_accion LIKE ?)";
         $params[] = (int)$_GET['accion'];
+        $params[] = "%" . $_GET['accion'] . "%";
         $params[] = "%" . $_GET['accion'] . "%";
     }
     if (!empty($_GET['grupo_num'])) {
@@ -106,6 +107,7 @@ try {
     }
 
     $sql = "SELECT g.*, 
+                   af.num_accion,
                    conv.nombre as convocatoria_nombre,
                    p.nombre as plan_nombre,
                    cu.nombre_largo as curso_titulo,
@@ -844,7 +846,7 @@ $current_page = 'grupos.php';
                                     <td><?= htmlspecialchars($row['convocatoria_nombre'] ?? '—') ?></td>
                                     <td><?= htmlspecialchars($row['plan_nombre'] ?? '—') ?></td>
                                     <td><?= htmlspecialchars($row['modalidad'] ?? '—') ?></td>
-                                    <td><?= htmlspecialchars($row['accion_id'] ?? '—') ?></td>
+                                    <td><?= htmlspecialchars($row['num_accion'] ?? '—') ?></td>
                                     <td><?= htmlspecialchars($row['numero_grupo'] ?? '—') ?></td>
                                     <td><?= htmlspecialchars($row['codigo_plataforma'] ?? '—') ?></td>
                                     <td style="font-weight: 700; white-space: normal; min-width: 250px;"><?= htmlspecialchars($row['curso_titulo'] ?? '—') ?></td>
