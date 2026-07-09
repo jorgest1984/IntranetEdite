@@ -73,6 +73,8 @@ function check_and_add_columns_planes($pdo) {
                 $pdo->exec("ALTER TABLE planes ADD COLUMN `$name` $definition");
             }
         }
+        // Asegurar que codigo permita nulos
+        $pdo->exec("ALTER TABLE planes MODIFY COLUMN codigo VARCHAR(100) NULL");
     } catch (Exception $e) {}
 }
 
@@ -132,7 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         foreach ($fields as $f) {
             $val = isset($_POST[$f]) ? trim($_POST[$f]) : '';
             if ($val === '') {
-                if (in_array($f, $numeric_fields) || in_array($f, $date_fields)) {
+                if (in_array($f, $numeric_fields) || in_array($f, $date_fields) || $f === 'codigo') {
                     $params[$f] = null;
                 } else {
                     $params[$f] = '';
