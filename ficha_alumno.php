@@ -47,24 +47,14 @@ try {
 $acciones_inscrito = [];
 try {
     $stmtAcciones = $pdo->prepare("
-        SELECT MIN(af.id) as accion_id, c.nombre_largo as curso_titulo, c.nombre_corto as curso_codigo
-        FROM (
-            SELECT m.alumno_id, g.accion_id 
-            FROM matriculas m 
-            JOIN grupos g ON m.grupo_id = g.id 
-            WHERE m.alumno_id = ?
-            UNION
-            SELECT m.alumno_id, af.id as accion_id 
-            FROM matriculas m 
-            JOIN planes p ON m.convocatoria_id = p.convocatoria_id 
-            JOIN acciones_formativas af ON af.plan_id = p.id 
-            WHERE m.alumno_id = ?
-        ) res
-        JOIN acciones_formativas af ON res.accion_id = af.id
+        SELECT DISTINCT af.id as accion_id, c.nombre_largo as curso_titulo, c.nombre_corto as curso_codigo
+        FROM matriculas m 
+        JOIN grupos g ON m.grupo_id = g.id 
+        JOIN acciones_formativas af ON g.accion_id = af.id
         JOIN cursos c ON af.curso_id = c.id
-        GROUP BY c.id
+        WHERE m.alumno_id = ?
     ");
-    $stmtAcciones->execute([$id, $id]);
+    $stmtAcciones->execute([$id]);
     $acciones_inscrito = $stmtAcciones->fetchAll();
 } catch (Exception $e) {
     $acciones_inscrito = [];
