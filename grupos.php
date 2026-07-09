@@ -882,7 +882,7 @@ $current_page = 'grupos.php';
                                     <td>-</td>
                                     <td style="border-right:none;">
                                         <div style="display: flex; gap: 8px; justify-content: flex-end; padding-right: 1.5rem;">
-                                            <a href="gestion_matriculas.php?af_id=<?= $row['accion_id'] ?>" class="btn-action" style="color: #16a34a;" title="Listado de Alumnos">
+                                            <a href="relacion_alumnos.php?grupo_id=<?= $row['id'] ?>" class="btn-action" style="color: #16a34a;" title="Listado de Alumnos">
                                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="17" y1="11" x2="23" y2="11"></line></svg>
                                             </a>
                                             <a href="ficha_grupo_edicion.php?id=<?= $row['id'] ?>" class="btn-action" title="Editar Grupo">
