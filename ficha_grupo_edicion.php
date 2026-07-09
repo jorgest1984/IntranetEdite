@@ -314,7 +314,9 @@ $asignaciones = ['I', 'E', 'M'];
         }
 
         .inline-inputs input[type="text"] {
-            width: 80px;
+            width: 85px;
+            padding-left: 6px;
+            padding-right: 6px;
             text-align: center;
         }
 
