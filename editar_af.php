@@ -58,34 +58,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Error de seguridad (CSRF). Por favor, refresque la página e inténtelo de nuevo.";
         file_put_contents(__DIR__ . '/uploads/save_log.txt', "CSRF FAILED! POST token: '$csrf_token', SESSION token: '" . ($_SESSION['csrf_token'] ?? '') . "'");
     } else {
-        $fields = ['duracion', 'modalidad', 'prioridad', 'estado', 'familia_profesional', 'objetivos', 'contenidos', 'contenidos_breves', 'notas_gestion'];
-        $data = [];
-        $sql = "UPDATE acciones_formativas SET ";
-        $sets = [];
-        foreach ($fields as $f) {
-            $sets[] = "$f = ?";
-            $data[] = $_POST[$f] ?? '';
-        }
-        $data[] = $id;
-        $sql .= implode(", ", $sets) . " WHERE id = ?";
+        $nuevo_id = isset($_POST['nuevo_id']) ? (int)$_POST['nuevo_id'] : $id;
+        
+        $pdo->beginTransaction();
         
         try {
+            // Si el ID cambia, realizamos la actualización del ID y cascada
+            if ($nuevo_id !== $id) {
+                // Verificar si el nuevo ID ya está en uso
+                $stmtCheck = $pdo->prepare("SELECT id FROM acciones_formativas WHERE id = ?");
+                $stmtCheck->execute([$nuevo_id]);
+                if ($stmtCheck->fetch()) {
+                    throw new Exception("El ID de Acción Formativa '$nuevo_id' ya está en uso por otra acción.");
+                }
+
+                // Desactivar temporalmente restricciones de clave foránea
+                $pdo->exec("SET FOREIGN_KEY_CHECKS = 0");
+
+                // Actualizar el ID principal
+                $stmtIdUpdate = $pdo->prepare("UPDATE acciones_formativas SET id = ? WHERE id = ?");
+                $stmtIdUpdate->execute([$nuevo_id, $id]);
+
+                // Cascadas manuales para consistencia
+                $stmtG = $pdo->prepare("UPDATE grupos SET accion_id = ? WHERE accion_id = ?");
+                $stmtG->execute([$nuevo_id, $id]);
+
+                $stmtD = $pdo->prepare("UPDATE documentos_alumno SET accion_id = ? WHERE accion_id = ?");
+                $stmtD->execute([$nuevo_id, $id]);
+
+                $pdo->exec("SET FOREIGN_KEY_CHECKS = 1");
+
+                // Actualizar el ID de referencia actual para el resto del script
+                $id = $nuevo_id;
+            }
+
+            $fields = ['duracion', 'modalidad', 'prioridad', 'estado', 'familia_profesional', 'objetivos', 'contenidos', 'contenidos_breves', 'notas_gestion'];
+            $data = [];
+            $sql = "UPDATE acciones_formativas SET ";
+            $sets = [];
+            foreach ($fields as $f) {
+                $sets[] = "$f = ?";
+                $data[] = $_POST[$f] ?? '';
+            }
+            $data[] = $id;
+            $sql .= implode(", ", $sets) . " WHERE id = ?";
+            
             $stmt = $pdo->prepare($sql);
             $stmt->execute($data);
             
             // Actualizar id_plataforma (ID Moodle) directamente en acciones_formativas
             $id_plataforma = isset($_POST['moodle_id']) ? trim($_POST['moodle_id']) : '';
             
-            $logMsg = "Updating id_plataforma = '$id_plataforma' para af.id = $id\n";
-            
             $stmtC = $pdo->prepare("UPDATE acciones_formativas SET id_plataforma = ? WHERE id = ?");
             $stmtC->execute([$id_plataforma ?: null, $id]);
             
-            $logMsg .= "Rows affected: " . $stmtC->rowCount() . "\n";
-            file_put_contents(__DIR__ . '/uploads/save_log.txt', $logMsg);
-            
-            $success = "Parámetros actualizados con éxito.";
+            $pdo->commit();
+
+            // Si el ID cambió, debemos redirigir al nuevo ID para que cargue correctamente
+            header("Location: editar_af.php?id=$id&success=1");
+            exit();
+
         } catch (Exception $e) {
+            $pdo->rollBack();
+            try { $pdo->exec("SET FOREIGN_KEY_CHECKS = 1"); } catch (Exception $ex) {}
             $error = $e->getMessage();
             file_put_contents(__DIR__ . '/uploads/save_log.txt', "ERROR: " . $e->getMessage() . "\nTrace: " . $e->getTraceAsString());
         }
@@ -179,6 +214,10 @@ if (!$af) die("No se encontró la Acción Formativa");
                                 <option value="<?= htmlspecialchars($f) ?>" <?= ($af['familia_profesional'] ?? '') == $f ? 'selected' : '' ?>><?= htmlspecialchars($f) ?></option>
                             <?php endforeach; ?>
                         </select>
+                    </div>
+                    <div class="form-group">
+                        <label style="color: #b91c1c; font-weight: 800;">ID de la Acción Formativa</label>
+                        <input type="number" name="nuevo_id" class="form-control" style="border: 2px solid #fca5a5;" value="<?= $af['id'] ?>" required>
                     </div>
                     <div class="form-group">
                         <label style="color: #ea580c; font-weight: 800;">ID Curso Moodle (Plataforma)</label>
