@@ -13,6 +13,27 @@ if (!$grupo_id) {
     die("ID de grupo no proporcionado.");
 }
 
+// Auto-saneamiento de la base de datos (por si faltan columnas en la tabla matriculas)
+try {
+    $stmtCols = $pdo->query("DESCRIBE matriculas");
+    $existing_cols = $stmtCols->fetchAll(PDO::FETCH_COLUMN);
+
+    if (!in_array('facturables', $existing_cols)) {
+        $pdo->exec("ALTER TABLE matriculas ADD COLUMN facturables VARCHAR(10) DEFAULT 'NO'");
+    }
+    if (!in_array('certificables', $existing_cols)) {
+        $pdo->exec("ALTER TABLE matriculas ADD COLUMN certificables VARCHAR(10) DEFAULT 'NO'");
+    }
+    if (!in_array('diploma_entregado', $existing_cols)) {
+        $pdo->exec("ALTER TABLE matriculas ADD COLUMN diploma_entregado TINYINT(1) DEFAULT 0");
+    }
+    if (!in_array('fecha_comunicacion', $existing_cols)) {
+        $pdo->exec("ALTER TABLE matriculas ADD COLUMN fecha_comunicacion DATE DEFAULT NULL");
+    }
+} catch (Exception $e) {
+    // Silencioso
+}
+
 $success_msg = '';
 $error_msg = '';
 
