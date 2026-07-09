@@ -345,6 +345,7 @@ $ccaa = [
             display: flex;
             flex-direction: column;
             gap: 6px;
+            min-width: 0;
         }
 
         .form-group.col-span-2 { grid-column: span 2; }
@@ -359,6 +360,9 @@ $ccaa = [
         }
 
         .form-control {
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
             padding: 8px 12px;
             border: 1px solid #cbd5e1;
             border-radius: 6px;
