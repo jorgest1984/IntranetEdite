@@ -477,7 +477,7 @@ $ccaa = [
             <div class="top-banner">
                 <a href="informe_evaluaciones_grupo.php?grupo_id=<?= $id ?>" class="banner-btn">Generar PDF evaluaciones grupo</a>
                 <a href="informe_conexion_grupo.php?grupo_id=<?= $id ?>" class="banner-btn">Informe de conexión</a>
-                <a href="calendario.php" class="banner-btn">Ver calendario</a>
+                <a href="pdf_calendario_grupo.php?grupo_id=<?= $id ?>" class="banner-btn" target="_blank">Calendario</a>
                 <a href="#" class="banner-btn">S20</a>
                 <a href="#" class="banner-btn">Registro de diplomas</a>
                 <a href="asistencia.php?grupo_id=<?= $id ?>" class="banner-btn">Asistencia presenciales</a>
