@@ -64,7 +64,7 @@ try {
     }
 
     // 3. Obtener el Grupo local (o crearlo)
-    $stmt = $pdo->prepare("SELECT id, id_plataforma, usuario_gestor, contrasena_gestor, tutor_id, tutor_id_2, tutor_reserva_id FROM grupos WHERE accion_id = ? LIMIT 1");
+    $stmt = $pdo->prepare("SELECT id, id_plataforma, usuario_gestor, contrasena_gestor, tutor_id, tutor_id_2, tutor_reserva_id, fecha_inicio, fecha_fin FROM grupos WHERE accion_id = ? LIMIT 1");
     $stmt->execute([$af_id]);
     $grupo = $stmt->fetch();
     $grupo_id_local = $grupo['id'];
@@ -88,6 +88,15 @@ try {
         }
     }
 
+    // Determinar si el grupo ya ha finalizado (al final del día de la fecha de fin)
+    $is_finished = false;
+    if (!empty($grupo['fecha_fin'])) {
+        $fecha_fin_time = strtotime($grupo['fecha_fin']);
+        if (time() > ($fecha_fin_time + 86399)) {
+            $is_finished = true;
+        }
+    }
+    $student_status = $is_finished ? 1 : 0;
 
     // 5. Obtener alumnos matriculados localmente
     $stmt = $pdo->prepare("SELECT a.* FROM matriculas m JOIN alumnos a ON m.alumno_id = a.id WHERE m.grupo_id = ?");
@@ -104,8 +113,8 @@ try {
             'password' => 'Edite' . str_replace(['-', '.', ' '], '', $alumno['dni']) . '!' // Password predecible: EditeDNI!
         ];
 
-        // Sincronizar (Crear/Matricular/Meter en grupo)
-        $moodleUserId = $moodle->provisionStudent($courseId, $moodleGroupId, $userData);
+        // Sincronizar (Crear/Matricular/Meter en grupo) con estado activo o suspendido
+        $moodleUserId = $moodle->provisionStudent($courseId, $moodleGroupId, $userData, $student_status);
         
         // Actualizar el moodle_user_id local si no lo tenía
         if ($moodleUserId && $alumno['moodle_user_id'] != $moodleUserId) {
@@ -200,9 +209,10 @@ try {
         }
     }
 
+    $finished_suffix = $is_finished ? " (Curso finalizado: alumnos suspendidos en Moodle)" : " (Curso activo)";
     echo json_encode([
         'success' => true, 
-        'message' => "Sincronización exitosa. Curso ID: $courseId, Alumnos sincronizados: $syncCount" . $gestor_msg . $tutor_msg
+        'message' => "Sincronización exitosa. Curso ID: $courseId, Alumnos sincronizados: $syncCount" . $finished_suffix . $gestor_msg . $tutor_msg
     ]);
 
 } catch (Exception $e) {

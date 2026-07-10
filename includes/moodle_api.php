@@ -494,7 +494,7 @@ class MoodleAPI {
     /**
      * Matricular usuario en un curso (manual enrol)
      */
-    public function enrolUser($userId, $courseId, $roleId = 5) { // 5 suele ser student
+    public function enrolUser($userId, $courseId, $roleId = 5, $status = 0) { // 5 suele ser student
         // 1. Intentar por base de datos primero (para evitar bloqueos de token)
         require_once __DIR__ . '/moodle_db.php';
         $moodleDb = new MoodleDB();
@@ -513,16 +513,23 @@ class MoodleAPI {
                     $now = time();
                     
                     // Comprobar si ya está matriculado para evitar duplicados
-                    $stmtCheck = $mpdo->prepare("SELECT id FROM {$prefix}user_enrolments WHERE userid = ? AND enrolid = ?");
+                    $stmtCheck = $mpdo->prepare("SELECT id, status FROM {$prefix}user_enrolments WHERE userid = ? AND enrolid = ?");
                     $stmtCheck->execute([(int)$userId, $enrolId]);
+                    $existingEnrol = $stmtCheck->fetch();
                     
-                    if (!$stmtCheck->fetch()) {
+                    if (!$existingEnrol) {
                         // Insertar la matriculación
                         $stmtEnrolUser = $mpdo->prepare("
                             INSERT INTO {$prefix}user_enrolments (status, enrolid, userid, timestart, timeend, modifierid, timecreated, timemodified)
-                            VALUES (0, ?, ?, ?, 0, 2, ?, ?)
+                            VALUES (?, ?, ?, ?, 0, 2, ?, ?)
                         ");
-                        $stmtEnrolUser->execute([$enrolId, (int)$userId, $now, $now, $now]);
+                        $stmtEnrolUser->execute([$status, $enrolId, (int)$userId, $now, $now, $now]);
+                    } else {
+                        // Si ya existe, actualizar el estado (activo o suspendido) si difiere
+                        if ((int)$existingEnrol['status'] !== $status) {
+                            $stmtUpdateStatus = $mpdo->prepare("UPDATE {$prefix}user_enrolments SET status = ?, timemodified = ? WHERE id = ?");
+                            $stmtUpdateStatus->execute([$status, $now, (int)$existingEnrol['id']]);
+                        }
                     }
                     
                     // Asignar rol de estudiante en el contexto del curso si no lo tiene (contextlevel = 50)
@@ -554,7 +561,8 @@ class MoodleAPI {
                 [
                     'roleid' => $roleId,
                     'userid' => $userId,
-                    'courseid' => $courseId
+                    'courseid' => $courseId,
+                    'status' => $status
                 ]
             ]
         ];
@@ -575,9 +583,13 @@ class MoodleAPI {
         ];
         return $this->call('core_group_add_group_members', $params);
     }
-    
-    // Método Helper: Proceso completo (Crear/Buscar Usuario -> Matricular -> Metelo en grupo)
-    public function provisionStudent($courseId, $groupId, $userData) {
+
+
+
+    /**
+     * Crear, matricular y asignar grupo a un estudiante
+     */
+    public function provisionStudent($courseId, $groupId, $userData, $status = 0) {
         // 1. Buscar si ya existe por email
         $existingUsers = $this->getUsersByField('email', [$userData['email']]);
         $moodleUserId = null;
@@ -597,7 +609,7 @@ class MoodleAPI {
         }
         
         // 3. Matricular
-        $this->enrolUser($moodleUserId, $courseId);
+        $this->enrolUser($moodleUserId, $courseId, 5, $status);
         
         // 4. Asignar a grupo
         if ($groupId) {
