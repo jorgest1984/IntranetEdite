@@ -339,7 +339,11 @@ $pdf->SetY($footer_start_y);
 $pdf->SetFont('Arial', 'I', 8);
 $pdf->SetTextColor(71, 85, 105);
 
-$obs1 = "El " . date('d/m/Y', strtotime($grupo['fecha_fin'])) . " el horario de tutorias sera de " . $horario_str . " h.";
+// Strip trailing ' h' if the DB field already includes it (avoids "h h" duplication)
+$horario_clean = rtrim(trim($horario_str), 'h');
+$horario_clean = rtrim($horario_clean); // trim trailing space left after stripping 'h'
+
+$obs1 = "El horario de tutorias normalmente sera de " . $horario_clean . " h.";
 $obs2 = "Los participantes tienen la opcion de conectarse a la plataforma las 24 horas del dia los 7 dias de la semana.";
 
 $pdf->Cell(0, 4.5, pdf_utf8($obs1), 0, 1, 'L');
