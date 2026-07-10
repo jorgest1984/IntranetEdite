@@ -22,21 +22,33 @@ $stmt->execute([$grupo_id]);
 $grupo = $stmt->fetch();
 if (!$grupo) { die("Grupo no encontrado."); }
 
-// 2. Obtener alumnos del grupo con todos los campos necesarios
+// 2. Detectar qué columnas opcionales existen en la tabla alumnos
+$existingAlumnoCols = [];
+try {
+    $descStmt = $pdo->query("DESCRIBE alumnos");
+    $existingAlumnoCols = array_column($descStmt->fetchAll(PDO::FETCH_ASSOC), 'Field');
+} catch (Exception $e) { /* ignorar */ }
+
+$col_sexo      = in_array('sexo', $existingAlumnoCols)      ? 'a.sexo'      : "NULL";
+$col_colectivo = in_array('colectivo', $existingAlumnoCols) ? 'a.colectivo'  : "NULL";
+$col_dspld     = in_array('desempleado_larga_duracion', $existingAlumnoCols) ? 'a.desempleado_larga_duracion' : "NULL";
+$col_contrato  = in_array('contrato', $existingAlumnoCols)  ? 'a.contrato'   : "NULL";
+$col_provincia = in_array('provincia', $existingAlumnoCols) ? 'a.provincia'  : "NULL";
+
+// 3. Obtener alumnos del grupo con todos los campos necesarios
 $stmtAl = $pdo->prepare("
     SELECT m.id as matricula_id,
            m.estado as matricula_estado,
            m.certificables,
            a.id as alumno_id,
-           CONCAT(a.primer_apellido, ' ', COALESCE(a.segundo_apellido,''), ' ', a.nombre) as alumno_nombre_completo,
            a.nombre, a.primer_apellido, a.segundo_apellido,
            a.dni,
            a.fecha_nacimiento,
-           a.sexo,
-           a.colectivo,
-           a.desempleado_larga_duracion,
-           a.contrato,
-           a.provincia,
+           $col_sexo      as sexo,
+           $col_colectivo as colectivo,
+           $col_dspld     as desempleado_larga_duracion,
+           $col_contrato  as contrato,
+           $col_provincia as provincia,
            e.nombre as empresa_nombre
     FROM matriculas m
     JOIN alumnos a ON m.alumno_id = a.id
