@@ -83,6 +83,23 @@ function pdf_format_duration_hm($seconds) {
     return "{$hours} h {$mins} min";
 }
 
+// Función compatible con PHP 8.2+ para evitar deprecación de utf8_decode
+function pdf_utf8_to_iso($str) {
+    if ($str === null || $str === '') {
+        return '';
+    }
+    if (function_exists('mb_convert_encoding')) {
+        return mb_convert_encoding($str, 'ISO-8859-1', 'UTF-8');
+    }
+    if (function_exists('iconv')) {
+        $converted = @iconv('UTF-8', 'ISO-8859-1//TRANSLIT', $str);
+        if ($converted !== false) {
+            return $converted;
+        }
+    }
+    return @utf8_decode($str);
+}
+
 // 4. Calcular sesiones
 $student_sessions = [];
 foreach ($alumnos as $al) {
@@ -152,11 +169,11 @@ class ConnectionReportPDF extends FPDF {
         
         $this->SetFont('Arial', 'B', 9);
         $this->SetTextColor(70, 80, 95);
-        $this->Cell(0, 8, utf8_decode('INFORME DE CONEXIÓN EN EL AULA VIRTUAL'), 0, 1, 'R');
+        $this->Cell(0, 8, pdf_utf8_to_iso('INFORME DE CONEXIÓN EN EL AULA VIRTUAL'), 0, 1, 'R');
         
         $this->SetFont('Arial', '', 8);
-        $this->Cell(0, 4, utf8_decode('Curso: ' . $this->grupo['curso_titulo']), 0, 1, 'R');
-        $this->Cell(0, 4, utf8_decode('Grupo: G' . $this->grupo['numero_grupo'] . ' | N. Acción: ' . $this->grupo['num_accion']), 0, 1, 'R');
+        $this->Cell(0, 4, pdf_utf8_to_iso('Curso: ' . $this->grupo['curso_titulo']), 0, 1, 'R');
+        $this->Cell(0, 4, pdf_utf8_to_iso('Grupo: G' . $this->grupo['numero_grupo'] . ' | N. Acción: ' . $this->grupo['num_accion']), 0, 1, 'R');
         
         $this->Ln(4);
         $this->Line(10, $this->GetY(), 200, $this->GetY());
@@ -167,7 +184,7 @@ class ConnectionReportPDF extends FPDF {
         $this->SetY(-15);
         $this->SetFont('Arial', 'I', 8);
         $this->SetTextColor(100, 110, 120);
-        $this->Cell(0, 10, utf8_decode('Página ') . $this->PageNo() . '/{nb} - Generado el ' . date('d/m/Y H:i'), 0, 0, 'C');
+        $this->Cell(0, 10, pdf_utf8_to_iso('Página ') . $this->PageNo() . '/{nb} - Generado el ' . date('d/m/Y H:i'), 0, 0, 'C');
     }
 }
 
@@ -192,11 +209,11 @@ foreach ($alumnos as $alumno) {
     
     $pdf->SetFont('Arial', 'B', 11);
     $pdf->SetTextColor(0, 108, 228); // Color primario
-    $pdf->Cell(0, 8, utf8_decode($nombre_completo), 0, 1);
+    $pdf->Cell(0, 8, pdf_utf8_to_iso($nombre_completo), 0, 1);
     
     $pdf->SetFont('Arial', '', 9.5);
     $pdf->SetTextColor(30, 41, 59);
-    $pdf->Cell(0, 6, utf8_decode('Tiempo de conexión: ' . pdf_format_duration_hm($total_seconds)), 0, 1);
+    $pdf->Cell(0, 6, pdf_utf8_to_iso('Tiempo de conexión: ' . pdf_format_duration_hm($total_seconds)), 0, 1);
     $pdf->Ln(2);
     
     // Tabla cabeceras
@@ -204,22 +221,22 @@ foreach ($alumnos as $alumno) {
     $pdf->SetFillColor(240, 246, 255);
     $pdf->SetTextColor(0, 108, 228);
     
-    $pdf->Cell(35, 7, utf8_decode('Fecha'), 1, 0, 'L', true);
-    $pdf->Cell(45, 7, utf8_decode('Día de la semana'), 1, 0, 'L', true);
-    $pdf->Cell(45, 7, utf8_decode('Hora inicio de actividad'), 1, 0, 'L', true);
-    $pdf->Cell(32, 7, utf8_decode('Duración aprox.'), 1, 0, 'R', true);
-    $pdf->Cell(33, 7, utf8_decode('Duración ajustada'), 1, 1, 'R', true);
+    $pdf->Cell(35, 7, pdf_utf8_to_iso('Fecha'), 1, 0, 'L', true);
+    $pdf->Cell(45, 7, pdf_utf8_to_iso('Día de la semana'), 1, 0, 'L', true);
+    $pdf->Cell(45, 7, pdf_utf8_to_iso('Hora inicio de actividad'), 1, 0, 'L', true);
+    $pdf->Cell(32, 7, pdf_utf8_to_iso('Duración aprox.'), 1, 0, 'R', true);
+    $pdf->Cell(33, 7, pdf_utf8_to_iso('Duración ajustada'), 1, 1, 'R', true);
     
     // Contenido tabla
     $pdf->SetFont('Arial', '', 8.5);
     $pdf->SetTextColor(50, 50, 50);
     
     if (empty($sessions)) {
-        $pdf->Cell(190, 8, utf8_decode('No se registran accesos al Aula Virtual para este alumno.'), 1, 1, 'C');
+        $pdf->Cell(190, 8, pdf_utf8_to_iso('No se registran accesos al Aula Virtual para este alumno.'), 1, 1, 'C');
         
         // Fila Total
         $pdf->SetFont('Arial', 'B', 8.5);
-        $pdf->Cell(125, 8, utf8_decode('Total'), 1, 0, 'L');
+        $pdf->Cell(125, 8, pdf_utf8_to_iso('Total'), 1, 0, 'L');
         $pdf->Cell(32, 8, '0 h 0 min', 1, 0, 'R');
         $pdf->Cell(33, 8, '0 h 0 min', 1, 1, 'R');
     } else {
@@ -232,31 +249,36 @@ foreach ($alumnos as $alumno) {
                 $pdf->SetFont('Arial', 'B', 8.5);
                 $pdf->SetFillColor(240, 246, 255);
                 $pdf->SetTextColor(0, 108, 228);
-                $pdf->Cell(35, 7, utf8_decode('Fecha'), 1, 0, 'L', true);
-                $pdf->Cell(45, 7, utf8_decode('Día de la semana'), 1, 0, 'L', true);
-                $pdf->Cell(45, 7, utf8_decode('Hora inicio de actividad'), 1, 0, 'L', true);
-                $pdf->Cell(32, 7, utf8_decode('Duración aprox.'), 1, 0, 'R', true);
-                $pdf->Cell(33, 7, utf8_decode('Duración ajustada'), 1, 1, 'R', true);
+                $pdf->Cell(35, 7, pdf_utf8_to_iso('Fecha'), 1, 0, 'L', true);
+                $pdf->Cell(45, 7, pdf_utf8_to_iso('Día de la semana'), 1, 0, 'L', true);
+                $pdf->Cell(45, 7, pdf_utf8_to_iso('Hora inicio de actividad'), 1, 0, 'L', true);
+                $pdf->Cell(32, 7, pdf_utf8_to_iso('Duración aprox.'), 1, 0, 'R', true);
+                $pdf->Cell(33, 7, pdf_utf8_to_iso('Duración ajustada'), 1, 1, 'R', true);
                 
                 $pdf->SetFont('Arial', '', 8.5);
                 $pdf->SetTextColor(50, 50, 50);
             }
             
-            $pdf->Cell(35, 7, utf8_decode($session['date']), 1, 0, 'L');
-            $pdf->Cell(45, 7, utf8_decode($session['day']), 1, 0, 'L');
-            $pdf->Cell(45, 7, utf8_decode($session['start_time']), 1, 0, 'L');
-            $pdf->Cell(32, 7, utf8_decode(pdf_format_duration_hm($session['approx'])), 1, 0, 'R');
-            $pdf->Cell(33, 7, utf8_decode(pdf_format_duration_hm($session['adjusted'])), 1, 1, 'R');
+            $pdf->Cell(35, 7, pdf_utf8_to_iso($session['date']), 1, 0, 'L');
+            $pdf->Cell(45, 7, pdf_utf8_to_iso($session['day']), 1, 0, 'L');
+            $pdf->Cell(45, 7, pdf_utf8_to_iso($session['start_time']), 1, 0, 'L');
+            $pdf->Cell(32, 7, pdf_utf8_to_iso(pdf_format_duration_hm($session['approx'])), 1, 0, 'R');
+            $pdf->Cell(33, 7, pdf_utf8_to_iso(pdf_format_duration_hm($session['adjusted'])), 1, 1, 'R');
         }
         
         // Fila Total
         $pdf->SetFont('Arial', 'B', 8.5);
-        $pdf->Cell(125, 7, utf8_decode('Total'), 1, 0, 'L');
-        $pdf->Cell(32, 7, utf8_decode(pdf_format_duration_hm($total_seconds)), 1, 0, 'R');
-        $pdf->Cell(33, 7, utf8_decode(pdf_format_duration_hm($total_seconds)), 1, 1, 'R');
+        $pdf->Cell(125, 7, pdf_utf8_to_iso('Total'), 1, 0, 'L');
+        $pdf->Cell(32, 7, pdf_utf8_to_iso(pdf_format_duration_hm($total_seconds)), 1, 0, 'R');
+        $pdf->Cell(33, 7, pdf_utf8_to_iso(pdf_format_duration_hm($total_seconds)), 1, 1, 'R');
     }
     
     $pdf->Ln(8);
+}
+
+// Limpiar buffer de salida para evitar "Some data has already been output"
+if (ob_get_length()) {
+    ob_clean();
 }
 
 // Enviar al navegador
