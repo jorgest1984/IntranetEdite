@@ -1605,74 +1605,78 @@ $tareas = $stmt_tareas->fetchAll();
                 </div>
             </div>
             <div id="tab-comerciales" style="<?= $active_tab == 'comerciales' ? '' : 'display:none;' ?>">
-                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); padding: 2rem; margin-bottom: 2rem;">
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); padding: 2.5rem; margin-bottom: 2rem;">
                     <form method="POST" action="ficha_trabajador.php?id=<?= $id ?>&tab=comerciales">
                         <input type="hidden" name="action" value="update_comerciales">
                         
-                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; margin-bottom: 1.5rem;">
+                        <!-- Fila 1 -->
+                        <div style="display: flex; gap: 2rem; flex-wrap: wrap; margin-bottom: 2rem; justify-content: flex-start; align-items: center;">
                             <!-- Fijo -->
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <label style="font-weight: 700; color: #000; font-size: 0.9rem; min-width: 40px; white-space: nowrap;">Fijo:</label>
-                                <input type="number" step="0.01" name="fijo" value="<?= htmlspecialchars($prof['fijo'] ?? '0.00') ?>" style="width: 100%; border: none; border-bottom: 1px solid #cbd5e1; padding: 4px; outline: none; font-size: 0.9rem; font-weight: 600; color: #1e3a8a;">
+                            <div style="flex: 1 1 180px; display: flex; align-items: center; gap: 10px; min-width: 150px;">
+                                <label style="font-weight: 700; color: #000; font-size: 0.9rem; white-space: nowrap; margin: 0; padding: 0;">Fijo:</label>
+                                <input type="number" step="0.01" name="fijo" value="<?= htmlspecialchars($prof['fijo'] ?? '0.00') ?>" style="border: none !important; border-bottom: 2px solid #cbd5e1 !important; background-color: transparent !important; background: transparent !important; border-radius: 0 !important; padding: 4px !important; outline: none; font-size: 0.95rem; font-weight: 600; color: #1e3a8a; box-shadow: none !important; transition: none !important; width: 0; flex: 1; min-width: 0;">
                             </div>
                             
                             <!-- Comisión tramo 1 -->
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <label style="font-weight: 700; color: #000; font-size: 0.9rem; min-width: 130px; white-space: nowrap;">Comisión tramo 1:</label>
-                                <input type="number" step="0.01" name="comision_tramo_1" value="<?= htmlspecialchars($prof['comision_tramo_1'] ?? '0.00') ?>" style="width: 100%; border: none; border-bottom: 1px solid #cbd5e1; padding: 4px; outline: none; font-size: 0.9rem; font-weight: 600; color: #1e3a8a;">
+                            <div style="flex: 1.2 1 250px; display: flex; align-items: center; gap: 10px; min-width: 220px;">
+                                <label style="font-weight: 700; color: #000; font-size: 0.9rem; white-space: nowrap; margin: 0; padding: 0;">Comisión tramo 1:</label>
+                                <input type="number" step="0.01" name="comision_tramo_1" value="<?= htmlspecialchars($prof['comision_tramo_1'] ?? '0.00') ?>" style="border: none !important; border-bottom: 2px solid #cbd5e1 !important; background-color: transparent !important; background: transparent !important; border-radius: 0 !important; padding: 4px !important; outline: none; font-size: 0.95rem; font-weight: 600; color: #1e3a8a; box-shadow: none !important; transition: none !important; width: 0; flex: 1; min-width: 0;">
                             </div>
                             
                             <!-- Alumnos fijo -->
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <label style="font-weight: 700; color: #000; font-size: 0.9rem; min-width: 90px; white-space: nowrap;">Alumnos fijo:</label>
-                                <input type="number" name="alumnos_fijo" value="<?= htmlspecialchars($prof['alumnos_fijo'] ?? '0') ?>" style="width: 100%; border: none; border-bottom: 1px solid #cbd5e1; padding: 4px; outline: none; font-size: 0.9rem; font-weight: 600; color: #1e3a8a;">
+                            <div style="flex: 1.1 1 220px; display: flex; align-items: center; gap: 10px; min-width: 190px;">
+                                <label style="font-weight: 700; color: #000; font-size: 0.9rem; white-space: nowrap; margin: 0; padding: 0;">Alumnos fijo:</label>
+                                <input type="number" name="alumnos_fijo" value="<?= htmlspecialchars($prof['alumnos_fijo'] ?? '0') ?>" style="border: none !important; border-bottom: 2px solid #cbd5e1 !important; background-color: transparent !important; background: transparent !important; border-radius: 0 !important; padding: 4px !important; outline: none; font-size: 0.95rem; font-weight: 600; color: #1e3a8a; box-shadow: none !important; transition: none !important; width: 0; flex: 1; min-width: 0;">
                             </div>
                             
                             <!-- Fecha fijo -->
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <label style="font-weight: 700; color: #000; font-size: 0.9rem; min-width: 80px; white-space: nowrap;">Fecha fijo:</label>
-                                <input type="date" name="fecha_fijo" value="<?= htmlspecialchars($prof['fecha_fijo'] ?? '') ?>" style="width: 100%; border: none; border-bottom: 1px solid #cbd5e1; padding: 4px; outline: none; font-size: 0.9rem; font-weight: 600; color: #1e3a8a; font-family: inherit;">
+                            <div style="flex: 1.1 1 210px; display: flex; align-items: center; gap: 10px; min-width: 180px;">
+                                <label style="font-weight: 700; color: #000; font-size: 0.9rem; white-space: nowrap; margin: 0; padding: 0;">Fecha fijo:</label>
+                                <input type="date" name="fecha_fijo" value="<?= htmlspecialchars($prof['fecha_fijo'] ?? '') ?>" style="border: none !important; border-bottom: 2px solid #cbd5e1 !important; background-color: transparent !important; background: transparent !important; border-radius: 0 !important; padding: 4px !important; outline: none; font-size: 0.95rem; font-weight: 600; color: #1e3a8a; box-shadow: none !important; transition: none !important; width: 0; flex: 1; min-width: 0; font-family: inherit;">
                             </div>
                         </div>
 
-                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; margin-bottom: 1.5rem;">
+                        <!-- Fila 2 -->
+                        <div style="display: flex; gap: 2rem; flex-wrap: wrap; margin-bottom: 2rem; justify-content: flex-start; align-items: center;">
                             <!-- Comisión tramo 2 -->
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <label style="font-weight: 700; color: #000; font-size: 0.9rem; min-width: 130px; white-space: nowrap;">Comisión tramo 2:</label>
-                                <input type="number" step="0.01" name="comision_tramo_2" value="<?= htmlspecialchars($prof['comision_tramo_2'] ?? '0.00') ?>" style="width: 100%; border: none; border-bottom: 1px solid #cbd5e1; padding: 4px; outline: none; font-size: 0.9rem; font-weight: 600; color: #1e3a8a;">
+                            <div style="flex: 1.2 1 250px; display: flex; align-items: center; gap: 10px; min-width: 220px;">
+                                <label style="font-weight: 700; color: #000; font-size: 0.9rem; white-space: nowrap; margin: 0; padding: 0;">Comisión tramo 2:</label>
+                                <input type="number" step="0.01" name="comision_tramo_2" value="<?= htmlspecialchars($prof['comision_tramo_2'] ?? '0.00') ?>" style="border: none !important; border-bottom: 2px solid #cbd5e1 !important; background-color: transparent !important; background: transparent !important; border-radius: 0 !important; padding: 4px !important; outline: none; font-size: 0.95rem; font-weight: 600; color: #1e3a8a; box-shadow: none !important; transition: none !important; width: 0; flex: 1; min-width: 0;">
                             </div>
                             
                             <!-- Tope tramo 2 -->
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <label style="font-weight: 700; color: #000; font-size: 0.9rem; min-width: 100px; white-space: nowrap;">Tope tramo 2:</label>
-                                <input type="number" step="0.01" name="tope_tramo_2" value="<?= htmlspecialchars($prof['tope_tramo_2'] ?? '0.00') ?>" style="width: 100%; border: none; border-bottom: 1px solid #cbd5e1; padding: 4px; outline: none; font-size: 0.9rem; font-weight: 600; color: #1e3a8a;">
+                            <div style="flex: 1.1 1 230px; display: flex; align-items: center; gap: 10px; min-width: 200px;">
+                                <label style="font-weight: 700; color: #000; font-size: 0.9rem; white-space: nowrap; margin: 0; padding: 0;">Tope tramo 2:</label>
+                                <input type="number" step="0.01" name="tope_tramo_2" value="<?= htmlspecialchars($prof['tope_tramo_2'] ?? '0.00') ?>" style="border: none !important; border-bottom: 2px solid #cbd5e1 !important; background-color: transparent !important; background: transparent !important; border-radius: 0 !important; padding: 4px !important; outline: none; font-size: 0.95rem; font-weight: 600; color: #1e3a8a; box-shadow: none !important; transition: none !important; width: 0; flex: 1; min-width: 0;">
                             </div>
                             
                             <!-- Comisión presenciales -->
-                            <div style="grid-column: span 2; display: flex; align-items: center; gap: 8px;">
-                                <label style="font-weight: 700; color: #000; font-size: 0.9rem; min-width: 160px; white-space: nowrap;">Comisión presenciales:</label>
-                                <input type="number" step="0.01" name="comision_presenciales" value="<?= htmlspecialchars($prof['comision_presenciales'] ?? '0.00') ?>" style="width: 100%; border: none; border-bottom: 1px solid #cbd5e1; padding: 4px; outline: none; font-size: 0.9rem; font-weight: 600; color: #1e3a8a;">
+                            <div style="flex: 2 1 350px; display: flex; align-items: center; gap: 10px; min-width: 300px;">
+                                <label style="font-weight: 700; color: #000; font-size: 0.9rem; white-space: nowrap; margin: 0; padding: 0;">Comisión presenciales:</label>
+                                <input type="number" step="0.01" name="comision_presenciales" value="<?= htmlspecialchars($prof['comision_presenciales'] ?? '0.00') ?>" style="border: none !important; border-bottom: 2px solid #cbd5e1 !important; background-color: transparent !important; background: transparent !important; border-radius: 0 !important; padding: 4px !important; outline: none; font-size: 0.95rem; font-weight: 600; color: #1e3a8a; box-shadow: none !important; transition: none !important; width: 0; flex: 1; min-width: 0;">
                             </div>
                         </div>
 
-                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; margin-bottom: 2rem;">
+                        <!-- Fila 3 -->
+                        <div style="display: flex; gap: 2rem; flex-wrap: wrap; margin-bottom: 2.5rem; justify-content: flex-start; align-items: center;">
                             <!-- Comisión tramo 3 -->
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <label style="font-weight: 700; color: #000; font-size: 0.9rem; min-width: 130px; white-space: nowrap;">Comisión tramo 3:</label>
-                                <input type="number" step="0.01" name="comision_tramo_3" value="<?= htmlspecialchars($prof['comision_tramo_3'] ?? '0.00') ?>" style="width: 100%; border: none; border-bottom: 1px solid #cbd5e1; padding: 4px; outline: none; font-size: 0.9rem; font-weight: 600; color: #1e3a8a;">
+                            <div style="flex: 1.2 1 250px; display: flex; align-items: center; gap: 10px; min-width: 220px;">
+                                <label style="font-weight: 700; color: #000; font-size: 0.9rem; white-space: nowrap; margin: 0; padding: 0;">Comisión tramo 3:</label>
+                                <input type="number" step="0.01" name="comision_tramo_3" value="<?= htmlspecialchars($prof['comision_tramo_3'] ?? '0.00') ?>" style="border: none !important; border-bottom: 2px solid #cbd5e1 !important; background-color: transparent !important; background: transparent !important; border-radius: 0 !important; padding: 4px !important; outline: none; font-size: 0.95rem; font-weight: 600; color: #1e3a8a; box-shadow: none !important; transition: none !important; width: 0; flex: 1; min-width: 0;">
                             </div>
                             
                             <!-- Tope tramo 3 -->
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <label style="font-weight: 700; color: #000; font-size: 0.9rem; min-width: 100px; white-space: nowrap;">Tope tramo 3:</label>
-                                <input type="number" step="0.01" name="tope_tramo_3" value="<?= htmlspecialchars($prof['tope_tramo_3'] ?? '0.00') ?>" style="width: 100%; border: none; border-bottom: 1px solid #cbd5e1; padding: 4px; outline: none; font-size: 0.9rem; font-weight: 600; color: #1e3a8a;">
+                            <div style="flex: 1.1 1 230px; display: flex; align-items: center; gap: 10px; min-width: 200px;">
+                                <label style="font-weight: 700; color: #000; font-size: 0.9rem; white-space: nowrap; margin: 0; padding: 0;">Tope tramo 3:</label>
+                                <input type="number" step="0.01" name="tope_tramo_3" value="<?= htmlspecialchars($prof['tope_tramo_3'] ?? '0.00') ?>" style="border: none !important; border-bottom: 2px solid #cbd5e1 !important; background-color: transparent !important; background: transparent !important; border-radius: 0 !important; padding: 4px !important; outline: none; font-size: 0.95rem; font-weight: 600; color: #1e3a8a; box-shadow: none !important; transition: none !important; width: 0; flex: 1; min-width: 0;">
                             </div>
                             
-                            <div style="grid-column: span 2;"></div>
+                            <!-- Hueco para mantener la estructura -->
+                            <div style="flex: 2 1 350px; min-width: 300px;"></div>
                         </div>
 
-                        <div style="display: flex; justify-content: flex-end; border-top: 1px solid #e2e8f0; padding-top: 1rem;">
-                            <button type="submit" style="background: #f1f5f9; color: #1e3a8a; border: 1px solid #cbd5e1; border-radius: 4px; padding: 0.5rem 1.5rem; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
+                        <div style="display: flex; justify-content: flex-end; border-top: 1px solid #e2e8f0; padding-top: 1.5rem;">
+                            <button type="submit" style="background: #f1f5f9; color: #1e3a8a; border: 1px solid #cbd5e1; border-radius: 4px; padding: 0.6rem 2rem; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
                                 Actualizar
                             </button>
                         </div>
