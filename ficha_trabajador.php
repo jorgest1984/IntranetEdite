@@ -38,6 +38,35 @@ if (!$prof) {
     $prof = $stmtProf->fetch() ?: [];
 }
 
+// Verificar y añadir columnas para comerciales de forma dinámica
+$columns_to_check = [
+    'fijo' => "DECIMAL(10,2) DEFAULT 0.00",
+    'comision_tramo_1' => "DECIMAL(10,2) DEFAULT 0.00",
+    'alumnos_fijo' => "INT DEFAULT 0",
+    'fecha_fijo' => "DATE NULL",
+    'comision_tramo_2' => "DECIMAL(10,2) DEFAULT 0.00",
+    'tope_tramo_2' => "DECIMAL(10,2) DEFAULT 0.00",
+    'comision_presenciales' => "DECIMAL(10,2) DEFAULT 0.00",
+    'comision_tramo_3' => "DECIMAL(10,2) DEFAULT 0.00",
+    'tope_tramo_3' => "DECIMAL(10,2) DEFAULT 0.00"
+];
+try {
+    $stmtCols = $pdo->query("SHOW COLUMNS FROM profesorado_detalles");
+    $existingCols = $stmtCols->fetchAll(PDO::FETCH_COLUMN);
+    $needs_reload = false;
+    foreach ($columns_to_check as $name => $definition) {
+        if (!in_array($name, $existingCols)) {
+            $pdo->exec("ALTER TABLE profesorado_detalles ADD COLUMN `$name` $definition");
+            $needs_reload = true;
+        }
+    }
+    if ($needs_reload) {
+        // Volver a consultar para obtener las nuevas columnas en $prof
+        $stmtProf->execute([$id]);
+        $prof = $stmtProf->fetch() ?: [];
+    }
+} catch (Exception $colEx) {}
+
 $active_tab = $_GET['tab'] ?? 'personales';
 $error = null;
 
@@ -155,6 +184,46 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                 $id
             ]);
             header("Location: ficha_trabajador.php?id=$id&tab=" . ($_GET['tab'] ?? 'personales') . "&success=1");
+            exit();
+        }
+
+        if ($action == 'update_comerciales') {
+            $fijo = $_POST['fijo'] !== '' ? (float)$_POST['fijo'] : 0.00;
+            $comision_tramo_1 = $_POST['comision_tramo_1'] !== '' ? (float)$_POST['comision_tramo_1'] : 0.00;
+            $alumnos_fijo = $_POST['alumnos_fijo'] !== '' ? (int)$_POST['alumnos_fijo'] : 0;
+            $fecha_fijo = $_POST['fecha_fijo'] !== '' ? $_POST['fecha_fijo'] : null;
+            $comision_tramo_2 = $_POST['comision_tramo_2'] !== '' ? (float)$_POST['comision_tramo_2'] : 0.00;
+            $tope_tramo_2 = $_POST['tope_tramo_2'] !== '' ? (float)$_POST['tope_tramo_2'] : 0.00;
+            $comision_presenciales = $_POST['comision_presenciales'] !== '' ? (float)$_POST['comision_presenciales'] : 0.00;
+            $comision_tramo_3 = $_POST['comision_tramo_3'] !== '' ? (float)$_POST['comision_tramo_3'] : 0.00;
+            $tope_tramo_3 = $_POST['tope_tramo_3'] !== '' ? (float)$_POST['tope_tramo_3'] : 0.00;
+
+            $stmtDet = $pdo->prepare("UPDATE profesorado_detalles SET 
+                fijo = ?, 
+                comision_tramo_1 = ?, 
+                alumnos_fijo = ?, 
+                fecha_fijo = ?, 
+                comision_tramo_2 = ?, 
+                tope_tramo_2 = ?, 
+                comision_presenciales = ?, 
+                comision_tramo_3 = ?, 
+                tope_tramo_3 = ?
+                WHERE usuario_id = ?");
+            
+            $stmtDet->execute([
+                $fijo, 
+                $comision_tramo_1, 
+                $alumnos_fijo, 
+                $fecha_fijo, 
+                $comision_tramo_2, 
+                $tope_tramo_2, 
+                $comision_presenciales, 
+                $comision_tramo_3, 
+                $tope_tramo_3, 
+                $id
+            ]);
+            
+            header("Location: ficha_trabajador.php?id=$id&tab=comerciales&success=1");
             exit();
         }
 
@@ -1535,7 +1604,81 @@ $tareas = $stmt_tareas->fetchAll();
                     </form>
                 </div>
             </div>
-            <div id="tab-comerciales" style="<?= $active_tab == 'comerciales' ? '' : 'display:none;' ?>"><div class="info-section"><h3>Comercial</h3><p>Módulo en desarrollo...</p></div></div>
+            <div id="tab-comerciales" style="<?= $active_tab == 'comerciales' ? '' : 'display:none;' ?>">
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); padding: 2rem; margin-bottom: 2rem;">
+                    <form method="POST" action="ficha_trabajador.php?id=<?= $id ?>&tab=comerciales">
+                        <input type="hidden" name="action" value="update_comerciales">
+                        
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; margin-bottom: 1.5rem;">
+                            <!-- Fijo -->
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <label style="font-weight: 700; color: #000; font-size: 0.9rem; min-width: 40px; white-space: nowrap;">Fijo:</label>
+                                <input type="number" step="0.01" name="fijo" value="<?= htmlspecialchars($prof['fijo'] ?? '0.00') ?>" style="width: 100%; border: none; border-bottom: 1px solid #cbd5e1; padding: 4px; outline: none; font-size: 0.9rem; font-weight: 600; color: #1e3a8a;">
+                            </div>
+                            
+                            <!-- Comisión tramo 1 -->
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <label style="font-weight: 700; color: #000; font-size: 0.9rem; min-width: 130px; white-space: nowrap;">Comisión tramo 1:</label>
+                                <input type="number" step="0.01" name="comision_tramo_1" value="<?= htmlspecialchars($prof['comision_tramo_1'] ?? '0.00') ?>" style="width: 100%; border: none; border-bottom: 1px solid #cbd5e1; padding: 4px; outline: none; font-size: 0.9rem; font-weight: 600; color: #1e3a8a;">
+                            </div>
+                            
+                            <!-- Alumnos fijo -->
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <label style="font-weight: 700; color: #000; font-size: 0.9rem; min-width: 90px; white-space: nowrap;">Alumnos fijo:</label>
+                                <input type="number" name="alumnos_fijo" value="<?= htmlspecialchars($prof['alumnos_fijo'] ?? '0') ?>" style="width: 100%; border: none; border-bottom: 1px solid #cbd5e1; padding: 4px; outline: none; font-size: 0.9rem; font-weight: 600; color: #1e3a8a;">
+                            </div>
+                            
+                            <!-- Fecha fijo -->
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <label style="font-weight: 700; color: #000; font-size: 0.9rem; min-width: 80px; white-space: nowrap;">Fecha fijo:</label>
+                                <input type="date" name="fecha_fijo" value="<?= htmlspecialchars($prof['fecha_fijo'] ?? '') ?>" style="width: 100%; border: none; border-bottom: 1px solid #cbd5e1; padding: 4px; outline: none; font-size: 0.9rem; font-weight: 600; color: #1e3a8a; font-family: inherit;">
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; margin-bottom: 1.5rem;">
+                            <!-- Comisión tramo 2 -->
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <label style="font-weight: 700; color: #000; font-size: 0.9rem; min-width: 130px; white-space: nowrap;">Comisión tramo 2:</label>
+                                <input type="number" step="0.01" name="comision_tramo_2" value="<?= htmlspecialchars($prof['comision_tramo_2'] ?? '0.00') ?>" style="width: 100%; border: none; border-bottom: 1px solid #cbd5e1; padding: 4px; outline: none; font-size: 0.9rem; font-weight: 600; color: #1e3a8a;">
+                            </div>
+                            
+                            <!-- Tope tramo 2 -->
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <label style="font-weight: 700; color: #000; font-size: 0.9rem; min-width: 100px; white-space: nowrap;">Tope tramo 2:</label>
+                                <input type="number" step="0.01" name="tope_tramo_2" value="<?= htmlspecialchars($prof['tope_tramo_2'] ?? '0.00') ?>" style="width: 100%; border: none; border-bottom: 1px solid #cbd5e1; padding: 4px; outline: none; font-size: 0.9rem; font-weight: 600; color: #1e3a8a;">
+                            </div>
+                            
+                            <!-- Comisión presenciales -->
+                            <div style="grid-column: span 2; display: flex; align-items: center; gap: 8px;">
+                                <label style="font-weight: 700; color: #000; font-size: 0.9rem; min-width: 160px; white-space: nowrap;">Comisión presenciales:</label>
+                                <input type="number" step="0.01" name="comision_presenciales" value="<?= htmlspecialchars($prof['comision_presenciales'] ?? '0.00') ?>" style="width: 100%; border: none; border-bottom: 1px solid #cbd5e1; padding: 4px; outline: none; font-size: 0.9rem; font-weight: 600; color: #1e3a8a;">
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; margin-bottom: 2rem;">
+                            <!-- Comisión tramo 3 -->
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <label style="font-weight: 700; color: #000; font-size: 0.9rem; min-width: 130px; white-space: nowrap;">Comisión tramo 3:</label>
+                                <input type="number" step="0.01" name="comision_tramo_3" value="<?= htmlspecialchars($prof['comision_tramo_3'] ?? '0.00') ?>" style="width: 100%; border: none; border-bottom: 1px solid #cbd5e1; padding: 4px; outline: none; font-size: 0.9rem; font-weight: 600; color: #1e3a8a;">
+                            </div>
+                            
+                            <!-- Tope tramo 3 -->
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <label style="font-weight: 700; color: #000; font-size: 0.9rem; min-width: 100px; white-space: nowrap;">Tope tramo 3:</label>
+                                <input type="number" step="0.01" name="tope_tramo_3" value="<?= htmlspecialchars($prof['tope_tramo_3'] ?? '0.00') ?>" style="width: 100%; border: none; border-bottom: 1px solid #cbd5e1; padding: 4px; outline: none; font-size: 0.9rem; font-weight: 600; color: #1e3a8a;">
+                            </div>
+                            
+                            <div style="grid-column: span 2;"></div>
+                        </div>
+
+                        <div style="display: flex; justify-content: flex-end; border-top: 1px solid #e2e8f0; padding-top: 1rem;">
+                            <button type="submit" style="background: #f1f5f9; color: #1e3a8a; border: 1px solid #cbd5e1; border-radius: 4px; padding: 0.5rem 1.5rem; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
+                                Actualizar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
             <div id="tab-tareas" style="<?= $active_tab == 'tareas' ? '' : 'display:none;' ?>">
                 <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
                     <div style="background: #fff; padding: 12px; border-bottom: 2px solid #b91c1c; text-align: center;">
