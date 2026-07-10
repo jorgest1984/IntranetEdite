@@ -122,7 +122,10 @@ try {
             // Limpiar nombre de usuario para compatibilidad con Moodle
             $gestor_username = preg_replace('/[^a-z0-9_.-]/', '', strtolower(str_replace(' ', '_', $raw_gestor)));
             $gestor_email = $gestor_username . '@avefp.es';
-            $gestor_pass = !empty($grupo['contrasena_gestor']) ? trim($grupo['contrasena_gestor']) : 'InspectorSepe2026!';
+            $gestor_pass = !empty($grupo['contrasena_gestor']) ? trim($grupo['contrasena_gestor']) : 'InspectorSepe-2026*';
+            if (!preg_match('/[^a-zA-Z0-9]/', $gestor_pass)) {
+                $gestor_pass .= '-*';
+            }
             
             $existingGestor = $moodle->getUsersByField('username', [$gestor_username]);
             $gestorUserId = null;
@@ -173,7 +176,7 @@ try {
                     } else {
                         $newT = $moodle->createUser(
                             $t_username,
-                            'EditeTutor2026!',
+                            'EditeTutor-2026*',
                             $tutor_user['nombre'],
                             $tutor_user['apellidos'] ?: 'Tutor',
                             $tutor_user['email']

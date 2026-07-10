@@ -53,6 +53,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action_save_personal']
     $usuario_gestor = trim($_POST['usuario_gestor'] ?? '');
     $contrasena_gestor = trim($_POST['contrasena_gestor'] ?? '');
 
+    // Asegurar que la contraseña cumpla con la política de Moodle (al menos un carácter especial)
+    if ($contrasena_gestor !== '' && !preg_match('/[^a-zA-Z0-9]/', $contrasena_gestor)) {
+        $contrasena_gestor .= '-*';
+    }
+
     try {
         $pdo->beginTransaction();
         
@@ -95,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action_save_personal']
                         } else {
                             $newT = $moodle->createUser(
                                 $t_username,
-                                'EditeTutor2026!',
+                                'EditeTutor-2026*',
                                 $tutor_user['nombre'],
                                 $tutor_user['apellidos'] ?: 'Tutor',
                                 $tutor_user['email']
@@ -121,7 +126,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action_save_personal']
                 if (!empty($usuario_gestor)) {
                     $gestor_username = preg_replace('/[^a-z0-9_.-]/', '', strtolower(str_replace(' ', '_', $usuario_gestor)));
                     $gestor_email = $gestor_username . '@avefp.es';
-                    $gestor_pass = !empty($contrasena_gestor) ? $contrasena_gestor : 'InspectorSepe2026!';
+                    $gestor_pass = !empty($contrasena_gestor) ? $contrasena_gestor : 'InspectorSepe-2026*';
+                    if (!preg_match('/[^a-zA-Z0-9]/', $gestor_pass)) {
+                        $gestor_pass .= '-*';
+                    }
                     
                     $existingG = $moodle->getUsersByField('username', [$gestor_username]);
                     $moodleGestorId = null;
