@@ -273,13 +273,21 @@ function calc_edad($fecha_nac) {
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
                     Volver al Grupo
                 </a>
-                <div style="display: flex; gap: 10px; align-items: center;">
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <a href="pdf_datos_certificacion.php?grupo_id=<?= $grupo_id ?>" target="_blank"
+                       style="display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #dc2626, #b91c1c); color: #fff; padding: 0.55rem 1.3rem; border-radius: 8px; font-weight: 700; font-size: 0.84rem; text-decoration: none; border: none; cursor: pointer; transition: all 0.25s ease; box-shadow: 0 4px 12px rgba(220,38,38,0.3);"
+                       onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 18px rgba(220,38,38,0.4)'"
+                       onmouseout="this.style.transform='';this.style.boxShadow='0 4px 12px rgba(220,38,38,0.3)'">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                        Imprimir PDF
+                    </a>
                     <label style="font-size: 0.82rem; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
                         Bloquear todos:
                         <input type="checkbox" id="blockAllCheck" style="cursor: pointer; width: 16px; height: 16px;">
                     </label>
                 </div>
             </div>
+
 
             <!-- Tabla -->
             <div class="cert-card">
