@@ -26,7 +26,17 @@ if (!$trabajador) {
 // Cargar detalles de profesorado (vínculo a usuario)
 $stmtProf = $pdo->prepare("SELECT * FROM profesorado_detalles WHERE usuario_id = ?");
 $stmtProf->execute([$id]);
-$prof = $stmtProf->fetch() ?: [];
+$prof = $stmtProf->fetch();
+
+if (!$prof) {
+    // Si no existe, insertar un registro vacío para este usuario para poder actualizarlo
+    $stmtInsertProf = $pdo->prepare("INSERT INTO profesorado_detalles (usuario_id) VALUES (?)");
+    $stmtInsertProf->execute([$id]);
+    
+    // Volver a consultar
+    $stmtProf->execute([$id]);
+    $prof = $stmtProf->fetch() ?: [];
+}
 
 $active_tab = $_GET['tab'] ?? 'personales';
 $error = null;
@@ -899,17 +909,19 @@ $tareas = $stmt_tareas->fetchAll();
                     </div>
                     
                     <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; font-size: 0.85rem;">
-                        <div><strong style="color: #1e3a8a;">DNI:</strong> <?= htmlspecialchars($prof['dni'] ?? '-') ?></div>
-                        <div><strong style="color: #1e3a8a;">Nombre:</strong> <?= htmlspecialchars($trabajador['nombre'] ?? '-') ?></div>
-                        <div><strong style="color: #1e3a8a;">Primer Apellido:</strong> <?= htmlspecialchars($trabajador['apellidos'] ?? '-') ?></div>
-                        <div><strong style="color: #1e3a8a;">F. Nacimiento:</strong> <?= htmlspecialchars($prof['fecha_nacimiento'] ?? '-') ?></div>
+                        <div><strong style="color: #1e3a8a;">DNI:</strong> <?= htmlspecialchars(!empty($prof['dni']) ? $prof['dni'] : '-') ?></div>
+                        <div><strong style="color: #1e3a8a;">Nombre:</strong> <?= htmlspecialchars(!empty($trabajador['nombre']) ? $trabajador['nombre'] : '-') ?></div>
+                        <div><strong style="color: #1e3a8a;">Primer Apellido:</strong> <?= htmlspecialchars(!empty($prof['apellido1']) ? $prof['apellido1'] : ($trabajador['apellidos'] ?? '-')) ?></div>
+                        <div><strong style="color: #1e3a8a;">Segundo Apellido:</strong> <?= htmlspecialchars(!empty($prof['apellido2']) ? $prof['apellido2'] : '-') ?></div>
                         
-                        <div style="grid-column: span 2;"><strong style="color: #1e3a8a;">Email:</strong> <?= htmlspecialchars($trabajador['email'] ?? '-') ?></div>
-                        <div style="grid-column: span 2;"><strong style="color: #1e3a8a;">Teléfono:</strong> <?= htmlspecialchars($prof['telefono'] ?? '-') ?></div>
+                        <div><strong style="color: #1e3a8a;">F. Nacimiento:</strong> <?= htmlspecialchars(!empty($prof['fecha_nacimiento']) && $prof['fecha_nacimiento'] !== '0000-00-00' ? date('d/m/Y', strtotime($prof['fecha_nacimiento'])) : '-') ?></div>
+                        <div style="grid-column: span 3;"><strong style="color: #1e3a8a;">Email:</strong> <?= htmlspecialchars(!empty($trabajador['email']) ? $trabajador['email'] : '-') ?></div>
                         
-                        <div style="grid-column: span 2;"><strong style="color: #1e3a8a;">Domicilio:</strong> <?= htmlspecialchars($prof['nombre_via'] ?? '-') ?></div>
-                        <div><strong style="color: #1e3a8a;">CP:</strong> <?= htmlspecialchars($prof['cp_trabajador'] ?? '-') ?></div>
-                        <div><strong style="color: #1e3a8a;">Localidad:</strong> <?= htmlspecialchars($prof['localidad_trabajador'] ?? '-') ?></div>
+                        <div style="grid-column: span 2;"><strong style="color: #1e3a8a;">Teléfono:</strong> <?= htmlspecialchars(!empty($prof['telefono']) ? $prof['telefono'] : '-') ?></div>
+                        <div style="grid-column: span 2;"><strong style="color: #1e3a8a;">Domicilio:</strong> <?= htmlspecialchars(!empty($prof['nombre_via']) ? $prof['nombre_via'] : '-') ?></div>
+                        
+                        <div><strong style="color: #1e3a8a;">CP:</strong> <?= htmlspecialchars(!empty($prof['cp_trabajador']) ? $prof['cp_trabajador'] : '-') ?></div>
+                        <div style="grid-column: span 3;"><strong style="color: #1e3a8a;">Localidad:</strong> <?= htmlspecialchars(!empty($prof['localidad_trabajador']) ? $prof['localidad_trabajador'] : '-') ?></div>
                     </div>
                 </div>
 
