@@ -28,11 +28,11 @@ if (!$grupo) {
 }
 
 // 2. Obtener alumnos del grupo
-$stmtAl = $pdo->prepare("SELECT m.id as matricula_id, a.id as alumno_id, a.nombre, a.apellidos, a.moodle_user_id
+$stmtAl = $pdo->prepare("SELECT m.id as matricula_id, a.id as alumno_id, a.nombre, a.primer_apellido, a.segundo_apellido, a.moodle_user_id
                          FROM matriculas m
                          JOIN alumnos a ON m.alumno_id = a.id
                          WHERE m.grupo_id = ?
-                         ORDER BY a.apellidos ASC, a.nombre ASC");
+                         ORDER BY a.primer_apellido ASC, a.nombre ASC");
 $stmtAl->execute([$grupo_id]);
 $alumnos = $stmtAl->fetchAll();
 
@@ -184,7 +184,8 @@ foreach ($alumnos as $alumno) {
         $pdf->AddPage();
     }
     
-    $nombre_completo = mb_strtoupper($alumno['apellidos'] . ', ' . $alumno['nombre']);
+    $apellidos = trim(($alumno['primer_apellido'] ?? '') . ' ' . ($alumno['segundo_apellido'] ?? ''));
+    $nombre_completo = mb_strtoupper($apellidos . ', ' . $alumno['nombre']);
     $stats = $student_sessions[$alumno['alumno_id']];
     $sessions = $stats['sessions'];
     $total_seconds = $stats['total_seconds'];
