@@ -64,7 +64,7 @@ try {
     }
 
     // 3. Obtener el Grupo local (o crearlo)
-    $stmt = $pdo->prepare("SELECT id, id_plataforma, usuario_gestor, contrasena_gestor FROM grupos WHERE accion_id = ? LIMIT 1");
+    $stmt = $pdo->prepare("SELECT id, id_plataforma, usuario_gestor, contrasena_gestor, tutor_id, tutor_id_2, tutor_reserva_id FROM grupos WHERE accion_id = ? LIMIT 1");
     $stmt->execute([$af_id]);
     $grupo = $stmt->fetch();
     $grupo_id_local = $grupo['id'];
@@ -151,9 +151,55 @@ try {
         }
     }
 
+    // 7. Sincronizar Tutores (ej: Profesor con rol_id = 3)
+    $tutor_msg = '';
+    $tutor_ids = array_filter([$grupo['tutor_id'] ?? null, $grupo['tutor_id_2'] ?? null, $grupo['tutor_reserva_id'] ?? null]);
+    if (!empty($tutor_ids)) {
+        $tutors_synced = [];
+        foreach ($tutor_ids as $tid) {
+            try {
+                $stmtT = $pdo->prepare("SELECT * FROM usuarios WHERE id = ?");
+                $stmtT->execute([$tid]);
+                $tutor_user = $stmtT->fetch();
+                
+                if ($tutor_user && !empty($tutor_user['email'])) {
+                    $t_username = $tutor_user['username'] ?: strtolower(explode('@', $tutor_user['email'])[0]);
+                    $t_username = preg_replace('/[^a-z0-9_.-]/', '', strtolower($t_username));
+                    
+                    $existingT = $moodle->getUsersByField('email', [$tutor_user['email']]);
+                    $moodleTutorId = null;
+                    if (!empty($existingT) && isset($existingT['users'][0])) {
+                        $moodleTutorId = $existingT['users'][0]['id'];
+                    } else {
+                        $newT = $moodle->createUser(
+                            $t_username,
+                            'EditeTutor2026!',
+                            $tutor_user['nombre'],
+                            $tutor_user['apellidos'] ?: 'Tutor',
+                            $tutor_user['email']
+                        );
+                        if (isset($newT[0]['id'])) {
+                            $moodleTutorId = $newT[0]['id'];
+                        }
+                    }
+                    
+                    if ($moodleTutorId) {
+                        $moodle->enrolUser($moodleTutorId, $courseId, 3);
+                        $tutors_synced[] = $tutor_user['nombre'];
+                    }
+                }
+            } catch (Exception $tutorEx) {
+                // Silencioso, continuamos con el siguiente tutor
+            }
+        }
+        if (!empty($tutors_synced)) {
+            $tutor_msg = " | Tutores: " . implode(', ', $tutors_synced);
+        }
+    }
+
     echo json_encode([
         'success' => true, 
-        'message' => "Sincronización exitosa. Curso ID: $courseId, Alumnos sincronizados: $syncCount" . $gestor_msg
+        'message' => "Sincronización exitosa. Curso ID: $courseId, Alumnos sincronizados: $syncCount" . $gestor_msg . $tutor_msg
     ]);
 
 } catch (Exception $e) {

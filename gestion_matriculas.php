@@ -19,17 +19,149 @@ $accion = $af->fetch();
 if (!$accion) die("Acción Formativa no encontrada.");
 
 // Buscar el grupo asociado (o crear uno por defecto si no existe)
-$stmt = $pdo->prepare("SELECT id FROM grupos WHERE accion_id = ? LIMIT 1");
+$stmt = $pdo->prepare("SELECT * FROM grupos WHERE accion_id = ? LIMIT 1");
 $stmt->execute([$af_id]);
-$grupo = $stmt->fetch();
+$grupo_full = $stmt->fetch();
 
-if (!$grupo) {
+if (!$grupo_full) {
     // Crear grupo automático para esta acción
     $stmt = $pdo->prepare("INSERT INTO grupos (accion_id, numero_grupo, modalidad, horas) VALUES (?, ?, ?, ?)");
     $stmt->execute([$af_id, 'G1', $accion['modalidad'], $accion['duracion']]);
     $grupo_id = $pdo->lastInsertId();
+    
+    $stmt = $pdo->prepare("SELECT * FROM grupos WHERE id = ?");
+    $stmt->execute([$grupo_id]);
+    $grupo_full = $stmt->fetch();
 } else {
-    $grupo_id = $grupo['id'];
+    $grupo_id = $grupo_full['id'];
+}
+
+// Obtener listado de tutores activos
+$stmtTutores = $pdo->query("SELECT u.id, CONCAT(u.nombre, ' ', u.apellidos) as nombre, u.email, u.username
+                            FROM usuarios u 
+                            JOIN roles r ON u.rol_id = r.id 
+                            WHERE (r.nombre LIKE '%Tutor%' OR r.nombre LIKE '%Formador%' OR r.nombre LIKE '%Docente%') 
+                            AND u.activo = 1
+                            ORDER BY u.nombre ASC");
+$tutores = $stmtTutores ? $stmtTutores->fetchAll(PDO::FETCH_ASSOC) : [];
+
+// Procesar Guardado y Matriculación de Personal (Tutores e Inspector)
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action_save_personal'])) {
+    $tutor_id = $_POST['tutor_id'] !== '' ? (int)$_POST['tutor_id'] : null;
+    $tutor_id_2 = $_POST['tutor_id_2'] !== '' ? (int)$_POST['tutor_id_2'] : null;
+    $tutor_reserva_id = $_POST['tutor_reserva_id'] !== '' ? (int)$_POST['tutor_reserva_id'] : null;
+    $usuario_gestor = trim($_POST['usuario_gestor'] ?? '');
+    $contrasena_gestor = trim($_POST['contrasena_gestor'] ?? '');
+
+    try {
+        $pdo->beginTransaction();
+        
+        // 1. Guardar en la base de datos de la Intranet
+        $stmtUpdate = $pdo->prepare("UPDATE grupos 
+                                     SET tutor_id = ?, tutor_id_2 = ?, tutor_reserva_id = ?, usuario_gestor = ?, contrasena_gestor = ?
+                                     WHERE id = ?");
+        $stmtUpdate->execute([$tutor_id, $tutor_id_2, $tutor_reserva_id, $usuario_gestor, $contrasena_gestor, $grupo_id]);
+        
+        $pdo->commit();
+        
+        // 2. Intentar matricular y sincronizar en Moodle si está configurado
+        $sync_msg = '';
+        require_once 'includes/moodle_api.php';
+        $moodle = new MoodleAPI($pdo);
+        
+        if ($moodle->isConfigured()) {
+            // El ID del curso Moodle está en el campo de la acción formativa:
+            $courseMoodleId = $accion['id_plataforma'] ?: null;
+            
+            if ($courseMoodleId) {
+                // Sincronizar tutores seleccionados
+                $tutors_synced = [];
+                $tutor_ids_to_sync = array_filter([$tutor_id, $tutor_id_2, $tutor_reserva_id]);
+                
+                foreach ($tutor_ids_to_sync as $tid) {
+                    $stmtT = $pdo->prepare("SELECT * FROM usuarios WHERE id = ?");
+                    $stmtT->execute([$tid]);
+                    $tutor_user = $stmtT->fetch();
+                    
+                    if ($tutor_user && !empty($tutor_user['email'])) {
+                        // Limpiar username
+                        $t_username = $tutor_user['username'] ?: strtolower(explode('@', $tutor_user['email'])[0]);
+                        $t_username = preg_replace('/[^a-z0-9_.-]/', '', strtolower($t_username));
+                        
+                        $existingT = $moodle->getUsersByField('email', [$tutor_user['email']]);
+                        $moodleTutorId = null;
+                        if (!empty($existingT) && isset($existingT['users'][0])) {
+                            $moodleTutorId = $existingT['users'][0]['id'];
+                        } else {
+                            $newT = $moodle->createUser(
+                                $t_username,
+                                'EditeTutor2026!',
+                                $tutor_user['nombre'],
+                                $tutor_user['apellidos'] ?: 'Tutor',
+                                $tutor_user['email']
+                            );
+                            if (isset($newT[0]['id'])) {
+                                $moodleTutorId = $newT[0]['id'];
+                            }
+                        }
+                        
+                        if ($moodleTutorId) {
+                            // Enrol tutor as editing teacher (role ID 3)
+                            $moodle->enrolUser($moodleTutorId, $courseMoodleId, 3);
+                            $tutors_synced[] = $tutor_user['nombre'];
+                        }
+                    }
+                }
+                
+                if (!empty($tutors_synced)) {
+                    $sync_msg .= "Tutores matriculados en Moodle: " . implode(', ', $tutors_synced) . ".";
+                }
+                
+                // Sincronizar Inspector del SEPE (Usuario Gestor)
+                if (!empty($usuario_gestor)) {
+                    $gestor_username = preg_replace('/[^a-z0-9_.-]/', '', strtolower(str_replace(' ', '_', $usuario_gestor)));
+                    $gestor_email = $gestor_username . '@avefp.es';
+                    $gestor_pass = !empty($contrasena_gestor) ? $contrasena_gestor : 'InspectorSepe2026!';
+                    
+                    $existingG = $moodle->getUsersByField('username', [$gestor_username]);
+                    $moodleGestorId = null;
+                    if (!empty($existingG) && isset($existingG['users'][0])) {
+                        $moodleGestorId = $existingG['users'][0]['id'];
+                    } else {
+                        $newG = $moodle->createUser(
+                            $gestor_username,
+                            $gestor_pass,
+                            'Inspector',
+                            'SEPE',
+                            $gestor_email
+                        );
+                        if (isset($newG[0]['id'])) {
+                            $moodleGestorId = $newG[0]['id'];
+                        }
+                    }
+                    
+                    if ($moodleGestorId) {
+                        // Enrol inspector as non-editing teacher (role ID 4)
+                        $moodle->enrolUser($moodleGestorId, $courseMoodleId, 4);
+                        $sync_msg .= ($sync_msg ? ' ' : '') . "Inspector SEPE ('$gestor_username') matriculado en Moodle.";
+                    }
+                }
+            } else {
+                $sync_msg .= " (Nota: El curso de Moodle no está creado o vinculado todavía. Los cambios se guardaron en la Intranet local).";
+            }
+        } else {
+            $sync_msg .= " (Nota: Moodle no está configurado. Los cambios se guardaron en la Intranet local).";
+        }
+        
+        $msg = "Personal del grupo actualizado con éxito." . ($sync_msg ? " " . $sync_msg : "");
+        header("Location: gestion_matriculas.php?af_id=$af_id&success_sync=1&sync_msg=" . urlencode($msg));
+        exit();
+    } catch (Exception $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        $error = "Error al guardar el personal: " . $e->getMessage();
+    }
 }
 
 // Procesar Alta de Alumno
@@ -359,8 +491,65 @@ $alumnos = $matriculados->fetchAll();
                         ❌ No se encontró ningún alumno con esos datos.
                     </div>
 
-                    <div style="background: #eff6ff; padding: 15px; border-radius: 12px; border: 1px solid #bfdbfe; font-size: 0.8rem; color: #1e40af;">
+                    <div style="background: #eff6ff; padding: 15px; border-radius: 12px; border: 1px solid #bfdbfe; font-size: 0.8rem; color: #1e40af; margin-bottom: 25px;">
                         <strong>Instrucciones:</strong> Escribe en cualquiera de los campos anteriores para activar la búsqueda predictiva al instante.
+                    </div>
+
+                    <!-- Personal del Grupo (Tutores y SEPE Inspector) -->
+                    <div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
+                        <h3 style="font-size: 0.95rem; font-weight: 700; color: #1e3a8a; margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;">👨‍🏫 Personal del Grupo</h3>
+                        <form method="POST" action="">
+                            <input type="hidden" name="action_save_personal" value="1">
+                            
+                            <div style="margin-bottom: 12px; text-align: left;">
+                                <label style="font-size: 0.78rem; font-weight: 700; color: #475569; text-transform: uppercase; display: block; margin-bottom: 6px;">Tutor Principal:</label>
+                                <select name="tutor_id" class="form-control" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.85rem; font-family: inherit;">
+                                    <option value="">-- Sin asignar --</option>
+                                    <?php foreach ($tutores as $t): ?>
+                                        <option value="<?= $t['id'] ?>" <?= ($grupo_full['tutor_id'] ?? '') == $t['id'] ? 'selected' : '' ?>><?= htmlspecialchars($t['nombre']) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            
+                            <div style="margin-bottom: 12px; text-align: left;">
+                                <label style="font-size: 0.78rem; font-weight: 700; color: #475569; text-transform: uppercase; display: block; margin-bottom: 6px;">Tutor Auxiliar (Tutor 2):</label>
+                                <select name="tutor_id_2" class="form-control" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.85rem; font-family: inherit;">
+                                    <option value="">-- Sin asignar --</option>
+                                    <?php foreach ($tutores as $t): ?>
+                                        <option value="<?= $t['id'] ?>" <?= ($grupo_full['tutor_id_2'] ?? '') == $t['id'] ? 'selected' : '' ?>><?= htmlspecialchars($t['nombre']) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            
+                            <div style="margin-bottom: 12px; text-align: left;">
+                                <label style="font-size: 0.78rem; font-weight: 700; color: #475569; text-transform: uppercase; display: block; margin-bottom: 6px;">Tutor de Reserva:</label>
+                                <select name="tutor_reserva_id" class="form-control" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.85rem; font-family: inherit;">
+                                    <option value="">-- Sin asignar --</option>
+                                    <?php foreach ($tutores as $t): ?>
+                                        <option value="<?= $t['id'] ?>" <?= ($grupo_full['tutor_reserva_id'] ?? '') == $t['id'] ? 'selected' : '' ?>><?= htmlspecialchars($t['nombre']) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+
+                            <div style="border-top: 1px solid #f1f5f9; margin-top: 15px; padding-top: 10px; margin-bottom: 15px; text-align: left;">
+                                <label style="font-size: 0.78rem; font-weight: 700; color: #475569; text-transform: uppercase; display: block; margin-bottom: 5px;">🕵️‍♂️ Inspector SEPE (Usuario Gestor):</label>
+                                
+                                <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                                    <div style="flex: 1;">
+                                        <span style="font-size: 0.7rem; font-weight: 600; color: #64748b;">Usuario:</span>
+                                        <input type="text" name="usuario_gestor" class="form-control" value="<?= htmlspecialchars($grupo_full['usuario_gestor'] ?? '') ?>" placeholder="Ej: inspector_sepe" style="width: 100%; padding: 6px 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.8rem; font-family: inherit;">
+                                    </div>
+                                    <div style="flex: 1;">
+                                        <span style="font-size: 0.7rem; font-weight: 600; color: #64748b;">Contraseña:</span>
+                                        <input type="text" name="contrasena_gestor" class="form-control" value="<?= htmlspecialchars($grupo_full['contrasena_gestor'] ?? '') ?>" placeholder="Clave..." style="width: 100%; padding: 6px 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.8rem; font-family: inherit;">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn" style="width: 100%; padding: 12px; border-radius: 8px; background: #ea580c; color: white; border: none; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s;">
+                                💾 Guardar y Matricular Personal
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
