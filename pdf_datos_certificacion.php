@@ -128,30 +128,33 @@ $pdf->SetAutoPageBreak(true, 18);
 $pdf->AddPage();
 
 // ── Cabecera de la tabla ──
-$pdf->SetFont('Arial', 'B', 7);
+// A4 landscape usable width = 297 - 8 - 8 = 281mm
+// Column widths must total exactly 281mm
+$pdf->SetFont('Arial', 'B', 6.5);
 $pdf->SetFillColor(220, 230, 245);
 $pdf->SetTextColor(0, 60, 140);
 $pdf->SetDrawColor(180, 200, 230);
 
-// Anchos de columna (total ~281mm para A4 landscape con márgenes 8)
+// Anchos de columna: total = 50+20+46+7+8+8+22+7+26+9+12+18+14+12+11+11 = 281mm ✓
+// (A4 landscape: 297mm - 8mm left - 8mm right = 281mm usable)
 $cols = [
-    'Alumno'             => 42,
-    'NIF'                => 20,
-    'Empresa'            => 42,
-    '<10'                =>  8,
-    'Edad'               =>  9,
-    'Sexo'               =>  9,
-    'Estudios'           => 26,
-    'Discap'             =>  9,
-    'Tipo Contrato'      => 26,
-    'DSPLD'              => 10,
-    'Colectivo'          => 14,
-    'Provincia'          => 20,
-    'Estado'             => 16,
-    'Col. Prior.'        => 14,
-    'Certifica'          => 13,
-    'Bloqueado'          => 13,
-];
+    'Alumno'        => 50,
+    'NIF'           => 20,
+    'Empresa'       => 46,
+    '<10'           =>  7,
+    'Edad'          =>  8,
+    'Sexo'          =>  8,
+    'Estudios'      => 22,
+    'Discap'        =>  7,
+    'Tipo Contrato' => 26,
+    'DSPLD'         =>  9,
+    'Colectivo'     => 12,
+    'Provincia'     => 18,
+    'Estado'        => 14,
+    'Col. Prior.'   => 12,
+    'Certifica'     => 11,
+    'Bloqueado'     => 11,
+]; // = 281 ✓
 
 $rowH = 6;
 foreach ($cols as $label => $w) {
@@ -160,58 +163,59 @@ foreach ($cols as $label => $w) {
 $pdf->Ln();
 
 // ── Filas de datos ──
-$pdf->SetFont('Arial', '', 6.5);
+$pdf->SetFont('Arial', '', 6);
 $pdf->SetTextColor(30, 30, 30);
 $fill = false;
 
 foreach ($alumnos as $alumno) {
-    $apellidos = trim(($alumno['primer_apellido'] ?? '') . ' ' . ($alumno['segundo_apellido'] ?? ''));
-    $nombre_comp = mb_strtoupper($apellidos) . ' ' . ($alumno['nombre'] ?? '');
-    $edad     = cert_edad($alumno['fecha_nacimiento']);
-    $sexo     = mb_strtoupper(substr($alumno['sexo'] ?? '', 0, 1)) ?: '—';
-    $colect   = mb_strtoupper($alumno['colectivo'] ?? '—');
-    $estado   = mb_strtoupper($alumno['matricula_estado'] ?? '—');
-    $certif   = $alumno['certificables'] ?? 'NO';
-    $contrato = $alumno['contrato'] ?? '—';
-    $dspld    = ($alumno['desempleado_larga_duracion'] === 'SI' || $alumno['desempleado_larga_duracion'] === '1') ? 'SI' : 'NO';
-    $empresa  = $alumno['empresa_nombre'] ?? '—';
-    $provincia= mb_strtoupper($alumno['provincia'] ?? '—');
+    $apellidos    = trim(($alumno['primer_apellido'] ?? '') . ' ' . ($alumno['segundo_apellido'] ?? ''));
+    $nombre_comp  = mb_strtoupper($apellidos) . ' ' . ($alumno['nombre'] ?? '');
+    $edad         = cert_edad($alumno['fecha_nacimiento']);
+    $sexo         = mb_strtoupper(substr($alumno['sexo'] ?? '', 0, 1)) ?: '—';
+    $colect       = mb_strtoupper($alumno['colectivo'] ?? '—');
+    $estado       = mb_strtoupper($alumno['matricula_estado'] ?? '—');
+    $certif       = $alumno['certificables'] ?? 'NO';
+    $contrato     = $alumno['contrato'] ?? '—';
+    $dspld        = ($alumno['desempleado_larga_duracion'] === 'SI' || $alumno['desempleado_larga_duracion'] === '1') ? 'SI' : 'NO';
+    $empresa      = $alumno['empresa_nombre'] ?? '—';
+    $provincia    = mb_strtoupper($alumno['provincia'] ?? '—');
 
-    $bgR = $fill ? 245 : 255;
-    $bgG = $fill ? 248 : 255;
-    $bgB = $fill ? 255 : 255;
-    $pdf->SetFillColor($bgR, $bgG, $bgB);
+    $pdf->SetFillColor($fill ? 245 : 255, $fill ? 248 : 255, 255);
 
-    // Fila (multiline for nombre uses MultiCell trick via row height)
     $h = $rowH;
-    $pdf->Cell($cols['Alumno'],          $h, cert_str($nombre_comp),  1, 0, 'L', $fill);
-    $pdf->Cell($cols['NIF'],             $h, cert_str($alumno['dni'] ?? '—'), 1, 0, 'C', $fill);
-    $pdf->Cell($cols['Empresa'],         $h, cert_str(mb_substr($empresa, 0, 38)), 1, 0, 'L', $fill);
-    $pdf->Cell($cols['<10'],             $h, '',                       1, 0, 'C', $fill);
-    $pdf->Cell($cols['Edad'],            $h, $edad,                    1, 0, 'C', $fill);
-    $pdf->Cell($cols['Sexo'],            $h, $sexo,                    1, 0, 'C', $fill);
-    $pdf->Cell($cols['Estudios'],        $h, '',                       1, 0, 'L', $fill);
-    $pdf->Cell($cols['Discap'],          $h, '',                       1, 0, 'C', $fill);
-    $pdf->Cell($cols['Tipo Contrato'],   $h, cert_str(mb_substr($contrato, 0, 28)), 1, 0, 'L', $fill);
-    $pdf->Cell($cols['DSPLD'],           $h, $dspld,                   1, 0, 'C', $fill);
-    $pdf->Cell($cols['Colectivo'],       $h, cert_str($colect),        1, 0, 'C', $fill);
-    $pdf->Cell($cols['Provincia'],       $h, cert_str(mb_substr($provincia, 0, 18)), 1, 0, 'L', $fill);
-    $pdf->Cell($cols['Estado'],          $h, cert_str($estado),        1, 0, 'C', $fill);
-    $pdf->Cell($cols['Col. Prior.'],     $h, 'SI',                     1, 0, 'C', $fill);
-    $pdf->Cell($cols['Certifica'],       $h, cert_str($certif),        1, 0, 'C', $fill);
-    $pdf->Cell($cols['Bloqueado'],       $h, '',                       1, 1, 'C', $fill);
+    $pdf->Cell($cols['Alumno'],        $h, cert_str(mb_substr($nombre_comp, 0, 34)),    1, 0, 'L', $fill);
+    $pdf->Cell($cols['NIF'],           $h, cert_str($alumno['dni'] ?? '—'),             1, 0, 'C', $fill);
+    $pdf->Cell($cols['Empresa'],       $h, cert_str(mb_substr($empresa, 0, 36)),        1, 0, 'L', $fill);
+    $pdf->Cell($cols['<10'],           $h, '',                                          1, 0, 'C', $fill);
+    $pdf->Cell($cols['Edad'],          $h, $edad,                                       1, 0, 'C', $fill);
+    $pdf->Cell($cols['Sexo'],          $h, $sexo,                                       1, 0, 'C', $fill);
+    $pdf->Cell($cols['Estudios'],      $h, '',                                          1, 0, 'L', $fill);
+    $pdf->Cell($cols['Discap'],        $h, '',                                          1, 0, 'C', $fill);
+    $pdf->Cell($cols['Tipo Contrato'], $h, cert_str(mb_substr($contrato, 0, 22)),       1, 0, 'L', $fill);
+    $pdf->Cell($cols['DSPLD'],         $h, $dspld,                                      1, 0, 'C', $fill);
+    $pdf->Cell($cols['Colectivo'],     $h, cert_str($colect),                           1, 0, 'C', $fill);
+    $pdf->Cell($cols['Provincia'],     $h, cert_str(mb_substr($provincia, 0, 16)),      1, 0, 'L', $fill);
+    $pdf->Cell($cols['Estado'],        $h, cert_str($estado),                           1, 0, 'C', $fill);
+    $pdf->Cell($cols['Col. Prior.'],   $h, 'SI',                                        1, 0, 'C', $fill);
+    $pdf->Cell($cols['Certifica'],     $h, cert_str($certif),                           1, 0, 'C', $fill);
+    $pdf->Cell($cols['Bloqueado'],     $h, '',                                          1, 1, 'C', $fill);
 
     $fill = !$fill;
 }
 
 // Fila de totales
-$pdf->SetFont('Arial', 'B', 7);
+$pdf->SetFont('Arial', 'B', 6.5);
 $pdf->SetFillColor(220, 230, 245);
 $pdf->SetTextColor(0, 60, 140);
 $total = count($alumnos);
-$pdf->Cell(array_sum(array_values($cols)) - $cols['Certifica'] - $cols['Bloqueado'], $rowH, cert_str("Total alumnos: $total"), 1, 0, 'R', true);
-$pdf->Cell($cols['Certifica'],  $rowH, cert_str(count(array_filter($alumnos, fn($a) => ($a['certificables'] ?? '') === 'SI'))), 1, 0, 'C', true);
-$pdf->Cell($cols['Bloqueado'],  $rowH, '', 1, 1, 'C', true);
+$totalCertSI = 0;
+foreach ($alumnos as $a) {
+    if (($a['certificables'] ?? '') === 'SI') $totalCertSI++;
+}
+$anchoLabel = array_sum(array_values($cols)) - $cols['Certifica'] - $cols['Bloqueado'];
+$pdf->Cell($anchoLabel,        $rowH, cert_str("Total alumnos: $total"), 1, 0, 'R', true);
+$pdf->Cell($cols['Certifica'], $rowH, $totalCertSI,                      1, 0, 'C', true);
+$pdf->Cell($cols['Bloqueado'], $rowH, '',                                1, 1, 'C', true);
 
 // Output
 $filename = 'Certificacion_Grupo_' . ($grupo['numero_grupo'] ?? $grupo_id) . '_' . date('Ymd') . '.pdf';
