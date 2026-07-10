@@ -16,6 +16,14 @@ $resultados = [];
 $error = '';
 
 try {
+    // Sincronizar automáticamente columnas duplicadas de fechas en la tabla grupos
+    try {
+        $pdo->exec("UPDATE grupos SET fecha_mitad = fecha_1_2_curso WHERE (fecha_mitad IS NULL OR fecha_mitad = '0000-00-00') AND fecha_1_2_curso IS NOT NULL AND fecha_1_2_curso != '0000-00-00'");
+        $pdo->exec("UPDATE grupos SET fecha_7_dias = fecha_7_dias_fin WHERE (fecha_7_dias IS NULL OR fecha_7_dias = '0000-00-00') AND fecha_7_dias_fin IS NOT NULL AND fecha_7_dias_fin != '0000-00-00'");
+        $pdo->exec("UPDATE grupos SET fecha_1_2_curso = fecha_mitad WHERE (fecha_1_2_curso IS NULL OR fecha_1_2_curso = '0000-00-00') AND fecha_mitad IS NOT NULL AND fecha_mitad != '0000-00-00'");
+        $pdo->exec("UPDATE grupos SET fecha_7_dias_fin = fecha_7_dias WHERE (fecha_7_dias_fin IS NULL OR fecha_7_dias_fin = '0000-00-00') AND fecha_7_dias IS NOT NULL AND fecha_7_dias != '0000-00-00'");
+    } catch (Exception $dbEx) {}
+
     $planes = $pdo->query("SELECT id, nombre, codigo FROM planes ORDER BY nombre ASC")->fetchAll(PDO::FETCH_ASSOC);
     $convocatorias = $pdo->query("SELECT id, nombre, codigo_expediente FROM convocatorias ORDER BY nombre ASC")->fetchAll(PDO::FETCH_ASSOC);
     
@@ -108,6 +116,7 @@ try {
 
     $sql = "SELECT g.*, 
                    af.num_accion,
+                   af.modalidad as af_modalidad,
                    conv.nombre as convocatoria_nombre,
                    p.nombre as plan_nombre,
                    cu.nombre_largo as curso_titulo,
@@ -836,6 +845,17 @@ $current_page = 'grupos.php';
                         </tr>
                     </thead>
                     <tbody>
+                        <?php 
+                        // Helper inline to format dates safely and avoid printing 0000-00-00
+                        if (!function_exists('format_group_date')) {
+                            function format_group_date($val) {
+                                if (!$val || $val === '0000-00-00' || $val === '0000-00-00 00:00:00' || $val === '—') {
+                                    return '—';
+                                }
+                                return date('d/m/Y', strtotime($val));
+                            }
+                        }
+                        ?>
                         <?php if (empty($resultados)): ?>
                             <tr>
                                 <td colspan="27" style="text-align: center; padding: 2rem; color: var(--text-muted);">No se encontraron grupos con los filtros aplicados.</td>
@@ -845,7 +865,7 @@ $current_page = 'grupos.php';
                                 <tr>
                                     <td><?= htmlspecialchars($row['convocatoria_nombre'] ?? '—') ?></td>
                                     <td><?= htmlspecialchars($row['plan_nombre'] ?? '—') ?></td>
-                                    <td><?= htmlspecialchars($row['modalidad'] ?? '—') ?></td>
+                                    <td><?= htmlspecialchars(($row['modalidad'] ?: $row['af_modalidad']) ?? '—') ?></td>
                                     <td><?= htmlspecialchars($row['num_accion'] ?? '—') ?></td>
                                     <td><?= htmlspecialchars($row['numero_grupo'] ?? '—') ?></td>
                                     <td><?= htmlspecialchars($row['codigo_plataforma'] ?? '—') ?></td>
@@ -854,10 +874,10 @@ $current_page = 'grupos.php';
                                     <td><?= htmlspecialchars($row['tutor1_nombre'] ?? '—') ?></td>
                                     <td><?= !empty($row['tutor_id']) ? 'SÍ' : '-' ?></td>
                                     <td>-</td>
-                                    <td><?= $row['fecha_inicio'] ? date('d/m/Y', strtotime($row['fecha_inicio'])) : '—' ?></td>
-                                    <td><?= $row['fecha_mitad'] ? date('d/m/Y', strtotime($row['fecha_mitad'])) : '—' ?></td>
-                                    <td><?= $row['fecha_7_dias'] ? date('d/m/Y', strtotime($row['fecha_7_dias'])) : '—' ?></td>
-                                    <td><?= $row['fecha_fin'] ? date('d/m/Y', strtotime($row['fecha_fin'])) : '—' ?></td>
+                                    <td><?= format_group_date($row['fecha_inicio']) ?></td>
+                                    <td><?= format_group_date($row['fecha_mitad'] ?: $row['fecha_1_2_curso']) ?></td>
+                                    <td><?= format_group_date($row['fecha_7_dias'] ?: $row['fecha_7_dias_fin']) ?></td>
+                                    <td><?= format_group_date($row['fecha_fin']) ?></td>
                                     <td>-</td>
                                     <td>
                                         <?php 

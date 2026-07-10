@@ -128,8 +128,8 @@ $data = [
     'centro_id' => !empty($_POST['centro_id']) ? (int)$_POST['centro_id'] : null,
     'tutor_id' => !empty($_POST['tutor_id']) ? (int)$_POST['tutor_id'] : null,
     'fecha_inicio' => !empty($_POST['fecha_inicio']) ? $_POST['fecha_inicio'] : null,
-    'fecha_mitad' => !empty($_POST['fecha_mitad']) ? $_POST['fecha_mitad'] : null,
-    'fecha_7_dias' => !empty($_POST['fecha_7_dias']) ? $_POST['fecha_7_dias'] : null,
+    'fecha_mitad' => !empty($_POST['fecha_mitad']) ? $_POST['fecha_mitad'] : (!empty($_POST['fecha_1_2_curso']) ? $_POST['fecha_1_2_curso'] : null),
+    'fecha_7_dias' => !empty($_POST['fecha_7_dias']) ? $_POST['fecha_7_dias'] : (!empty($_POST['fecha_7_dias_fin']) ? $_POST['fecha_7_dias_fin'] : null),
     'fecha_fin' => !empty($_POST['fecha_fin']) ? $_POST['fecha_fin'] : null,
     'modalidad' => $_POST['modalidad'] ?? '',
     'asignacion' => $_POST['asignacion'] ?? '',
@@ -164,8 +164,8 @@ $data = [
     'plazo_s20' => !empty($_POST['plazo_s20']) ? $_POST['plazo_s20'] : null,
     'modificacion_s20' => !empty($_POST['modificacion_s20']) ? $_POST['modificacion_s20'] : null,
     
-    'fecha_1_2_curso' => !empty($_POST['fecha_1_2_curso']) ? $_POST['fecha_1_2_curso'] : null,
-    'fecha_7_dias_fin' => !empty($_POST['fecha_7_dias_fin']) ? $_POST['fecha_7_dias_fin'] : null,
+    'fecha_1_2_curso' => !empty($_POST['fecha_1_2_curso']) ? $_POST['fecha_1_2_curso'] : (!empty($_POST['fecha_mitad']) ? $_POST['fecha_mitad'] : null),
+    'fecha_7_dias_fin' => !empty($_POST['fecha_7_dias_fin']) ? $_POST['fecha_7_dias_fin'] : (!empty($_POST['fecha_7_dias']) ? $_POST['fecha_7_dias'] : null),
     'fecha_3_dias_fin' => !empty($_POST['fecha_3_dias_fin']) ? $_POST['fecha_3_dias_fin'] : null,
     
     'total_sesiones' => !empty($_POST['total_sesiones']) ? (int)$_POST['total_sesiones'] : 0,
