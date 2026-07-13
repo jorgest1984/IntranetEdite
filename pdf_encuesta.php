@@ -55,8 +55,8 @@ class FundaeSurveyPDF extends FPDF {
                     elseif ($imgInfo[2] == IMAGETYPE_PNG) $type = 'PNG';
                     elseif ($imgInfo[2] == IMAGETYPE_GIF) $type = 'GIF';
                 }
-                // Try to put it full width, but since it's only one image, we center it or let it take width
-                $this->Image('img/cabecera_fundae.png', 10, 8, 190, 0, $type);
+                // Limit height to 18mm so it doesn't overlap the text
+                $this->Image('img/cabecera_fundae.png', 10, 5, 0, 18, $type);
             } catch (Exception $e) {}
         }
         $this->SetY(25);
@@ -74,8 +74,7 @@ class FundaeSurveyPDF extends FPDF {
         $this->Rect($x, $y, 5, 5); // 5x5 mm square
         $this->SetLineWidth(0.2); // reset
         if ($checked) {
-            $this->SetFont('Arial', 'B', 12);
-            $this->SetTextColor(0, 0, 0);
+            $this->SetDrawColor(0, 0, 0);
             // Draw cross
             $this->Line($x, $y, $x+5, $y+5);
             $this->Line($x+5, $y, $x, $y+5);
@@ -142,23 +141,23 @@ $pdf->SetLineWidth(0.2);
 $pdf->SetDrawColor(0,0,0);
 
 // Fila 1
-$pdf->Cell(25, 4.5, pdf_utf8_to_iso("1. Nº expediente"), 0, 0, 'L');
+$pdf->Cell(25, 4.5, pdf_utf8_to_iso("1. Nº expediente"), 'L,T,B', 0, 'L');
 $pdf->Cell(55, 4.5, pdf_utf8_to_iso($survey['codigo_expediente'] ?? ''), 1, 0, 'C');
-$pdf->Cell(15, 4.5, pdf_utf8_to_iso("2. Perfil"), 0, 0, 'C');
-$pdf->Cell(95, 4.5, "", 1, 1, 'C'); // Perfil vacio
+$pdf->Cell(15, 4.5, pdf_utf8_to_iso("2. Perfil"), 'T,B', 0, 'C');
+$pdf->Cell(95, 4.5, "", 'T,R,B', 1, 'C'); // Perfil vacio
 // Fila 2
-$pdf->Cell(25, 4.5, pdf_utf8_to_iso("3. CIF empresa"), 0, 0, 'L');
+$pdf->Cell(25, 4.5, pdf_utf8_to_iso("3. CIF empresa"), 'L,B', 0, 'L');
 $pdf->Cell(55, 4.5, "", 1, 0, 'C'); // CIF vacio
-$pdf->Cell(20, 4.5, pdf_utf8_to_iso("4. Nº Acción"), 0, 0, 'C');
+$pdf->Cell(20, 4.5, pdf_utf8_to_iso("4. Nº Acción"), 'B', 0, 'C');
 $pdf->Cell(45, 4.5, pdf_utf8_to_iso($survey['num_accion'] ?? ''), 1, 0, 'C');
-$pdf->Cell(20, 4.5, pdf_utf8_to_iso("5. Nº grupo"), 0, 0, 'C');
-$pdf->Cell(25, 4.5, pdf_utf8_to_iso($survey['numero_grupo'] ?? ''), 1, 1, 'C');
+$pdf->Cell(20, 4.5, pdf_utf8_to_iso("5. Nº grupo"), 'B', 0, 'C');
+$pdf->Cell(25, 4.5, pdf_utf8_to_iso($survey['numero_grupo'] ?? ''), 'T,R,B,L', 1, 'C');
 // Fila 3
-$pdf->Cell(35, 4.5, pdf_utf8_to_iso("6. Denominación acción"), 0, 0, 'L');
-$pdf->Cell(155, 4.5, pdf_utf8_to_iso($survey['curso_nombre']), 1, 1, 'L');
+$pdf->Cell(35, 4.5, pdf_utf8_to_iso("6. Denominación acción"), 'L,B', 0, 'L');
+$pdf->Cell(155, 4.5, pdf_utf8_to_iso($survey['curso_nombre']), 'T,R,B,L', 1, 'L');
 // Fila 4
-$pdf->Cell(35, 4.5, pdf_utf8_to_iso("7. Modalidad"), 0, 0, 'L');
-$pdf->Cell(155, 4.5, pdf_utf8_to_iso($survey['modalidad'] ?? 'Teleformación'), 1, 1, 'L');
+$pdf->Cell(35, 4.5, pdf_utf8_to_iso("7. Modalidad"), 'L,B', 0, 'L');
+$pdf->Cell(155, 4.5, pdf_utf8_to_iso($survey['modalidad'] ?? 'Teleformación'), 'T,R,B,L', 1, 'L');
 
 // SECCION II
 $pdf->SetY(102);
