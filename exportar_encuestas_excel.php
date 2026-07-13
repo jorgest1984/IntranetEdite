@@ -27,6 +27,7 @@ try {
                g.numero_grupo, co.codigo_expediente, a.moodle_user_id, a.id as alumno_id
         FROM encuestas_resultados er
         JOIN matriculas m ON er.matricula_id = m.id
+        JOIN alumnos a ON m.alumno_id = a.id
         JOIN grupos g ON m.grupo_id = g.id
         JOIN acciones_formativas af ON g.accion_id = af.id
         LEFT JOIN planes pl ON af.plan_id = pl.id
