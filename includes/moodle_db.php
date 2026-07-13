@@ -169,8 +169,8 @@ class MoodleDB {
                     $sectionName = mb_strtolower($row['section_name'] ?? '');
                     $combinedName = $name . ' ' . $sectionName;
                     
-                    // Removemos espacios y guiones para un match infalible (ej: "m1-m2" -> "m1m2", "modulo 1" -> "modulo1")
-                    $cleanName = str_replace([' ', '-', '_', '.'], '', $combinedName);
+                    // Removemos espacios, guiones, puntos, comas, barras, etc.
+                    $cleanName = str_replace([' ', '-', '_', '.', ',', '/'], '', $combinedName);
 
                     // Cualquier estado mayor a 0 significa que se ha completado (1=complete, 2=complete pass, 3=complete fail)
                     $completed = ((int)$row['completionstate'] > 0);
@@ -180,8 +180,8 @@ class MoodleDB {
                         if (strpos($cleanName, 'm1') !== false || strpos($cleanName, 'modulo1') !== false || strpos($cleanName, 'tema1') !== false) {
                             $stats[$uid]['m1_completed'] = 1;
                         }
-                        // Buscar M2 o Módulo 2 o Tema 2
-                        if (strpos($cleanName, 'm2') !== false || strpos($cleanName, 'modulo2') !== false || strpos($cleanName, 'tema2') !== false) {
+                        // Buscar M2 o Módulo 2 o Tema 2, y variaciones comunes de "M1 y M2" donde el M2 pierde la 'M'
+                        if (strpos($cleanName, 'm2') !== false || strpos($cleanName, 'modulo2') !== false || strpos($cleanName, 'tema2') !== false || strpos($cleanName, 'm12') !== false || strpos($cleanName, 'm1y2') !== false) {
                             $stats[$uid]['m2_completed'] = 1;
                         }
                         // Buscar M3 o Módulo 3 o Tema 3
@@ -220,7 +220,7 @@ class MoodleDB {
                     if (!isset($stats[$uid])) continue;
 
                     $name = mb_strtolower($row['name']);
-                    $cleanName = str_replace([' ', '-', '_', '.'], '', $name);
+                    $cleanName = str_replace([' ', '-', '_', '.', ',', '/'], '', $name);
                     
                     $val = strtolower($row['value']);
                     $completed = ($val === 'completed' || $val === 'passed');
@@ -229,7 +229,7 @@ class MoodleDB {
                         if (strpos($cleanName, 'm1') !== false || strpos($cleanName, 'modulo1') !== false || strpos($cleanName, 'tema1') !== false) {
                             $stats[$uid]['m1_completed'] = 1;
                         }
-                        if (strpos($cleanName, 'm2') !== false || strpos($cleanName, 'modulo2') !== false || strpos($cleanName, 'tema2') !== false) {
+                        if (strpos($cleanName, 'm2') !== false || strpos($cleanName, 'modulo2') !== false || strpos($cleanName, 'tema2') !== false || strpos($cleanName, 'm12') !== false || strpos($cleanName, 'm1y2') !== false) {
                             $stats[$uid]['m2_completed'] = 1;
                         }
                         if (strpos($cleanName, 'm3') !== false || strpos($cleanName, 'modulo3') !== false || strpos($cleanName, 'tema3') !== false) {
