@@ -55,8 +55,8 @@ class FundaeSurveyPDF extends FPDF {
                     elseif ($imgInfo[2] == IMAGETYPE_PNG) $type = 'PNG';
                     elseif ($imgInfo[2] == IMAGETYPE_GIF) $type = 'GIF';
                 }
-                // Limit height to 18mm so it doesn't overlap the text
-                $this->Image('img/cabecera_fundae.png', 10, 5, 0, 18, $type);
+                // Force it to span the top header as a banner (190x18mm)
+                $this->Image('img/cabecera_fundae.png', 10, 5, 190, 18, $type);
             } catch (Exception $e) {}
         }
         $this->SetY(25);
