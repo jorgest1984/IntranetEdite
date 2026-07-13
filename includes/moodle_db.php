@@ -173,11 +173,11 @@ class MoodleDB {
                             $stats[$uid]['m1_completed'] = 1;
                         }
                         // Buscar M2 o Módulo 2 o Tema 2
-                        elseif (strpos($name, 'm2') !== false || strpos($name, 'módulo 2') !== false || strpos($name, 'modulo 2') !== false || strpos($name, 'tema 2') !== false) {
+                        if (strpos($name, 'm2') !== false || strpos($name, 'módulo 2') !== false || strpos($name, 'modulo 2') !== false || strpos($name, 'tema 2') !== false) {
                             $stats[$uid]['m2_completed'] = 1;
                         }
                         // Buscar M3 o Módulo 3 o Tema 3
-                        elseif (strpos($name, 'm3') !== false || strpos($name, 'módulo 3') !== false || strpos($name, 'modulo 3') !== false || strpos($name, 'tema 3') !== false) {
+                        if (strpos($name, 'm3') !== false || strpos($name, 'módulo 3') !== false || strpos($name, 'modulo 3') !== false || strpos($name, 'tema 3') !== false) {
                             $stats[$uid]['m3_completed'] = 1;
                         }
                     }
