@@ -261,6 +261,12 @@ $current_fp_page = basename($_SERVER['PHP_SELF']);
             </a>
         </li>
         <li>
+            <a href="changelog.php" class="<?= $current_fp_page == 'changelog.php' ? 'active' : '' ?>">
+                <svg class="fp-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                Changelog ISO 27001
+            </a>
+        </li>
+        <li>
             <a href="papelera.php" class="<?= $current_fp_page == 'papelera.php' ? 'active' : '' ?>">
                 <svg class="fp-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                 Papelera de Reciclaje
