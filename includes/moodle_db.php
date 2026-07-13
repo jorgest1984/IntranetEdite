@@ -168,23 +168,24 @@ class MoodleDB {
                     $name = mb_strtolower($row['name']);
                     $sectionName = mb_strtolower($row['section_name'] ?? '');
                     $combinedName = $name . ' ' . $sectionName;
+                    
+                    // Removemos espacios y guiones para un match infalible (ej: "m1-m2" -> "m1m2", "modulo 1" -> "modulo1")
+                    $cleanName = str_replace([' ', '-', '_', '.'], '', $combinedName);
 
-                    $completed = ((int)$row['completionstate'] === 1 || (int)$row['completionstate'] === 2);
-
-                    // LOG DEBUG
-                    file_put_contents(__DIR__ . '/../sync_debug.log', date('Y-m-d H:i:s') . " - UID: $uid | completed: $completed | name: $name | secName: $sectionName | combined: $combinedName\n", FILE_APPEND);
+                    // Cualquier estado mayor a 0 significa que se ha completado (1=complete, 2=complete pass, 3=complete fail)
+                    $completed = ((int)$row['completionstate'] > 0);
 
                     if ($completed) {
                         // Buscar M1 o Módulo 1 o Tema 1
-                        if (strpos($combinedName, 'm1') !== false || strpos($combinedName, 'módulo 1') !== false || strpos($combinedName, 'modulo 1') !== false || strpos($combinedName, 'tema 1') !== false) {
+                        if (strpos($cleanName, 'm1') !== false || strpos($cleanName, 'modulo1') !== false || strpos($cleanName, 'tema1') !== false) {
                             $stats[$uid]['m1_completed'] = 1;
                         }
                         // Buscar M2 o Módulo 2 o Tema 2
-                        if (strpos($combinedName, 'm2') !== false || strpos($combinedName, 'módulo 2') !== false || strpos($combinedName, 'modulo 2') !== false || strpos($combinedName, 'tema 2') !== false) {
+                        if (strpos($cleanName, 'm2') !== false || strpos($cleanName, 'modulo2') !== false || strpos($cleanName, 'tema2') !== false) {
                             $stats[$uid]['m2_completed'] = 1;
                         }
                         // Buscar M3 o Módulo 3 o Tema 3
-                        if (strpos($combinedName, 'm3') !== false || strpos($combinedName, 'módulo 3') !== false || strpos($combinedName, 'modulo 3') !== false || strpos($combinedName, 'tema 3') !== false) {
+                        if (strpos($cleanName, 'm3') !== false || strpos($cleanName, 'modulo3') !== false || strpos($cleanName, 'tema3') !== false) {
                             $stats[$uid]['m3_completed'] = 1;
                         }
                     }
