@@ -35,6 +35,24 @@ if (!$survey) {
     die("Cuestionario no encontrado.");
 }
 
+
+// Función compatible con PHP 8.2+ para evitar deprecación de utf8_decode
+function pdf_utf8_to_iso($str) {
+    if ($str === null || $str === '') {
+        return '';
+    }
+    if (function_exists('mb_convert_encoding')) {
+        return mb_convert_encoding($str, 'ISO-8859-1', 'UTF-8');
+    }
+    if (function_exists('iconv')) {
+        $converted = @iconv('UTF-8', 'ISO-8859-1//TRANSLIT', $str);
+        if ($converted !== false) {
+            return $converted;
+        }
+    }
+    return @\utf8_decode($str);
+}
+
 class FundaeSurveyPDF extends FPDF {
     function Header() {
         // Logo o Encabezado Oficial
@@ -49,11 +67,11 @@ class FundaeSurveyPDF extends FPDF {
         
         $this->SetFont('Arial', 'B', 8.5);
         $this->SetTextColor(153, 27, 27); // Rojo oscuro
-        $this->Cell(0, 4, utf8_decode("CUESTIONARIO DE LA EVALUACIÓN PARA LA CALIDAD DE LAS ACCIONES"), 0, 1, 'C');
-        $this->Cell(0, 4, utf8_decode("FORMATIVAS EN EL MARCO DEL SISTEMA DE FORMACIÓN PARA EL EMPLEO"), 0, 1, 'C');
-        $this->Cell(0, 4, utf8_decode("FORMACIÓN DE OFERTA"), 0, 1, 'C');
+        $this->Cell(0, 4, pdf_utf8_to_iso("CUESTIONARIO DE LA EVALUACIÓN PARA LA CALIDAD DE LAS ACCIONES"), 0, 1, 'C');
+        $this->Cell(0, 4, pdf_utf8_to_iso("FORMATIVAS EN EL MARCO DEL SISTEMA DE FORMACIÓN PARA EL EMPLEO"), 0, 1, 'C');
+        $this->Cell(0, 4, pdf_utf8_to_iso("FORMACIÓN DE OFERTA"), 0, 1, 'C');
         $this->SetFont('Arial', 'B', 8);
-        $this->Cell(0, 4, utf8_decode("(Orden TAS/718/2008, de 7 de Marzo)"), 0, 1, 'C');
+        $this->Cell(0, 4, pdf_utf8_to_iso("(Orden TAS/718/2008, de 7 de Marzo)"), 0, 1, 'C');
         $this->Ln(3);
     }
 
@@ -61,7 +79,7 @@ class FundaeSurveyPDF extends FPDF {
         $this->SetY(-15);
         $this->SetFont('Arial', 'I', 7);
         $this->SetTextColor(100, 116, 139);
-        $this->Cell(0, 10, utf8_decode("Página ") . $this->PageNo() . " de {nb} - Documento oficial Fundae generado por Intranet Edite", 0, 0, 'C');
+        $this->Cell(0, 10, pdf_utf8_to_iso("Página ") . $this->PageNo() . " de {nb} - Documento oficial Fundae generado por Intranet Edite", 0, 0, 'C');
     }
 
     // Dibuja una casilla [ ] o [X]
@@ -83,26 +101,26 @@ $pdf->SetAutoPageBreak(true, 20);
 // Sección I: DATOS IDENTIFICATIVOS
 $pdf->SetFont('Arial', 'B', 8);
 $pdf->SetFillColor(241, 245, 249);
-$pdf->Cell(190, 5, utf8_decode("I. DATOS IDENTIFICATIVOS DE LA ACCIÓN FORMATIVA"), 1, 1, 'L', true);
+$pdf->Cell(190, 5, pdf_utf8_to_iso("I. DATOS IDENTIFICATIVOS DE LA ACCIÓN FORMATIVA"), 1, 1, 'L', true);
 
 $pdf->SetFont('Arial', '', 7.5);
 // Fila 1
-$pdf->Cell(63.3, 5, utf8_decode("1. Nº Expediente: ") . ($survey['codigo_expediente'] ?? '---'), 1, 0);
-$pdf->Cell(63.3, 5, utf8_decode("2. Nº Acción: ") . ($survey['num_accion'] ?? '---'), 1, 0);
-$pdf->Cell(63.3, 5, utf8_decode("3. Nº Grupo: ") . ($survey['numero_grupo'] ?? '---'), 1, 1);
+$pdf->Cell(63.3, 5, pdf_utf8_to_iso("1. Nº Expediente: ") . ($survey['codigo_expediente'] ?? '---'), 1, 0);
+$pdf->Cell(63.3, 5, pdf_utf8_to_iso("2. Nº Acción: ") . ($survey['num_accion'] ?? '---'), 1, 0);
+$pdf->Cell(63.3, 5, pdf_utf8_to_iso("3. Nº Grupo: ") . ($survey['numero_grupo'] ?? '---'), 1, 1);
 
 // Fila 2
-$pdf->Cell(190, 5, utf8_decode("4. Denominación acción: ") . ($survey['curso_nombre']), 1, 1);
+$pdf->Cell(190, 5, pdf_utf8_to_iso("4. Denominación acción: ") . ($survey['curso_nombre']), 1, 1);
 
 // Fila 3
-$pdf->Cell(95, 5, utf8_decode("5. Modalidad: ") . ($survey['modalidad'] ?? 'Teleformación'), 1, 0);
-$pdf->Cell(95, 5, utf8_decode("6. Fechas: ") . ($survey['fecha_inicio'] ? date('d/m/Y', strtotime($survey['fecha_inicio'])) : '---') . " al " . ($survey['fecha_fin'] ? date('d/m/Y', strtotime($survey['fecha_fin'])) : '---'), 1, 1);
+$pdf->Cell(95, 5, pdf_utf8_to_iso("5. Modalidad: ") . ($survey['modalidad'] ?? 'Teleformación'), 1, 0);
+$pdf->Cell(95, 5, pdf_utf8_to_iso("6. Fechas: ") . ($survey['fecha_inicio'] ? date('d/m/Y', strtotime($survey['fecha_inicio'])) : '---') . " al " . ($survey['fecha_fin'] ? date('d/m/Y', strtotime($survey['fecha_fin'])) : '---'), 1, 1);
 
 $pdf->Ln(4);
 
 // Sección II: DATOS DEL PARTICIPANTE
 $pdf->SetFont('Arial', 'B', 8);
-$pdf->Cell(190, 5, utf8_decode("II. DATOS A CUMPLIMENTAR POR EL PARTICIPANTE"), 1, 1, 'L', true);
+$pdf->Cell(190, 5, pdf_utf8_to_iso("II. DATOS A CUMPLIMENTAR POR EL PARTICIPANTE"), 1, 1, 'L', true);
 
 $pdf->SetFont('Arial', '', 7.5);
 
@@ -110,25 +128,25 @@ $pdf->SetFont('Arial', '', 7.5);
 $yStart = $pdf->GetY();
 $pdf->Rect(10, $yStart, 95, 12);
 $pdf->SetXY(11, $yStart + 2);
-$pdf->Cell(40, 4, utf8_decode("1. Edad: ") . ($survey['edad'] ?? '---') . " años");
+$pdf->Cell(40, 4, pdf_utf8_to_iso("1. Edad: ") . ($survey['edad'] ?? '---') . " años");
 
 $pdf->SetXY(60, $yStart + 2);
-$pdf->Cell(20, 4, utf8_decode("2. Sexo:"));
+$pdf->Cell(20, 4, pdf_utf8_to_iso("2. Sexo:"));
 $pdf->CheckBox(75, $yStart + 2.5, $survey['sexo'] == 'Mujer');
-$pdf->Text(80, $yStart + 5.5, utf8_decode("Mujer"));
+$pdf->Text(80, $yStart + 5.5, pdf_utf8_to_iso("Mujer"));
 $pdf->CheckBox(75, $yStart + 7, $survey['sexo'] == 'Varon');
-$pdf->Text(80, $yStart + 10, utf8_decode("Varón"));
+$pdf->Text(80, $yStart + 10, pdf_utf8_to_iso("Varón"));
 
 // Lugar de Residencia
 $pdf->SetXY(105, $yStart);
-$pdf->Cell(95, 12, utf8_decode("5. Residencia (Provincia): ") . ($survey['residencia_provincia'] ?? '---'), 1, 1);
+$pdf->Cell(95, 12, pdf_utf8_to_iso("5. Residencia (Provincia): ") . ($survey['residencia_provincia'] ?? '---'), 1, 1);
 
 $pdf->Ln(2);
 
 // Titulación Actual y Otra
 $yStart = $pdf->GetY();
 $pdf->SetFont('Arial', 'B', 7.5);
-$pdf->Text(12, $yStart + 3, utf8_decode("3. Titulación Actual (Marcar una opción)"));
+$pdf->Text(12, $yStart + 3, pdf_utf8_to_iso("3. Titulación Actual (Marcar una opción)"));
 $pdf->SetFont('Arial', '', 7);
 
 $titulaciones = [
@@ -155,7 +173,7 @@ foreach ($titulaciones as $code => $label) {
     $xPos = 12 + ($col * 95);
     $yPos = $yStart + 5 + ($row * 4.5);
     $pdf->CheckBox($xPos, $yPos, $survey['titulacion'] == $code);
-    $pdf->Text($xPos + 5, $yPos + 3, utf8_decode($label));
+    $pdf->Text($xPos + 5, $yPos + 3, pdf_utf8_to_iso($label));
     $i++;
 }
 
@@ -164,7 +182,7 @@ $pdf->SetY($yStart);
 $pdf->Cell(190, 42, "", 1, 1);
 
 // Otra titulación
-$pdf->Cell(190, 6, utf8_decode("3.1. Otra titulación: ") . 
+$pdf->Cell(190, 6, pdf_utf8_to_iso("3.1. Otra titulación: ") . 
     ($survey['otra_titulacion'] == '1' ? '[X] Carnet profesional' : '[ ] Carnet profesional') . "   " . 
     ($survey['otra_titulacion'] == '2' ? '[X] EOI' : '[ ] EOI') . "   " . 
     ($survey['otra_titulacion'] == '3' ? '[X] No formal (' . $survey['otra_titulacion_txt'] . ')' : '[ ] No formal'), 1, 1);
@@ -173,19 +191,19 @@ $pdf->Cell(190, 6, utf8_decode("3.1. Otra titulación: ") .
 $yStart = $pdf->GetY();
 $pdf->Rect(10, $yStart, 95, 18);
 $pdf->SetFont('Arial', 'B', 7.5);
-$pdf->Text(12, $yStart + 3.5, utf8_decode("4. Situación Laboral:"));
+$pdf->Text(12, $yStart + 3.5, pdf_utf8_to_iso("4. Situación Laboral:"));
 $pdf->SetFont('Arial', '', 7);
 $pdf->CheckBox(12, $yStart + 5.5, $survey['situacion_laboral'] == '1');
-$pdf->Text(17, $yStart + 8.5, utf8_decode("Desempleado/a"));
+$pdf->Text(17, $yStart + 8.5, pdf_utf8_to_iso("Desempleado/a"));
 $pdf->CheckBox(12, $yStart + 9.5, $survey['situacion_laboral'] == '2');
-$pdf->Text(17, $yStart + 12.5, utf8_decode("Autónomo / Cuenta propia"));
+$pdf->Text(17, $yStart + 12.5, pdf_utf8_to_iso("Autónomo / Cuenta propia"));
 $pdf->CheckBox(12, $yStart + 13.5, $survey['situacion_laboral'] == '3');
-$pdf->Text(17, $yStart + 16.5, utf8_decode("Trabajador cuenta ajena"));
+$pdf->Text(17, $yStart + 16.5, pdf_utf8_to_iso("Trabajador cuenta ajena"));
 
 $pdf->SetXY(105, $yStart);
 $pdf->Rect(105, $yStart, 95, 18);
 $pdf->SetFont('Arial', 'B', 7.5);
-$pdf->Text(107, $yStart + 3.5, utf8_decode("6. ¿Cómo conoció el curso?:"));
+$pdf->Text(107, $yStart + 3.5, pdf_utf8_to_iso("6. ¿Cómo conoció el curso?:"));
 $pdf->SetFont('Arial', '', 7);
 $comoConocioLabel = 'Ninguno';
 if ($survey['como_conocio'] == '1') $comoConocioLabel = 'Servicio Público de Empleo';
@@ -194,7 +212,7 @@ elseif ($survey['como_conocio'] == '3') $comoConocioLabel = 'A través de mi emp
 elseif ($survey['como_conocio'] == '4') $comoConocioLabel = 'Org. empresarial o sindical';
 elseif ($survey['como_conocio'] == '5') $comoConocioLabel = 'Medios de comunicación';
 elseif ($survey['como_conocio'] == '6') $comoConocioLabel = 'Otros (' . $survey['como_conocio_txt'] . ')';
-$pdf->Text(107, $yStart + 8.5, utf8_decode($comoConocioLabel));
+$pdf->Text(107, $yStart + 8.5, pdf_utf8_to_iso($comoConocioLabel));
 
 $pdf->SetY($yStart + 18);
 $pdf->Ln(2);
@@ -203,7 +221,7 @@ $pdf->Ln(2);
 if (in_array($survey['situacion_laboral'], ['2', '3'])) {
     $yStart = $pdf->GetY();
     $pdf->SetFont('Arial', 'B', 7.5);
-    $pdf->Cell(190, 5, utf8_decode("Datos de ocupados (Categoría, Horario y Tamaño empresa)"), 1, 1, 'L', true);
+    $pdf->Cell(190, 5, pdf_utf8_to_iso("Datos de ocupados (Categoría, Horario y Tamaño empresa)"), 1, 1, 'L', true);
     $pdf->SetFont('Arial', '', 7);
     
     $catLabel = '---';
@@ -226,21 +244,21 @@ if (in_array($survey['situacion_laboral'], ['2', '3'])) {
     elseif ($survey['tamano_empresa'] == '4') $tamanoLabel = '100-250 emp.';
     elseif ($survey['tamano_empresa'] == '5') $tamanoLabel = '>250 emp.';
 
-    $pdf->Cell(63.3, 5, utf8_decode("Centro de Trabajo: ") . ($survey['trabajo_provincia'] ?? '---'), 1, 0);
-    $pdf->Cell(63.3, 5, utf8_decode("Categoría: ") . $catLabel, 1, 0);
-    $pdf->Cell(63.3, 5, utf8_decode("Horario: ") . $horarioLabel, 1, 1);
+    $pdf->Cell(63.3, 5, pdf_utf8_to_iso("Centro de Trabajo: ") . ($survey['trabajo_provincia'] ?? '---'), 1, 0);
+    $pdf->Cell(63.3, 5, pdf_utf8_to_iso("Categoría: ") . $catLabel, 1, 0);
+    $pdf->Cell(63.3, 5, pdf_utf8_to_iso("Horario: ") . $horarioLabel, 1, 1);
     
-    $pdf->Cell(95, 5, utf8_decode("Jornada ocupada por curso: ") . ($survey['jornada_porcentaje'] ? $survey['jornada_porcentaje'] . ' (1=<25%, 2=25-50%, 3=>50%)' : '---'), 1, 0);
-    $pdf->Cell(95, 5, utf8_decode("Tamaño empresa: ") . $tamanoLabel, 1, 1);
+    $pdf->Cell(95, 5, pdf_utf8_to_iso("Jornada ocupada por curso: ") . ($survey['jornada_porcentaje'] ? $survey['jornada_porcentaje'] . ' (1=<25%, 2=25-50%, 3=>50%)' : '---'), 1, 0);
+    $pdf->Cell(95, 5, pdf_utf8_to_iso("Tamaño empresa: ") . $tamanoLabel, 1, 1);
     $pdf->Ln(2);
 }
 
 // Sección III: VALORACIÓN
 $pdf->SetFont('Arial', 'B', 8);
-$pdf->Cell(190, 5, utf8_decode("III. VALORACIÓN DE LAS ACCIONES FORMATIVAS (Puntuación 1 a 4)"), 1, 1, 'L', true);
+$pdf->Cell(190, 5, pdf_utf8_to_iso("III. VALORACIÓN DE LAS ACCIONES FORMATIVAS (Puntuación 1 a 4)"), 1, 1, 'L', true);
 
 $pdf->SetFont('Arial', 'B', 7);
-$pdf->Cell(150, 5, utf8_decode("Aspecto a valorar"), 1, 0, 'L');
+$pdf->Cell(150, 5, pdf_utf8_to_iso("Aspecto a valorar"), 1, 0, 'L');
 $pdf->Cell(10, 5, "1", 1, 0, 'C');
 $pdf->Cell(10, 5, "2", 1, 0, 'C');
 $pdf->Cell(10, 5, "3", 1, 0, 'C');
@@ -249,7 +267,7 @@ $pdf->Cell(10, 5, "4", 1, 1, 'C');
 $pdf->SetFont('Arial', '', 7);
 
 function drawRatingRow($pdf, $text, $val) {
-    $pdf->Cell(150, 4.5, utf8_decode($text), 1, 0, 'L');
+    $pdf->Cell(150, 4.5, pdf_utf8_to_iso($text), 1, 0, 'L');
     $pdf->Cell(10, 4.5, $val == 1 ? 'X' : '', 1, 0, 'C');
     $pdf->Cell(10, 4.5, $val == 2 ? 'X' : '', 1, 0, 'C');
     $pdf->Cell(10, 4.5, $val == 3 ? 'X' : '', 1, 0, 'C');
@@ -258,28 +276,28 @@ function drawRatingRow($pdf, $text, $val) {
 
 // 1. Organizacion
 $pdf->SetFont('Arial', 'B', 7);
-$pdf->Cell(190, 4, utf8_decode("1. Organización del curso"), 1, 1, 'L', true);
+$pdf->Cell(190, 4, pdf_utf8_to_iso("1. Organización del curso"), 1, 1, 'L', true);
 $pdf->SetFont('Arial', '', 7);
 drawRatingRow($pdf, "  1.1 Organización general, información, fechas y entrega de material", $survey['p1_1']);
 drawRatingRow($pdf, "  1.2 Número de alumnos adecuado para el desarrollo", $survey['p1_2']);
 
 // 2. Contenidos
 $pdf->SetFont('Arial', 'B', 7);
-$pdf->Cell(190, 4, utf8_decode("2. Contenidos del curso"), 1, 1, 'L', true);
+$pdf->Cell(190, 4, pdf_utf8_to_iso("2. Contenidos del curso"), 1, 1, 'L', true);
 $pdf->SetFont('Arial', '', 7);
 drawRatingRow($pdf, "  2.1 Contenidos adaptados a las necesidades formativas", $survey['p2_1']);
 drawRatingRow($pdf, "  2.2 Adecuada combinación de teoría y práctica", $survey['p2_2']);
 
 // 3. Duración
 $pdf->SetFont('Arial', 'B', 7);
-$pdf->Cell(190, 4, utf8_decode("3. Duración y horario"), 1, 1, 'L', true);
+$pdf->Cell(190, 4, pdf_utf8_to_iso("3. Duración y horario"), 1, 1, 'L', true);
 $pdf->SetFont('Arial', '', 7);
 drawRatingRow($pdf, "  3.1 Duración suficiente según objetivos y contenidos", $survey['p3_1']);
 drawRatingRow($pdf, "  3.2 Horario adecuado para la asistencia", $survey['p3_2']);
 
 // 4. Formadores/Tutores
 $pdf->SetFont('Arial', 'B', 7);
-$pdf->Cell(190, 4, utf8_decode("4. Formadores y Tutores"), 1, 1, 'L', true);
+$pdf->Cell(190, 4, pdf_utf8_to_iso("4. Formadores y Tutores"), 1, 1, 'L', true);
 $pdf->SetFont('Arial', '', 7);
 drawRatingRow($pdf, "  4.1.F Formador: Facilidad para transmitir y explicar", $survey['p4_1_f']);
 drawRatingRow($pdf, "  4.2.F Formador: Dominio y profundidad de los temas", $survey['p4_2_f']);
@@ -288,14 +306,14 @@ drawRatingRow($pdf, "  4.2.T Tutor: Dominio y profundidad en las tutorías", $su
 
 // 5. Medios didácticos
 $pdf->SetFont('Arial', 'B', 7);
-$pdf->Cell(190, 4, utf8_decode("5. Medios didácticos"), 1, 1, 'L', true);
+$pdf->Cell(190, 4, pdf_utf8_to_iso("5. Medios didácticos"), 1, 1, 'L', true);
 $pdf->SetFont('Arial', '', 7);
 drawRatingRow($pdf, "  5.1 Documentación y manuales comprensibles y de calidad", $survey['p5_1']);
 drawRatingRow($pdf, "  5.2 Medios didácticos actualizados", $survey['p5_2']);
 
 // 6. Instalaciones
 $pdf->SetFont('Arial', 'B', 7);
-$pdf->Cell(190, 4, utf8_decode("6. Instalaciones y plataformas online"), 1, 1, 'L', true);
+$pdf->Cell(190, 4, pdf_utf8_to_iso("6. Instalaciones y plataformas online"), 1, 1, 'L', true);
 $pdf->SetFont('Arial', '', 7);
 drawRatingRow($pdf, "  6.1 Aula / Entorno online adecuados", $survey['p6_1']);
 drawRatingRow($pdf, "  6.2 Equipamiento y herramientas apropiadas", $survey['p6_2']);
@@ -303,7 +321,7 @@ drawRatingRow($pdf, "  6.2 Equipamiento y herramientas apropiadas", $survey['p6_
 // 7. Teleformacion
 if ($survey['modalidad'] == 'Teleformacion' || $survey['modalidad'] == 'Mixta') {
     $pdf->SetFont('Arial', 'B', 7);
-    $pdf->Cell(190, 4, utf8_decode("7. Cursos de Teleformación o Mixtos"), 1, 1, 'L', true);
+    $pdf->Cell(190, 4, pdf_utf8_to_iso("7. Cursos de Teleformación o Mixtos"), 1, 1, 'L', true);
     $pdf->SetFont('Arial', '', 7);
     drawRatingRow($pdf, "  7.1 Guías de aprendizaje claras y fáciles de seguir", $survey['p7_1']);
     drawRatingRow($pdf, "  7.2 Medios de apoyo suficientes (foros, chats, biblioteca...)", $survey['p7_2']);
@@ -311,16 +329,16 @@ if ($survey['modalidad'] == 'Teleformacion' || $survey['modalidad'] == 'Mixta') 
 
 // 8. Evaluacion
 $pdf->SetFont('Arial', 'B', 7);
-$pdf->Cell(190, 4, utf8_decode("8. Mecanismos para la evaluación del aprendizaje"), 1, 1, 'L', true);
+$pdf->Cell(190, 4, pdf_utf8_to_iso("8. Mecanismos para la evaluación del aprendizaje"), 1, 1, 'L', true);
 $pdf->SetFont('Arial', '', 7);
-$pdf->Cell(170, 4.5, utf8_decode("  8.1 Se han dispuesto pruebas de evaluación adecuadas"), 1, 0, 'L');
+$pdf->Cell(170, 4.5, pdf_utf8_to_iso("  8.1 Se han dispuesto pruebas de evaluación adecuadas"), 1, 0, 'L');
 $pdf->Cell(20, 4.5, $survey['p8_1'] == 'Si' ? 'SI' : 'NO', 1, 1, 'C');
-$pdf->Cell(170, 4.5, utf8_decode("  8.2 Permite obtener acreditación con validez laboral"), 1, 0, 'L');
+$pdf->Cell(170, 4.5, pdf_utf8_to_iso("  8.2 Permite obtener acreditación con validez laboral"), 1, 0, 'L');
 $pdf->Cell(20, 4.5, $survey['p8_2'] == 'Si' ? 'SI' : 'NO', 1, 1, 'C');
 
 // 9. Valoración General
 $pdf->SetFont('Arial', 'B', 7);
-$pdf->Cell(190, 4, utf8_decode("9. Valoración general del curso"), 1, 1, 'L', true);
+$pdf->Cell(190, 4, pdf_utf8_to_iso("9. Valoración general del curso"), 1, 1, 'L', true);
 $pdf->SetFont('Arial', '', 7);
 drawRatingRow($pdf, "  9.1 Contribución a la inserción laboral", $survey['p9_1']);
 drawRatingRow($pdf, "  9.2 Habilidades aplicables en el puesto de trabajo", $survey['p9_2']);
@@ -330,7 +348,7 @@ drawRatingRow($pdf, "  9.5 Utilidad para el desarrollo personal", $survey['p9_5'
 
 // 10. Satisfacción Global
 $pdf->SetFont('Arial', 'B', 7);
-$pdf->Cell(190, 4, utf8_decode("10. Grado de satisfacción general con el curso"), 1, 1, 'L', true);
+$pdf->Cell(190, 4, pdf_utf8_to_iso("10. Grado de satisfacción general con el curso"), 1, 1, 'L', true);
 $pdf->SetFont('Arial', '', 7);
 drawRatingRow($pdf, "  Valoración global del curso", $survey['p10_1']);
 
@@ -338,18 +356,18 @@ $pdf->Ln(2);
 
 // Comentarios
 $pdf->SetFont('Arial', 'B', 7.5);
-$pdf->Cell(190, 4.5, utf8_decode("11. Observaciones, propuestas de mejora y sugerencias:"), 0, 1);
+$pdf->Cell(190, 4.5, pdf_utf8_to_iso("11. Observaciones, propuestas de mejora y sugerencias:"), 0, 1);
 $pdf->SetFont('Arial', '', 7);
-$pdf->MultiCell(190, 4, utf8_decode($survey['comentarios'] ? $survey['comentarios'] : 'Ninguna.'), 1, 'L');
+$pdf->MultiCell(190, 4, pdf_utf8_to_iso($survey['comentarios'] ? $survey['comentarios'] : 'Ninguna.'), 1, 'L');
 
 // Prácticas No Laborales
 if ($survey['p12_1'] !== null) {
     $pdf->AddPage();
     $pdf->SetFont('Arial', 'B', 8);
-    $pdf->Cell(190, 5, utf8_decode("SOLO PARA PERSONAS QUE HAN REALIZADO PRÁCTICAS NO LABORALES EN EMPRESAS"), 1, 1, 'L', true);
+    $pdf->Cell(190, 5, pdf_utf8_to_iso("SOLO PARA PERSONAS QUE HAN REALIZADO PRÁCTICAS NO LABORALES EN EMPRESAS"), 1, 1, 'L', true);
     
     $pdf->SetFont('Arial', 'B', 7);
-    $pdf->Cell(150, 5, utf8_decode("Aspecto de las prácticas"), 1, 0, 'L');
+    $pdf->Cell(150, 5, pdf_utf8_to_iso("Aspecto de las prácticas"), 1, 0, 'L');
     $pdf->Cell(10, 5, "1", 1, 0, 'C');
     $pdf->Cell(10, 5, "2", 1, 0, 'C');
     $pdf->Cell(10, 5, "3", 1, 0, 'C');
@@ -358,7 +376,7 @@ if ($survey['p12_1'] !== null) {
     $pdf->SetFont('Arial', '', 7);
     drawRatingRow($pdf, "12.1 Prácticas relacionadas con los contenidos teóricos", $survey['p12_1']);
     
-    $pdf->Cell(170, 4.5, utf8_decode("12.2 ¿Han sido suficientes las horas dedicadas a las prácticas?"), 1, 0, 'L');
+    $pdf->Cell(170, 4.5, pdf_utf8_to_iso("12.2 ¿Han sido suficientes las horas dedicadas a las prácticas?"), 1, 0, 'L');
     $pdf->Cell(20, 4.5, $survey['p12_2'] == 'Si' ? 'SI' : 'NO', 1, 1, 'C');
     
     drawRatingRow($pdf, "12.3 Prácticas útiles para adquirir destrezas profesionales", $survey['p12_3']);
@@ -366,13 +384,13 @@ if ($survey['p12_1'] !== null) {
     
     $pdf->Ln(2);
     $pdf->SetFont('Arial', 'B', 7.5);
-    $pdf->Cell(190, 4.5, utf8_decode("12.5 Descripción breve del contenido de las prácticas:"), 0, 1);
+    $pdf->Cell(190, 4.5, pdf_utf8_to_iso("12.5 Descripción breve del contenido de las prácticas:"), 0, 1);
     $pdf->SetFont('Arial', '', 7);
-    $pdf->MultiCell(190, 4, utf8_decode($survey['p12_5'] ? $survey['p12_5'] : 'Sin comentarios.'), 1, 'L');
+    $pdf->MultiCell(190, 4, pdf_utf8_to_iso($survey['p12_5'] ? $survey['p12_5'] : 'Sin comentarios.'), 1, 'L');
 }
 
 $pdf->Ln(10);
 $pdf->SetFont('Arial', '', 8);
-$pdf->Cell(0, 5, utf8_decode("Fecha de cumplimentación: ") . date('d/m/Y H:i', strtotime($survey['fecha_realizacion'])), 0, 1, 'R');
+$pdf->Cell(0, 5, pdf_utf8_to_iso("Fecha de cumplimentación: ") . date('d/m/Y H:i', strtotime($survey['fecha_realizacion'] ?? 'now')), 0, 1, 'R');
 
 $pdf->Output('I', 'Cuestionario_Fundae_' . $survey['id'] . '.pdf');
