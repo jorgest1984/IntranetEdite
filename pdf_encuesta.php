@@ -60,8 +60,21 @@ class FundaeSurveyPDF extends FPDF {
     function Header() {
         // Logo o Encabezado Oficial
         if (file_exists('img/cabecera_fundae.png')) {
-            $this->Image('img/cabecera_fundae.png', 10, 8, 190);
-            $this->SetY(24);
+            try {
+                $imgInfo = @getimagesize('img/cabecera_fundae.png');
+                $type = '';
+                if ($imgInfo) {
+                    if ($imgInfo[2] == IMAGETYPE_JPEG) $type = 'JPEG';
+                    elseif ($imgInfo[2] == IMAGETYPE_PNG) $type = 'PNG';
+                    elseif ($imgInfo[2] == IMAGETYPE_GIF) $type = 'GIF';
+                }
+                $this->Image('img/cabecera_fundae.png', 10, 8, 190, 0, $type);
+                $this->SetY(24);
+            } catch (Exception $e) {
+                $this->SetFillColor(185, 28, 28); // Rojo Fundae
+                $this->Rect(10, 10, 190, 3, 'F');
+                $this->SetY(15);
+            }
         } else {
             $this->SetFillColor(185, 28, 28); // Rojo Fundae
             $this->Rect(10, 10, 190, 3, 'F');
