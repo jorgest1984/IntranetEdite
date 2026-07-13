@@ -217,9 +217,20 @@ if (empty($alumnos)) {
         $pdf->Cell($w_alumno, 6, utf8_decode($nombreCompleto), 1, 0, 'L');
         $pdf->Cell($w_horas, 6, utf8_decode($tiempo), 1, 0, 'R');
         $pdf->Cell($w_porc_curso, 6, utf8_decode($porc_curso), 1, 0, 'R');
+        // M1
+        if ($m1 === 'X') { $pdf->SetTextColor(22, 163, 74); $pdf->SetFont('Arial', 'B', 8); }
         $pdf->Cell($w_m, 6, utf8_decode($m1), 1, 0, 'C');
+        $pdf->SetTextColor(0, 0, 0); $pdf->SetFont('Arial', '', 8);
+        
+        // M2
+        if ($m2 === 'X') { $pdf->SetTextColor(22, 163, 74); $pdf->SetFont('Arial', 'B', 8); }
         $pdf->Cell($w_m, 6, utf8_decode($m2), 1, 0, 'C');
+        $pdf->SetTextColor(0, 0, 0); $pdf->SetFont('Arial', '', 8);
+        
+        // M3
+        if ($m3 === 'X') { $pdf->SetTextColor(22, 163, 74); $pdf->SetFont('Arial', 'B', 8); }
         $pdf->Cell($w_m, 6, utf8_decode($m3), 1, 0, 'C');
+        $pdf->SetTextColor(0, 0, 0); $pdf->SetFont('Arial', '', 8);
         $pdf->Cell($w_e, 6, utf8_decode($e1), 1, 0, 'C');
         $pdf->Cell($w_e, 6, utf8_decode($e2), 1, 0, 'C');
         $pdf->Cell($w_e, 6, utf8_decode($e3), 1, 0, 'C');
