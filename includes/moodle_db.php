@@ -159,6 +159,8 @@ class MoodleDB {
                 $stmtMod = $this->mpdo->prepare($sqlModules);
                 $stmtMod->execute($params);
                 $moduleRows = $stmtMod->fetchAll();
+                
+                file_put_contents(__DIR__ . '/../uploads/sync_debug.txt', date('Y-m-d H:i:s') . " - MODULES RETURNED: " . count($moduleRows) . "\n", FILE_APPEND);
 
                 // Analizar nombres de módulos para asociar M1, M2, M3
                 foreach ($moduleRows as $row) {
@@ -174,6 +176,9 @@ class MoodleDB {
 
                     // Cualquier estado mayor a 0 significa que se ha completado (1=complete, 2=complete pass, 3=complete fail)
                     $completed = ((int)$row['completionstate'] > 0);
+
+                    // LOG DEBUG
+                    file_put_contents(__DIR__ . '/../uploads/sync_debug.txt', date('Y-m-d H:i:s') . " - UID: $uid | completed: $completed | name: $name | secName: $sectionName | combined: $combinedName\n", FILE_APPEND);
 
                     if ($completed) {
                         // Buscar M1 o Módulo 1 o Tema 1
@@ -196,11 +201,47 @@ class MoodleDB {
                     $uid = $row['userid'];
                     if (!isset($stats[$uid])) continue;
                     
-                    $completed = ((int)$row['completionstate'] === 1 || (int)$row['completionstate'] === 2);
+                    $completed = ((int)$row['completionstate'] > 0);
                     if ($completed) {
                         if ((int)$row['section_number'] === 1) $stats[$uid]['m1_completed'] = 1;
                         if ((int)$row['section_number'] === 2) $stats[$uid]['m2_completed'] = 1;
                         if ((int)$row['section_number'] === 3) $stats[$uid]['m3_completed'] = 1;
+                    }
+                }
+
+                // 3.B Fallback a SCORM status puro si no usan activity completion general
+                $sqlScorm = "SELECT s.id as scormid, s.name, st.userid, st.value
+                             FROM " . MOODLE_DB_PREFIX . "scorm s
+                             JOIN " . MOODLE_DB_PREFIX . "scorm_scoes_track st ON st.scormid = s.id
+                             WHERE s.course = ? AND st.userid IN ($placeholders) 
+                               AND st.element IN ('cmi.core.lesson_status', 'cmi.completion_status')";
+                
+                $stmtScorm = $this->mpdo->prepare($sqlScorm);
+                $stmtScorm->execute($params);
+                $scormRows = $stmtScorm->fetchAll();
+                
+                file_put_contents(__DIR__ . '/../uploads/sync_debug.txt', date('Y-m-d H:i:s') . " - SCORM RETURNED: " . count($scormRows) . "\n", FILE_APPEND);
+
+                foreach ($scormRows as $row) {
+                    $uid = $row['userid'];
+                    if (!isset($stats[$uid])) continue;
+
+                    $name = mb_strtolower($row['name']);
+                    $cleanName = str_replace([' ', '-', '_', '.'], '', $name);
+                    
+                    $val = strtolower($row['value']);
+                    $completed = ($val === 'completed' || $val === 'passed');
+
+                    if ($completed) {
+                        if (strpos($cleanName, 'm1') !== false || strpos($cleanName, 'modulo1') !== false || strpos($cleanName, 'tema1') !== false) {
+                            $stats[$uid]['m1_completed'] = 1;
+                        }
+                        if (strpos($cleanName, 'm2') !== false || strpos($cleanName, 'modulo2') !== false || strpos($cleanName, 'tema2') !== false) {
+                            $stats[$uid]['m2_completed'] = 1;
+                        }
+                        if (strpos($cleanName, 'm3') !== false || strpos($cleanName, 'modulo3') !== false || strpos($cleanName, 'tema3') !== false) {
+                            $stats[$uid]['m3_completed'] = 1;
+                        }
                     }
                 }
 
