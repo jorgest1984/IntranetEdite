@@ -140,10 +140,11 @@ class MoodleDB {
 
                 // 3. Visualización de contenidos M1, M2, M3
                 // Consultamos todos los módulos habilitados con completitud y sus nombres en Moodle
-                $sqlModules = "SELECT cm.id as coursemoduleid, cm.section, 
+                $sqlModules = "SELECT cm.id as coursemoduleid, cs.section as section_number, cs.name as section_name, 
                                      COALESCE(a.name, p.name, r.name, q.name, f.name, b.name, s.name, 'Actividad') as name,
                                      cmc.userid, cmc.completionstate
                               FROM " . MOODLE_DB_PREFIX . "course_modules cm
+                              JOIN " . MOODLE_DB_PREFIX . "course_sections cs ON cm.section = cs.id
                               JOIN " . MOODLE_DB_PREFIX . "modules m ON cm.module = m.id
                               LEFT JOIN " . MOODLE_DB_PREFIX . "assign a ON m.name = 'assign' AND cm.instance = a.id
                               LEFT JOIN " . MOODLE_DB_PREFIX . "page p ON m.name = 'page' AND cm.instance = p.id
@@ -165,19 +166,25 @@ class MoodleDB {
                     if (!isset($stats[$uid])) continue;
 
                     $name = mb_strtolower($row['name']);
+                    $sectionName = mb_strtolower($row['section_name'] ?? '');
+                    $combinedName = $name . ' ' . $sectionName;
+
                     $completed = ((int)$row['completionstate'] === 1 || (int)$row['completionstate'] === 2);
+
+                    // LOG DEBUG
+                    file_put_contents(__DIR__ . '/../sync_debug.log', date('Y-m-d H:i:s') . " - UID: $uid | completed: $completed | name: $name | secName: $sectionName | combined: $combinedName\n", FILE_APPEND);
 
                     if ($completed) {
                         // Buscar M1 o Módulo 1 o Tema 1
-                        if (strpos($name, 'm1') !== false || strpos($name, 'módulo 1') !== false || strpos($name, 'modulo 1') !== false || strpos($name, 'tema 1') !== false) {
+                        if (strpos($combinedName, 'm1') !== false || strpos($combinedName, 'módulo 1') !== false || strpos($combinedName, 'modulo 1') !== false || strpos($combinedName, 'tema 1') !== false) {
                             $stats[$uid]['m1_completed'] = 1;
                         }
                         // Buscar M2 o Módulo 2 o Tema 2
-                        if (strpos($name, 'm2') !== false || strpos($name, 'módulo 2') !== false || strpos($name, 'modulo 2') !== false || strpos($name, 'tema 2') !== false) {
+                        if (strpos($combinedName, 'm2') !== false || strpos($combinedName, 'módulo 2') !== false || strpos($combinedName, 'modulo 2') !== false || strpos($combinedName, 'tema 2') !== false) {
                             $stats[$uid]['m2_completed'] = 1;
                         }
                         // Buscar M3 o Módulo 3 o Tema 3
-                        if (strpos($name, 'm3') !== false || strpos($name, 'módulo 3') !== false || strpos($name, 'modulo 3') !== false || strpos($name, 'tema 3') !== false) {
+                        if (strpos($combinedName, 'm3') !== false || strpos($combinedName, 'módulo 3') !== false || strpos($combinedName, 'modulo 3') !== false || strpos($combinedName, 'tema 3') !== false) {
                             $stats[$uid]['m3_completed'] = 1;
                         }
                     }
@@ -190,9 +197,9 @@ class MoodleDB {
                     
                     $completed = ((int)$row['completionstate'] === 1 || (int)$row['completionstate'] === 2);
                     if ($completed) {
-                        if ((int)$row['section'] === 1) $stats[$uid]['m1_completed'] = 1;
-                        if ((int)$row['section'] === 2) $stats[$uid]['m2_completed'] = 1;
-                        if ((int)$row['section'] === 3) $stats[$uid]['m3_completed'] = 1;
+                        if ((int)$row['section_number'] === 1) $stats[$uid]['m1_completed'] = 1;
+                        if ((int)$row['section_number'] === 2) $stats[$uid]['m2_completed'] = 1;
+                        if ((int)$row['section_number'] === 3) $stats[$uid]['m3_completed'] = 1;
                     }
                 }
 
