@@ -2423,20 +2423,31 @@ try {
                     </div>
                 </div>
 
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 10px;">
                     <div style="font-size: 0.9rem; color: #64748b; font-weight: 600;">
                         Total Completadas: <strong style="color: #10b981;"><?= count($encuestas_completadas) ?></strong> / <strong><?= count($alumnos_seguimiento) ?></strong>
                     </div>
                     
-                    <a href="exportar_encuestas_excel.php?id=<?= $id ?>" class="btn-sync-moodle" style="background-color: #16a34a; border-color: #15803d; text-decoration: none; color: white; display: inline-flex; align-items: center; height: 38px; padding: 0 15px; font-size: 0.85rem;" <?= empty($encuestas_completadas) ? 'onclick="event.preventDefault(); alert(\'No hay encuestas completadas para exportar.\');"' : '' ?>>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="margin-right: 8px;">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                            <polyline points="7 10 12 15 17 10"></polyline>
-                            <line x1="12" y1="15" x2="12" y2="3"></line>
-                        </svg>
-                        Exportar Encuestas (Excel/XML)
-                    </a>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <a href="exportar_encuestas_excel.php?id=<?= $id ?>" class="btn-sync-moodle" style="background-color: #16a34a; border-color: #15803d; text-decoration: none; color: white; display: inline-flex; align-items: center; height: 38px; padding: 0 15px; font-size: 0.85rem;" <?= empty($encuestas_completadas) ? 'onclick="event.preventDefault(); alert(\'No hay encuestas completadas para exportar.\');"' : '' ?>>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="margin-right: 8px;">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            Exportar CSV (Excel)
+                        </a>
+
+                        <a href="exportar_encuestas_xml.php?accion_id=<?= $id ?>" class="btn-sync-moodle" style="background-color: #1d4ed8; border-color: #1e40af; text-decoration: none; color: white; display: inline-flex; align-items: center; height: 38px; padding: 0 15px; font-size: 0.85rem;" <?= empty($encuestas_completadas) ? 'onclick="event.preventDefault(); alert(\'No hay encuestas completadas para exportar.\');"' : '' ?>>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right: 8px;">
+                                <polyline points="16 18 22 12 16 6"></polyline>
+                                <polyline points="8 6 2 12 8 18"></polyline>
+                            </svg>
+                            Exportar XML FUNDAE
+                        </a>
+                    </div>
                 </div>
+
 
                 <div class="table-responsive" style="margin-top: 15px;">
                     <table class="moodle-tracking-table" style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
