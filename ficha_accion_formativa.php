@@ -85,10 +85,10 @@ if ($id) {
         } else {
 
         // Fetch groups
-        $stmtGrupos = $pdo->prepare("SELECT g.*, e.nombre as centro_nombre, CONCAT(a.nombre, ' ', a.primer_apellido, ' ', COALESCE(a.segundo_apellido, '')) as tutor_nombre 
+        $stmtGrupos = $pdo->prepare("SELECT g.*, e.nombre as centro_nombre, CONCAT(u.nombre, ' ', u.apellidos) as tutor_nombre 
                                     FROM grupos g 
                                     LEFT JOIN empresas e ON g.centro_id = e.id 
-                                    LEFT JOIN alumnos a ON g.tutor_id = a.id 
+                                    LEFT JOIN usuarios u ON g.tutor_id = u.id 
                                     WHERE g.accion_id = ? 
                                     ORDER BY g.creado_en DESC");
         $stmtGrupos->execute([$id]);
