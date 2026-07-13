@@ -114,7 +114,14 @@ $pdf->Cell(190, 5, pdf_utf8_to_iso("4. Denominación acción: ") . ($survey['cur
 
 // Fila 3
 $pdf->Cell(95, 5, pdf_utf8_to_iso("5. Modalidad: ") . ($survey['modalidad'] ?? 'Teleformación'), 1, 0);
-$pdf->Cell(95, 5, pdf_utf8_to_iso("6. Fechas: ") . ($survey['fecha_inicio'] ? date('d/m/Y', strtotime($survey['fecha_inicio'])) : '---') . " al " . ($survey['fecha_fin'] ? date('d/m/Y', strtotime($survey['fecha_fin'])) : '---'), 1, 1);
+// Helper function to safely format dates and avoid TypeError in PHP 8
+function safe_date($format, $dateStr) {
+    if (empty($dateStr) || $dateStr === '0000-00-00' || $dateStr === '0000-00-00 00:00:00') return '---';
+    $ts = strtotime($dateStr);
+    return $ts ? date($format, $ts) : '---';
+}
+
+$pdf->Cell(95, 5, pdf_utf8_to_iso("6. Fechas: ") . safe_date('d/m/Y', $survey['fecha_inicio']) . " al " . safe_date('d/m/Y', $survey['fecha_fin']), 1, 1);
 
 $pdf->Ln(4);
 
@@ -391,6 +398,6 @@ if ($survey['p12_1'] !== null) {
 
 $pdf->Ln(10);
 $pdf->SetFont('Arial', '', 8);
-$pdf->Cell(0, 5, pdf_utf8_to_iso("Fecha de cumplimentación: ") . date('d/m/Y H:i', strtotime($survey['fecha_realizacion'] ?? 'now')), 0, 1, 'R');
+$pdf->Cell(0, 5, pdf_utf8_to_iso("Fecha de cumplimentación: ") . safe_date('d/m/Y H:i', $survey['fecha_realizacion']), 0, 1, 'R');
 
 $pdf->Output('I', 'Cuestionario_Fundae_' . $survey['id'] . '.pdf');
