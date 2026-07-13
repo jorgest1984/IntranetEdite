@@ -107,15 +107,16 @@ try {
     $updatedCount = 0;
     $courseDuration = (int)$af['duracion'] > 0 ? (int)$af['duracion'] : 60; // Duración en horas (default 60)
 
-    // Detectar si el usuario ha indicado en la Intranet (Ajustes) que M1 y M2 van juntos
-    $ajustesTexto = strtoupper(($af['contenidos'] ?? '') . ' ' . ($af['contenidos_breves'] ?? '') . ' ' . ($af['objetivos'] ?? ''));
-    $m1m2_agrupados = (strpos($ajustesTexto, 'M1-M2') !== false || strpos($ajustesTexto, 'M1 Y M2') !== false || strpos($ajustesTexto, 'M1/M2') !== false);
+    // Detectar si el usuario ha indicado en la Intranet (Ajustes o Título) que M1 y M2 van juntos
+    $ajustesTexto = strtoupper(($af['titulo'] ?? '') . ' ' . ($af['contenidos'] ?? '') . ' ' . ($af['contenidos_breves'] ?? '') . ' ' . ($af['objetivos'] ?? ''));
+    $ajustesClean = str_replace([' ', '-', '_', '.', ',', '/'], '', $ajustesTexto);
+    $m1m2_agrupados = (strpos($ajustesClean, 'M1M2') !== false || strpos($ajustesClean, 'M1YM2') !== false || strpos($ajustesClean, 'IGUALDAD') !== false);
 
     foreach ($stats as $moodleUserId => $data) {
         if (isset($matriculaMap[$moodleUserId])) {
             $matriculaId = $matriculaMap[$moodleUserId];
             
-            // Regla especial solicitada por el usuario: si M1 y M2 comparten bloque, marcar M2 automáticamente al marcar M1
+            // Regla especial solicitada por el usuario: si M1 y M2 comparten bloque (ej. curso de Igualdad), marcar M2 automáticamente al marcar M1
             if ($m1m2_agrupados && $data['m1_completed'] === 1) {
                 $data['m2_completed'] = 1;
             }
