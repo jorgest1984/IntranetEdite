@@ -159,8 +159,6 @@ class MoodleDB {
                 $stmtMod = $this->mpdo->prepare($sqlModules);
                 $stmtMod->execute($params);
                 $moduleRows = $stmtMod->fetchAll();
-                
-                file_put_contents(__DIR__ . '/../uploads/sync_debug.txt', date('Y-m-d H:i:s') . " - MODULES RETURNED: " . count($moduleRows) . "\n", FILE_APPEND);
 
                 // Analizar nombres de módulos para asociar M1, M2, M3
                 foreach ($moduleRows as $row) {
@@ -176,9 +174,6 @@ class MoodleDB {
 
                     // Cualquier estado mayor a 0 significa que se ha completado (1=complete, 2=complete pass, 3=complete fail)
                     $completed = ((int)$row['completionstate'] > 0);
-
-                    // LOG DEBUG
-                    file_put_contents(__DIR__ . '/../uploads/sync_debug.txt', date('Y-m-d H:i:s') . " - UID: $uid | completed: $completed | name: $name | secName: $sectionName | combined: $combinedName\n", FILE_APPEND);
 
                     if ($completed) {
                         // Buscar M1 o Módulo 1 o Tema 1
@@ -219,8 +214,6 @@ class MoodleDB {
                 $stmtScorm = $this->mpdo->prepare($sqlScorm);
                 $stmtScorm->execute($params);
                 $scormRows = $stmtScorm->fetchAll();
-                
-                file_put_contents(__DIR__ . '/../uploads/sync_debug.txt', date('Y-m-d H:i:s') . " - SCORM RETURNED: " . count($scormRows) . "\n", FILE_APPEND);
 
                 foreach ($scormRows as $row) {
                     $uid = $row['userid'];
