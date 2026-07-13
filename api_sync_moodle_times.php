@@ -107,10 +107,19 @@ try {
     $updatedCount = 0;
     $courseDuration = (int)$af['duracion'] > 0 ? (int)$af['duracion'] : 60; // Duración en horas (default 60)
 
+    // Detectar si el usuario ha indicado en la Intranet (Ajustes) que M1 y M2 van juntos
+    $ajustesTexto = strtoupper(($af['contenidos'] ?? '') . ' ' . ($af['contenidos_breves'] ?? '') . ' ' . ($af['objetivos'] ?? ''));
+    $m1m2_agrupados = (strpos($ajustesTexto, 'M1-M2') !== false || strpos($ajustesTexto, 'M1 Y M2') !== false || strpos($ajustesTexto, 'M1/M2') !== false);
+
     foreach ($stats as $moodleUserId => $data) {
         if (isset($matriculaMap[$moodleUserId])) {
             $matriculaId = $matriculaMap[$moodleUserId];
             
+            // Regla especial solicitada por el usuario: si M1 y M2 comparten bloque, marcar M2 automáticamente al marcar M1
+            if ($m1m2_agrupados && $data['m1_completed'] === 1) {
+                $data['m2_completed'] = 1;
+            }
+
             // Calcular % curso basándose en la duración de la intranet
             $connectedSeconds = (int)$data['connected_seconds'];
             $connectedHours = $connectedSeconds / 3600;
