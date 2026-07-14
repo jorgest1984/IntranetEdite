@@ -182,22 +182,16 @@ $usuarios = $stmt->fetchAll();
 $roles = $pdo->query("SELECT * FROM roles WHERE id != " . ROLE_LECTURA . " ORDER BY id ASC")->fetchAll();
 
 // Moodle Sync Data
-require_once 'includes/moodle_api.php';
-$moodle = new MoodleAPI($pdo);
-$syncedEmails = [];
-if ($moodle->isConfigured()) {
-    try {
-        $moodleUsersResp = $moodle->getAllUsers();
-        if (!empty($moodleUsersResp['users'])) {
-            foreach ($moodleUsersResp['users'] as $mu) {
-                if (!empty($mu['email'])) {
-                    $syncedEmails[] = strtolower($mu['email']);
-                }
-            }
+$syncedUserIds = [];
+try {
+    $stmtLog = $pdo->query("SELECT DISTINCT entidad_id FROM audit_log WHERE accion = 'USUARIO_MOODLE_ALTA'");
+    while ($row = $stmtLog->fetch()) {
+        if (!empty($row['entidad_id'])) {
+            $syncedUserIds[] = $row['entidad_id'];
         }
-    } catch (Exception $e) {
-        // Ignorar error de lectura de Moodle para no romper la pantalla
     }
+} catch (Exception $e) {
+    // Silently ignore if audit_log table query fails
 }
 ?>
 <!DOCTYPE html>
@@ -916,7 +910,7 @@ if ($moodle->isConfigured()) {
                                     Perfil
                                 </a>
                                 <?php if ($u['rol_id'] == ROLE_TUTOR && $u['activo']): ?>
-                                    <?php if (in_array(strtolower($u['email']), $syncedEmails)): ?>
+                                    <?php if (in_array($u['id'], $syncedUserIds)): ?>
                                         <button type="button" class="btn-action-premium" style="background: #ecfdf5; color: #059669; border-color: #a7f3d0; cursor: default;" title="Ya dado de alta en Moodle">
                                             <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
                                             Alta en Moodle
