@@ -17,7 +17,7 @@ if (!$grupo_id) {
 $stmt = $pdo->prepare("
     SELECT 
         g.numero_grupo, g.fecha_inicio, g.fecha_fin,
-        af.num_accion, 
+        af.num_accion, af.objetivos_especificos, af.contenidos,
         conv.codigo_expediente, 
         cu.nombre_corto as curso_codigo, cu.nombre_largo as curso_titulo, cu.duracion, cu.objetivos
     FROM grupos g
@@ -129,20 +129,11 @@ echo "</tr>";
 // Data Row Placeholder
 echo "<tr>";
 echo "<td>";
-echo "<ul>";
-echo "<li>Conocer la legislación...</li>";
-echo "<li>Identificar y actuar...</li>";
-echo "<li>Reconocer los organismos...</li>";
-echo "</ul>";
+echo nl2br($data['objetivos_especificos'] ?? '');
 echo "</td>";
 
 echo "<td>";
-echo "<strong>1. UNIDAD 1</strong><br><br>";
-echo "1.1 Normativa de referencia<br><br>";
-echo "1.2 Políticas públicas para la igualdad<br><br>";
-echo "1.3 Igualdad y medios de comunicación<br><br>";
-echo "<strong>2. UNIDAD 2</strong><br><br>";
-echo "2.1 L.O. 1/2004, de medidas de protección integral contra la violencia de género<br><br>";
+echo $data['contenidos'] ?? '';
 echo "</td>";
 
 echo "<td>";
