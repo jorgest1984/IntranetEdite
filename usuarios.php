@@ -111,11 +111,65 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                 } else {
                     $error = "Error al eliminar el usuario: " . $e->getMessage();
                 }
-                    }
-                }
             }
         }
+        }
+        
+        // Alta en Moodle para Tutores
+        if ($_POST['action'] == 'sync_moodle') {
+            $id = intval($_POST['user_id']);
+            $stmtUser = $pdo->prepare("SELECT * FROM usuarios WHERE id = ?");
+            $stmtUser->execute([$id]);
+            $user_data = $stmtUser->fetch(PDO::FETCH_ASSOC);
+
+            if ($user_data && $user_data['rol_id'] == ROLE_TUTOR) {
+                require_once 'includes/moodle_api.php';
+                try {
+                    $moodle = new MoodleAPI($pdo);
+                    if ($moodle->isConfigured()) {
+                        // 1. Check if user already exists in Moodle by email
+                        $existingUser = null;
+                        try {
+                            $check = $moodle->getUsersByField('email', [$user_data['email']]);
+                            if (!empty($check['users'])) {
+                                $existingUser = $check['users'][0];
+                            }
+                        } catch (Exception $ex) {
+                            // ignore check error, might just be empty
+                        }
+
+                        if ($existingUser) {
+                            $error = "El usuario ya existe en Moodle con ese email (Username: " . $existingUser['username'] . ").";
+                        } else {
+                            // 2. Create user
+                            $newUsers = $moodle->createUser(
+                                strtolower($user_data['username']),
+                                'MoodleTemp123!', // Contraseña genérica temporal
+                                $user_data['nombre'],
+                                $user_data['apellidos'],
+                                $user_data['email']
+                            );
+                            
+                            if (!empty($newUsers) && isset($newUsers[0]['id'])) {
+                                audit_log($pdo, 'USUARIO_MOODLE_ALTA', 'usuarios', $id, null, ['moodle_user_id' => $newUsers[0]['id']]);
+                                $success = "El tutor ha sido dado de alta correctamente en Moodle (Contraseña temporal: MoodleTemp123!).";
+                            } else {
+                                $error = "No se ha podido crear el usuario en Moodle (Respuesta inesperada).";
+                            }
+                        }
+                    } else {
+                        $error = "Moodle no está configurado correctamente en el sistema.";
+                    }
+                } catch (Exception $e) {
+                    $error = "Error al comunicar con Moodle: " . $e->getMessage();
+                }
+            } else {
+                $error = "Usuario no válido o no tiene rol de Tutor.";
+            }
+        }
+
     }
+}
 
 // Listado de usuarios
 $stmt = $pdo->query("SELECT u.*, r.nombre as rol_nombre 
@@ -842,6 +896,17 @@ $roles = $pdo->query("SELECT * FROM roles WHERE id != " . ROLE_LECTURA . " ORDER
                                     <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                                     Perfil
                                 </a>
+                                <?php if ($u['rol_id'] == ROLE_TUTOR && $u['activo']): ?>
+                                <form method="POST" style="margin: 0;" onsubmit="return confirm('¿Dar de alta a este tutor en Moodle? Se le asignará una contraseña temporal genérica.');">
+                                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
+                                    <input type="hidden" name="action" value="sync_moodle">
+                                    <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
+                                    <button type="submit" class="btn-action-premium" style="background: #fff8e1; color: #d97706; border-color: #fde68a;">
+                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2.12-1.15V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/></svg>
+                                        Alta en Moodle
+                                    </button>
+                                </form>
+                                <?php endif; ?>
                                 <form method="POST" style="margin: 0;" onsubmit="return confirm('¿Seguro que desea cambiar el estado de este usuario?');">
                                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                                     <input type="hidden" name="action" value="toggle_status">
