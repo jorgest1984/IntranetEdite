@@ -81,6 +81,22 @@ switch ($action) {
         ]);
         break;
 
+    case 'get_grupos':
+        $accion_id = (int)($_GET['accion_id'] ?? 0);
+        if (!$accion_id) {
+            echo json_encode([]);
+            exit;
+        }
+        $stmt = $pdo->prepare("
+            SELECT g.id, g.numero_grupo 
+            FROM grupos g
+            WHERE g.accion_id = ? 
+            ORDER BY g.numero_grupo ASC
+        ");
+        $stmt->execute([$accion_id]);
+        echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+        break;
+
     default:
         echo json_encode(['error' => 'Acción no válida']);
         break;

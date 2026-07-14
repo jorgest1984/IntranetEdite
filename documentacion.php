@@ -124,6 +124,14 @@ $empresaNombre = $stmtConf->fetchColumn() ?: APP_NAME;
                     <button class="btn btn-primary" onclick="openDocModal('anexo1')">Generar PDF</button>
                 </div>
 
+                <!-- Documentación Didáctica -->
+                <div class="doc-card">
+                    <svg class="doc-icon" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                    <div class="doc-title">Documentación Didáctica</div>
+                    <div class="doc-desc">Programaciones, planificaciones y documentos requeridos para el grupo.</div>
+                    <button class="btn btn-primary" onclick="openDocModal('didactica')">Acceder</button>
+                </div>
+
                 <!-- Diploma Provisional -->
                 <div class="doc-card" style="opacity: 0.6;">
                     <svg class="doc-icon" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
@@ -232,6 +240,51 @@ $empresaNombre = $stmtConf->fetchColumn() ?: APP_NAME;
     </div>
 </div>
 
+<!-- Modal Selección Didáctica -->
+<div id="didacticaModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Acceder a Documentación Didáctica</h2>
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+        </div>
+        
+        <div style="margin-bottom: 1rem;">
+            <!-- Convocatoria Selector -->
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Convocatoria *</label>
+            <select id="convocatoriaSelectDidactica" class="form-input" style="width: 100%; margin-bottom: 1rem;" onchange="loadPlanes('didactica', this.value)">
+                <option value="">-- Selecciona Convocatoria --</option>
+                <?php foreach ($convocatorias as $c): ?>
+                    <option value="<?= $c['id'] ?>" <?= $convocatoria_id == $c['id'] ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($c['codigo_expediente']) ?> - <?= htmlspecialchars($c['nombre']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+
+            <!-- Plan Selector -->
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Plan *</label>
+            <select id="planSelectDidactica" class="form-input" style="width: 100%; margin-bottom: 1rem;" disabled onchange="loadAcciones('didactica', this.value)">
+                <option value="">-- Primero elige Convocatoria --</option>
+            </select>
+
+            <!-- Acción Formativa Selector -->
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Acción Formativa *</label>
+            <select id="accionSelectDidactica" class="form-input" style="width: 100%; margin-bottom: 1rem;" disabled onchange="loadGrupos('didactica', this.value)">
+                <option value="">-- Primero elige Plan --</option>
+            </select>
+
+            <!-- Grupo Selector -->
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Seleccionar Grupo *</label>
+            <select id="grupoSelectDidactica" class="form-input" style="width: 100%;" disabled>
+                <option value="">-- Primero elige Acción Formativa --</option>
+            </select>
+        </div>
+        
+        <button class="btn btn-primary" style="width: 100%; justify-content:center; margin-top: 1rem;" onclick="goToDidactica()">
+            Ir a Documentación
+        </button>
+    </div>
+</div>
+
 <script>
 // Parse PHP Data to JS
 const empresaGlobal = <?= json_encode($empresaNombre) ?>;
@@ -247,22 +300,29 @@ const loadedData = {
     anexo1: {
         alumnos: [],
         context: null
+    },
+    didactica: {
+        grupos: [],
+        context: null
     }
 };
 
 function openDocModal(type) {
     document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
     
-    let modalId = type === 'recibi' ? 'docModal' : 'anexoModal';
+    let modalId = type === 'recibi' ? 'docModal' : (type === 'didactica' ? 'didacticaModal' : 'anexoModal');
     let modal = document.getElementById(modalId);
     if (!modal) return;
     
     modal.classList.add('active');
     
     // Auto-load cascade if Convocatoria is pre-selected on main page
-    let convSelect = document.getElementById(type === 'recibi' ? 'convocatoriaSelect' : 'convocatoriaSelectAnexo');
+    let convSelectId = 'convocatoriaSelect' + (type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : 'Anexo'));
+    let planSelectId = 'planSelect' + (type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : 'Anexo'));
+    
+    let convSelect = document.getElementById(convSelectId);
     if (convSelect && convSelect.value) {
-        let planSelect = document.getElementById(type === 'recibi' ? 'planSelect' : 'planSelectAnexo');
+        let planSelect = document.getElementById(planSelectId);
         if (planSelect && planSelect.options.length <= 1) {
             loadPlanes(type, convSelect.value);
         }
@@ -280,9 +340,11 @@ window.onclick = function(event) {
 }
 
 function loadPlanes(type, convocatoriaId) {
-    const planSelect = document.getElementById(type === 'recibi' ? 'planSelect' : 'planSelectAnexo');
-    const accionSelect = document.getElementById(type === 'recibi' ? 'accionSelect' : 'accionSelectAnexo');
-    const alumnoSelect = document.getElementById(type === 'recibi' ? 'alumnoSelect' : 'alumnoSelectAnexo');
+    let suffix = type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : 'Anexo');
+    const planSelect = document.getElementById('planSelect' + suffix);
+    const accionSelect = document.getElementById('accionSelect' + suffix);
+    const alumnoSelect = document.getElementById('alumnoSelect' + suffix); // null if didactica
+    const grupoSelect = document.getElementById('grupoSelect' + suffix); // null if not didactica
     
     // Reset options
     planSelect.innerHTML = '<option value="">-- Selecciona Plan --</option>';
@@ -291,10 +353,17 @@ function loadPlanes(type, convocatoriaId) {
     accionSelect.innerHTML = '<option value="">-- Primero elige Plan --</option>';
     accionSelect.disabled = true;
     
-    alumnoSelect.innerHTML = '<option value="">-- Primero elige Acción Formativa --</option>';
-    alumnoSelect.disabled = true;
+    if (alumnoSelect) {
+        alumnoSelect.innerHTML = '<option value="">-- Primero elige Acción Formativa --</option>';
+        alumnoSelect.disabled = true;
+        loadedData[type].alumnos = [];
+    }
+    if (grupoSelect) {
+        grupoSelect.innerHTML = '<option value="">-- Primero elige Acción Formativa --</option>';
+        grupoSelect.disabled = true;
+        loadedData[type].grupos = [];
+    }
     
-    loadedData[type].alumnos = [];
     loadedData[type].context = null;
     
     if (!convocatoriaId) return;
@@ -321,16 +390,25 @@ function loadPlanes(type, convocatoriaId) {
 }
 
 function loadAcciones(type, planId) {
-    const accionSelect = document.getElementById(type === 'recibi' ? 'accionSelect' : 'accionSelectAnexo');
-    const alumnoSelect = document.getElementById(type === 'recibi' ? 'alumnoSelect' : 'alumnoSelectAnexo');
+    let suffix = type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : 'Anexo');
+    const accionSelect = document.getElementById('accionSelect' + suffix);
+    const alumnoSelect = document.getElementById('alumnoSelect' + suffix); // null if didactica
+    const grupoSelect = document.getElementById('grupoSelect' + suffix); // null if not didactica
     
     accionSelect.innerHTML = '<option value="">-- Selecciona Acción Formativa --</option>';
     accionSelect.disabled = true;
     
-    alumnoSelect.innerHTML = '<option value="">-- Primero elige Acción Formativa --</option>';
-    alumnoSelect.disabled = true;
+    if (alumnoSelect) {
+        alumnoSelect.innerHTML = '<option value="">-- Primero elige Acción Formativa --</option>';
+        alumnoSelect.disabled = true;
+        loadedData[type].alumnos = [];
+    }
+    if (grupoSelect) {
+        grupoSelect.innerHTML = '<option value="">-- Primero elige Acción Formativa --</option>';
+        grupoSelect.disabled = true;
+        loadedData[type].grupos = [];
+    }
     
-    loadedData[type].alumnos = [];
     loadedData[type].context = null;
     
     if (!planId) return;
@@ -407,6 +485,47 @@ function loadAlumnos(type, accionId) {
             console.error('Error fetching alumnos:', err);
             alert('Error al cargar alumnos.');
         });
+}
+
+function loadGrupos(type, accionId) {
+    let suffix = type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : 'Anexo');
+    const grupoSelect = document.getElementById('grupoSelect' + suffix);
+    
+    grupoSelect.innerHTML = '<option value="">-- Selecciona Grupo --</option>';
+    grupoSelect.disabled = true;
+    loadedData[type].grupos = [];
+    
+    if (!accionId) return;
+    
+    fetch(`api_documentos_cascade.php?action=get_grupos&accion_id=${accionId}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.length > 0) {
+                loadedData[type].grupos = data;
+                data.forEach(g => {
+                    let opt = document.createElement('option');
+                    opt.value = g.id;
+                    opt.textContent = `Grupo ${g.numero_grupo}`;
+                    grupoSelect.appendChild(opt);
+                });
+                grupoSelect.disabled = false;
+            } else {
+                grupoSelect.innerHTML = '<option value="">-- No hay grupos registrados --</option>';
+            }
+        })
+        .catch(err => {
+            console.error('Error fetching grupos:', err);
+            alert('Error al cargar grupos.');
+        });
+}
+
+function goToDidactica() {
+    const grupoId = document.getElementById('grupoSelectDidactica').value;
+    if (!grupoId) {
+        alert("Por favor, selecciona un grupo.");
+        return;
+    }
+    window.location.href = `documentacion_didactica.php?grupo_id=${grupoId}`;
 }
 
 function generateRecibiPDF() {
