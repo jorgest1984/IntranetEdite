@@ -647,8 +647,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
                     </div>
                 </div>
 
-                <div class="table-responsive" style="background: transparent; border-radius: 0 0 16px 16px; box-shadow: none; border-bottom: none;">
-                    <table class="table-premium" style="width: 100%; border-collapse: collapse;">
+                <div class="table-responsive" style="background: transparent; border-radius: 0 0 16px 16px; box-shadow: none; border-bottom: none; overflow-x: auto; max-width: 100%;">
+                    <table class="table-premium" style="width: 100%; border-collapse: collapse; min-width: 900px;">
                         <thead>
                             <tr style="border-bottom: 2px solid var(--border-color);">
                                 <th style="text-align: left;">ID / CÓDIGO</th>
