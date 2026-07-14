@@ -15,7 +15,7 @@ if (!$grupo_id) {
 
 // Fetch group info
 $stmt = $pdo->prepare("
-    SELECT g.numero_grupo, c.nombre_largo as curso_titulo, c.codigo as curso_codigo
+    SELECT g.numero_grupo, c.nombre_largo as curso_titulo, c.nombre_corto as curso_codigo
     FROM grupos g
     JOIN acciones_formativas af ON g.accion_id = af.id
     JOIN cursos c ON af.curso_id = c.id
