@@ -1378,7 +1378,10 @@ $tareas = $stmt_tareas->fetchAll();
                                 <td style="width: 100px; background: #fff; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; padding: 12px; border: 1px solid #cbd5e1; text-align: left;">Clave:</td>
                                 <td style="background: #f1f5f9; border: 1px solid #cbd5e1; padding: 5px;">
                                     <div style="display: flex; align-items: center; gap: 10px;">
-                                        <input type="password" name="password" placeholder="**********" style="width: 200px; border: 1px solid #cbd5e1; background: #fff; padding: 8px; color: #1e3a8a; font-weight: 500; box-sizing: border-box;">
+                                        <div style="position: relative;">
+                                            <input type="password" name="password" id="trabajador_password" placeholder="**********" style="width: 200px; border: 1px solid #cbd5e1; background: #fff; padding: 8px; padding-right: 35px; color: #1e3a8a; font-weight: 500; box-sizing: border-box;">
+                                            <i class="fas fa-eye" id="togglePasswordBtn" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #64748b;" onclick="var x = document.getElementById('trabajador_password'); if(x.type === 'password'){ x.type = 'text'; this.classList.remove('fa-eye'); this.classList.add('fa-eye-slash'); } else { x.type = 'password'; this.classList.remove('fa-eye-slash'); this.classList.add('fa-eye'); }"></i>
+                                        </div>
                                         <span style="font-size: 0.75rem; color: #64748b;">(dejar en blanco para conservar la actual)</span>
                                     </div>
                                 </td>
