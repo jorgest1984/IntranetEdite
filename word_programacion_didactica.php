@@ -17,9 +17,9 @@ if (!$grupo_id) {
 $stmt = $pdo->prepare("
     SELECT 
         g.numero_grupo, g.fecha_inicio, g.fecha_fin,
-        af.num_accion, af.objetivos_especificos, af.contenidos,
+        af.num_accion, af.objetivos_especificos, af.contenidos, af.objetivos,
         conv.codigo_expediente, 
-        cu.nombre_corto as curso_codigo, cu.nombre_largo as curso_titulo, cu.duracion, cu.objetivos
+        cu.nombre_corto as curso_codigo, cu.nombre_largo as curso_titulo, cu.duracion
     FROM grupos g
     JOIN acciones_formativas af ON g.accion_id = af.id
     JOIN cursos cu ON af.curso_id = cu.id
