@@ -9,9 +9,8 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-$term = trim($_GET['term'] ?? '');
-$areas = $_GET['areas'] ?? []; // Array de áreas seleccionadas
-$provincia = trim($_GET['provincia'] ?? '');
+    $term = trim($_GET['term'] ?? '');
+    $areas = $_GET['areas'] ?? []; // Array de áreas seleccionadas
 
 $results = [
     'alumnos' => [],
@@ -68,7 +67,6 @@ if (!empty($term)) {
                 FROM alumnos 
                 WHERE (nombre LIKE ? OR primer_apellido LIKE ? OR segundo_apellido LIKE ? OR dni LIKE ? OR telefono LIKE ? OR email LIKE ?)";
         $params = [$searchLike, $searchLike, $searchLike, $searchLike, $searchLike, $searchLike];
-        if (!empty($provincia)) { $sql .= " AND provincia = ?"; $params[] = $provincia; }
         $sql .= " LIMIT $limit";
         $results['alumnos'] = $pdo->prepare($sql);
         $results['alumnos']->execute($params);
@@ -81,7 +79,6 @@ if (!empty($term)) {
                 FROM empresas 
                 WHERE (nombre LIKE ? OR cif LIKE ? OR telefono LIKE ? OR email LIKE ?)";
         $params = [$searchLike, $searchLike, $searchLike, $searchLike];
-        if (!empty($provincia)) { $sql .= " AND provincia = ?"; $params[] = $provincia; }
         $sql .= " LIMIT $limit";
         $results['empresas'] = $pdo->prepare($sql);
         $results['empresas']->execute($params);
@@ -94,7 +91,6 @@ if (!empty($term)) {
                 FROM empresas 
                 WHERE (contacto_nombre LIKE ? OR contacto_telefono LIKE ?)";
         $params = [$searchLike, $searchLike];
-        if (!empty($provincia)) { $sql .= " AND provincia = ?"; $params[] = $provincia; }
         $sql .= " LIMIT $limit";
         $results['contactos'] = $pdo->prepare($sql);
         $results['contactos']->execute($params);
@@ -183,7 +179,6 @@ if (!empty($term)) {
 }
 
 // Datos para la UI
-$provincias = ["Álava", "Albacete", "Alicante", "Almería", "Asturias", "Ávila", "Badajoz", "Baleares", "Barcelona", "Burgos", "Cáceres", "Cádiz", "Cantabria", "Castellón", "Ciudad Real", "Córdoba", "Coruña (La)", "Cuenca", "Gerona", "Granada", "Guadalajara", "Guipúzcoa", "Huelva", "Huesca", "Jaén", "León", "Lérida", "Lugo", "Madrid", "Málaga", "Murcia", "Navarra", "Orense", "Palencia", "Las Palmas", "Pontevedra", "La Rioja", "Salamanca", "Santa Cruz de Tenerife", "Segovia", "Sevilla", "Soria", "Tarragona", "Teruel", "Toledo", "Valencia", "Valladolid", "Vizcaya", "Zamora", "Zaragoza", "Ceuta", "Melilla"];
 
 $allAreas = [
     'secciones' => '🔗 Secciones y Herramientas',
@@ -232,16 +227,6 @@ $allAreas = [
                                 </span>
                                 <input type="text" name="term" class="search-input" value="<?= htmlspecialchars($term) ?>" placeholder="Nombre, NIF, #a alumnos, #c cursos, A31-G1..." autofocus>
                             </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Provincia</label>
-                            <select name="provincia" class="select-custom">
-                                <option value="">Todas las provincias</option>
-                                <?php foreach ($provincias as $p): ?>
-                                    <option value="<?= $p ?>" <?= $provincia == $p ? 'selected' : '' ?>><?= $p ?></option>
-                                <?php endforeach; ?>
-                            </select>
                         </div>
 
                         <div class="form-group">
