@@ -132,7 +132,7 @@ if (!$grupo) {
             <p class="didactica-instruction">Selecciona el documento que deseas generar y descargar:</p>
 
             <ul class="didactica-links">
-                <li><a href="#">Programación didáctica</a></li>
+                <li><a href="word_programacion_didactica.php?grupo_id=<?= $grupo_id ?>">Programación didáctica</a></li>
                 <li><a href="#">Planificación didáctica</a></li>
                 <li><a href="#">Planificación de la evaluación</a></li>
                 <li><a href="#">Justificante de comunicación con la administración sobre la preselección de desempleados</a></li>
