@@ -180,6 +180,25 @@ $usuarios = $stmt->fetchAll();
 
 // Listado de roles para el combo (excluyendo Solo Lectura)
 $roles = $pdo->query("SELECT * FROM roles WHERE id != " . ROLE_LECTURA . " ORDER BY id ASC")->fetchAll();
+
+// Moodle Sync Data
+require_once 'includes/moodle_api.php';
+$moodle = new MoodleAPI($pdo);
+$syncedEmails = [];
+if ($moodle->isConfigured()) {
+    try {
+        $moodleUsersResp = $moodle->getAllUsers();
+        if (!empty($moodleUsersResp['users'])) {
+            foreach ($moodleUsersResp['users'] as $mu) {
+                if (!empty($mu['email'])) {
+                    $syncedEmails[] = strtolower($mu['email']);
+                }
+            }
+        }
+    } catch (Exception $e) {
+        // Ignorar error de lectura de Moodle para no romper la pantalla
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -897,15 +916,22 @@ $roles = $pdo->query("SELECT * FROM roles WHERE id != " . ROLE_LECTURA . " ORDER
                                     Perfil
                                 </a>
                                 <?php if ($u['rol_id'] == ROLE_TUTOR && $u['activo']): ?>
-                                <form method="POST" style="margin: 0;" onsubmit="return confirm('¿Dar de alta a este tutor en Moodle? Se le asignará una contraseña temporal genérica.');">
-                                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
-                                    <input type="hidden" name="action" value="sync_moodle">
-                                    <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
-                                    <button type="submit" class="btn-action-premium" style="background: #fff8e1; color: #d97706; border-color: #fde68a;">
-                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2.12-1.15V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/></svg>
-                                        Alta en Moodle
-                                    </button>
-                                </form>
+                                    <?php if (in_array(strtolower($u['email']), $syncedEmails)): ?>
+                                        <button type="button" class="btn-action-premium" style="background: #ecfdf5; color: #059669; border-color: #a7f3d0; cursor: default;" title="Ya dado de alta en Moodle">
+                                            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+                                            Alta en Moodle
+                                        </button>
+                                    <?php else: ?>
+                                        <form method="POST" style="margin: 0;" onsubmit="return confirm('¿Dar de alta a este tutor en Moodle? Se le asignará una contraseña temporal genérica.');">
+                                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
+                                            <input type="hidden" name="action" value="sync_moodle">
+                                            <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
+                                            <button type="submit" class="btn-action-premium" style="background: #fff8e1; color: #d97706; border-color: #fde68a;">
+                                                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2.12-1.15V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/></svg>
+                                                Alta en Moodle
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
                                 <?php endif; ?>
                                 <form method="POST" style="margin: 0;" onsubmit="return confirm('¿Seguro que desea cambiar el estado de este usuario?');">
                                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
