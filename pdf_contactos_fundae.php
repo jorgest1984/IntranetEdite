@@ -88,7 +88,7 @@ $pdf->SetFont('Arial', 'B', 10);
 $pdf->SetTextColor(0, 0, 0);
 $pdf->Cell(35, 7, pdf_utf8_to_iso("Nº Expediente:"), 0, 0, 'L');
 $pdf->SetFont('Arial', '', 10);
-$pdf->Cell(80, 7, pdf_utf8_to_iso($grupoData['codigo_expediente'] ?? '---'), 0, 0, 'L');
+$pdf->Cell(80, 7, pdf_utf8_to_iso($grupoData['expediente'] ?? '---'), 0, 0, 'L');
 
 $pdf->SetFont('Arial', 'B', 10);
 $pdf->Cell(25, 7, pdf_utf8_to_iso("Acción:"), 0, 0, 'L');
