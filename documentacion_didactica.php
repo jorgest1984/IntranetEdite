@@ -133,7 +133,7 @@ if (!$grupo) {
 
             <ul class="didactica-links">
                 <li><a href="word_programacion_didactica.php?grupo_id=<?= $grupo_id ?>">Programación didáctica</a></li>
-                <li><a href="#">Planificación didáctica</a></li>
+                <li><a href="word_planificacion_didactica.php?grupo_id=<?= $grupo_id ?>">Planificación didáctica</a></li>
                 <li><a href="#">Planificación de la evaluación</a></li>
                 <li><a href="#">Justificante de comunicación con la administración sobre la preselección de desempleados</a></li>
                 <li><a href="#">Cumplimiento de los requisitos de acceso de los alumnos</a></li>

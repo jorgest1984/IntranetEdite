@@ -1529,7 +1529,7 @@ try {
                         <div class="editor-container">
                             <h2 class="section-title-blue">Objetivos específicos:</h2>
                             <textarea class="editor-textarea textarea-grey" name="objetivos_especificos" style="height: 120px;"><?= htmlspecialchars($accion['objetivos_especificos'] ?? "Saber hacer X\nConocer Y\n...") ?></textarea>
-                            <a href="editar_unidades.php" class="link-units">Ver / Editar Unidades</a>
+                            <a href="editar_unidades.php?id=<?= $id ?>" class="link-units">Ver / Editar Unidades</a>
                         </div>
                     </div>
 
