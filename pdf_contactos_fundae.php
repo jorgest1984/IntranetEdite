@@ -80,37 +80,38 @@ class FundaeContactosPDF extends FPDF {
 
 // 'L' para apaisado
 $pdf = new FundaeContactosPDF('L', 'mm', 'A4');
+$pdf->SetAutoPageBreak(true, 15); // Ajustar el margen inferior a 15mm
 $pdf->AliasNbPages();
 $pdf->AddPage();
 
 // Cabecera de información del grupo
 $pdf->SetFont('Arial', 'B', 10);
 $pdf->SetTextColor(0, 0, 0);
-$pdf->Cell(35, 7, pdf_utf8_to_iso("Nº Expediente:"), 0, 0, 'L');
+$pdf->Cell(35, 6, pdf_utf8_to_iso("Nº Expediente:"), 0, 0, 'L');
 $pdf->SetFont('Arial', '', 10);
-$pdf->Cell(80, 7, pdf_utf8_to_iso($grupoData['expediente'] ?? '---'), 0, 0, 'L');
+$pdf->Cell(80, 6, pdf_utf8_to_iso($grupoData['expediente'] ?? '---'), 0, 0, 'L');
 
 $pdf->SetFont('Arial', 'B', 10);
-$pdf->Cell(25, 7, pdf_utf8_to_iso("Acción:"), 0, 0, 'L');
+$pdf->Cell(25, 6, pdf_utf8_to_iso("Acción:"), 0, 0, 'L');
 $pdf->SetFont('Arial', '', 10);
-$pdf->Cell(100, 7, pdf_utf8_to_iso($grupoData['num_accion'] ?? '---'), 0, 1, 'L');
+$pdf->Cell(100, 6, pdf_utf8_to_iso($grupoData['num_accion'] ?? '---'), 0, 1, 'L');
 
 $pdf->SetFont('Arial', 'B', 10);
-$pdf->Cell(35, 7, pdf_utf8_to_iso("Curso:"), 0, 0, 'L');
+$pdf->Cell(35, 6, pdf_utf8_to_iso("Curso:"), 0, 0, 'L');
 $pdf->SetFont('Arial', '', 10);
-$pdf->Cell(190, 7, pdf_utf8_to_iso($grupoData['curso_nombre']), 0, 1, 'L');
+$pdf->Cell(190, 6, pdf_utf8_to_iso($grupoData['curso_nombre']), 0, 1, 'L');
 
 $pdf->SetFont('Arial', 'B', 10);
-$pdf->Cell(35, 7, pdf_utf8_to_iso("Grupo:"), 0, 0, 'L');
+$pdf->Cell(35, 6, pdf_utf8_to_iso("Grupo:"), 0, 0, 'L');
 $pdf->SetFont('Arial', '', 10);
-$pdf->Cell(80, 7, pdf_utf8_to_iso($grupoData['numero_grupo']), 0, 0, 'L');
+$pdf->Cell(80, 6, pdf_utf8_to_iso($grupoData['numero_grupo']), 0, 0, 'L');
 
 $pdf->SetFont('Arial', 'B', 10);
-$pdf->Cell(25, 7, pdf_utf8_to_iso("Modalidad:"), 0, 0, 'L');
+$pdf->Cell(25, 6, pdf_utf8_to_iso("Modalidad:"), 0, 0, 'L');
 $pdf->SetFont('Arial', '', 10);
-$pdf->Cell(100, 7, pdf_utf8_to_iso($grupoData['modalidad'] ?? '---'), 0, 1, 'L');
+$pdf->Cell(100, 6, pdf_utf8_to_iso($grupoData['modalidad'] ?? '---'), 0, 1, 'L');
 
-$pdf->Ln(5);
+$pdf->Ln(4);
 
 // Tabla de contactos
 $pdf->SetFont('Arial', 'B', 9);
@@ -119,11 +120,11 @@ $pdf->SetTextColor(255, 255, 255);
 
 // Anchos de columnas (total = ~277)
 $w = array(35, 45, 85, 30, 82); 
-$pdf->Cell($w[0], 8, pdf_utf8_to_iso("DNI/NIE"), 1, 0, 'C', true);
-$pdf->Cell($w[1], 8, pdf_utf8_to_iso("Nombre"), 1, 0, 'C', true);
-$pdf->Cell($w[2], 8, pdf_utf8_to_iso("Apellidos"), 1, 0, 'C', true);
-$pdf->Cell($w[3], 8, pdf_utf8_to_iso("Teléfono"), 1, 0, 'C', true);
-$pdf->Cell($w[4], 8, pdf_utf8_to_iso("Correo Electrónico"), 1, 1, 'C', true);
+$pdf->Cell($w[0], 7, pdf_utf8_to_iso("DNI/NIE"), 1, 0, 'C', true);
+$pdf->Cell($w[1], 7, pdf_utf8_to_iso("Nombre"), 1, 0, 'C', true);
+$pdf->Cell($w[2], 7, pdf_utf8_to_iso("Apellidos"), 1, 0, 'C', true);
+$pdf->Cell($w[3], 7, pdf_utf8_to_iso("Teléfono"), 1, 0, 'C', true);
+$pdf->Cell($w[4], 7, pdf_utf8_to_iso("Correo Electrónico"), 1, 1, 'C', true);
 
 $pdf->SetFont('Arial', '', 9);
 $pdf->SetTextColor(0, 0, 0);
@@ -132,18 +133,18 @@ $fill = false;
 $pdf->SetFillColor(240, 245, 250);
 
 foreach ($alumnos as $alumno) {
-    $pdf->Cell($w[0], 7, pdf_utf8_to_iso($alumno['dni']), 'LRB', 0, 'C', $fill);
-    $pdf->Cell($w[1], 7, pdf_utf8_to_iso($alumno['nombre']), 'LRB', 0, 'L', $fill);
+    $pdf->Cell($w[0], 6, pdf_utf8_to_iso($alumno['dni']), 'LRB', 0, 'C', $fill);
+    $pdf->Cell($w[1], 6, pdf_utf8_to_iso($alumno['nombre']), 'LRB', 0, 'L', $fill);
     $apellidos = trim($alumno['primer_apellido'] . ' ' . $alumno['segundo_apellido']);
-    $pdf->Cell($w[2], 7, pdf_utf8_to_iso($apellidos), 'LRB', 0, 'L', $fill);
-    $pdf->Cell($w[3], 7, pdf_utf8_to_iso($alumno['telefono']), 'LRB', 0, 'C', $fill);
+    $pdf->Cell($w[2], 6, pdf_utf8_to_iso($apellidos), 'LRB', 0, 'L', $fill);
+    $pdf->Cell($w[3], 6, pdf_utf8_to_iso($alumno['telefono']), 'LRB', 0, 'C', $fill);
     
     // El email puede ser largo, usamos truncado o fuente más pequeña si es muy grande
     $email = $alumno['email'];
     if (strlen($email) > 40) {
         $pdf->SetFont('Arial', '', 7);
     }
-    $pdf->Cell($w[4], 7, pdf_utf8_to_iso($email), 'LRB', 1, 'L', $fill);
+    $pdf->Cell($w[4], 6, pdf_utf8_to_iso($email), 'LRB', 1, 'L', $fill);
     $pdf->SetFont('Arial', '', 9); // reset
     
     $fill = !$fill;
