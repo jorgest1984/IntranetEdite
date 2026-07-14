@@ -385,6 +385,10 @@ $alumnos = $matriculados->fetchAll();
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
                         Alta FUNDAE (XML)
                     </a>
+                    <a href="pdf_contactos_fundae.php?grupo_id=<?= $grupo_id ?>" target="_blank" class="btn" style="background: #ef4444; color: white; border: none; font-weight: 700; padding: 10px 15px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; text-decoration: none;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M12 18v-6"></path><path d="M9 15l3 3 3-3"></path></svg>
+                        Contactos FUNDAE (PDF)
+                    </a>
                     <button type="button" onclick="openMassKeysModal()" class="btn" style="background: #0284c7; color: white; border: none; font-weight: 700; padding: 10px 15px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem;">
                         📨 Envío Masivo Claves
                     </button>
