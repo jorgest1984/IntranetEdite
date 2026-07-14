@@ -147,12 +147,46 @@ if (!empty($term)) {
         $results['grupos']->execute($params);
         $results['grupos'] = $results['grupos']->fetchAll();
     }
+    // --- BÚSQUEDA SECCIONES (Menú) ---
+    // Definir mapa de secciones y palabras clave
+    $intranetSections = [
+        ['url' => 'gestion_matriculas.php', 'title' => 'Gestión de Matrículas', 'icon' => 'M12 14l9-5-9-5-9 5 9 5z M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z', 'keywords' => ['matricula', 'matriculas', 'gestion', 'matricular', 'altas']],
+        ['url' => 'usuarios.php', 'title' => 'Usuarios y Roles', 'icon' => 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z', 'keywords' => ['usuarios', 'roles', 'permisos', 'tutores', 'administradores', 'staff', 'personal']],
+        ['url' => 'alumnos.php', 'title' => 'Alumnos', 'icon' => 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z', 'keywords' => ['alumnos', 'estudiantes', 'asistentes', 'participantes']],
+        ['url' => 'grupos.php', 'title' => 'Grupos', 'icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z', 'keywords' => ['grupos', 'clases', 'aulas', 'ediciones']],
+        ['url' => 'acciones_formativas.php', 'title' => 'Acciones Formativas', 'icon' => 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253', 'keywords' => ['acciones formativas', 'cursos', 'aa ff', 'aaff', 'accion']],
+        ['url' => 'convocatorias.php', 'title' => 'Convocatorias', 'icon' => 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', 'keywords' => ['convocatorias', 'planes', 'expedientes', 'subvenciones']],
+        ['url' => 'empresas.php', 'title' => 'Empresas', 'icon' => 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4', 'keywords' => ['empresas', 'clientes', 'organizaciones', 'b2b']],
+        ['url' => 'proveedores.php', 'title' => 'Proveedores', 'icon' => 'M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z', 'keywords' => ['proveedores', 'compras', 'abastecimiento']],
+        ['url' => 'facturas.php', 'title' => 'Facturas', 'icon' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', 'keywords' => ['facturas', 'pagos', 'cobros', 'facturacion', 'importar']],
+        ['url' => 'certificados.php', 'title' => 'Certificados', 'icon' => 'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z', 'keywords' => ['certificados', 'diplomas', 'anexos', 'documentos']],
+        ['url' => 'papelera.php', 'title' => 'Papelera', 'icon' => 'M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16', 'keywords' => ['papelera', 'borrados', 'eliminados', 'recuperar']],
+        ['url' => 'dashboard.php', 'title' => 'Dashboard', 'icon' => 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z', 'keywords' => ['dashboard', 'inicio', 'resumen', 'estadisticas']],
+        ['url' => 'documentacion.php', 'title' => 'Documentación', 'icon' => 'M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2', 'keywords' => ['documentacion didactica', 'manuales', 'pdfs', 'anexos', 'documentacion']]
+    ];
+
+    $results['secciones'] = [];
+    $termLower = strtolower($termSearch);
+    foreach ($intranetSections as $section) {
+        // Buscar coincidencia en el título o palabras clave
+        if (strpos(strtolower($section['title']), $termLower) !== false) {
+            $results['secciones'][] = $section;
+            continue;
+        }
+        foreach ($section['keywords'] as $kw) {
+            if (strpos(strtolower($kw), $termLower) !== false) {
+                $results['secciones'][] = $section;
+                break;
+            }
+        }
+    }
 }
 
 // Datos para la UI
 $provincias = ["Álava", "Albacete", "Alicante", "Almería", "Asturias", "Ávila", "Badajoz", "Baleares", "Barcelona", "Burgos", "Cáceres", "Cádiz", "Cantabria", "Castellón", "Ciudad Real", "Córdoba", "Coruña (La)", "Cuenca", "Gerona", "Granada", "Guadalajara", "Guipúzcoa", "Huelva", "Huesca", "Jaén", "León", "Lérida", "Lugo", "Madrid", "Málaga", "Murcia", "Navarra", "Orense", "Palencia", "Las Palmas", "Pontevedra", "La Rioja", "Salamanca", "Santa Cruz de Tenerife", "Segovia", "Sevilla", "Soria", "Tarragona", "Teruel", "Toledo", "Valencia", "Valladolid", "Vizcaya", "Zamora", "Zaragoza", "Ceuta", "Melilla"];
 
 $allAreas = [
+    'secciones' => '🔗 Secciones y Herramientas',
     'alumnos' => 'Alumnos / Trabajadores',
     'empresas' => 'Empresas',
     'contactos' => 'Contactos',
@@ -250,6 +284,11 @@ $allAreas = [
                                     <?php 
                                         $url = '#'; $main = ''; $sub = '';
                                         switch($cat) {
+                                            case 'secciones':
+                                                $url = $row['url'];
+                                                $main = $row['title'];
+                                                $sub = "Ir a la sección";
+                                                break;
                                             case 'alumnos':
                                                 $url = "ficha_alumno.php?id=" . $row['id'];
                                                 $main = $row['nombre'] . ' ' . $row['primer_apellido'];
@@ -282,9 +321,14 @@ $allAreas = [
                                                 break;
                                         }
                                     ?>
-                                    <a href="<?= $url ?>" class="result-item">
-                                        <div class="result-main"><?= htmlspecialchars($main) ?></div>
-                                        <div class="result-sub"><?= htmlspecialchars($sub) ?></div>
+                                    <a href="<?= $url ?>" class="result-item" <?= $cat == 'secciones' ? 'style="display: flex; align-items: center; gap: 15px; border-left: 4px solid var(--search-primary); background: #f8fafc;"' : '' ?>>
+                                        <?php if($cat == 'secciones' && isset($row['icon'])): ?>
+                                            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color: var(--search-primary);"><path d="<?= $row['icon'] ?>" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                                        <?php endif; ?>
+                                        <div>
+                                            <div class="result-main"><?= htmlspecialchars($main) ?></div>
+                                            <div class="result-sub"><?= htmlspecialchars($sub) ?></div>
+                                        </div>
                                     </a>
                                 <?php endforeach; ?>
                             </div>
