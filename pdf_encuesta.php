@@ -46,19 +46,16 @@ function safe_date($format, $dateStr) {
 
 class FundaeSurveyPDF extends FPDF {
     function Header() {
-        if (file_exists('img/cabecera_fundae.png')) {
-            try {
-                $imgInfo = @getimagesize('img/cabecera_fundae.png');
-                $type = '';
-                if ($imgInfo) {
-                    if ($imgInfo[2] == IMAGETYPE_JPEG) $type = 'JPEG';
-                    elseif ($imgInfo[2] == IMAGETYPE_PNG) $type = 'PNG';
-                    elseif ($imgInfo[2] == IMAGETYPE_GIF) $type = 'GIF';
-                }
-                // Force it to span the top header as a banner (190x18mm)
-                $this->Image('img/cabecera_fundae.png', 10, 5, 190, 18, $type);
-            } catch (Exception $e) {}
-        }
+        try {
+            if (file_exists('img/logo_ministerio.png')) {
+                // Height = 13mm. width calculated automatically when set to 0.
+                $this->Image('img/logo_ministerio.png', 10, 8, 0, 13, 'PNG');
+            }
+            if (file_exists('img/logo_fundae.png')) {
+                // Height = 12mm. Placed on the right (x=130 approx)
+                $this->Image('img/logo_fundae.png', 125, 8, 0, 12, 'PNG');
+            }
+        } catch (Exception $e) {}
         $this->SetY(25);
     }
     function Footer() {
