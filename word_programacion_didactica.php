@@ -19,10 +19,9 @@ $stmt = $pdo->prepare("
         g.numero_grupo, g.fecha_inicio, g.fecha_fin,
         af.num_accion, af.objetivos_especificos, af.contenidos, af.objetivos,
         conv.codigo_expediente, 
-        cu.nombre_corto as curso_codigo, cu.nombre_largo as curso_titulo, cu.duracion
+        af.abreviatura as curso_codigo, af.titulo as curso_titulo, af.duracion
     FROM grupos g
     JOIN acciones_formativas af ON g.accion_id = af.id
-    JOIN cursos cu ON af.curso_id = cu.id
     LEFT JOIN planes p ON af.plan_id = p.id
     LEFT JOIN convocatorias conv ON p.convocatoria_id = conv.id
     WHERE g.id = ?
