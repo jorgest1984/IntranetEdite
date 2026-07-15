@@ -48,6 +48,7 @@ $empresaNombre = $stmtConf->fetchColumn() ?: APP_NAME;
     <link rel="stylesheet" href="css/main.css">
     <!-- Incluir librería jsPDF para generación en cliente -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         .filter-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .filter-form { display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; }
@@ -613,86 +614,54 @@ function generateRecibiPDF() {
 }
 
 function generateAnexo1PDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    
     let select = document.getElementById('alumnoSelectAnexo');
+    let selectAccion = document.getElementById('accionSelectAnexo');
     let alumnoId = select.value;
-    let alumnosProcesar = [];
+    let accionId = selectAccion.value;
     
-    let state = loadedData.anexo1;
-    
-    if (!state.context) {
-        alert("Por favor, selecciona una convocatoria, plan y acción formativa válida.");
+    if (!accionId) {
+        alert("Por favor, selecciona al menos una acción formativa.");
         return;
     }
     
-    if (alumnoId === "") {
-        alumnosProcesar = state.alumnos;
-    } else {
-        let dObj = state.alumnos.find(a => a.id == alumnoId);
-        if(dObj) alumnosProcesar.push(dObj);
-    }
-    
-    if(alumnosProcesar.length === 0) {
-        alert("No hay alumnos seleccionados o matriculados para generar el Anexo I.");
-        return;
-    }
+    // Mostramos un indicador de carga porque puede tardar si son muchos alumnos
+    const btn = document.querySelector("#anexoModal .btn-primary");
+    const originalText = btn.innerText;
+    btn.innerText = "Generando PDF, por favor espera...";
+    btn.disabled = true;
 
-    alumnosProcesar.forEach((alumno, index) => {
-        if (index > 0) doc.addPage();
+    fetch(`api_anexo1_html.php?accion_id=${accionId}&alumno_id=${alumnoId}`)
+    .then(response => {
+        if (!response.ok) throw new Error("Error en la red");
+        return response.text();
+    })
+    .then(htmlStr => {
+        // Create a temporary container
+        const container = document.createElement('div');
+        container.innerHTML = htmlStr;
         
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(14);
-        doc.text("ANEXO I: SOLICITUD DE PARTICIPACIÓN", 105, 20, {align: "center"});
-        doc.setFontSize(10);
-        doc.text("SUBVENCIONES PARA LA FORMACIÓN DE PERSONAS TRABAJADORAS", 105, 26, {align: "center"});
+        // Configuración para html2pdf
+        const opt = {
+            margin:       0,
+            filename:     alumnoId ? `Anexo1_Alumno_${alumnoId}.pdf` : `Anexo1_Todos_${accionId}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
         
-        doc.setLineWidth(0.1);
-        doc.rect(15, 35, 180, 50); // Sección datos
-        doc.setFontSize(9);
-        doc.text("1. DATOS DE LA ACCIÓN FORMATIVA", 20, 42);
-        doc.setFont("helvetica", "normal");
-        doc.text(`Denominación: ${state.context.af_titulo}`, 25, 50);
-        doc.text(`Código Expediente: ${state.context.conv_codigo}`, 25, 57);
-        doc.text(`Entidad: ${empresaGlobal}`, 25, 64);
-        
-        doc.rect(15, 90, 180, 60); // Sección alumno
-        doc.setFont("helvetica", "bold");
-        doc.text("2. DATOS DEL SOLICITANTE", 20, 97);
-        doc.setFont("helvetica", "normal");
-        doc.text(`Apellidos y Nombre: ${(alumno.primer_apellido || "")} ${(alumno.segundo_apellido || "")}, ${alumno.nombre}`, 25, 105);
-        doc.text(`NIF/NIE: ${alumno.dni}`, 25, 112);
-        doc.text(`Fecha Nacimiento: ....... / ....... / ...........`, 25, 119);
-        doc.text(`Teléfono: ${alumno.telefono || '......................'}`, 25, 126);
-        doc.text(`Email: ${alumno.email}`, 25, 133);
-        
-        doc.setFont("helvetica", "bold");
-        doc.text("SEXO:", 130, 105);
-        doc.rect(145, 101, 4, 4); doc.text("H", 151, 105);
-        doc.rect(160, 101, 4, 4); doc.text("M", 166, 105);
-        
-        doc.rect(15, 155, 180, 50); // Situación laboral
-        doc.setFont("helvetica", "bold");
-        doc.text("3. SITUACIÓN LABORAL (Marque lo que proceda)", 20, 162);
-        doc.setFont("helvetica", "normal");
-        doc.rect(25, 170, 4, 4); doc.text("Trabajador Ocupado (Cuenta Ajena)", 32, 174);
-        doc.rect(25, 180, 4, 4); doc.text("Trabajador Autónomo", 32, 184);
-        doc.rect(25, 190, 4, 4); doc.text("Desempleado Inscrito SEPE", 32, 194);
-        doc.rect(110, 170, 4, 4); doc.text("ERTE / ERE", 117, 174);
-        doc.rect(110, 180, 4, 4); doc.text("Persona con Discapacidad", 117, 184);
-        
-        doc.setFontSize(8);
-        let legal = "El solicitante declara que son ciertos los datos consignados y se compromete a asistir a la formación. De acuerdo con la RGPD y la ISO 27001, sus datos serán tratados para la gestión del expediente de subvención.";
-        doc.text(doc.splitTextToSize(legal, 170), 20, 220);
-        
-        doc.setFontSize(10);
-        doc.text(`FIRMA DEL SOLICITANTE:`, 130, 250);
-        doc.line(130, 270, 180, 270);
+        // Generate PDF
+        html2pdf().set(opt).from(container).save().then(() => {
+            btn.innerText = originalText;
+            btn.disabled = false;
+            closeModal();
+        });
+    })
+    .catch(error => {
+        console.error('Error fetching Anexo 1 HTML:', error);
+        alert("Ocurrió un error al generar el PDF.");
+        btn.innerText = originalText;
+        btn.disabled = false;
     });
-    
-    doc.save(`Anexo1_${state.context.conv_codigo}.pdf`);
-    closeModal();
 }
 </script>
 </body>
