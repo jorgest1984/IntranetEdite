@@ -63,13 +63,13 @@ echo "<style>
 echo "</head>";
 echo "<body>";
 
-echo "<table style='width: 100%; border: none; margin-bottom: 30px;'>";
+echo "<table style='width: 100%; border: none; margin-bottom: 30px;' cellpadding='0' cellspacing='0'>";
 echo "<tr>";
-echo "<td style='text-align: left; vertical-align: middle; width: 50%; border: none;'>";
-echo "<img src='https://gestion.grupoefp.es/img/logo_ministerio.png' height='60' alt='Ministerio SEPE'>";
+echo "<td style='text-align: left; vertical-align: middle; border: none; width: 50%;'>";
+echo "<img src='https://gestion.grupoefp.es/img/logo_ministerio.png' width='300' height='70' alt='Ministerio SEPE'>";
 echo "</td>";
-echo "<td style='text-align: right; vertical-align: middle; width: 50%; border: none;'>";
-echo "<img src='https://gestion.grupoefp.es/img/logo_fundae.png' height='60' alt='Fundae'>";
+echo "<td style='text-align: right; vertical-align: middle; border: none; width: 50%;'>";
+echo "<img src='https://gestion.grupoefp.es/img/logo_fundae.png' width='250' height='60' alt='Fundae'>";
 echo "</td>";
 echo "</tr>";
 echo "</table>";
