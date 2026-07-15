@@ -189,8 +189,7 @@ $empresaNombre = $stmtConf->fetchColumn() ?: APP_NAME;
                 <option value="">-- Primero elige Acción Formativa --</option>
             </select>
             
-            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Material Entregado:</label>
-            <input type="text" id="materialDesc" class="form-input" style="width: 100%;" placeholder="Ej: Manual del curso, Tablet Lenovo, Libreta y boli" value="Manual Formativo, Libreta y Bolígrafo">
+
         </div>
         
         <button class="btn btn-primary" style="width: 100%; justify-content:center; margin-top: 1rem;" onclick="generateRecibiPDF()">
@@ -533,7 +532,6 @@ function generateRecibiPDF() {
     const doc = new jsPDF();
     
     let select = document.getElementById('alumnoSelect');
-    let material = document.getElementById('materialDesc').value;
     
     let alumnoId = select.value;
     let alumnosProcesar = [];
@@ -586,26 +584,21 @@ function generateRecibiPDF() {
         doc.text(`CON DNI/NIE: ${dniAlumno}`, 20, 95);
         
         // Cuerpo del Recibí
-        let textBody = `Mediante el presente documento, el alumno declara haber recibido en la fecha abajo indicada, de forma totalmente gratuita, el siguiente material didáctico necesario para el desarrollo de la acción formativa:`;
+        let textBody = `Mediante el presente documento, el alumno declara haber recibido en la fecha abajo indicada, de forma totalmente gratuita, el material didáctico necesario para el desarrollo de la acción formativa.`;
         let splitText = doc.splitTextToSize(textBody, 170);
         doc.text(splitText, 20, 115);
         
-        // Dinámico: Material
-        doc.setFont("helvetica", "bold");
-        doc.text(`- ${material}`, 30, 135);
-        doc.setFont("helvetica", "normal");
-        
-        let textEnd = "Mecione firmar el presente documento asumiendo la responsabilidad sobre el uso y cuidado del material entregado durante la duración de la formación.";
+        let textEnd = "Mencionando firmar el presente documento asumiendo la responsabilidad sobre el uso y cuidado del material entregado durante la duración de la formación.";
         let splitEnd = doc.splitTextToSize(textEnd, 170);
-        doc.text(splitEnd, 20, 155);
+        doc.text(splitEnd, 20, 135);
         
         // Firmas (Espacio)
-        doc.text(`A ....................., a ...... de ...................... de 20....`, 20, 190);
+        doc.text(`A ....................., a ...... de ...................... de 20....`, 20, 170);
         
         doc.setFont("helvetica", "bold");
-        doc.text("FIRMA DEL ALUMNO/A:", 40, 210);
+        doc.text("FIRMA DEL ALUMNO/A:", 40, 190);
         doc.setFont("helvetica", "normal");
-        doc.text("(Firma)", 55, 240);
+        doc.text("(Firma)", 55, 220);
     });
     
     let filename = alumnoId === "" ? `Recibos_Material_${state.context.conv_codigo}.pdf` : `Recibi_${select.options[select.selectedIndex].getAttribute('data-dni')}.pdf`;
