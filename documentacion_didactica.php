@@ -137,7 +137,7 @@ if (!$grupo) {
                 <li><a href="word_planificacion_evaluacion.php?grupo_id=<?= $grupo_id ?>">Planificación de la evaluación</a></li>
                 <li><a href="word_justificante_comunicacion.php?grupo_id=<?= $grupo_id ?>">Justificante de comunicación con la administración sobre la preselección de desempleados</a></li>
                 <li><a href="word_cumplimiento_requisitos.php?grupo_id=<?= $grupo_id ?>">Cumplimiento de los requisitos de acceso de los alumnos</a></li>
-                <li><a href="#">Criterios para la selección de participantes en funcion de requisitos de formación</a></li>
+                <li><a href="word_criterios_seleccion.php?grupo_id=<?= $grupo_id ?>">Criterios para la selección de participantes en funcion de requisitos de formación</a></li>
             </ul>
 
             <div class="notas-section">
