@@ -18,6 +18,7 @@ $query = "
     SELECT 
         a.id, a.nombre, a.primer_apellido, a.segundo_apellido, a.dni, a.telefono, a.email,
         a.fecha_nacimiento, a.sexo, a.domicilio, a.cp, a.localidad, a.provincia, a.estudios,
+        a.tipo_via, a.nombre_via, a.num_domicilio, a.planta, a.puerta,
         g.numero_grupo, g.fecha_inicio, g.fecha_fin,
         af.num_accion, af.modalidad, af.abreviatura as curso_codigo, af.titulo as curso_titulo,
         conv.codigo_expediente
@@ -168,6 +169,22 @@ if (empty($alumnos)) {
     }
     
     $domicilio = mb_strtoupper(trim($alumno['domicilio'] ?? ''), 'UTF-8');
+    
+    // Si tenemos campos detallados, los usamos, si no intentamos usar el domicilio general
+    $nombreVia = mb_strtoupper(trim($alumno['tipo_via'] . ' ' . $alumno['nombre_via']), 'UTF-8');
+    $numDomicilio = trim($alumno['num_domicilio'] ?? '');
+    $planta = trim($alumno['planta'] ?? '');
+    
+    if (empty(trim($nombreVia))) {
+        // Fallback: si no tenemos la via separada, intentamos separarlo de "domicilio_full" (CALLE LAGARES, 30)
+        if (preg_match('/^(.*?),\s*(\d+.*)$/', $domicilio, $matches)) {
+            $nombreVia = $matches[1];
+            $numDomicilio = $matches[2];
+        } else {
+            $nombreVia = $domicilio;
+        }
+    }
+    
     $cp = trim($alumno['cp'] ?? '');
     $localidad = mb_strtoupper(trim($alumno['localidad'] ?? ''), 'UTF-8');
     $provincia = mb_strtoupper(trim($alumno['provincia'] ?? ''), 'UTF-8');
@@ -248,16 +265,16 @@ if (empty($alumnos)) {
             <td style="border:none; width: 15%; padding-left:0;">Correo electrónico</td>
             <td style="border:none; width: 35%; padding-left:0;"><div class="input-box"><?= htmlspecialchars($alumno['email'] ?? '') ?></div></td>
             <td style="border:none; width: 10%;">Dirección</td>
-            <td style="border:none; width: 40%;"><div class="input-box"><?= htmlspecialchars($domicilio) ?></div></td>
+            <td style="border:none; width: 40%;"><div class="input-box"><?= htmlspecialchars($nombreVia) ?></div></td>
         </tr>
     </table>
 
     <table style="border:none;">
         <tr>
             <td style="border:none; width: 5%; padding-left:0;">Nº</td>
-            <td style="border:none; width: 10%;"><div class="input-box"></div></td>
+            <td style="border:none; width: 10%;"><div class="input-box text-center"><?= htmlspecialchars($numDomicilio) ?></div></td>
             <td style="border:none; width: 5%;">Piso</td>
-            <td style="border:none; width: 10%;"><div class="input-box"></div></td>
+            <td style="border:none; width: 10%;"><div class="input-box text-center"><?= htmlspecialchars($planta) ?></div></td>
             <td style="border:none; width: 5%;">CP</td>
             <td style="border:none; width: 10%;"><div class="input-box text-center"><?= htmlspecialchars($cp) ?></div></td>
             <td style="border:none; width: 10%;">Población</td>
