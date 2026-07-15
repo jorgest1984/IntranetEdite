@@ -14,20 +14,24 @@ if (!$grupo_id) {
 }
 
 // Fetch group and course info
-$stmt = $pdo->prepare("
-    SELECT 
-        g.numero_grupo, g.fecha_inicio, g.fecha_fin,
-        af.num_accion, af.objetivos_especificos, af.contenidos, af.objetivos,
-        conv.codigo_expediente, 
-        af.abreviatura as curso_codigo, af.titulo as curso_titulo, af.duracion
-    FROM grupos g
-    JOIN acciones_formativas af ON g.accion_id = af.id
-    LEFT JOIN planes p ON af.plan_id = p.id
-    LEFT JOIN convocatorias conv ON p.convocatoria_id = conv.id
-    WHERE g.id = ?
-");
-$stmt->execute([$grupo_id]);
-$data = $stmt->fetch(PDO::FETCH_ASSOC);
+try {
+    $stmt = $pdo->prepare("
+        SELECT 
+            g.numero_grupo, g.fecha_inicio, g.fecha_fin,
+            af.num_accion, af.objetivos_especificos, af.contenidos, af.objetivos,
+            conv.codigo_expediente, 
+            af.abreviatura as curso_codigo, af.titulo as curso_titulo, af.duracion
+        FROM grupos g
+        JOIN acciones_formativas af ON g.accion_id = af.id
+        LEFT JOIN planes p ON af.plan_id = p.id
+        LEFT JOIN convocatorias conv ON p.convocatoria_id = conv.id
+        WHERE g.id = ?
+    ");
+    $stmt->execute([$grupo_id]);
+    $data = $stmt->fetch(PDO::FETCH_ASSOC);
+} catch (Exception $e) {
+    die("Database Error in word_programacion_didactica.php: " . $e->getMessage());
+}
 
 if (!$data) {
     die("Grupo no encontrado.");

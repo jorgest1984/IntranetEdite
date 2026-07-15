@@ -14,20 +14,24 @@ if (!$grupo_id) {
 }
 
 // Fetch group and course info
-$stmt = $pdo->prepare("
-    SELECT 
-        g.numero_grupo, g.fecha_inicio, g.fecha_fin,
-        af.id as accion_id, af.num_accion, 
-        conv.codigo_expediente, 
-        af.abreviatura as curso_codigo, af.titulo as curso_titulo, af.duracion
-    FROM grupos g
-    JOIN acciones_formativas af ON g.accion_id = af.id
-    LEFT JOIN planes p ON af.plan_id = p.id
-    LEFT JOIN convocatorias conv ON p.convocatoria_id = conv.id
-    WHERE g.id = ?
-");
-$stmt->execute([$grupo_id]);
-$data = $stmt->fetch(PDO::FETCH_ASSOC);
+try {
+    $stmt = $pdo->prepare("
+        SELECT 
+            g.numero_grupo, g.fecha_inicio, g.fecha_fin,
+            af.id as accion_id, af.num_accion, 
+            conv.codigo_expediente, 
+            af.abreviatura as curso_codigo, af.titulo as curso_titulo, af.duracion
+        FROM grupos g
+        JOIN acciones_formativas af ON g.accion_id = af.id
+        LEFT JOIN planes p ON af.plan_id = p.id
+        LEFT JOIN convocatorias conv ON p.convocatoria_id = conv.id
+        WHERE g.id = ?
+    ");
+    $stmt->execute([$grupo_id]);
+    $data = $stmt->fetch(PDO::FETCH_ASSOC);
+} catch (Exception $e) {
+    die("Database Error in word_planificacion_didactica.php (group info): " . $e->getMessage());
+}
 
 if (!$data) {
     die("Grupo no encontrado.");
@@ -42,6 +46,18 @@ $duracion = floatval($data['duracion'] ?? 0);
 $fechaInicio = $data['fecha_inicio'] ? date('d/m/Y', strtotime($data['fecha_inicio'])) : '';
 $fechaFin = $data['fecha_fin'] ? date('d/m/Y', strtotime($data['fecha_fin'])) : '';
 $fechas = $fechaInicio . ' - ' . $fechaFin;
+
+// Create table if not exists just in case
+$pdo->exec("
+CREATE TABLE IF NOT EXISTS unidades_didacticas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    accion_id INT NOT NULL,
+    numero_unidad INT NOT NULL,
+    titulo VARCHAR(255) NOT NULL,
+    horas DECIMAL(5,2) NOT NULL,
+    FOREIGN KEY (accion_id) REFERENCES acciones_formativas(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+");
 
 // Fetch units
 $stmt = $pdo->prepare("SELECT * FROM unidades_didacticas WHERE accion_id = ? ORDER BY numero_unidad ASC");
