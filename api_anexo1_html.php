@@ -17,6 +17,7 @@ if (!$accion_id) {
 $query = "
     SELECT 
         a.id, a.nombre, a.primer_apellido, a.segundo_apellido, a.dni, a.telefono, a.email,
+        a.fecha_nacimiento, a.sexo, a.domicilio, a.cp, a.localidad, a.provincia, a.estudios,
         g.numero_grupo, g.fecha_inicio, g.fecha_fin,
         af.num_accion, af.modalidad, af.abreviatura as curso_codigo, af.titulo as curso_titulo,
         conv.codigo_expediente
@@ -155,10 +156,23 @@ if (empty($alumnos)) {
     $nombre = mb_strtoupper($alumno['nombre'], 'UTF-8');
     $apellidos = mb_strtoupper($alumno['primer_apellido'] . ' ' . $alumno['segundo_apellido'], 'UTF-8');
     
-    // Checks vacíos (el cliente puede rellenarlos a mano si no están en DB)
-    $chkMujer = '&nbsp;';
-    $chkHombre = '&nbsp;';
+    $sexo = strtolower(trim($alumno['sexo'] ?? ''));
+    $chkMujer = ($sexo === 'mujer' || $sexo === 'f') ? 'X' : '&nbsp;';
+    $chkHombre = ($sexo === 'hombre' || $sexo === 'm') ? 'X' : '&nbsp;';
     
+    $fechaNac = $alumno['fecha_nacimiento'] ?? '';
+    if ($fechaNac && $fechaNac !== '0000-00-00') {
+        $fechaNac = date('d/m/Y', strtotime($fechaNac));
+    } else {
+        $fechaNac = '';
+    }
+    
+    $domicilio = mb_strtoupper(trim($alumno['domicilio'] ?? ''), 'UTF-8');
+    $cp = trim($alumno['cp'] ?? '');
+    $localidad = mb_strtoupper(trim($alumno['localidad'] ?? ''), 'UTF-8');
+    $provincia = mb_strtoupper(trim($alumno['provincia'] ?? ''), 'UTF-8');
+
+    // Situacion laboral not available in local schema currently, we keep empty
     $chkDesempleado = '&nbsp;';
     $chkOcupado = '&nbsp;';
 ?>
@@ -217,7 +231,7 @@ if (empty($alumnos)) {
     <table style="border:none; margin-bottom: 0;">
         <tr>
             <td style="border:none; width: 15%; padding-left:0;">Fecha de nacimiento</td>
-            <td style="border:none; width: 15%; padding-left:0;"><div class="input-box text-center"></div></td>
+            <td style="border:none; width: 15%; padding-left:0;"><div class="input-box text-center"><?= htmlspecialchars($fechaNac) ?></div></td>
             <td style="border:none; width: 20%;">
                 <div class="checkbox"><?= $chkMujer ?></div>Mujer 
                 <div class="checkbox"><?= $chkHombre ?></div>Hombre
@@ -234,7 +248,7 @@ if (empty($alumnos)) {
             <td style="border:none; width: 15%; padding-left:0;">Correo electrónico</td>
             <td style="border:none; width: 35%; padding-left:0;"><div class="input-box"><?= htmlspecialchars($alumno['email'] ?? '') ?></div></td>
             <td style="border:none; width: 10%;">Dirección</td>
-            <td style="border:none; width: 40%;"><div class="input-box"></div></td>
+            <td style="border:none; width: 40%;"><div class="input-box"><?= htmlspecialchars($domicilio) ?></div></td>
         </tr>
     </table>
 
@@ -245,11 +259,11 @@ if (empty($alumnos)) {
             <td style="border:none; width: 5%;">Piso</td>
             <td style="border:none; width: 10%;"><div class="input-box"></div></td>
             <td style="border:none; width: 5%;">CP</td>
-            <td style="border:none; width: 10%;"><div class="input-box"></div></td>
+            <td style="border:none; width: 10%;"><div class="input-box text-center"><?= htmlspecialchars($cp) ?></div></td>
             <td style="border:none; width: 10%;">Población</td>
-            <td style="border:none; width: 20%;"><div class="input-box"></div></td>
+            <td style="border:none; width: 20%;"><div class="input-box"><?= htmlspecialchars($localidad) ?></div></td>
             <td style="border:none; width: 10%;">Provincia</td>
-            <td style="border:none; width: 15%;"><div class="input-box"></div></td>
+            <td style="border:none; width: 15%;"><div class="input-box"><?= htmlspecialchars($provincia) ?></div></td>
         </tr>
     </table>
 
