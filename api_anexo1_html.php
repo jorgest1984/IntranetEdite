@@ -60,15 +60,15 @@ if (empty($alumnos)) {
         background: #fff;
     }
     .page {
-        padding: 40px;
         box-sizing: border-box;
-        page-break-after: always;
-        position: relative;
         background: #fff;
     }
+    .page-break {
+        page-break-after: always;
+    }
     /* Estilos base */
-    table { width: 100%; border-collapse: collapse; margin-bottom: 5px; }
-    td, th { border: 1px solid #000; padding: 2px 4px; vertical-align: middle; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 3px; }
+    td, th { border: 1px solid #000; padding: 1px 3px; vertical-align: middle; }
     
     .text-center { text-align: center; }
     .text-right { text-align: right; }
@@ -80,8 +80,8 @@ if (empty($alumnos)) {
         color: white;
         text-align: center;
         font-weight: bold;
-        font-size: 14px;
-        padding: 5px;
+        font-size: 13px;
+        padding: 4px;
         border: 1px solid #f14135;
     }
     .header-blue {
@@ -89,49 +89,49 @@ if (empty($alumnos)) {
         color: white;
         text-align: center;
         font-weight: bold;
-        font-size: 12px;
-        padding: 3px;
+        font-size: 11px;
+        padding: 2px;
         border: 1px solid #5b9bd5;
-        margin-top: 10px;
+        margin-top: 5px;
     }
     .header-orange {
         background-color: #ed7d31;
         color: white;
         text-align: center;
         font-weight: bold;
-        font-size: 12px;
-        padding: 3px;
+        font-size: 11px;
+        padding: 2px;
         border: 1px solid #ed7d31;
-        margin-top: 10px;
+        margin-top: 5px;
     }
 
-    .border-orange { border: 2px solid #ed7d31; padding: 5px; margin-top: 2px; }
+    .border-orange { border: 2px solid #ed7d31; padding: 3px; margin-top: 1px; }
     
     /* Checkboxes falsos */
     .checkbox {
         display: inline-block;
-        width: 10px;
-        height: 10px;
+        width: 9px;
+        height: 9px;
         border: 1px solid #000;
         text-align: center;
-        line-height: 10px;
-        font-size: 10px;
-        margin-right: 4px;
+        line-height: 9px;
+        font-size: 9px;
+        margin-right: 3px;
         vertical-align: middle;
         font-weight: bold;
     }
-    .check-label { margin-right: 15px; font-size: 9px; vertical-align: middle; }
+    .check-label { margin-right: 12px; font-size: 9px; vertical-align: middle; }
 
     /* Inputs simulados (fondos grises) */
     .input-box {
         background-color: #e7e6e6;
         border: 1px solid #000;
-        padding: 3px;
-        min-height: 14px;
-        font-size: 11px;
+        padding: 2px;
+        min-height: 12px;
+        font-size: 10px;
     }
 
-    .row { display: flex; width: 100%; margin-bottom: 5px; }
+    .row { display: flex; width: 100%; margin-bottom: 3px; }
     .col { flex: 1; padding: 0 2px; }
     
     .section-title { color: #2e74b5; font-weight: bold; margin-top: 5px; font-size: 11px; border-bottom: 1px solid #2e74b5; display: inline-block; width: 100%; }
@@ -359,6 +359,8 @@ if (empty($alumnos)) {
 
 </div> <!-- Fin Pagina 1 -->
 
+<div class="page-break"></div>
+
 <!-- PÁGINA 2: LOPD -->
 <div class="page">
     <div class="p2-title">Información sobre Protección de Datos</div>
@@ -403,5 +405,9 @@ if (empty($alumnos)) {
     <div class="p2-text">Puede consultar más información y la normativa aplicable en materia de protección de datos en la web de la Agencia Española de Protección de Datos https://www.aepd.es, así como en el siguiente enlace: www.comunidad.madrid/protecciondedatos.</div>
 
 </div> <!-- Fin Pagina 2 -->
+
+<?php if ($alumno !== end($alumnos)): ?>
+    <div class="page-break"></div>
+<?php endif; ?>
 
 <?php endforeach; ?>
