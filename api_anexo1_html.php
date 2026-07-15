@@ -47,6 +47,8 @@ try {
 
 if (empty($alumnos)) {
     die("<p>No se encontraron alumnos matriculados para generar el Anexo I.</p>");
+}
+?>
 <style>
     @page { margin: 0; size: A4 portrait; }
     body {
