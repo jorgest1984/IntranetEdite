@@ -539,7 +539,7 @@ function generateRecibiPDF() {
         return;
     }
     
-    window.location.href = `word_recibi_material.php?accion_id=${accionId}&alumno_id=${alumnoId}`;
+    window.location.href = `pdf_recibi_material.php?accion_id=${accionId}&alumno_id=${alumnoId}`;
     closeModal();
 }
 
