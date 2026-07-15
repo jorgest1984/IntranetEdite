@@ -192,6 +192,32 @@ if (empty($alumnos)) {
     // Situacion laboral not available in local schema currently, we keep empty
     $chkDesempleado = '&nbsp;';
     $chkOcupado = '&nbsp;';
+    
+    // Estudios mapping
+    $estudios = trim($alumno['estudios'] ?? '');
+    $chk_est_sin_titulacion = '&nbsp;';
+    $chk_est_eso = '&nbsp;';
+    $chk_est_bach = '&nbsp;';
+    $chk_est_fpm = '&nbsp;';
+    $chk_est_fps = '&nbsp;';
+    $chk_est_uni = '&nbsp;';
+    $chk_est_otro = '&nbsp;';
+
+    if ($estudios === 'Sin estudios' || $estudios === 'Primaria') {
+        $chk_est_sin_titulacion = 'X';
+    } elseif ($estudios === 'ESO/EGB') {
+        $chk_est_eso = 'X';
+    } elseif ($estudios === 'Bachillerato') {
+        $chk_est_bach = 'X';
+    } elseif ($estudios === 'FP Grado Medio') {
+        $chk_est_fpm = 'X';
+    } elseif ($estudios === 'FP Grado Superior') {
+        $chk_est_fps = 'X';
+    } elseif ($estudios === 'Universidad') {
+        $chk_est_uni = 'X'; 
+    } elseif ($estudios === 'Carnet Profesional' || $estudios !== '') {
+        $chk_est_otro = 'X';
+    }
 ?>
 <div class="student-wrapper">
 <!-- PÁGINA 1: FICHA -->
@@ -297,18 +323,18 @@ if (empty($alumnos)) {
     
     <div class="row" style="margin-top: 5px;">
         <div style="width: 50%;">
-            <div style="margin-bottom: 4px;"><div class="checkbox">&nbsp;</div><span class="check-label">Sin titulación</span></div>
-            <div style="margin-bottom: 4px;"><div class="checkbox">&nbsp;</div><span class="check-label">Graduado Escolar / ESO</span></div>
-            <div style="margin-bottom: 4px;"><div class="checkbox">&nbsp;</div><span class="check-label">Título de Bachiller / BUP / COU / Acc. mayores 25</span></div>
-            <div style="margin-bottom: 4px;"><div class="checkbox">&nbsp;</div><span class="check-label">Título de Técnico / FP Grado Medio</span></div>
-            <div style="margin-bottom: 4px;"><div class="checkbox">&nbsp;</div><span class="check-label">Título de Técnico Superior / FP Superior</span></div>
+            <div style="margin-bottom: 4px;"><div class="checkbox"><?= $chk_est_sin_titulacion ?></div><span class="check-label">Sin titulación</span></div>
+            <div style="margin-bottom: 4px;"><div class="checkbox"><?= $chk_est_eso ?></div><span class="check-label">Graduado Escolar / ESO</span></div>
+            <div style="margin-bottom: 4px;"><div class="checkbox"><?= $chk_est_bach ?></div><span class="check-label">Título de Bachiller / BUP / COU / Acc. mayores 25</span></div>
+            <div style="margin-bottom: 4px;"><div class="checkbox"><?= $chk_est_fpm ?></div><span class="check-label">Título de Técnico / FP Grado Medio</span></div>
+            <div style="margin-bottom: 4px;"><div class="checkbox"><?= $chk_est_fps ?></div><span class="check-label">Título de Técnico Superior / FP Superior</span></div>
         </div>
         <div style="width: 50%;">
-            <div style="margin-bottom: 4px;"><div class="checkbox">&nbsp;</div><span class="check-label">E. Universitarios 1er ciclo (Diplomatura/Grado)</span></div>
+            <div style="margin-bottom: 4px;"><div class="checkbox"><?= $chk_est_uni ?></div><span class="check-label">E. Universitarios 1er ciclo (Diplomatura/Grado)</span></div>
             <div style="margin-bottom: 4px;"><div class="checkbox">&nbsp;</div><span class="check-label">E. Universitarios 2º ciclo (Licenciatura/Master)</span></div>
             <div style="margin-bottom: 4px;"><div class="checkbox">&nbsp;</div><span class="check-label">E. Universitarios 3er ciclo (Doctor)</span></div>
             <div style="margin-bottom: 4px;"><div class="checkbox">&nbsp;</div><span class="check-label">Título de Doctorado</span></div>
-            <div style="margin-bottom: 4px;"><div class="checkbox">&nbsp;</div><span class="check-label">Otra titulación (especificar): ..............................</span></div>
+            <div style="margin-bottom: 4px;"><div class="checkbox"><?= $chk_est_otro ?></div><span class="check-label">Otra titulación (especificar): ..............................</span></div>
         </div>
     </div>
 
