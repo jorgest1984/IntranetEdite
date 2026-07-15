@@ -60,12 +60,11 @@ if (empty($alumnos)) {
         background: #fff;
     }
     .page {
-        width: 210mm;
-        height: 297mm;
-        padding: 15mm;
+        padding: 40px;
         box-sizing: border-box;
         page-break-after: always;
         position: relative;
+        background: #fff;
     }
     /* Estilos base */
     table { width: 100%; border-collapse: collapse; margin-bottom: 5px; }

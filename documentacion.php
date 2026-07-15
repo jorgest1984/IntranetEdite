@@ -636,13 +636,6 @@ function generateAnexo1PDF() {
         return response.text();
     })
     .then(htmlStr => {
-        // Create a temporary container
-        const container = document.createElement('div');
-        container.style.position = 'absolute';
-        container.style.left = '-9999px';
-        container.innerHTML = htmlStr;
-        document.body.appendChild(container);
-        
         let fname = alumnoId ? `Anexo1_Alumno_${alumnoId}.pdf` : `Anexo1_Todos.pdf`;
         
         // Configuración para html2pdf
@@ -654,14 +647,12 @@ function generateAnexo1PDF() {
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
         
-        // Generate PDF
-        html2pdf().set(opt).from(container).save().then(() => {
-            document.body.removeChild(container);
+        // Generate PDF directly from HTML string
+        html2pdf().set(opt).from(htmlStr).save().then(() => {
             btn.innerText = originalText;
             btn.disabled = false;
             closeModal();
         }).catch(e => {
-            document.body.removeChild(container);
             console.error(e);
             alert("Error al generar PDF.");
             btn.innerText = originalText;
