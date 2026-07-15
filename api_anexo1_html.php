@@ -42,7 +42,8 @@ try {
     $stmt->execute($params);
     $alumnos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
-    die("Error de base de datos.");
+    http_response_code(500);
+    die("Error de base de datos: " . $e->getMessage());
 }
 
 if (empty($alumnos)) {

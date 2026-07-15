@@ -632,7 +632,7 @@ function generateAnexo1PDF() {
 
     fetch(`api_anexo1_html.php?accion_id=${accionId}&alumno_id=${alumnoId}`)
     .then(response => {
-        if (!response.ok) throw new Error("Error en la red");
+        if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         return response.text();
     })
     .then(htmlStr => {
@@ -670,7 +670,7 @@ function generateAnexo1PDF() {
     })
     .catch(error => {
         console.error('Error fetching Anexo 1 HTML:', error);
-        alert("Ocurrió un error al generar el PDF.");
+        alert("Error: " + error.message);
         btn.innerText = originalText;
         btn.disabled = false;
     });
