@@ -48,12 +48,7 @@ $empresaNombre = $stmtConf->fetchColumn() ?: APP_NAME;
     <link rel="stylesheet" href="css/main.css">
     <!-- Incluir librería jsPDF para generación en cliente -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
-    <script>
-        if (typeof window.html2pdf === 'undefined') {
-            document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"><\/script>');
-        }
-    </script>
+    <script src="js/html2pdf.bundle.min.js"></script>
     <style>
         .filter-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .filter-form { display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; }
