@@ -528,82 +528,18 @@ function goToDidactica() {
 }
 
 function generateRecibiPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
+    let selectAccion = document.getElementById('accionSelect');
+    let selectAlumno = document.getElementById('alumnoSelect');
     
-    let select = document.getElementById('alumnoSelect');
+    let accionId = selectAccion.value;
+    let alumnoId = selectAlumno.value;
     
-    let alumnoId = select.value;
-    let alumnosProcesar = [];
-    
-    let state = loadedData.recibi;
-    
-    if (!state.context) {
-        alert("Por favor, selecciona una convocatoria, plan y acción formativa válida.");
+    if (!accionId) {
+        alert("Por favor, selecciona una acción formativa válida.");
         return;
     }
     
-    if (alumnoId === "") {
-        // Todos
-        alumnosProcesar = state.alumnos;
-    } else {
-        // Individual
-        let dObj = state.alumnos.find(a => a.id == alumnoId);
-        if(dObj) alumnosProcesar.push(dObj);
-    }
-    
-    if(alumnosProcesar.length === 0) {
-        alert("No hay alumnos seleccionados o matriculados para generar el recibí.");
-        return;
-    }
-
-    // Iterar páginas
-    alumnosProcesar.forEach((alumno, index) => {
-        if (index > 0) doc.addPage();
-        
-        let nomAlumno = alumno.nombre + " " + (alumno.primer_apellido || "") + " " + (alumno.segundo_apellido || "");
-        let dniAlumno = alumno.dni;
-        
-        // Estilos
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(18);
-        doc.text("DOCUMENTO DE RECIBÍ DE MATERIAL", 105, 30, {align: "center"});
-        
-        // Línea separadora
-        doc.setLineWidth(0.5);
-        doc.line(20, 35, 190, 35);
-        
-        doc.setFontSize(12);
-        doc.setFont("helvetica", "normal");
-        
-        // Empresa y Curso
-        doc.text(`ENTIDAD DE FORMACIÓN: ${empresaGlobal}`, 20, 55);
-        doc.text(`EXPEDIENTE / CONVOCATORIA: ${state.context.conv_codigo}`, 20, 65);
-        doc.text(`ACCIÓN FORMATIVA: ${state.context.af_titulo} (#${state.context.af_num || ''})`, 20, 75);
-        doc.text(`D./Dña.: ${nomAlumno}`, 20, 85);
-        doc.text(`CON DNI/NIE: ${dniAlumno}`, 20, 95);
-        
-        // Cuerpo del Recibí
-        let textBody = `Mediante el presente documento, el alumno declara haber recibido en la fecha abajo indicada, de forma totalmente gratuita, el material didáctico necesario para el desarrollo de la acción formativa.`;
-        let splitText = doc.splitTextToSize(textBody, 170);
-        doc.text(splitText, 20, 115);
-        
-        let textEnd = "Mencionando firmar el presente documento asumiendo la responsabilidad sobre el uso y cuidado del material entregado durante la duración de la formación.";
-        let splitEnd = doc.splitTextToSize(textEnd, 170);
-        doc.text(splitEnd, 20, 135);
-        
-        // Firmas (Espacio)
-        doc.text(`A ....................., a ...... de ...................... de 20....`, 20, 170);
-        
-        doc.setFont("helvetica", "bold");
-        doc.text("FIRMA DEL ALUMNO/A:", 40, 190);
-        doc.setFont("helvetica", "normal");
-        doc.text("(Firma)", 55, 220);
-    });
-    
-    let filename = alumnoId === "" ? `Recibos_Material_${state.context.conv_codigo}.pdf` : `Recibi_${select.options[select.selectedIndex].getAttribute('data-dni')}.pdf`;
-    
-    doc.save(filename);
+    window.location.href = `word_recibi_material.php?accion_id=${accionId}&alumno_id=${alumnoId}`;
     closeModal();
 }
 
