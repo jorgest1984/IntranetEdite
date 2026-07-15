@@ -638,27 +638,58 @@ function generateAnexo1PDF() {
     .then(htmlStr => {
         let fname = alumnoId ? `Anexo1_Alumno_${alumnoId}.pdf` : `Anexo1_Todos.pdf`;
         
-        // Configuración para html2pdf
-        const opt = {
-            margin:       10, // mm
-            filename:     fname,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true, logging: false },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            pagebreak:    { mode: 'css' }
-        };
+        // Creamos un contenedor oculto para que html2canvas pueda renderizar
+        const container = document.createElement('div');
+        container.style.position = 'absolute';
+        container.style.top = '0';
+        container.style.left = '0';
+        container.style.width = '800px';
+        container.style.zIndex = '-9999';
+        container.innerHTML = htmlStr;
+        document.body.appendChild(container);
         
-        // Generate PDF directly from HTML string
-        html2pdf().set(opt).from(htmlStr).save().then(() => {
+        const students = container.querySelectorAll('.student-wrapper');
+        
+        if (students.length > 0) {
+            // Configuración base de html2pdf
+            const opt = {
+                margin:       10, // mm
+                filename:     fname,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, logging: false },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: 'css' }
+            };
+            
+            // Iniciamos la generación con el primer estudiante
+            let worker = html2pdf().set(opt).from(students[0]).toPdf();
+            
+            // Añadimos el resto de estudiantes encadenando páginas
+            for (let i = 1; i < students.length; i++) {
+                worker = worker.get('pdf').then(pdf => {
+                    pdf.addPage();
+                }).from(students[i]).toContainer().toCanvas().toPdf();
+            }
+            
+            // Finalmente guardamos el documento
+            worker.save().then(() => {
+                document.body.removeChild(container);
+                btn.innerText = originalText;
+                btn.disabled = false;
+                closeModal();
+            }).catch(e => {
+                console.error(e);
+                alert("Error al generar PDF: " + e.message);
+                document.body.removeChild(container);
+                btn.innerText = originalText;
+                btn.disabled = false;
+            });
+        } else {
+            alert("No hay alumnos para generar.");
+            document.body.removeChild(container);
             btn.innerText = originalText;
             btn.disabled = false;
-            closeModal();
-        }).catch(e => {
-            console.error(e);
-            alert("Error al generar PDF.");
-            btn.innerText = originalText;
-            btn.disabled = false;
-        });
+        }
     })
     .catch(error => {
         console.error('Error fetching Anexo 1 HTML:', error);

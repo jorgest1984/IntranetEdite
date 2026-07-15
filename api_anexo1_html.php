@@ -193,6 +193,7 @@ if (empty($alumnos)) {
     $chkDesempleado = '&nbsp;';
     $chkOcupado = '&nbsp;';
 ?>
+<div class="student-wrapper">
 <!-- PÁGINA 1: FICHA -->
 <div class="page">
     
@@ -443,9 +444,6 @@ if (empty($alumnos)) {
     <div class="p2-text">Puede consultar más información y la normativa aplicable en materia de protección de datos en la web de la Agencia Española de Protección de Datos https://www.aepd.es, así como en el siguiente enlace: www.comunidad.madrid/protecciondedatos.</div>
 
 </div> <!-- Fin Pagina 2 -->
-
-<?php if ($alumno !== end($alumnos)): ?>
-    <div class="page-break"></div>
-<?php endif; ?>
+</div> <!-- Fin student-wrapper -->
 
 <?php endforeach; ?>
