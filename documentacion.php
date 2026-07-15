@@ -141,6 +141,14 @@ $empresaNombre = $stmtConf->fetchColumn() ?: APP_NAME;
                     <button class="btn btn-primary" onclick="openDocModal('informe')">Generar PDF</button>
                 </div>
 
+                <!-- Informe de Tutorías -->
+                <div class="doc-card">
+                    <svg class="doc-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM5 19V5h14v14H5zm12-12H7v2h10V7zm0 4H7v2h10v-2zm0 4H7v2h10v-2z"/></svg>
+                    <div class="doc-title">Informe de Tutorías</div>
+                    <div class="doc-desc">Exportación en Excel con el registro cronológico del seguimiento de tutorías del grupo.</div>
+                    <button class="btn btn-primary" onclick="openDocModal('tutorias')">Generar Excel</button>
+                </div>
+
                 <!-- Diploma Provisional -->
                 <div class="doc-card" style="opacity: 0.6;">
                     <svg class="doc-icon" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
@@ -338,6 +346,51 @@ $empresaNombre = $stmtConf->fetchColumn() ?: APP_NAME;
     </div>
 </div>
 
+<!-- Modal Selección Informe Tutorías -->
+<div id="tutoriasModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Generar Informe de Tutorías</h2>
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+        </div>
+        
+        <div style="margin-bottom: 1rem;">
+            <!-- Convocatoria Selector -->
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Convocatoria *</label>
+            <select id="convocatoriaSelectTutorias" class="form-input" style="width: 100%; margin-bottom: 1rem;" onchange="loadPlanes('tutorias', this.value)">
+                <option value="">-- Selecciona Convocatoria --</option>
+                <?php foreach ($convocatorias as $c): ?>
+                    <option value="<?= $c['id'] ?>" <?= $convocatoria_id == $c['id'] ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($c['codigo_expediente']) ?> - <?= htmlspecialchars($c['nombre']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+
+            <!-- Plan Selector -->
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Plan *</label>
+            <select id="planSelectTutorias" class="form-input" style="width: 100%; margin-bottom: 1rem;" disabled onchange="loadAcciones('tutorias', this.value)">
+                <option value="">-- Primero elige Convocatoria --</option>
+            </select>
+
+            <!-- Acción Formativa Selector -->
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Acción Formativa *</label>
+            <select id="accionSelectTutorias" class="form-input" style="width: 100%; margin-bottom: 1rem;" disabled onchange="loadGrupos('tutorias', this.value)">
+                <option value="">-- Primero elige Plan --</option>
+            </select>
+
+            <!-- Grupo Selector -->
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Grupo *</label>
+            <select id="grupoSelectTutorias" class="form-input" style="width: 100%;" disabled>
+                <option value="">-- Primero elige Acción Formativa --</option>
+            </select>
+        </div>
+        
+        <button class="btn btn-primary" style="width: 100%; justify-content:center; margin-top: 1rem;" onclick="generateTutoriasExcel()">
+            Descargar Excel
+        </button>
+    </div>
+</div>
+
 <script>
 // Parse PHP Data to JS
 const empresaGlobal = <?= json_encode($empresaNombre) ?>;
@@ -361,21 +414,25 @@ const loadedData = {
     informe: {
         grupos: [],
         context: null
+    },
+    tutorias: {
+        grupos: [],
+        context: null
     }
 };
 
 function openDocModal(type) {
     document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
     
-    let modalId = type === 'recibi' ? 'docModal' : (type === 'didactica' ? 'didacticaModal' : (type === 'informe' ? 'informeModal' : 'anexoModal'));
+    let modalId = type === 'recibi' ? 'docModal' : (type === 'didactica' ? 'didacticaModal' : (type === 'informe' ? 'informeModal' : (type === 'tutorias' ? 'tutoriasModal' : 'anexoModal')));
     let modal = document.getElementById(modalId);
     if (!modal) return;
     
     modal.classList.add('active');
     
     // Auto-load cascade if Convocatoria is pre-selected on main page
-    let convSelectId = 'convocatoriaSelect' + (type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : 'Anexo')));
-    let planSelectId = 'planSelect' + (type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : 'Anexo')));
+    let convSelectId = 'convocatoriaSelect' + (type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : 'Anexo'))));
+    let planSelectId = 'planSelect' + (type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : 'Anexo'))));
     
     let convSelect = document.getElementById(convSelectId);
     if (convSelect && convSelect.value) {
@@ -397,11 +454,11 @@ window.onclick = function(event) {
 }
 
 function loadPlanes(type, convocatoriaId) {
-    let suffix = type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : 'Anexo'));
+    let suffix = type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : 'Anexo')));
     const planSelect = document.getElementById('planSelect' + suffix);
     const accionSelect = document.getElementById('accionSelect' + suffix);
-    const alumnoSelect = document.getElementById('alumnoSelect' + suffix); // null if didactica/informe
-    const grupoSelect = document.getElementById('grupoSelect' + suffix); // null if not didactica/informe
+    const alumnoSelect = document.getElementById('alumnoSelect' + suffix); // null if didactica/informe/tutorias
+    const grupoSelect = document.getElementById('grupoSelect' + suffix); // null if not didactica/informe/tutorias
     
     // Reset options
     planSelect.innerHTML = '<option value="">-- Selecciona Plan --</option>';
@@ -697,6 +754,21 @@ function generateAnexo1PDF() {
         btn.innerText = originalText;
         btn.disabled = false;
     });
+}
+
+// Generate Tutorías Excel Export
+function generateTutoriasExcel() {
+    let accionId = document.getElementById('accionSelectTutorias').value;
+    let grupoId = document.getElementById('grupoSelectTutorias').value;
+
+    if (!accionId || !grupoId) {
+        alert("Por favor selecciona Acción Formativa y Grupo.");
+        return;
+    }
+
+    // Redirect to the excel generation endpoint
+    window.location.href = `excel_informe_tutorias.php?accion_id=${accionId}&grupo_id=${grupoId}`;
+    closeModal();
 }
 </script>
 </body>
