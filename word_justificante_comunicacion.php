@@ -63,6 +63,17 @@ echo "<style>
 echo "</head>";
 echo "<body>";
 
+echo "<table style='width: 100%; border: none; margin-bottom: 30px;'>";
+echo "<tr>";
+echo "<td style='text-align: left; vertical-align: middle; width: 50%; border: none;'>";
+echo "<img src='https://gestion.grupoefp.es/img/logo_ministerio.png' height='60' alt='Ministerio SEPE'>";
+echo "</td>";
+echo "<td style='text-align: right; vertical-align: middle; width: 50%; border: none;'>";
+echo "<img src='https://gestion.grupoefp.es/img/logo_fundae.png' height='60' alt='Fundae'>";
+echo "</td>";
+echo "</tr>";
+echo "</table>";
+
 echo "<h1>JUSTIFICANTE DE COMUNICACIÓN CON LA ADMINISTRACIÓN SOBRE LA PRESELECCIÓN DE ALUMNOS DESEMPLEADOS PARA LA ACCIÓN</h1>";
 
 echo "<table class='info-table'>";
