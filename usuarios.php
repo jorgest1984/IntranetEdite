@@ -24,6 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             $password = $_POST['password'];
             $nombre = trim($_POST['nombre']);
             $apellidos = trim($_POST['apellidos']);
+            $dni = trim($_POST['dni']);
             $email = trim($_POST['email']);
             $rol_id = intval($_POST['rol_id']);
             
@@ -37,8 +38,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                 } else {
                     try {
                         $password_hash = password_hash($password, PASSWORD_BCRYPT);
-                        $stmt = $pdo->prepare("INSERT INTO usuarios (username, password_hash, nombre, apellidos, email, rol_id) VALUES (?, ?, ?, ?, ?, ?)");
-                        $stmt->execute([$username, $password_hash, $nombre, $apellidos, $email, $rol_id]);
+                        $stmt = $pdo->prepare("INSERT INTO usuarios (username, password_hash, nombre, apellidos, dni, email, rol_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                        $stmt->execute([$username, $password_hash, $nombre, $apellidos, $dni, $email, $rol_id]);
                         
                         audit_log($pdo, 'USUARIO_CREADO', 'usuarios', $pdo->lastInsertId(), null, ['username' => $username, 'rol' => $rol_id]);
                         $success = "Usuario '$username' creado correctamente.";
@@ -1013,6 +1014,11 @@ try {
                         <label>Apellidos</label>
                         <input type="text" name="apellidos">
                     </div>
+                </div>
+                
+                <div class="premium-field">
+                    <label>DNI / NIF</label>
+                    <input type="text" name="dni" placeholder="12345678Z">
                 </div>
                 
                 <div class="premium-field">
