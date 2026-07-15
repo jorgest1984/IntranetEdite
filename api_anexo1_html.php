@@ -144,7 +144,14 @@ if (empty($alumnos)) {
 </style>
 <?php foreach($alumnos as $alumno): 
     $cursoTitulo = strtoupper($alumno['curso_codigo'] ?? '') . ' - ' . mb_strtoupper($alumno['curso_titulo'] ?? '', 'UTF-8');
-    $nif = $alumno['dni'] ?? '';
+    $nif_full = trim($alumno['dni'] ?? '');
+    $nif_letter = '';
+    $nif_numbers = $nif_full;
+    if (preg_match('/([a-zA-Z])$/', $nif_full, $matches)) {
+        $nif_letter = strtoupper($matches[1]);
+        $nif_numbers = substr($nif_full, 0, -1);
+    }
+    
     $nombre = mb_strtoupper($alumno['nombre'], 'UTF-8');
     $apellidos = mb_strtoupper($alumno['primer_apellido'] . ' ' . $alumno['segundo_apellido'], 'UTF-8');
     
@@ -190,9 +197,9 @@ if (empty($alumnos)) {
         </div>
         <div style="width: 50%; display: flex; justify-content: flex-end; align-items: center;">
             <span style="margin-right: 5px;">Nº</span>
-            <div class="input-box text-center bold" style="width: 120px; margin-right: 5px;"><?= htmlspecialchars($nif) ?></div>
+            <div class="input-box text-center bold" style="width: 120px; margin-right: 5px;"><?= htmlspecialchars($nif_numbers) ?></div>
             <span style="margin-right: 5px;">Letra</span>
-            <div class="input-box text-center bold" style="width: 30px; margin-right: 5px;"></div>
+            <div class="input-box text-center bold" style="width: 30px; margin-right: 5px;"><?= htmlspecialchars($nif_letter) ?></div>
             <span style="margin-right: 5px;">Nacionalidad</span>
             <div class="input-box text-center bold" style="width: 80px;">ESPAÑOLA</div>
         </div>
