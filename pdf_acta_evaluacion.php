@@ -21,7 +21,7 @@ if (!$grupo_id || !$accion_id) {
 
 // 1. Obtener datos de cabecera
 $stmt = $pdo->prepare("SELECT g.*, af.num_accion, af.titulo as curso_titulo, 
-                              c.codigo_expediente, u.nombre as tutor_nombre, u.apellidos as tutor_apellidos, u.dni as tutor_dni
+                              c.codigo_expediente, u.nombre as tutor_nombre, u.apellidos as tutor_apellidos
                        FROM grupos g
                        JOIN acciones_formativas af ON g.accion_id = af.id
                        LEFT JOIN planes p ON af.plan_id = p.id
@@ -184,8 +184,7 @@ $pdf->SetX(105);
 $tutor_nombre = pdf_utf8_to_iso(trim($grupo['tutor_nombre'] . ' ' . $grupo['tutor_apellidos']));
 if (empty(trim($tutor_nombre))) $tutor_nombre = '______________________________';
 
-$tutor_dni = pdf_utf8_to_iso(trim($grupo['tutor_dni']));
-if (empty(trim($tutor_dni))) $tutor_dni = '_________________';
+$tutor_dni = '_________________';
 
 $pdf->Cell(95, 6, $tutor_nombre, 0, 1, 'L');
 $pdf->SetX(105);
