@@ -132,6 +132,14 @@ $empresaNombre = $stmtConf->fetchColumn() ?: APP_NAME;
                     <button class="btn btn-primary" onclick="openDocModal('didactica')">Acceder</button>
                 </div>
 
+                <!-- Informe de Grupo -->
+                <div class="doc-card">
+                    <svg class="doc-icon" viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+                    <div class="doc-title">Informe de Grupo</div>
+                    <div class="doc-desc">Informe de seguimiento de evaluaciones y estado de los alumnos en Moodle.</div>
+                    <button class="btn btn-primary" onclick="openDocModal('informe')">Generar PDF</button>
+                </div>
+
                 <!-- Diploma Provisional -->
                 <div class="doc-card" style="opacity: 0.6;">
                     <svg class="doc-icon" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
@@ -284,6 +292,51 @@ $empresaNombre = $stmtConf->fetchColumn() ?: APP_NAME;
     </div>
 </div>
 
+<!-- Modal Selección Informe Grupo -->
+<div id="informeModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Generar Informe de Grupo</h2>
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+        </div>
+        
+        <div style="margin-bottom: 1rem;">
+            <!-- Convocatoria Selector -->
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Convocatoria *</label>
+            <select id="convocatoriaSelectInforme" class="form-input" style="width: 100%; margin-bottom: 1rem;" onchange="loadPlanes('informe', this.value)">
+                <option value="">-- Selecciona Convocatoria --</option>
+                <?php foreach ($convocatorias as $c): ?>
+                    <option value="<?= $c['id'] ?>" <?= $convocatoria_id == $c['id'] ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($c['codigo_expediente']) ?> - <?= htmlspecialchars($c['nombre']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+
+            <!-- Plan Selector -->
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Plan *</label>
+            <select id="planSelectInforme" class="form-input" style="width: 100%; margin-bottom: 1rem;" disabled onchange="loadAcciones('informe', this.value)">
+                <option value="">-- Primero elige Convocatoria --</option>
+            </select>
+
+            <!-- Acción Formativa Selector -->
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Acción Formativa *</label>
+            <select id="accionSelectInforme" class="form-input" style="width: 100%; margin-bottom: 1rem;" disabled onchange="loadGrupos('informe', this.value)">
+                <option value="">-- Primero elige Plan --</option>
+            </select>
+
+            <!-- Grupo Selector -->
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Grupo *</label>
+            <select id="grupoSelectInforme" class="form-input" style="width: 100%;" disabled>
+                <option value="">-- Primero elige Acción Formativa --</option>
+            </select>
+        </div>
+        
+        <button class="btn btn-primary" style="width: 100%; justify-content:center; margin-top: 1rem;" onclick="generateInformeGrupoPDF()">
+            Descargar PDF
+        </button>
+    </div>
+</div>
+
 <script>
 // Parse PHP Data to JS
 const empresaGlobal = <?= json_encode($empresaNombre) ?>;
@@ -303,21 +356,25 @@ const loadedData = {
     didactica: {
         grupos: [],
         context: null
+    },
+    informe: {
+        grupos: [],
+        context: null
     }
 };
 
 function openDocModal(type) {
     document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
     
-    let modalId = type === 'recibi' ? 'docModal' : (type === 'didactica' ? 'didacticaModal' : 'anexoModal');
+    let modalId = type === 'recibi' ? 'docModal' : (type === 'didactica' ? 'didacticaModal' : (type === 'informe' ? 'informeModal' : 'anexoModal'));
     let modal = document.getElementById(modalId);
     if (!modal) return;
     
     modal.classList.add('active');
     
     // Auto-load cascade if Convocatoria is pre-selected on main page
-    let convSelectId = 'convocatoriaSelect' + (type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : 'Anexo'));
-    let planSelectId = 'planSelect' + (type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : 'Anexo'));
+    let convSelectId = 'convocatoriaSelect' + (type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : 'Anexo')));
+    let planSelectId = 'planSelect' + (type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : 'Anexo')));
     
     let convSelect = document.getElementById(convSelectId);
     if (convSelect && convSelect.value) {
@@ -339,11 +396,11 @@ window.onclick = function(event) {
 }
 
 function loadPlanes(type, convocatoriaId) {
-    let suffix = type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : 'Anexo');
+    let suffix = type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : 'Anexo'));
     const planSelect = document.getElementById('planSelect' + suffix);
     const accionSelect = document.getElementById('accionSelect' + suffix);
-    const alumnoSelect = document.getElementById('alumnoSelect' + suffix); // null if didactica
-    const grupoSelect = document.getElementById('grupoSelect' + suffix); // null if not didactica
+    const alumnoSelect = document.getElementById('alumnoSelect' + suffix); // null if didactica/informe
+    const grupoSelect = document.getElementById('grupoSelect' + suffix); // null if not didactica/informe
     
     // Reset options
     planSelect.innerHTML = '<option value="">-- Selecciona Plan --</option>';
@@ -389,9 +446,9 @@ function loadPlanes(type, convocatoriaId) {
 }
 
 function loadAcciones(type, planId) {
-    let suffix = type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : 'Anexo');
+    let suffix = type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : 'Anexo'));
     const accionSelect = document.getElementById('accionSelect' + suffix);
-    const alumnoSelect = document.getElementById('alumnoSelect' + suffix); // null if didactica
+    const alumnoSelect = document.getElementById('alumnoSelect' + suffix);
     const grupoSelect = document.getElementById('grupoSelect' + suffix); // null if not didactica
     
     accionSelect.innerHTML = '<option value="">-- Selecciona Acción Formativa --</option>';
@@ -487,7 +544,7 @@ function loadAlumnos(type, accionId) {
 }
 
 function loadGrupos(type, accionId) {
-    let suffix = type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : 'Anexo');
+    let suffix = type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : 'Anexo'));
     const grupoSelect = document.getElementById('grupoSelect' + suffix);
     
     grupoSelect.innerHTML = '<option value="">-- Selecciona Grupo --</option>';
@@ -519,12 +576,24 @@ function loadGrupos(type, accionId) {
 }
 
 function goToDidactica() {
-    const grupoId = document.getElementById('grupoSelectDidactica').value;
+    let grupoSelect = document.getElementById('grupoSelectDidactica');
+    let grupoId = grupoSelect.value;
     if (!grupoId) {
         alert("Por favor, selecciona un grupo.");
         return;
     }
     window.location.href = `documentacion_didactica.php?grupo_id=${grupoId}`;
+}
+
+function generateInformeGrupoPDF() {
+    let grupoSelect = document.getElementById('grupoSelectInforme');
+    let grupoId = grupoSelect.value;
+    if (!grupoId) {
+        alert("Por favor, selecciona un grupo.");
+        return;
+    }
+    window.location.href = `pdf_informe_evaluaciones.php?grupo_id=${grupoId}`;
+    closeModal();
 }
 
 function generateRecibiPDF() {

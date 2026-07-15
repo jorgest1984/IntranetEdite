@@ -14,10 +14,9 @@ if (!$grupo_id) {
 }
 
 // 1. Obtener datos del grupo y su curso
-$stmt = $pdo->prepare("SELECT g.*, af.num_accion, c.nombre_largo as curso_titulo
+$stmt = $pdo->prepare("SELECT g.*, af.num_accion, af.titulo as curso_titulo
                        FROM grupos g
                        JOIN acciones_formativas af ON g.accion_id = af.id
-                       JOIN cursos c ON af.curso_id = c.id
                        WHERE g.id = ?");
 $stmt->execute([$grupo_id]);
 $grupo = $stmt->fetch();
