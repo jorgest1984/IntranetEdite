@@ -638,22 +638,34 @@ function generateAnexo1PDF() {
     .then(htmlStr => {
         // Create a temporary container
         const container = document.createElement('div');
+        container.style.position = 'absolute';
+        container.style.left = '-9999px';
         container.innerHTML = htmlStr;
+        document.body.appendChild(container);
+        
+        let fname = alumnoId ? `Anexo1_Alumno_${alumnoId}.pdf` : `Anexo1_Todos.pdf`;
         
         // Configuración para html2pdf
         const opt = {
             margin:       0,
-            filename:     alumnoId ? `Anexo1_Alumno_${alumnoId}.pdf` : `Anexo1_Todos_${accionId}.pdf`,
+            filename:     fname,
             image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true },
+            html2canvas:  { scale: 2, useCORS: true, logging: false },
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
         
         // Generate PDF
         html2pdf().set(opt).from(container).save().then(() => {
+            document.body.removeChild(container);
             btn.innerText = originalText;
             btn.disabled = false;
             closeModal();
+        }).catch(e => {
+            document.body.removeChild(container);
+            console.error(e);
+            alert("Error al generar PDF.");
+            btn.innerText = originalText;
+            btn.disabled = false;
         });
     })
     .catch(error => {

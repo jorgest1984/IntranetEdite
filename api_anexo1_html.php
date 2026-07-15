@@ -16,7 +16,7 @@ if (!$accion_id) {
 
 $query = "
     SELECT 
-        a.id, a.nombre, a.primer_apellido, a.segundo_apellido, a.dni, a.telefono, a.email, a.situacion_laboral, a.nivel_estudios, a.sexo,
+        a.id, a.nombre, a.primer_apellido, a.segundo_apellido, a.dni, a.telefono, a.email,
         g.numero_grupo, g.fecha_inicio, g.fecha_fin,
         af.num_accion, af.modalidad, af.abreviatura as curso_codigo, af.titulo as curso_titulo,
         conv.codigo_expediente
@@ -47,12 +47,6 @@ try {
 
 if (empty($alumnos)) {
     die("<p>No se encontraron alumnos matriculados para generar el Anexo I.</p>");
-}
-?>
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
 <style>
     @page { margin: 0; size: A4 portrait; }
     body {
@@ -146,21 +140,18 @@ if (empty($alumnos)) {
     .p2-text { font-size: 9px; margin-bottom: 5px; text-align: justify; }
 
 </style>
-</head>
-<body>
 <?php foreach($alumnos as $alumno): 
     $cursoTitulo = strtoupper($alumno['curso_codigo'] ?? '') . ' - ' . mb_strtoupper($alumno['curso_titulo'] ?? '', 'UTF-8');
     $nif = $alumno['dni'] ?? '';
     $nombre = mb_strtoupper($alumno['nombre'], 'UTF-8');
     $apellidos = mb_strtoupper($alumno['primer_apellido'] . ' ' . $alumno['segundo_apellido'], 'UTF-8');
     
-    // Checks (simplificados basados en variables de la DB si existieran)
-    $chkMujer = ($alumno['sexo'] === 'Mujer' || $alumno['sexo'] === 'F') ? 'X' : '&nbsp;';
-    $chkHombre = ($alumno['sexo'] === 'Hombre' || $alumno['sexo'] === 'M') ? 'X' : '&nbsp;';
+    // Checks vacíos (el cliente puede rellenarlos a mano si no están en DB)
+    $chkMujer = '&nbsp;';
+    $chkHombre = '&nbsp;';
     
-    $isOcupado = (stripos($alumno['situacion_laboral'], 'ocupado') !== false || stripos($alumno['situacion_laboral'], 'ajena') !== false);
-    $chkDesempleado = !$isOcupado ? 'X' : '&nbsp;';
-    $chkOcupado = $isOcupado ? 'X' : '&nbsp;';
+    $chkDesempleado = '&nbsp;';
+    $chkOcupado = '&nbsp;';
 ?>
 <!-- PÁGINA 1: FICHA -->
 <div class="page">
@@ -412,5 +403,3 @@ if (empty($alumnos)) {
 </div> <!-- Fin Pagina 2 -->
 
 <?php endforeach; ?>
-</body>
-</html>
