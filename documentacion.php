@@ -158,11 +158,11 @@ $empresaNombre = $stmtConf->fetchColumn() ?: APP_NAME;
                 </div>
 
                 <!-- Diploma Provisional -->
-                <div class="doc-card" style="opacity: 0.6;">
+                <div class="doc-card">
                     <svg class="doc-icon" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
                     <div class="doc-title">Diploma / Certificado</div>
-                    <div class="doc-desc">Certificado de aprovechamiento con las horas y fechas de la convocatoria.</div>
-                    <button class="btn" disabled>Próximamente</button>
+                    <div class="doc-desc">Certificado de asistencia o Diploma de aprovechamiento por alumno.</div>
+                    <button class="btn btn-primary" onclick="openDocModal('diploma')">Ver Alumnos</button>
                 </div>
 
             </div>
@@ -444,6 +444,51 @@ $empresaNombre = $stmtConf->fetchColumn() ?: APP_NAME;
     </div>
 </div>
 
+<!-- Modal Selección Diploma / Certificado -->
+<div id="diplomaModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Generar Diplomas y Certificados</h2>
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+        </div>
+        
+        <div style="margin-bottom: 1rem;">
+            <!-- Convocatoria Selector -->
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Convocatoria *</label>
+            <select id="convocatoriaSelectDiploma" class="form-input" style="width: 100%; margin-bottom: 1rem;" onchange="loadPlanes('diploma', this.value)">
+                <option value="">-- Selecciona Convocatoria --</option>
+                <?php foreach ($convocatorias as $c): ?>
+                    <option value="<?= $c['id'] ?>" <?= $convocatoria_id == $c['id'] ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($c['codigo_expediente']) ?> - <?= htmlspecialchars($c['nombre']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+
+            <!-- Plan Selector -->
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Plan *</label>
+            <select id="planSelectDiploma" class="form-input" style="width: 100%; margin-bottom: 1rem;" disabled onchange="loadAcciones('diploma', this.value)">
+                <option value="">-- Primero elige Convocatoria --</option>
+            </select>
+
+            <!-- Acción Formativa Selector -->
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Acción Formativa *</label>
+            <select id="accionSelectDiploma" class="form-input" style="width: 100%; margin-bottom: 1rem;" disabled onchange="loadGrupos('diploma', this.value)">
+                <option value="">-- Primero elige Plan --</option>
+            </select>
+
+            <!-- Grupo Selector -->
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Grupo *</label>
+            <select id="grupoSelectDiploma" class="form-input" style="width: 100%;" disabled>
+                <option value="">-- Primero elige Acción Formativa --</option>
+            </select>
+        </div>
+        
+        <button class="btn btn-primary" style="width: 100%; justify-content:center; margin-top: 1rem;" onclick="openDiplomasList()">
+            Ver Lista de Alumnos
+        </button>
+    </div>
+</div>
+
 <script>
 // Parse PHP Data to JS
 const empresaGlobal = <?= json_encode($empresaNombre) ?>;
@@ -475,21 +520,25 @@ const loadedData = {
     acta: {
         grupos: [],
         context: null
+    },
+    diploma: {
+        grupos: [],
+        context: null
     }
 };
 
 function openDocModal(type) {
     document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
     
-    let modalId = type === 'recibi' ? 'docModal' : (type === 'didactica' ? 'didacticaModal' : (type === 'informe' ? 'informeModal' : (type === 'tutorias' ? 'tutoriasModal' : (type === 'acta' ? 'actaModal' : 'anexoModal'))));
+    let modalId = type === 'recibi' ? 'docModal' : (type === 'didactica' ? 'didacticaModal' : (type === 'informe' ? 'informeModal' : (type === 'tutorias' ? 'tutoriasModal' : (type === 'acta' ? 'actaModal' : (type === 'diploma' ? 'diplomaModal' : 'anexoModal')))));
     let modal = document.getElementById(modalId);
     if (!modal) return;
     
     modal.classList.add('active');
     
     // Auto-load cascade if Convocatoria is pre-selected on main page
-    let convSelectId = 'convocatoriaSelect' + (type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : 'Anexo')))));
-    let planSelectId = 'planSelect' + (type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : 'Anexo')))));
+    let convSelectId = 'convocatoriaSelect' + (type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'diploma' ? 'Diploma' : 'Anexo'))))));
+    let planSelectId = 'planSelect' + (type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'diploma' ? 'Diploma' : 'Anexo'))))));
     
     let convSelect = document.getElementById(convSelectId);
     if (convSelect && convSelect.value) {
@@ -511,11 +560,11 @@ window.onclick = function(event) {
 }
 
 function loadPlanes(type, convocatoriaId) {
-    let suffix = type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : 'Anexo'))));
+    let suffix = type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'diploma' ? 'Diploma' : 'Anexo')))));
     const planSelect = document.getElementById('planSelect' + suffix);
     const accionSelect = document.getElementById('accionSelect' + suffix);
-    const alumnoSelect = document.getElementById('alumnoSelect' + suffix); // null if didactica/informe/tutorias/acta
-    const grupoSelect = document.getElementById('grupoSelect' + suffix); // null if not didactica/informe/tutorias/acta
+    const alumnoSelect = document.getElementById('alumnoSelect' + suffix); // null if didactica/informe/tutorias/acta/diploma
+    const grupoSelect = document.getElementById('grupoSelect' + suffix); // null if not didactica/informe/tutorias/acta/diploma
     
     // Reset options
     planSelect.innerHTML = '<option value="">-- Selecciona Plan --</option>';
@@ -561,10 +610,10 @@ function loadPlanes(type, convocatoriaId) {
 }
 
 function loadAcciones(type, planId) {
-    let suffix = type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : 'Anexo'))));
+    let suffix = type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'diploma' ? 'Diploma' : 'Anexo')))));
     const accionSelect = document.getElementById('accionSelect' + suffix);
     const alumnoSelect = document.getElementById('alumnoSelect' + suffix);
-    const grupoSelect = document.getElementById('grupoSelect' + suffix); // null if not didactica
+    const grupoSelect = document.getElementById('grupoSelect' + suffix); // null if not didactica/informe/tutorias/acta/diploma
     
     accionSelect.innerHTML = '<option value="">-- Selecciona Acción Formativa --</option>';
     accionSelect.disabled = true;
@@ -840,6 +889,19 @@ function generateActaEvaluacionPDF() {
     // Redirect to the acta generation endpoint
     window.open(`pdf_acta_evaluacion.php?accion_id=${accionId}&grupo_id=${grupoId}`, '_blank');
     closeModal();
+}
+
+function openDiplomasList() {
+    let accionId = document.getElementById('accionSelectDiploma').value;
+    let grupoId = document.getElementById('grupoSelectDiploma').value;
+
+    if (!accionId || !grupoId) {
+        alert("Por favor selecciona Acción Formativa y Grupo.");
+        return;
+    }
+
+    // Redirect to the diplomas list UI
+    window.location.href = `diplomas.php?accion_id=${accionId}&grupo_id=${grupoId}`;
 }
 </script>
 </body>

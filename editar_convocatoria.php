@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                 fecha_inicio_prevista = ?, fecha_fin_prevista = ?, 
                 ambito = ?, solicitante = ?, url = ?, url_aula_virtual = ?, 
                 activa = ?, descripcion = ?, requisitos = ?, estado = ?,
-                codigo_expediente = ?
+                codigo_expediente = ?, contenidos_diploma = ?
                 WHERE id = ?";
         
         $stmtUpdate = $pdo->prepare($sql);
@@ -54,6 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             isset($_POST['activa']) ? 1 : 0, $_POST['descripcion'], $_POST['requisitos'],
             $_POST['estado'] ?? 'Borrador',
             trim($_POST['codigo_expediente'] ?? ''),
+            $_POST['contenidos_diploma'] ?? null,
             $id
         ]);
         
@@ -246,6 +247,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                         <label class="form-label">Activa</label>
                         <div class="form-input-container">
                             <input type="checkbox" name="activa" <?= ($convocatoria['activa'] ?? 1) ? 'checked' : '' ?>>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <label class="form-label">Contenidos del Diploma</label>
+                        <div class="form-input-container">
+                            <textarea name="contenidos_diploma" class="form-control" rows="6" placeholder="Introduce el temario o contenidos del certificado..."><?= htmlspecialchars($convocatoria['contenidos_diploma'] ?? '') ?></textarea>
+                            <div class="input-hint">El texto que aparecerá en el margen derecho del Certificado y Diploma.</div>
                         </div>
                     </div>
 
