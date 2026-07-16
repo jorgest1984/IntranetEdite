@@ -58,6 +58,7 @@ $alumnos = $stmtAlumnos->fetchAll(PDO::FETCH_ASSOC);
         .status-noapto { color: #dc2626; background: #fee2e2; border: 1px solid #f87171; }
         .btn-volver { background: #f8fafc; color: #475569; border: 1px solid #cbd5e1; padding: 10px 18px; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-size: 0.9rem; transition: all 0.2s; cursor: pointer; }
         .btn-volver:hover { background: #e2e8f0; color: #1e293b; transform: translateY(-1px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        .bulk-actions { margin-top: 20px; display: flex; gap: 15px; background: white; padding: 15px 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); align-items: center; }
     </style>
 </head>
 <body>
@@ -77,10 +78,22 @@ $alumnos = $stmtAlumnos->fetchAll(PDO::FETCH_ASSOC);
                 </div>
             </header>
 
+            <div class="bulk-actions">
+                <strong style="color: #475569;"><i class="fa-solid fa-layer-group"></i> Acciones Masivas:</strong>
+                <button class="btn-action btn-diploma" id="btn-send-diplomas">
+                    <i class="fa-solid fa-paper-plane"></i> Enviar Diplomas a Seleccionados
+                </button>
+                <button class="btn-action btn-certificado" id="btn-send-certificados">
+                    <i class="fa-solid fa-paper-plane"></i> Enviar Certificados a Seleccionados
+                </button>
+                <span id="bulk-status" style="margin-left: 10px; font-size: 0.9rem; font-weight: 500;"></span>
+            </div>
+
             <div class="table-responsive">
                 <table class="data-table">
                     <thead>
                         <tr>
+                            <th style="width: 40px; text-align: center;"><input type="checkbox" id="select-all"></th>
                             <th>DNI</th>
                             <th>Nombre y Apellidos</th>
                             <th>Estado Moodle</th>
@@ -112,6 +125,9 @@ $alumnos = $stmtAlumnos->fetchAll(PDO::FETCH_ASSOC);
                         }
                     ?>
                         <tr>
+                            <td style="text-align: center;">
+                                <input type="checkbox" class="alumno-chk" value="<?= $alumno['alumno_id'] ?>" data-apto="<?= $apto ? '1' : '0' ?>">
+                            </td>
                             <td><?= htmlspecialchars($alumno['dni']) ?></td>
                             <td><?= htmlspecialchars($alumno['nombre'] . ' ' . $alumno['primer_apellido'] . ' ' . $alumno['segundo_apellido']) ?></td>
                             <td>
@@ -143,12 +159,84 @@ $alumnos = $stmtAlumnos->fetchAll(PDO::FETCH_ASSOC);
                         </tr>
                     <?php endforeach; ?>
                     <?php if (empty($alumnos)): ?>
-                        <tr><td colspan="4" style="text-align: center; color: #64748b;">No hay alumnos matriculados en este grupo.</td></tr>
+                        <tr><td colspan="5" style="text-align: center; color: #64748b;">No hay alumnos matriculados en este grupo.</td></tr>
                     <?php endif; ?>
                 </tbody>
                 </table>
             </div>
         </main>
     </div>
+
+    <script>
+        const grupoId = <?= $grupo_id ?>;
+        const accionId = <?= $accion_id ?>;
+        const chkAll = document.getElementById('select-all');
+        const chkAlumnos = document.querySelectorAll('.alumno-chk');
+        const btnSendDiplomas = document.getElementById('btn-send-diplomas');
+        const btnSendCertificados = document.getElementById('btn-send-certificados');
+        const bulkStatus = document.getElementById('bulk-status');
+
+        chkAll.addEventListener('change', function() {
+            chkAlumnos.forEach(chk => chk.checked = this.checked);
+        });
+
+        async function procesarEnvio(tipo) {
+            let seleccionados = [];
+            chkAlumnos.forEach(chk => {
+                if (chk.checked) {
+                    // Validar si es diploma que sea APTO
+                    if (tipo === 'diploma' && chk.getAttribute('data-apto') !== '1') {
+                        // Lo ignoramos
+                    } else {
+                        seleccionados.push(chk.value);
+                    }
+                }
+            });
+
+            if (seleccionados.length === 0) {
+                alert("No hay alumnos válidos seleccionados para esta acción.");
+                return;
+            }
+
+            if (!confirm(`¿Estás seguro de que deseas enviar ${seleccionados.length} ${tipo}s por email?`)) return;
+
+            // Deshabilitar botones
+            btnSendDiplomas.disabled = true;
+            btnSendCertificados.disabled = true;
+            bulkStatus.style.color = '#0284c7';
+            bulkStatus.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando... Por favor, espera.';
+
+            try {
+                const response = await fetch('api_send_diplomas.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        grupo_id: grupoId,
+                        accion_id: accionId,
+                        tipo: tipo,
+                        alumnos: seleccionados
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    bulkStatus.style.color = '#059669';
+                    bulkStatus.innerHTML = `<i class="fa-solid fa-check"></i> ${data.message}`;
+                } else {
+                    bulkStatus.style.color = '#dc2626';
+                    bulkStatus.innerHTML = `<i class="fa-solid fa-xmark"></i> Error: ${data.message}`;
+                }
+            } catch (error) {
+                bulkStatus.style.color = '#dc2626';
+                bulkStatus.innerHTML = `<i class="fa-solid fa-xmark"></i> Error de conexión.`;
+            } finally {
+                btnSendDiplomas.disabled = false;
+                btnSendCertificados.disabled = false;
+            }
+        }
+
+        btnSendDiplomas.addEventListener('click', () => procesarEnvio('diploma'));
+        btnSendCertificados.addEventListener('click', () => procesarEnvio('certificado'));
+    </script>
 </body>
 </html>

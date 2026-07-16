@@ -10,7 +10,7 @@
  * @param string $from_name Nombre visible del remitente (opcional)
  * @return bool True si se envió correctamente, False en caso contrario
  */
-function send_smtp_email($to, $subject, $body, $from_name = 'Intranet Grupo EFP') {
+function send_smtp_email($to, $subject, $body, $from_name = 'Intranet Grupo EFP', $attachments = []) {
     $host = 'ssl://grupoefp.es';
     $port = 465;
     $user = 'admingrupoefp@grupoefp.es';
@@ -70,15 +70,37 @@ function send_smtp_email($to, $subject, $body, $from_name = 'Intranet Grupo EFP'
         $write("DATA");
         $read();
 
+        $boundary = md5(time());
+
         // Cabeceras del mensaje
         $headers = "From: \"" . $from_name . "\" <" . $from_email . ">\r\n";
         $headers .= "To: <" . $to . ">\r\n";
         $headers .= "Subject: " . $subject . "\r\n";
-        $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
-        $headers .= "MIME-Version: 1.0\r\n\r\n";
+        $headers .= "MIME-Version: 1.0\r\n";
+
+        if (!empty($attachments)) {
+            $headers .= "Content-Type: multipart/mixed; boundary=\"" . $boundary . "\"\r\n\r\n";
+            $message = "--" . $boundary . "\r\n";
+            $message .= "Content-Type: text/plain; charset=UTF-8\r\n\r\n";
+            $message .= $body . "\r\n\r\n";
+            
+            foreach ($attachments as $attachment) {
+                $filename = $attachment['name'];
+                $content = chunk_split(base64_encode($attachment['content']));
+                $message .= "--" . $boundary . "\r\n";
+                $message .= "Content-Type: application/pdf; name=\"" . $filename . "\"\r\n";
+                $message .= "Content-Transfer-Encoding: base64\r\n";
+                $message .= "Content-Disposition: attachment; filename=\"" . $filename . "\"\r\n\r\n";
+                $message .= $content . "\r\n\r\n";
+            }
+            $message .= "--" . $boundary . "--\r\n";
+        } else {
+            $headers .= "Content-Type: text/plain; charset=UTF-8\r\n\r\n";
+            $message = $body . "\r\n";
+        }
 
         // Asegurar salto de línea correcto al final del cuerpo y punto de fin de mensaje
-        $write($headers . $body . "\r\n.");
+        $write($headers . $message . ".");
         $read();
 
         $write("QUIT");
