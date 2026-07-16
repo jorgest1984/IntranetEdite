@@ -156,13 +156,21 @@ $empresaNombre = $stmtConf->fetchColumn() ?: APP_NAME;
                     <div class="doc-desc">Acta oficial de cierre con las calificaciones de los alumnos aptos que finalizaron todo.</div>
                     <button class="btn btn-primary" onclick="openDocModal('acta')">Generar PDF</button>
                 </div>
-
+                
                 <!-- Diploma Provisional -->
                 <div class="doc-card">
                     <svg class="doc-icon" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
                     <div class="doc-title">Diploma / Certificado</div>
                     <div class="doc-desc">Certificado de asistencia o Diploma de aprovechamiento por alumno.</div>
                     <button class="btn btn-primary" onclick="openDocModal('diploma')">Ver Alumnos</button>
+                </div>
+                
+                <!-- XML Export -->
+                <div class="doc-card">
+                    <svg class="doc-icon" viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>
+                    <div class="doc-title">Exportar XML de Grupo</div>
+                    <div class="doc-desc">Descarga del XML estructurado con los horarios y datos técnicos del grupo.</div>
+                    <button class="btn btn-primary" onclick="openDocModal('xml')">Descargar XML</button>
                 </div>
 
             </div>
@@ -483,9 +491,46 @@ $empresaNombre = $stmtConf->fetchColumn() ?: APP_NAME;
             </select>
         </div>
         
-        <button class="btn btn-primary" style="width: 100%; justify-content:center; margin-top: 1rem;" onclick="openDiplomasList()">
-            Ver Lista de Alumnos
-        </button>
+        <button class="btn btn-primary" style="width: 100%; justify-content:center; margin-top: 1rem;" onclick="generateDiplomaList()">Ver Listado de Alumnos</button>
+    </div>
+</div>
+
+<!-- Modal Selección XML -->
+<div id="xmlModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Exportar XML de Grupo</h2>
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+        </div>
+        
+        <div style="margin-bottom: 1rem;">
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Convocatoria *</label>
+            <select id="convocatoriaSelectXml" class="form-input" style="width: 100%; margin-bottom: 1rem;" onchange="loadPlanes('xml', this.value)">
+                <option value="">-- Selecciona Convocatoria --</option>
+                <?php foreach ($convocatorias as $c): ?>
+                    <option value="<?= $c['id'] ?>" <?= $convocatoria_id == $c['id'] ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($c['codigo_expediente']) ?> - <?= htmlspecialchars($c['nombre']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Plan *</label>
+            <select id="planSelectXml" class="form-input" style="width: 100%; margin-bottom: 1rem;" disabled onchange="loadAcciones('xml', this.value)">
+                <option value="">-- Primero elige Convocatoria --</option>
+            </select>
+
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Acción Formativa *</label>
+            <select id="accionSelectXml" class="form-input" style="width: 100%; margin-bottom: 1rem;" disabled onchange="loadGrupos('xml', this.value)">
+                <option value="">-- Primero elige Plan --</option>
+            </select>
+
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Seleccionar Grupo *</label>
+            <select id="grupoSelectXml" class="form-input" style="width: 100%;" disabled>
+                <option value="">-- Primero elige Acción Formativa --</option>
+            </select>
+        </div>
+        
+        <button class="btn btn-primary" style="width: 100%; justify-content:center; margin-top: 1rem;" onclick="generateXML()">Descargar XML</button>
     </div>
 </div>
 
@@ -524,21 +569,25 @@ const loadedData = {
     diploma: {
         grupos: [],
         context: null
+    },
+    xml: {
+        grupos: [],
+        context: null
     }
 };
 
 function openDocModal(type) {
     document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
     
-    let modalId = type === 'recibi' ? 'docModal' : (type === 'didactica' ? 'didacticaModal' : (type === 'informe' ? 'informeModal' : (type === 'tutorias' ? 'tutoriasModal' : (type === 'acta' ? 'actaModal' : (type === 'diploma' ? 'diplomaModal' : 'anexoModal')))));
+    let modalId = type === 'recibi' ? 'docModal' : (type === 'didactica' ? 'didacticaModal' : (type === 'informe' ? 'informeModal' : (type === 'tutorias' ? 'tutoriasModal' : (type === 'acta' ? 'actaModal' : (type === 'diploma' ? 'diplomaModal' : (type === 'xml' ? 'xmlModal' : 'anexoModal'))))));
     let modal = document.getElementById(modalId);
     if (!modal) return;
     
     modal.classList.add('active');
     
     // Auto-load cascade if Convocatoria is pre-selected on main page
-    let convSelectId = 'convocatoriaSelect' + (type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'diploma' ? 'Diploma' : 'Anexo'))))));
-    let planSelectId = 'planSelect' + (type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'diploma' ? 'Diploma' : 'Anexo'))))));
+    let convSelectId = 'convocatoriaSelect' + (type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'diploma' ? 'Diploma' : (type === 'xml' ? 'Xml' : 'Anexo')))))));
+    let planSelectId = 'planSelect' + (type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'diploma' ? 'Diploma' : (type === 'xml' ? 'Xml' : 'Anexo')))))));
     
     let convSelect = document.getElementById(convSelectId);
     if (convSelect && convSelect.value) {
@@ -560,7 +609,7 @@ window.onclick = function(event) {
 }
 
 function loadPlanes(type, convocatoriaId) {
-    let suffix = type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'diploma' ? 'Diploma' : 'Anexo')))));
+    let suffix = type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'diploma' ? 'Diploma' : (type === 'xml' ? 'Xml' : 'Anexo'))))));
     const planSelect = document.getElementById('planSelect' + suffix);
     const accionSelect = document.getElementById('accionSelect' + suffix);
     const alumnoSelect = document.getElementById('alumnoSelect' + suffix); // null if didactica/informe/tutorias/acta/diploma
@@ -610,7 +659,7 @@ function loadPlanes(type, convocatoriaId) {
 }
 
 function loadAcciones(type, planId) {
-    let suffix = type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'diploma' ? 'Diploma' : 'Anexo')))));
+    let suffix = type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'diploma' ? 'Diploma' : (type === 'xml' ? 'Xml' : 'Anexo'))))));
     const accionSelect = document.getElementById('accionSelect' + suffix);
     const alumnoSelect = document.getElementById('alumnoSelect' + suffix);
     const grupoSelect = document.getElementById('grupoSelect' + suffix); // null if not didactica/informe/tutorias/acta/diploma
@@ -708,7 +757,7 @@ function loadAlumnos(type, accionId) {
 }
 
 function loadGrupos(type, accionId) {
-    let suffix = type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'diploma' ? 'Diploma' : 'Anexo')))));
+    let suffix = type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'diploma' ? 'Diploma' : (type === 'xml' ? 'Xml' : 'Anexo'))))));
     const grupoSelect = document.getElementById('grupoSelect' + suffix);
     
     grupoSelect.innerHTML = '<option value="">-- Selecciona Grupo --</option>';
@@ -891,17 +940,28 @@ function generateActaEvaluacionPDF() {
     closeModal();
 }
 
-function openDiplomasList() {
-    let accionId = document.getElementById('accionSelectDiploma').value;
-    let grupoId = document.getElementById('grupoSelectDiploma').value;
-
+function generateDiplomaList() {
+    const accionId = document.getElementById('accionSelectDiploma').value;
+    const grupoId = document.getElementById('grupoSelectDiploma').value;
+    
     if (!accionId || !grupoId) {
-        alert("Por favor selecciona Acción Formativa y Grupo.");
+        alert('Por favor, selecciona una acción y un grupo.');
         return;
     }
 
-    // Redirect to the diplomas list UI
     window.location.href = `diplomas.php?accion_id=${accionId}&grupo_id=${grupoId}`;
+}
+
+function generateXML() {
+    const accionId = document.getElementById('accionSelectXml').value;
+    const grupoId = document.getElementById('grupoSelectXml').value;
+    
+    if (!accionId || !grupoId) {
+        alert('Por favor, selecciona una acción y un grupo.');
+        return;
+    }
+
+    window.location.href = `export_xml_grupo.php?accion_id=${accionId}&grupo_id=${grupoId}`;
 }
 </script>
 </body>
