@@ -2512,6 +2512,10 @@ try {
             </div>
             <?php endif; ?>
         </div>
+
+        <div class="btn-footer-container">
+            <button type="submit" class="btn-save">Guardar Cambios</button>
+        </div>
         </form>
 
         <div class="sectores-table-container">
