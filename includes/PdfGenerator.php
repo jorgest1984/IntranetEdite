@@ -62,7 +62,7 @@ class PdfGenerator {
         $dni_alumno = strtoupper($alumno['dni']);
 
         // 2. Obtener datos de la acción, plan, convocatoria
-        $stmtData = $pdo->prepare("SELECT g.fecha_inicio, g.fecha_fin, af.num_accion, af.titulo as curso_titulo, 
+        $stmtData = $pdo->prepare("SELECT g.fecha_inicio, g.fecha_fin, af.num_accion, af.titulo as curso_titulo, af.contenidos as af_contenidos,
                                           c.codigo_expediente, c.contenidos_diploma, u.nombre as tutor_nombre, u.apellidos as tutor_apellidos
                                    FROM grupos g
                                    JOIN acciones_formativas af ON g.accion_id = af.id
@@ -80,7 +80,18 @@ class PdfGenerator {
         $curso_titulo = mb_strtoupper($data['curso_titulo'] ?? '', 'UTF-8');
         $num_accion = strtoupper($data['num_accion'] ?? '');
         $expediente = strtoupper($data['codigo_expediente'] ?? '');
-        $contenidos = $data['contenidos_diploma'] ?? "Módulo 1: Introducción\nMódulo 2: Desarrollo\nMódulo 3: Conclusiones";
+        
+        $contenidos_raw = !empty($data['af_contenidos']) ? $data['af_contenidos'] : 
+                          (!empty($data['contenidos_diploma']) ? $data['contenidos_diploma'] : 
+                           "Módulo 1: Introducción\nMódulo 2: Desarrollo\nMódulo 3: Conclusiones");
+        
+        // Convertir HTML a texto plano para FPDF preservando saltos de línea
+        $contenidos_raw = preg_replace('/<br\s*\/?>/i', "\n", $contenidos_raw);
+        $contenidos_raw = preg_replace('/<\/p>/i', "\n", $contenidos_raw);
+        $contenidos = strip_tags($contenidos_raw);
+        $contenidos = html_entity_decode($contenidos, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $contenidos = preg_replace("/[\r\n]+/", "\n", $contenidos); // Limpiar saltos múltiples
+
         $meses = array('Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre');
 
         if (!empty($data['fecha_fin']) && $data['fecha_fin'] !== '0000-00-00') {
