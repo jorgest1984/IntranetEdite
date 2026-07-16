@@ -35,46 +35,54 @@ $alumnos = $stmtAlumnos->fetchAll(PDO::FETCH_ASSOC);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diplomas y Certificados - <?= htmlspecialchars($grupo_info['titulo']) ?></title>
+    <title>Diplomas y Certificados - <?= htmlspecialchars($grupo_info['titulo']) ?> - <?= APP_NAME ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .container { max-width: 1200px; margin: 40px auto; padding: 20px; }
-        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        .page-title { font-size: 1.8rem; color: var(--text-color); }
-        .page-subtitle { font-size: 1rem; color: var(--text-muted); margin-top: 5px; }
-        .table-responsive { overflow-x: auto; background: white; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border-color); }
-        th { background: #f8fafc; font-weight: 600; color: #475569; }
-        .btn-action { padding: 8px 12px; border-radius: 6px; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; border: none; font-size: 0.9rem; }
+        .table-responsive { overflow-x: auto; background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-top: 20px; }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th, .data-table td { padding: 15px 20px; text-align: left; border-bottom: 1px solid var(--border-color, #e2e8f0); }
+        .data-table th { background: #f8fafc; font-weight: 600; color: #475569; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; }
+        .data-table tr:hover td { background: #f1f5f9; }
+        
+        .btn-action { padding: 8px 16px; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; border: none; font-size: 0.85rem; transition: all 0.2s; }
         .btn-diploma { background: #0ea5e9; color: white; }
-        .btn-diploma:hover { background: #0284c7; }
-        .btn-diploma:disabled { background: #cbd5e1; cursor: not-allowed; }
+        .btn-diploma:hover:not(:disabled) { background: #0284c7; transform: translateY(-1px); }
+        .btn-diploma:disabled { background: #cbd5e1; cursor: not-allowed; opacity: 0.7; }
         .btn-certificado { background: #10b981; color: white; }
-        .btn-certificado:hover { background: #059669; }
+        .btn-certificado:hover { background: #059669; transform: translateY(-1px); }
+        
+        .status-badge { font-weight: 700; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; display: inline-block; }
+        .status-apto { color: #059669; background: #d1fae5; border: 1px solid #34d399; }
+        .status-noapto { color: #dc2626; background: #fee2e2; border: 1px solid #f87171; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="page-header">
-            <div>
-                <h1 class="page-title">Diplomas y Certificados</h1>
-                <div class="page-subtitle"><?= htmlspecialchars($grupo_info['titulo']) ?> (Grupo <?= htmlspecialchars($grupo_info['numero_grupo']) ?>)</div>
-            </div>
-            <a href="documentacion.php" class="btn" style="border: 1px solid #cbd5e1;">Volver a Documentación</a>
-        </div>
+    <div class="app-container">
+        <?php include 'includes/sidebar.php'; ?>
+        
+        <main class="main-content">
+            <header class="page-header">
+                <div>
+                    <h1>Diplomas y Certificados</h1>
+                    <p><?= htmlspecialchars($grupo_info['titulo']) ?> (Grupo <?= htmlspecialchars($grupo_info['numero_grupo']) ?>)</p>
+                </div>
+                <div class="header-actions">
+                    <a href="documentacion.php" class="btn btn-neutral" style="border: 1px solid #cbd5e1; text-decoration: none; color: #475569;"><i class="fa-solid fa-arrow-left" style="margin-right: 8px;"></i> Volver a Documentación</a>
+                </div>
+            </header>
 
-        <div class="table-responsive">
-            <table>
-                <thead>
-                    <tr>
-                        <th>DNI</th>
-                        <th>Nombre y Apellidos</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>DNI</th>
+                            <th>Nombre y Apellidos</th>
+                            <th>Estado Moodle</th>
+                            <th>Acciones Documentales</th>
+                        </tr>
+                    </thead>
                 <tbody>
                     <?php foreach ($alumnos as $alumno): 
                         $grades = [];
@@ -98,27 +106,25 @@ $alumnos = $stmtAlumnos->fetchAll(PDO::FETCH_ASSOC);
                             <td><?= htmlspecialchars($alumno['nombre'] . ' ' . $alumno['primer_apellido'] . ' ' . $alumno['segundo_apellido']) ?></td>
                             <td>
                                 <?php if ($apto): ?>
-                                    <span style="color: #059669; font-weight: 600; padding: 4px 8px; background: #d1fae5; border-radius: 12px; font-size: 0.85rem;">APTO</span>
+                                    <span class="status-badge status-apto"><i class="fa-solid fa-check" style="margin-right: 4px;"></i> APTO</span>
                                 <?php else: ?>
-                                    <span style="color: #dc2626; font-weight: 600; padding: 4px 8px; background: #fee2e2; border-radius: 12px; font-size: 0.85rem;">NO APTO</span>
+                                    <span class="status-badge status-noapto"><i class="fa-solid fa-xmark" style="margin-right: 4px;"></i> NO APTO</span>
                                 <?php endif; ?>
                             </td>
                             <td>
                                 <div style="display: flex; gap: 10px;">
                                     <?php if ($apto): ?>
                                         <a href="pdf_diploma.php?alumno_id=<?= $alumno['alumno_id'] ?>&grupo_id=<?= $grupo_id ?>&accion_id=<?= $accion_id ?>&tipo=diploma" target="_blank" class="btn-action btn-diploma">
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15l-3-3m0 0l3-3m-3 3h8M2 12a10 10 0 1 1 20 0 10 10 0 0 1-20 0z"/></svg>
-                                            Generar Diploma
+                                            <i class="fa-solid fa-award"></i> Diploma
                                         </a>
                                     <?php else: ?>
                                         <button class="btn-action btn-diploma" disabled title="Solo para alumnos APTOS">
-                                            Generar Diploma
+                                            <i class="fa-solid fa-award"></i> Diploma
                                         </button>
                                     <?php endif; ?>
                                     
                                     <a href="pdf_diploma.php?alumno_id=<?= $alumno['alumno_id'] ?>&grupo_id=<?= $grupo_id ?>&accion_id=<?= $accion_id ?>&tipo=certificado" target="_blank" class="btn-action btn-certificado">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                                        Generar Certificado
+                                        <i class="fa-solid fa-file-signature"></i> Certificado
                                     </a>
                                 </div>
                             </td>
@@ -128,8 +134,9 @@ $alumnos = $stmtAlumnos->fetchAll(PDO::FETCH_ASSOC);
                         <tr><td colspan="4" style="text-align: center; color: #64748b;">No hay alumnos matriculados en este grupo.</td></tr>
                     <?php endif; ?>
                 </tbody>
-            </table>
-        </div>
+                </table>
+            </div>
+        </main>
     </div>
 </body>
 </html>
