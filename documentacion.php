@@ -708,7 +708,7 @@ function loadAlumnos(type, accionId) {
 }
 
 function loadGrupos(type, accionId) {
-    let suffix = type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : 'Anexo'))));
+    let suffix = type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'diploma' ? 'Diploma' : 'Anexo')))));
     const grupoSelect = document.getElementById('grupoSelect' + suffix);
     
     grupoSelect.innerHTML = '<option value="">-- Selecciona Grupo --</option>';
