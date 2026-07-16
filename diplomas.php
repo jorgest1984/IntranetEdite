@@ -56,6 +56,8 @@ $alumnos = $stmtAlumnos->fetchAll(PDO::FETCH_ASSOC);
         .status-badge { font-weight: 700; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; display: inline-block; }
         .status-apto { color: #059669; background: #d1fae5; border: 1px solid #34d399; }
         .status-noapto { color: #dc2626; background: #fee2e2; border: 1px solid #f87171; }
+        .btn-volver { background: #f8fafc; color: #475569; border: 1px solid #cbd5e1; padding: 10px 18px; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-size: 0.9rem; transition: all 0.2s; cursor: pointer; }
+        .btn-volver:hover { background: #e2e8f0; color: #1e293b; transform: translateY(-1px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
     </style>
 </head>
 <body>
@@ -69,7 +71,9 @@ $alumnos = $stmtAlumnos->fetchAll(PDO::FETCH_ASSOC);
                     <p><?= htmlspecialchars($grupo_info['titulo']) ?> (Grupo <?= htmlspecialchars($grupo_info['numero_grupo']) ?>)</p>
                 </div>
                 <div class="header-actions">
-                    <a href="documentacion.php" class="btn btn-neutral" style="border: 1px solid #cbd5e1; text-decoration: none; color: #475569;"><i class="fa-solid fa-arrow-left" style="margin-right: 8px;"></i> Volver a Documentación</a>
+                    <a href="documentacion.php" class="btn-volver">
+                        <i class="fa-solid fa-arrow-left"></i> Volver a Documentación
+                    </a>
                 </div>
             </header>
 
