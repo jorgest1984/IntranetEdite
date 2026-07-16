@@ -59,7 +59,9 @@ $curso_titulo = mb_strtoupper($data['curso_titulo'] ?? '', 'UTF-8');
 $num_accion = strtoupper($data['num_accion'] ?? '');
 $expediente = strtoupper($data['codigo_expediente'] ?? '');
 $contenidos = $data['contenidos_diploma'] ?? "Módulo 1: Introducción\nMódulo 2: Desarrollo\nMódulo 3: Conclusiones";
-$fecha_expedicion = date('d \d\e ') . (array('Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre')[date('n')-1]) . date(' \d\e Y');
+$meses = array('Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre');
+$ts_fin = strtotime($data['fecha_fin']);
+$fecha_expedicion = date('d', $ts_fin) . ' de ' . $meses[date('n', $ts_fin)-1] . ' de ' . date('Y', $ts_fin);
 
 // Helpers FPDF
 function pdf_utf8_to_iso($string) {
@@ -71,23 +73,23 @@ require_once 'includes/fpdf/fpdf_curve.php';
 class PDF_Diploma extends PDF_Curve {
     function drawBackground() {
         // Cyan shape
-        $this->SetFillColor(4, 150, 199); // Cyan-ish #0496c7
+        $this->SetFillColor(5, 149, 197); // Cyan-ish #0595c5
         $pts_cyan = array(
-            array('type'=>'m', 'x'=>150, 'y'=>210),
-            array('type'=>'c', 'x1'=>170, 'y1'=>140, 'x2'=>200, 'y2'=>90, 'x'=>160, 'y'=>0),
+            array('type'=>'m', 'x'=>120, 'y'=>210),
+            array('type'=>'c', 'x1'=>160, 'y1'=>140, 'x2'=>140, 'y2'=>70, 'x'=>180, 'y'=>0),
             array('type'=>'l', 'x'=>297, 'y'=>0),
             array('type'=>'l', 'x'=>297, 'y'=>210),
-            array('type'=>'l', 'x'=>150, 'y'=>210),
+            array('type'=>'l', 'x'=>120, 'y'=>210),
         );
         $this->DrawShape($pts_cyan, 'F');
         
         // Dark blue shape top right
-        $this->SetFillColor(25, 60, 126); // Dark Blue #193c7e
+        $this->SetFillColor(24, 60, 125); // Dark Blue #183c7d
         $pts_blue = array(
-            array('type'=>'m', 'x'=>160, 'y'=>0),
-            array('type'=>'c', 'x1'=>200, 'y1'=>40, 'x2'=>250, 'y2'=>50, 'x'=>297, 'y'=>20),
+            array('type'=>'m', 'x'=>150, 'y'=>0),
+            array('type'=>'c', 'x1'=>170, 'y1'=>40, 'x2'=>250, 'y2'=>60, 'x'=>297, 'y'=>80),
             array('type'=>'l', 'x'=>297, 'y'=>0),
-            array('type'=>'l', 'x'=>160, 'y'=>0),
+            array('type'=>'l', 'x'=>150, 'y'=>0),
         );
         $this->DrawShape($pts_blue, 'F');
     }
@@ -114,15 +116,13 @@ if (file_exists('img/logo_sepe.png')) {
 
 // Título Principal
 $pdf->SetXY(15, 25);
-$pdf->SetFont('Arial', 'B', 32);
-$pdf->SetTextColor(0, 160, 200); // Cyan
+$pdf->SetFont('Arial', 'B', 45);
+$pdf->SetTextColor(5, 149, 197); // Cyan
 
 if ($tipo === 'diploma') {
     $pdf->Cell(150, 15, pdf_utf8_to_iso("DIPLOMA"), 0, 1, 'L');
 } else {
-    $pdf->Cell(150, 15, pdf_utf8_to_iso("CERTIFICADO DE"), 0, 1, 'L');
-    $pdf->SetX(15);
-    $pdf->Cell(150, 15, pdf_utf8_to_iso("ASISTENCIA"), 0, 1, 'L');
+    $pdf->Cell(150, 15, pdf_utf8_to_iso("CERTIFICADO DE ASISTENCIA"), 0, 1, 'L');
 }
 
 $pdf->Ln(15);
@@ -130,12 +130,12 @@ $pdf->Ln(15);
 // Nombre del alumno
 $pdf->SetX(15);
 $pdf->SetFont('Arial', 'B', 24);
-$pdf->SetTextColor(25, 60, 126); // Dark Blue
+$pdf->SetTextColor(24, 60, 125); // Dark Blue
 $pdf->Cell(150, 10, pdf_utf8_to_iso($nombre_completo), 0, 1, 'L');
 
 // Línea separadora
 $pdf->SetX(15);
-$pdf->SetDrawColor(25, 60, 126);
+$pdf->SetDrawColor(24, 60, 125);
 $pdf->SetLineWidth(0.8);
 $pdf->Line(15, $pdf->GetY() + 5, 165, $pdf->GetY() + 5);
 $pdf->Ln(10);
