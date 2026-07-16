@@ -28,12 +28,13 @@ try {
 
 // 1. Obtener datos de cabecera
 $stmt = $pdo->prepare("SELECT g.*, af.num_accion, af.titulo as curso_titulo, 
-                              c.codigo_expediente, u.nombre as tutor_nombre, u.apellidos as tutor_apellidos, u.dni as tutor_dni
+                              c.codigo_expediente, u.nombre as tutor_nombre, u.apellidos as tutor_apellidos, pd.dni as tutor_dni
                        FROM grupos g
                        JOIN acciones_formativas af ON g.accion_id = af.id
                        LEFT JOIN planes p ON af.plan_id = p.id
                        LEFT JOIN convocatorias c ON p.convocatoria_id = c.id
                        LEFT JOIN usuarios u ON g.tutor_id = u.id
+                       LEFT JOIN profesorado_detalles pd ON u.id = pd.usuario_id
                        WHERE g.id = ? AND af.id = ?");
 $stmt->execute([$grupo_id, $accion_id]);
 $grupo = $stmt->fetch(PDO::FETCH_ASSOC);
