@@ -175,7 +175,7 @@ $pdf->Ln(15);
 $pdf->SetX(15);
 $pdf->SetFont('Arial', 'B', 10);
 $pdf->SetTextColor(25, 60, 126);
-$pdf->Cell(80, 6, pdf_utf8_to_iso("Fecha de expedición"), 0, 1, 'L');
+$pdf->Cell(80, 6, pdf_utf8_to_iso("Fecha de expedición: " . $fecha_expedicion), 0, 1, 'L');
 $pdf->Ln(4);
 $pdf->SetX(15);
 $pdf->Cell(80, 6, pdf_utf8_to_iso("Firma y sello del centro de formación"), 0, 0, 'L');
