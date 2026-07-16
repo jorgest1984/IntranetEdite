@@ -142,10 +142,10 @@ $pdf->Cell(40, 6, pdf_utf8_to_iso('CALIFICACIÓN'), 'LTR', 1, 'C');
 
 // Cabeceras de la tabla (Row 2)
 $pdf->Cell(90, 6, 'ALUMNOS', 'LBR', 0, 'C');
-$pdf->Cell(15, 6, 'E1', 1, 0, 'C');
-$pdf->Cell(15, 6, 'E2', 1, 0, 'C');
-$pdf->Cell(15, 6, 'E3', 1, 0, 'C');
-$pdf->Cell(15, 6, '% CONTROLES', 1, 0, 'C');
+$pdf->Cell(12, 6, 'E1', 1, 0, 'C');
+$pdf->Cell(12, 6, 'E2', 1, 0, 'C');
+$pdf->Cell(12, 6, 'E3', 1, 0, 'C');
+$pdf->Cell(24, 6, '% CONTROLES', 1, 0, 'C');
 $pdf->Cell(20, 6, 'FINAL', 'LBR', 0, 'C');
 $pdf->Cell(20, 6, '', 'BR', 1, 'C'); // Under CALIFICACION but no text
 
@@ -170,10 +170,10 @@ if (empty($alumnos)) {
         $e3 = $alumno['moodle_e3_grade'] !== null ? number_format($alumno['moodle_e3_grade'], 2) : '10.00';
         
         $pdf->Cell(90, 7, pdf_utf8_to_iso($nombre_completo), 1, 0, 'L');
-        $pdf->Cell(15, 7, $e1, 1, 0, 'C');
-        $pdf->Cell(15, 7, $e2, 1, 0, 'C');
-        $pdf->Cell(15, 7, $e3, 1, 0, 'C');
-        $pdf->Cell(15, 7, '100.00%', 1, 0, 'C');
+        $pdf->Cell(12, 7, $e1, 1, 0, 'C');
+        $pdf->Cell(12, 7, $e2, 1, 0, 'C');
+        $pdf->Cell(12, 7, $e3, 1, 0, 'C');
+        $pdf->Cell(24, 7, '100.00%', 1, 0, 'C');
         $pdf->Cell(20, 7, $media, 1, 0, 'C');
         $pdf->Cell(20, 7, 'APTO', 1, 1, 'C');
     }
