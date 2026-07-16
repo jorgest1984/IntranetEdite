@@ -909,4 +909,104 @@ textarea:focus,
         width: 3.2rem;
         height: 3.2rem;
     }
-}
+}
+
+/* ==========================================================================
+   Responsive Overhaul Utilities & Queries
+   ========================================================================== */
+
+/* Mobile Overlay for Sidebar */
+.mobile-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(2px);
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.mobile-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+/* Table Responsive Wrapper */
+.table-responsive {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 1rem;
+    border-radius: 8px; /* Match card radius if any */
+}
+
+/* Base Responsive Adjustments */
+@media (max-width: 1024px) {
+    /* Main Content adjustments when sidebar is hidden */
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+    }
+    
+    .sidebar {
+        box-shadow: 10px 0 30px rgba(0,0,0,0.2);
+    }
+}
+
+@media (max-width: 768px) {
+    /* Page Headers */
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 1rem;
+    }
+
+    .page-title h1 {
+        font-size: 1.5rem;
+    }
+
+    /* Filter Forms */
+    .filter-form {
+        flex-direction: column;
+        align-items: stretch !important;
+        width: 100%;
+    }
+    
+    .filter-form .form-group {
+        width: 100%;
+    }
+    
+    .filter-form .form-input, .filter-form select, .filter-form input {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+    
+    .filter-form .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Modals */
+    .modal-content {
+        width: 95% !important;
+        max-height: 90vh;
+        overflow-y: auto;
+        padding: 1.2rem !important;
+    }
+
+    /* Tables */
+    .data-table th, .data-table td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 640px) {
+    /* Grids */
+    .docs-grid, .dashboard-grid, .stats-grid, .grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+

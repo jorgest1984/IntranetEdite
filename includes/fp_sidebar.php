@@ -316,10 +316,31 @@ $current_fp_page = basename($_SERVER['PHP_SELF']);
 })();
 </script>
 
+<!-- Overlay for Mobile Sidebar -->
+<div id="mobile-overlay" class="mobile-overlay" onclick="toggleFpSidebar()"></div>
+
 <script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Wrap all tables in .table-responsive to enable horizontal scrolling on mobile
+    document.querySelectorAll("table").forEach(function(table) {
+        if (!table.parentElement.classList.contains("table-responsive") && 
+            !table.closest(".table-responsive") &&
+            !table.classList.contains("no-responsive")) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'table-responsive';
+            table.parentNode.insertBefore(wrapper, table);
+            wrapper.appendChild(table);
+        }
+    });
+});
+
 function toggleFpSidebar() {
     const sidebar = document.getElementById('fpSidebar');
+    const overlay = document.getElementById('mobile-overlay');
     sidebar.classList.toggle('active');
+    if (overlay) {
+        overlay.classList.toggle('active');
+    }
 }
 
 // Lógica de redimensionamiento

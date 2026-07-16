@@ -195,10 +195,31 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <svg id="floatThemeMoon" class="theme-icon" style="display: none;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
 </button>
 
+<!-- Overlay for Mobile Sidebar -->
+<div id="mobile-overlay" class="mobile-overlay" onclick="toggleSidebar()"></div>
+
 <script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Wrap all tables in .table-responsive to enable horizontal scrolling on mobile
+    document.querySelectorAll("table").forEach(function(table) {
+        if (!table.parentElement.classList.contains("table-responsive") && 
+            !table.closest(".table-responsive") &&
+            !table.classList.contains("no-responsive")) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'table-responsive';
+            table.parentNode.insertBefore(wrapper, table);
+            wrapper.appendChild(table);
+        }
+    });
+});
+
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('mobile-overlay');
     sidebar.classList.toggle('active');
+    if (overlay) {
+        overlay.classList.toggle('active');
+    }
 }
 
 // Lógica de redimensionamiento
