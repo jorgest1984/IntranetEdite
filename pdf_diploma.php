@@ -110,13 +110,7 @@ $pdf->drawBackground();
 if (file_exists('img/logo_efp.png')) {
     // El logo de EFP es horizontal y va en blanco
     // Por simplicidad, se pone normal (puede que no quede perfecto si tiene fondo)
-    $pdf->Image('img/logo_efp.png', 190, 10, 45); 
-}
-if (file_exists('img/logo_ministerio.png')) {
-    $pdf->Image('img/logo_ministerio.png', 240, 15, 25);
-}
-if (file_exists('img/logo_sepe.png')) {
-    $pdf->Image('img/logo_sepe.png', 268, 15, 20);
+    $pdf->Image('img/logo_efp.png', 210, 15, 60); 
 }
 
 // Título Principal
