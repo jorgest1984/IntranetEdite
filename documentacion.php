@@ -172,6 +172,14 @@ $empresaNombre = $stmtConf->fetchColumn() ?: APP_NAME;
                     <div class="doc-desc">Descarga del XML estructurado con los horarios y datos técnicos del grupo.</div>
                     <button class="btn btn-primary" onclick="openDocModal('xml')">Descargar XML</button>
                 </div>
+                
+                <!-- XML Encuestas Export -->
+                <div class="doc-card">
+                    <svg class="doc-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+                    <div class="doc-title">XML de Encuestas</div>
+                    <div class="doc-desc">Exportación XML oficial FUNDAE de las encuestas de satisfacción.</div>
+                    <button class="btn btn-primary" onclick="openDocModal('xml_encuestas')">Exportar Encuestas</button>
+                </div>
 
             </div>
 
@@ -534,6 +542,46 @@ $empresaNombre = $stmtConf->fetchColumn() ?: APP_NAME;
     </div>
 </div>
 
+<!-- Modal Selección XML Encuestas -->
+<div id="xmlEncuestasModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Exportar XML de Encuestas (FUNDAE)</h2>
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+        </div>
+        
+        <div style="margin-bottom: 1rem;">
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Convocatoria *</label>
+            <select id="convocatoriaSelectXmlEnc" class="form-input" style="width: 100%; margin-bottom: 1rem;" onchange="loadPlanes('xml_encuestas', this.value)">
+                <option value="">-- Selecciona Convocatoria --</option>
+                <?php foreach ($convocatorias as $c): ?>
+                    <option value="<?= $c['id'] ?>" <?= $convocatoria_id == $c['id'] ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($c['codigo_expediente']) ?> - <?= htmlspecialchars($c['nombre']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Plan *</label>
+            <select id="planSelectXmlEnc" class="form-input" style="width: 100%; margin-bottom: 1rem;" disabled onchange="loadAcciones('xml_encuestas', this.value)">
+                <option value="">-- Primero elige Convocatoria --</option>
+            </select>
+
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Acción Formativa *</label>
+            <select id="accionSelectXmlEnc" class="form-input" style="width: 100%; margin-bottom: 1rem;" disabled onchange="loadGrupos('xml_encuestas', this.value)">
+                <option value="">-- Primero elige Plan --</option>
+            </select>
+
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Seleccionar Grupo (Opcional)</label>
+            <select id="grupoSelectXmlEnc" class="form-input" style="width: 100%;" disabled>
+                <option value="">-- Exportar toda la Acción Formativa --</option>
+            </select>
+            <small style="color: #64748b; margin-top: 0.5rem; display: block;">Si no seleccionas grupo, se exportarán las encuestas de todos los grupos de la acción.</small>
+        </div>
+        
+        <button class="btn btn-primary" style="width: 100%; justify-content:center; margin-top: 1rem;" onclick="generateXMLEncuestas()">Descargar Encuestas</button>
+    </div>
+</div>
+
 <script>
 // Parse PHP Data to JS
 const empresaGlobal = <?= json_encode($empresaNombre) ?>;
@@ -573,21 +621,25 @@ const loadedData = {
     xml: {
         grupos: [],
         context: null
+    },
+    xml_encuestas: {
+        grupos: [],
+        context: null
     }
 };
 
 function openDocModal(type) {
     document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
     
-    let modalId = type === 'recibi' ? 'docModal' : (type === 'didactica' ? 'didacticaModal' : (type === 'informe' ? 'informeModal' : (type === 'tutorias' ? 'tutoriasModal' : (type === 'acta' ? 'actaModal' : (type === 'diploma' ? 'diplomaModal' : (type === 'xml' ? 'xmlModal' : 'anexoModal'))))));
+    let modalId = type === 'recibi' ? 'docModal' : (type === 'didactica' ? 'didacticaModal' : (type === 'informe' ? 'informeModal' : (type === 'tutorias' ? 'tutoriasModal' : (type === 'acta' ? 'actaModal' : (type === 'diploma' ? 'diplomaModal' : (type === 'xml' ? 'xmlModal' : (type === 'xml_encuestas' ? 'xmlEncuestasModal' : 'anexoModal')))))));
     let modal = document.getElementById(modalId);
     if (!modal) return;
     
     modal.classList.add('active');
     
     // Auto-load cascade if Convocatoria is pre-selected on main page
-    let convSelectId = 'convocatoriaSelect' + (type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'diploma' ? 'Diploma' : (type === 'xml' ? 'Xml' : 'Anexo')))))));
-    let planSelectId = 'planSelect' + (type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'diploma' ? 'Diploma' : (type === 'xml' ? 'Xml' : 'Anexo')))))));
+    let convSelectId = 'convocatoriaSelect' + (type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'diploma' ? 'Diploma' : (type === 'xml' ? 'Xml' : (type === 'xml_encuestas' ? 'XmlEnc' : 'Anexo'))))))));
+    let planSelectId = 'planSelect' + (type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'diploma' ? 'Diploma' : (type === 'xml' ? 'Xml' : (type === 'xml_encuestas' ? 'XmlEnc' : 'Anexo'))))))));
     
     let convSelect = document.getElementById(convSelectId);
     if (convSelect && convSelect.value) {
@@ -609,7 +661,7 @@ window.onclick = function(event) {
 }
 
 function loadPlanes(type, convocatoriaId) {
-    let suffix = type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'diploma' ? 'Diploma' : (type === 'xml' ? 'Xml' : 'Anexo'))))));
+    let suffix = type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'diploma' ? 'Diploma' : (type === 'xml' ? 'Xml' : (type === 'xml_encuestas' ? 'XmlEnc' : 'Anexo')))))));
     const planSelect = document.getElementById('planSelect' + suffix);
     const accionSelect = document.getElementById('accionSelect' + suffix);
     const alumnoSelect = document.getElementById('alumnoSelect' + suffix); // null if didactica/informe/tutorias/acta/diploma
@@ -659,7 +711,7 @@ function loadPlanes(type, convocatoriaId) {
 }
 
 function loadAcciones(type, planId) {
-    let suffix = type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'diploma' ? 'Diploma' : (type === 'xml' ? 'Xml' : 'Anexo'))))));
+    let suffix = type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'diploma' ? 'Diploma' : (type === 'xml' ? 'Xml' : (type === 'xml_encuestas' ? 'XmlEnc' : 'Anexo')))))));
     const accionSelect = document.getElementById('accionSelect' + suffix);
     const alumnoSelect = document.getElementById('alumnoSelect' + suffix);
     const grupoSelect = document.getElementById('grupoSelect' + suffix); // null if not didactica/informe/tutorias/acta/diploma
@@ -757,10 +809,10 @@ function loadAlumnos(type, accionId) {
 }
 
 function loadGrupos(type, accionId) {
-    let suffix = type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'diploma' ? 'Diploma' : (type === 'xml' ? 'Xml' : 'Anexo'))))));
+    let suffix = type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'diploma' ? 'Diploma' : (type === 'xml' ? 'Xml' : (type === 'xml_encuestas' ? 'XmlEnc' : 'Anexo')))))));
     const grupoSelect = document.getElementById('grupoSelect' + suffix);
     
-    grupoSelect.innerHTML = '<option value="">-- Selecciona Grupo --</option>';
+    grupoSelect.innerHTML = type === 'xml_encuestas' ? '<option value="">-- Exportar toda la Acción Formativa --</option>' : '<option value="">-- Selecciona Grupo --</option>';
     grupoSelect.disabled = true;
     loadedData[type].grupos = [];
     
@@ -952,17 +1004,34 @@ function generateDiplomaList() {
     window.location.href = `diplomas.php?accion_id=${accionId}&grupo_id=${grupoId}`;
 }
 
-function generateXML() {
-    const accionId = document.getElementById('accionSelectXml').value;
-    const grupoId = document.getElementById('grupoSelectXml').value;
-    
-    if (!accionId || !grupoId) {
-        alert('Por favor, selecciona una acción y un grupo.');
-        return;
+    function generateXML() {
+        const accionId = document.getElementById('accionSelectXml').value;
+        const grupoId = document.getElementById('grupoSelectXml').value;
+        
+        if (!accionId || !grupoId) {
+            alert('Por favor, selecciona una acción y un grupo.');
+            return;
+        }
+
+        window.location.href = `export_xml_grupo.php?accion_id=${accionId}&grupo_id=${grupoId}`;
     }
 
-    window.location.href = `export_xml_grupo.php?accion_id=${accionId}&grupo_id=${grupoId}`;
-}
+    function generateXMLEncuestas() {
+        const accionId = document.getElementById('accionSelectXmlEnc').value;
+        const grupoId = document.getElementById('grupoSelectXmlEnc').value;
+        
+        if (!accionId) {
+            alert('Por favor, selecciona al menos una acción formativa.');
+            return;
+        }
+
+        let url = `exportar_encuestas_xml.php?accion_id=${accionId}`;
+        if (grupoId) {
+            url += `&grupo_id=${grupoId}`;
+        }
+        
+        window.location.href = url;
+    }
 </script>
 </body>
 </html>
