@@ -115,16 +115,19 @@ if (file_exists('img/logo_efp.png')) {
 
 // Título Principal
 $pdf->SetXY(15, 25);
-$pdf->SetFont('Arial', 'B', 45);
 $pdf->SetTextColor(5, 149, 197); // Cyan
 
 if ($tipo === 'diploma') {
+    $pdf->SetFont('Arial', 'B', 45);
     $pdf->Cell(150, 15, pdf_utf8_to_iso("DIPLOMA"), 0, 1, 'L');
+    $pdf->Ln(15);
 } else {
-    $pdf->Cell(150, 15, pdf_utf8_to_iso("CERTIFICADO DE ASISTENCIA"), 0, 1, 'L');
+    $pdf->SetFont('Arial', 'B', 38);
+    $pdf->Cell(150, 14, pdf_utf8_to_iso("CERTIFICADO DE"), 0, 1, 'L');
+    $pdf->SetX(15);
+    $pdf->Cell(150, 14, pdf_utf8_to_iso("ASISTENCIA"), 0, 1, 'L');
+    $pdf->Ln(5);
 }
-
-$pdf->Ln(15);
 
 // Nombre del alumno
 $pdf->SetX(15);
