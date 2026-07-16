@@ -21,7 +21,7 @@ if (!$grupo_info) {
 
 // Obtener alumnos del grupo con sus notas
 $stmtAlumnos = $pdo->prepare("SELECT m.alumno_id, a.nombre, a.primer_apellido, a.segundo_apellido, a.dni, 
-                                     m.moodle_e1_grade, m.moodle_e2_grade, m.moodle_e3_grade
+                                     m.moodle_e1_grade, m.moodle_e2_grade, m.moodle_e3_grade, m.moodle_final_grade
                               FROM matriculas m
                               JOIN alumnos a ON m.alumno_id = a.id
                               WHERE m.grupo_id = ?
@@ -85,20 +85,26 @@ $alumnos = $stmtAlumnos->fetchAll(PDO::FETCH_ASSOC);
                     </thead>
                 <tbody>
                     <?php foreach ($alumnos as $alumno): 
-                        $grades = [];
-                        if ($alumno['moodle_e1_grade'] !== null) $grades[] = (float)$alumno['moodle_e1_grade'];
-                        if ($alumno['moodle_e2_grade'] !== null) $grades[] = (float)$alumno['moodle_e2_grade'];
-                        if ($alumno['moodle_e3_grade'] !== null) $grades[] = (float)$alumno['moodle_e3_grade'];
-                        
                         $apto = false;
-                        if (count($grades) > 0) {
-                            $media = array_sum($grades) / count($grades);
-                            if ($media >= 5) {
+                        
+                        // Si hay nota final calculada por moodle, la usamos
+                        if (isset($alumno['moodle_final_grade']) && is_numeric($alumno['moodle_final_grade'])) {
+                            if ((float)$alumno['moodle_final_grade'] >= 5) {
                                 $apto = true;
                             }
                         } else {
-                            // Si no hay notas registradas, asumimos apto como en las actas (o podríamos dejarlo manual)
-                            $apto = true; 
+                            // Alternativa: calcular la media de e1, e2, e3 si final_grade no está disponible
+                            $grades = [];
+                            if (is_numeric($alumno['moodle_e1_grade'])) $grades[] = (float)$alumno['moodle_e1_grade'];
+                            if (is_numeric($alumno['moodle_e2_grade'])) $grades[] = (float)$alumno['moodle_e2_grade'];
+                            if (is_numeric($alumno['moodle_e3_grade'])) $grades[] = (float)$alumno['moodle_e3_grade'];
+                            
+                            if (count($grades) > 0) {
+                                $media = array_sum($grades) / count($grades);
+                                if ($media >= 5) {
+                                    $apto = true;
+                                }
+                            }
                         }
                     ?>
                         <tr>
@@ -117,15 +123,17 @@ $alumnos = $stmtAlumnos->fetchAll(PDO::FETCH_ASSOC);
                                         <a href="pdf_diploma.php?alumno_id=<?= $alumno['alumno_id'] ?>&grupo_id=<?= $grupo_id ?>&accion_id=<?= $accion_id ?>&tipo=diploma" target="_blank" class="btn-action btn-diploma">
                                             <i class="fa-solid fa-award"></i> Diploma
                                         </a>
+                                        <a href="pdf_diploma.php?alumno_id=<?= $alumno['alumno_id'] ?>&grupo_id=<?= $grupo_id ?>&accion_id=<?= $accion_id ?>&tipo=certificado" target="_blank" class="btn-action btn-certificado">
+                                            <i class="fa-solid fa-file-signature"></i> Certificado
+                                        </a>
                                     <?php else: ?>
                                         <button class="btn-action btn-diploma" disabled title="Solo para alumnos APTOS">
                                             <i class="fa-solid fa-award"></i> Diploma
                                         </button>
+                                        <button class="btn-action btn-certificado" disabled style="background: #cbd5e1; cursor: not-allowed; opacity: 0.7;" title="Solo para alumnos APTOS">
+                                            <i class="fa-solid fa-file-signature"></i> Certificado
+                                        </button>
                                     <?php endif; ?>
-                                    
-                                    <a href="pdf_diploma.php?alumno_id=<?= $alumno['alumno_id'] ?>&grupo_id=<?= $grupo_id ?>&accion_id=<?= $accion_id ?>&tipo=certificado" target="_blank" class="btn-action btn-certificado">
-                                        <i class="fa-solid fa-file-signature"></i> Certificado
-                                    </a>
                                 </div>
                             </td>
                         </tr>
