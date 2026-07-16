@@ -1,7 +1,12 @@
 <?php
 // usuarios.php - Gestión de Usuarios con Modal Premium
-require_once 'includes/config.php';
 require_once 'includes/auth.php';
+require_once 'includes/config.php';
+
+// Auto-crear columna DNI si no existe (evita errores si el usuario no ejecutó el script)
+try {
+    $pdo->exec("ALTER TABLE usuarios ADD COLUMN dni VARCHAR(20) DEFAULT NULL AFTER apellidos");
+} catch (PDOException $e) {}
 
 // Solo administradores pueden gestionar usuarios (ISO 27001 - A.9)
 if (!has_permission([ROLE_ADMIN])) {

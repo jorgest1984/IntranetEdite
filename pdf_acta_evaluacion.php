@@ -19,6 +19,13 @@ if (!$grupo_id || !$accion_id) {
     die("Faltan parámetros requeridos (Acción Formativa y Grupo).");
 }
 
+// Auto-crear columna DNI si no existe (evita errores si el usuario no ejecutó el script)
+try {
+    $pdo->exec("ALTER TABLE usuarios ADD COLUMN dni VARCHAR(20) DEFAULT NULL AFTER apellidos");
+} catch (PDOException $e) {
+    // Si ya existe u otro error menor, ignorar
+}
+
 // 1. Obtener datos de cabecera
 $stmt = $pdo->prepare("SELECT g.*, af.num_accion, af.titulo as curso_titulo, 
                               c.codigo_expediente, u.nombre as tutor_nombre, u.apellidos as tutor_apellidos, u.dni as tutor_dni
