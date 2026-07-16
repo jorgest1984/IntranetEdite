@@ -66,16 +66,30 @@ function pdf_utf8_to_iso($string) {
     return mb_convert_encoding($string, 'ISO-8859-1', 'UTF-8');
 }
 
-class PDF_Diploma extends FPDF {
-    // Definir color de fondo principal
+require_once 'includes/fpdf/fpdf_curve.php';
+
+class PDF_Diploma extends PDF_Curve {
     function drawBackground() {
-        // Un rectángulo cyan a la derecha para simular el panel
+        // Cyan shape
         $this->SetFillColor(4, 150, 199); // Cyan-ish #0496c7
-        $this->Rect(180, 0, 117, 210, 'F');
+        $pts_cyan = array(
+            array('type'=>'m', 'x'=>150, 'y'=>210),
+            array('type'=>'c', 'x1'=>170, 'y1'=>140, 'x2'=>200, 'y2'=>90, 'x'=>160, 'y'=>0),
+            array('type'=>'l', 'x'=>297, 'y'=>0),
+            array('type'=>'l', 'x'=>297, 'y'=>210),
+            array('type'=>'l', 'x'=>150, 'y'=>210),
+        );
+        $this->DrawShape($pts_cyan, 'F');
         
-        // Rectángulo superior azul oscuro simulando la cabecera
+        // Dark blue shape top right
         $this->SetFillColor(25, 60, 126); // Dark Blue #193c7e
-        $this->Rect(180, 0, 117, 60, 'F');
+        $pts_blue = array(
+            array('type'=>'m', 'x'=>160, 'y'=>0),
+            array('type'=>'c', 'x1'=>200, 'y1'=>40, 'x2'=>250, 'y2'=>50, 'x'=>297, 'y'=>20),
+            array('type'=>'l', 'x'=>297, 'y'=>0),
+            array('type'=>'l', 'x'=>160, 'y'=>0),
+        );
+        $this->DrawShape($pts_blue, 'F');
     }
 }
 
