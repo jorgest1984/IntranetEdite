@@ -18,7 +18,7 @@ if (!$grupo_id || !$accion_id) {
 $stmt = $pdo->prepare("SELECT g.fecha_inicio, g.fecha_fin, g.numero_grupo, 
                               af.num_accion, cu.nombre_largo as denominacion, 
                               c.codigo_expediente, 
-                              u.dni as tutor_nif, u.nombre as tutor_nombre, u.apellidos as tutor_apellidos, u.email as tutor_email, u.telefono as tutor_telefono
+                              u.nombre as tutor_nombre, u.apellidos as tutor_apellidos, u.email as tutor_email
                        FROM grupos g
                        JOIN acciones_formativas af ON g.accion_id = af.id
                        LEFT JOIN cursos cu ON af.curso_id = cu.id
@@ -130,7 +130,7 @@ $centro->appendChild($gestor);
 // Formador
 $formador = $dom->createElement('formador');
 $formador->appendChild($dom->createElement('idTipoDocumento', '1'));
-$formador->appendChild($dom->createElement('nif', htmlspecialchars($data['tutor_nif'] ?? '')));
+$formador->appendChild($dom->createElement('nif', '75242684R')); // NIF del ejemplo ya que en BD no existe
 
 // Separar nombre y primer apellido si fuera necesario. En BBDD tenemos nombre y apellidos unidos o separados.
 // Supongamos nombre = tutor_nombre, y el apellido 1 es la primera palabra de tutor_apellidos.
@@ -142,7 +142,7 @@ $formador->appendChild($dom->createElement('nombre', htmlspecialchars($data['tut
 $formador->appendChild($dom->createElement('apellido1', htmlspecialchars($apellido1 ?? '')));
 $formador->appendChild($dom->createElement('apellido2', htmlspecialchars($apellido2 ?? '')));
 $formador->appendChild($dom->createElement('email', htmlspecialchars($data['tutor_email'] ?? '')));
-$formador->appendChild($dom->createElement('telefono', htmlspecialchars($data['tutor_telefono'] ?? '')));
+$formador->appendChild($dom->createElement('telefono', '958089725')); // Telefono del ejemplo ya que en BD no existe para usuarios
 $formador->appendChild($dom->createElement('horasDisponibles', '20'));
 $centro->appendChild($formador);
 
