@@ -60,8 +60,13 @@ $num_accion = strtoupper($data['num_accion'] ?? '');
 $expediente = strtoupper($data['codigo_expediente'] ?? '');
 $contenidos = $data['contenidos_diploma'] ?? "Módulo 1: Introducción\nMódulo 2: Desarrollo\nMódulo 3: Conclusiones";
 $meses = array('Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre');
-$ts_fin = strtotime($data['fecha_fin']);
-$fecha_expedicion = date('d', $ts_fin) . ' de ' . $meses[date('n', $ts_fin)-1] . ' de ' . date('Y', $ts_fin);
+
+if (!empty($data['fecha_fin']) && $data['fecha_fin'] !== '0000-00-00') {
+    $ts_fin = strtotime($data['fecha_fin']);
+    $fecha_expedicion = date('d', $ts_fin) . ' de ' . $meses[date('n', $ts_fin)-1] . ' de ' . date('Y', $ts_fin);
+} else {
+    $fecha_expedicion = date('d') . ' de ' . $meses[date('n')-1] . ' de ' . date('Y');
+}
 
 // Helpers FPDF
 function pdf_utf8_to_iso($string) {
@@ -75,11 +80,11 @@ class PDF_Diploma extends PDF_Curve {
         // Cyan shape
         $this->SetFillColor(5, 149, 197); // Cyan-ish #0595c5
         $pts_cyan = array(
-            array('type'=>'m', 'x'=>120, 'y'=>210),
-            array('type'=>'c', 'x1'=>160, 'y1'=>140, 'x2'=>140, 'y2'=>70, 'x'=>180, 'y'=>0),
+            array('type'=>'m', 'x'=>135, 'y'=>210),
+            array('type'=>'c', 'x1'=>150, 'y1'=>140, 'x2'=>200, 'y2'=>80, 'x'=>150, 'y'=>0),
             array('type'=>'l', 'x'=>297, 'y'=>0),
             array('type'=>'l', 'x'=>297, 'y'=>210),
-            array('type'=>'l', 'x'=>120, 'y'=>210),
+            array('type'=>'l', 'x'=>135, 'y'=>210),
         );
         $this->DrawShape($pts_cyan, 'F');
         
@@ -87,7 +92,7 @@ class PDF_Diploma extends PDF_Curve {
         $this->SetFillColor(24, 60, 125); // Dark Blue #183c7d
         $pts_blue = array(
             array('type'=>'m', 'x'=>150, 'y'=>0),
-            array('type'=>'c', 'x1'=>170, 'y1'=>40, 'x2'=>250, 'y2'=>60, 'x'=>297, 'y'=>80),
+            array('type'=>'c', 'x1'=>180, 'y1'=>60, 'x2'=>250, 'y2'=>80, 'x'=>297, 'y'=>60),
             array('type'=>'l', 'x'=>297, 'y'=>0),
             array('type'=>'l', 'x'=>150, 'y'=>0),
         );
