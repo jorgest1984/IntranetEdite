@@ -16,11 +16,12 @@ if (!$grupo_id || !$accion_id) {
 
 // 1. Obtener datos básicos
 $stmt = $pdo->prepare("SELECT g.fecha_inicio, g.fecha_fin, g.numero_grupo, 
-                              af.num_accion, af.titulo as denominacion, 
+                              af.num_accion, cu.nombre_largo as denominacion, 
                               c.codigo_expediente, 
-                              u.nif as tutor_nif, u.nombre as tutor_nombre, u.apellidos as tutor_apellidos, u.email as tutor_email, u.telefono as tutor_telefono
+                              u.dni as tutor_nif, u.nombre as tutor_nombre, u.apellidos as tutor_apellidos, u.email as tutor_email, u.telefono as tutor_telefono
                        FROM grupos g
                        JOIN acciones_formativas af ON g.accion_id = af.id
+                       LEFT JOIN cursos cu ON af.curso_id = cu.id
                        LEFT JOIN planes p ON af.plan_id = p.id
                        LEFT JOIN convocatorias c ON p.convocatoria_id = c.id
                        LEFT JOIN usuarios u ON g.tutor_id = u.id
