@@ -15,9 +15,9 @@ if (!$id) {
     exit();
 }
 
-// Cargar datos del alumno
+// 1. Obtener datos del alumno
 $stmt = $pdo->prepare("
-    SELECT a.*, e.nombre as empresa_nombre 
+    SELECT a.*, e.nombre as empresa_nombre, e.domicilio as empresa_domicilio, e.cp as empresa_cp, e.tamano_empresa as empresa_tamano, e.sector_actividad as empresa_sector, e.convenio_aplicacion as empresa_convenio 
     FROM alumnos a 
     LEFT JOIN empresas e ON a.ultima_empresa_id = e.id 
     WHERE a.id = ?
@@ -234,7 +234,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             'activo_hasta', 'es_nuestro', 'ultima_empresa_id', 'centro_trabajo', 'enviar_emails',
             'plat_usuario', 'plat_clave', 'pref_presencial',
             'modulacion', 'horarios', 'observaciones', 'entrega_atencion', 'entrega_domicilio',
-            'entrega_cp', 'entrega_localidad', 'entrega_provincia'
+            'entrega_cp', 'entrega_localidad', 'entrega_provincia',
+            'discapacidad', 'grupo_cotizacion', 'categoria_profesional', 'area_funcional',
+            'ocupacion_cno', 'situacion_laboral', 'situacion_laboral_codigo'
         ];
         
         // Procesar subida de foto de perfil
@@ -285,6 +287,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                 $_POST['ultima_empresa_id'] = $empresa_id;
             }
         }
+        
+        // Actualizar datos de la empresa si están presentes
+        if (!empty($_POST['ultima_empresa_id'])) {
+            $emp_id = $_POST['ultima_empresa_id'];
+            $emp_set = [];
+            $emp_params = [];
+            
+            $emp_fields_map = [
+                'domicilio' => 'empresa_domicilio',
+                'cp' => 'empresa_cp',
+                'tamano_empresa' => 'empresa_tamano',
+                'sector_actividad' => 'empresa_sector',
+                'convenio_aplicacion' => 'empresa_convenio'
+            ];
+            
+            foreach($emp_fields_map as $db_field => $post_field) {
+                if (isset($_POST[$post_field])) {
+                    $emp_set[] = "$db_field = ?";
+                    $emp_params[] = trim($_POST[$post_field]);
+                }
+            }
+            if (!empty($emp_set)) {
+                $emp_params[] = $emp_id;
+                $stmtEmpUpd = $pdo->prepare("UPDATE empresas SET " . implode(', ', $emp_set) . " WHERE id = ?");
+                $stmtEmpUpd->execute($emp_params);
+            }
+        }
 
         $set = [];
         $params = [];
@@ -292,7 +321,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             $set[] = "$f = ?";
             
             // Checkboxes
-            if (in_array($f, ['bloqueado', 'restringido', 'baja', 'enviar_emails', 'es_nuestro'])) {
+            if (in_array($f, ['bloqueado', 'restringido', 'baja', 'enviar_emails', 'es_nuestro', 'discapacidad'])) {
                 $val = isset($_POST[$f]) ? 1 : 0;
             } else {
                 $val = isset($_POST[$f]) ? trim($_POST[$f]) : null;
@@ -773,12 +802,67 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                             <select name="estudios" class="form-control-edit">
                                                 <option value="">---</option>
                                                 <?php 
-                                                $opcionesEstudios = ["Sin estudios", "Primaria", "ESO/EGB", "Bachillerato", "FP Grado Medio", "FP Grado Superior", "Universidad", "Carnet Profesional"];
+                                                $opcionesEstudios = [
+                                                    "0 - Sin titulación", "1 - Educación Primaria", "22 - Título de Graduado E.S.O. / E.G.B.", 
+                                                    "23 - Certificados de Profesionalidad Nivel 1", "24 - Certificados de Profesionalidad Nivel 2", 
+                                                    "25 - Certificados de Profesionalidad Nivel 3", "32 - Título de Bachillerato", 
+                                                    "33 - Título de Técnico o equivalente (FP Grado Medio)", "51 - Título de Técnico Superior o equivalente (FP Grado Superior)", 
+                                                    "61 - Título Universitario de Grado o equivalente", "71 - Título de Máster Universitario o equivalente", 
+                                                    "81 - Doctorado Universitario"
+                                                ];
                                                 foreach ($opcionesEstudios as $est):
                                                 ?>
                                                     <option value="<?= htmlspecialchars($est) ?>" <?= ($alumno['estudios'] ?? '') == $est ? 'selected' : '' ?>><?= htmlspecialchars($est) ?></option>
                                                 <?php endforeach; ?>
                                             </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-grid" style="margin-top: 15px;">
+                                        <div class="form-group-custom span-3">
+                                            <label>Grupo Cotización</label>
+                                            <select name="grupo_cotizacion" class="form-control-edit">
+                                                <option value="">---</option>
+                                                <?php foreach(['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11'] as $g): ?>
+                                                    <option value="<?= $g ?>" <?= ($alumno['grupo_cotizacion'] ?? '') == $g ? 'selected' : '' ?>><?= $g ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                        <div class="form-group-custom span-3">
+                                            <label>Categoría Profesional</label>
+                                            <select name="categoria_profesional" class="form-control-edit">
+                                                <option value="">---</option>
+                                                <?php foreach(['Directivo', 'Mando Intermedio', 'Técnico', 'Trabajador cualificado', 'Trabajador de baja cualificación'] as $cat): ?>
+                                                    <option value="<?= $cat ?>" <?= ($alumno['categoria_profesional'] ?? '') == $cat ? 'selected' : '' ?>><?= $cat ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                        <div class="form-group-custom span-3">
+                                            <label>Área Funcional</label>
+                                            <select name="area_funcional" class="form-control-edit">
+                                                <option value="">---</option>
+                                                <?php foreach(['Dirección', 'Administración', 'Comercial', 'Mantenimiento', 'Producción'] as $area): ?>
+                                                    <option value="<?= $area ?>" <?= ($alumno['area_funcional'] ?? '') == $area ? 'selected' : '' ?>><?= $area ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                        <div class="form-group-custom span-3">
+                                            <label>Ocupación CNO (4 dig.)</label>
+                                            <input type="text" name="ocupacion_cno" maxlength="4" class="form-control-edit" value="<?= htmlspecialchars($alumno['ocupacion_cno'] ?? '') ?>">
+                                        </div>
+                                        <div class="form-group-custom span-3">
+                                            <label>Situación Laboral</label>
+                                            <select name="situacion_laboral" class="form-control-edit">
+                                                <option value="">---</option>
+                                                <option value="Ocupado" <?= ($alumno['situacion_laboral'] ?? '') == 'Ocupado' ? 'selected' : '' ?>>Ocupado</option>
+                                                <option value="Desempleado DSP" <?= ($alumno['situacion_laboral'] ?? '') == 'Desempleado DSP' ? 'selected' : '' ?>>Desempleado DSP</option>
+                                                <option value="Desempleado DSPLD" <?= ($alumno['situacion_laboral'] ?? '') == 'Desempleado DSPLD' ? 'selected' : '' ?>>Desempleado DSPLD</option>
+                                                <option value="Cuidador CPN" <?= ($alumno['situacion_laboral'] ?? '') == 'Cuidador CPN' ? 'selected' : '' ?>>Cuidador CPN</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group-custom span-3">
+                                            <label>Cod. Sit. Laboral</label>
+                                            <input type="text" name="situacion_laboral_codigo" class="form-control-edit" placeholder="Ej: RG, FD, ERTE..." value="<?= htmlspecialchars($alumno['situacion_laboral_codigo'] ?? '') ?>">
                                         </div>
                                     </div>
                                 </div>
@@ -800,7 +884,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                         </div>
                                         <div class="checkbox-group-custom span-3" style="padding-top: 0; color: var(--primary-color);">
                                             <input type="checkbox" name="es_nuestro" id="es_nuestro" <?= ($alumno['es_nuestro'] ?? 0) ? 'checked' : '' ?>>
-                                            <label for="es_nuestro" style="color: var(--primary-color); cursor: pointer;">⭐ ES NUESTRO</label>
+                                            <label for="es_nuestro" style="cursor: pointer;"><i class="fas fa-star"></i> ALUMNO PROPIO</label>
+                                        </div>
+                                        <div class="checkbox-group-custom span-3" style="padding-top: 0;">
+                                            <input type="checkbox" name="discapacidad" id="discapacidad" <?= ($alumno['discapacidad'] ?? 0) ? 'checked' : '' ?>>
+                                            <label for="discapacidad" style="cursor: pointer; color: #8b5cf6;"><i class="fas fa-wheelchair"></i> DISCAPACIDAD</label>
                                         </div>
                                     </div>
                                 </div>
@@ -968,6 +1056,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                     <div class="form-group-custom span-4">
                                         <label>Empresa Actual</label>
                                         <input type="text" name="empresa_actual_txt" class="form-control-edit" value="<?= htmlspecialchars($alumno['empresa_nombre'] ?? '') ?>" placeholder="Escriba el nombre de la empresa...">
+                                    </div>
+                                    <div class="form-group-custom span-4">
+                                        <label>Tamaño Empresa</label>
+                                        <select name="empresa_tamano" class="form-control-edit">
+                                            <option value="">---</option>
+                                            <?php foreach(['Inferior a 10', 'De 10 a 49', 'De 50 a 99', 'De 100 a 249', '250 y más'] as $t): ?>
+                                                <option value="<?= $t ?>" <?= ($alumno['empresa_tamano'] ?? '') == $t ? 'selected' : '' ?>><?= $t ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <div class="form-group-custom span-4">
+                                        <label>Sector de Actividad</label>
+                                        <input type="text" name="empresa_sector" class="form-control-edit" value="<?= htmlspecialchars($alumno['empresa_sector'] ?? '') ?>">
+                                    </div>
+                                    <div class="form-group-custom span-4">
+                                        <label>Convenio de Aplicación</label>
+                                        <input type="text" name="empresa_convenio" class="form-control-edit" value="<?= htmlspecialchars($alumno['empresa_convenio'] ?? '') ?>">
+                                    </div>
+                                    <div class="form-group-custom span-6">
+                                        <label>Domicilio Empresa</label>
+                                        <input type="text" name="empresa_domicilio" class="form-control-edit" value="<?= htmlspecialchars($alumno['empresa_domicilio'] ?? '') ?>">
+                                    </div>
+                                    <div class="form-group-custom span-2">
+                                        <label>C.P. Empresa</label>
+                                        <input type="text" name="empresa_cp" class="form-control-edit" value="<?= htmlspecialchars($alumno['empresa_cp'] ?? '') ?>">
                                     </div>
                                     <div class="form-group-custom span-4">
                                         <label>Centro de Trabajo</label>

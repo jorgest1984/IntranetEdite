@@ -19,11 +19,17 @@ $query = "
         a.id, a.nombre, a.primer_apellido, a.segundo_apellido, a.dni, a.telefono, a.email,
         a.fecha_nacimiento, a.sexo, a.domicilio, a.cp, a.localidad, a.provincia, a.estudios,
         a.tipo_via, a.nombre_via, a.num_domicilio, a.planta, a.puerta,
+        a.discapacidad, a.grupo_cotizacion, a.categoria_profesional, a.area_funcional,
+        a.ocupacion_cno, a.situacion_laboral, a.situacion_laboral_codigo,
+        emp.nombre as empresa_nombre, emp.domicilio as empresa_domicilio, emp.cp as empresa_cp, 
+        emp.tamano_empresa as empresa_tamano, emp.sector_actividad as empresa_sector, 
+        emp.convenio_aplicacion as empresa_convenio, emp.cif as empresa_cif,
         g.numero_grupo, g.fecha_inicio, g.fecha_fin,
         af.num_accion, af.modalidad, af.abreviatura as curso_codigo, af.titulo as curso_titulo,
         conv.codigo_expediente
     FROM matriculas m
     JOIN alumnos a ON m.alumno_id = a.id
+    LEFT JOIN empresas emp ON a.ultima_empresa_id = emp.id
     JOIN grupos g ON m.grupo_id = g.id
     JOIN acciones_formativas af ON g.accion_id = af.id
     LEFT JOIN planes p ON af.plan_id = p.id
@@ -281,16 +287,81 @@ if (empty($alumnos)) {
     
     $expediente = trim($alumno['codigo_expediente'] ?? '');
     
-    // Mapeo de Estudios (aproximado basado en el esquema anterior)
+    // Discapacidad
+    $discapacidad = (int)($alumno['discapacidad'] ?? 0);
+    $chk_disc_si = $discapacidad === 1 ? 'X' : '&nbsp;';
+    $chk_disc_no = $discapacidad === 0 ? 'X' : '&nbsp;';
+
+    // Mapeo de Estudios (exacto al nuevo formato)
     $estudios = trim($alumno['estudios'] ?? '');
     $e_0 = $e_1 = $e_22 = $e_23 = $e_24 = $e_32 = $e_33 = $e_34 = $e_38 = $e_41 = $e_51 = $e_61 = $e_62 = $e_71 = $e_72 = $e_73 = $e_74 = $e_81 = '&nbsp;';
-    if ($estudios === 'Sin estudios') $e_0 = 'X';
-    elseif ($estudios === 'Primaria') $e_1 = 'X';
-    elseif ($estudios === 'ESO/EGB') $e_22 = 'X';
-    elseif ($estudios === 'Bachillerato') $e_32 = 'X';
-    elseif ($estudios === 'FP Grado Medio') $e_33 = 'X';
-    elseif ($estudios === 'FP Grado Superior') $e_51 = 'X';
-    elseif ($estudios === 'Universidad') $e_61 = 'X'; // Asignamos genéricamente al 61
+    if (strpos($estudios, '0 -') === 0) $e_0 = 'X';
+    elseif (strpos($estudios, '1 -') === 0) $e_1 = 'X';
+    elseif (strpos($estudios, '22 -') === 0) $e_22 = 'X';
+    elseif (strpos($estudios, '23 -') === 0) $e_23 = 'X';
+    elseif (strpos($estudios, '24 -') === 0) $e_24 = 'X';
+    elseif (strpos($estudios, '25 -') === 0) $e_25 = 'X'; // Wait, there's no e_25 in the old code, I should add it
+    elseif (strpos($estudios, '32 -') === 0) $e_32 = 'X';
+    elseif (strpos($estudios, '33 -') === 0) $e_33 = 'X';
+    elseif (strpos($estudios, '51 -') === 0) $e_51 = 'X';
+    elseif (strpos($estudios, '61 -') === 0) $e_61 = 'X';
+    elseif (strpos($estudios, '71 -') === 0) $e_71 = 'X';
+    elseif (strpos($estudios, '81 -') === 0) $e_81 = 'X';
+
+    // Grupo cotizacion
+    $grupo_cot = trim($alumno['grupo_cotizacion'] ?? '');
+    $g_01 = $g_02 = $g_03 = $g_04 = $g_05 = $g_06 = $g_07 = $g_08 = $g_09 = $g_10 = $g_11 = '&nbsp;';
+    if ($grupo_cot === '01') $g_01 = 'X';
+    elseif ($grupo_cot === '02') $g_02 = 'X';
+    elseif ($grupo_cot === '03') $g_03 = 'X';
+    elseif ($grupo_cot === '04') $g_04 = 'X';
+    elseif ($grupo_cot === '05') $g_05 = 'X';
+    elseif ($grupo_cot === '06') $g_06 = 'X';
+    elseif ($grupo_cot === '07') $g_07 = 'X';
+    elseif ($grupo_cot === '08') $g_08 = 'X';
+    elseif ($grupo_cot === '09') $g_09 = 'X';
+    elseif ($grupo_cot === '10') $g_10 = 'X';
+    elseif ($grupo_cot === '11') $g_11 = 'X';
+
+    // Categoría profesional
+    $cat_prof = trim($alumno['categoria_profesional'] ?? '');
+    $cp_dir = $cp_mando = $cp_tec = $cp_cual = $cp_baja = '&nbsp;';
+    if ($cat_prof === 'Directivo') $cp_dir = 'X';
+    elseif ($cat_prof === 'Mando Intermedio') $cp_mando = 'X';
+    elseif ($cat_prof === 'Técnico') $cp_tec = 'X';
+    elseif ($cat_prof === 'Trabajador cualificado') $cp_cual = 'X';
+    elseif ($cat_prof === 'Trabajador de baja cualificación') $cp_baja = 'X';
+
+    // Área funcional
+    $area_func = trim($alumno['area_funcional'] ?? '');
+    $af_dir = $af_adm = $af_com = $af_man = $af_pro = '&nbsp;';
+    if ($area_func === 'Dirección') $af_dir = 'X';
+    elseif ($area_func === 'Administración') $af_adm = 'X';
+    elseif ($area_func === 'Comercial') $af_com = 'X';
+    elseif ($area_func === 'Mantenimiento') $af_man = 'X';
+    elseif ($area_func === 'Producción') $af_pro = 'X';
+
+    // Situacion Laboral
+    $sit_lab = trim($alumno['situacion_laboral'] ?? '');
+    $sl_ocu = $sl_dsp = $sl_dspld = $sl_cpn = '&nbsp;';
+    if ($sit_lab === 'Ocupado') $sl_ocu = 'X';
+    elseif ($sit_lab === 'Desempleado DSP') $sl_dsp = 'X';
+    elseif ($sit_lab === 'Desempleado DSPLD') $sl_dspld = 'X';
+    elseif ($sit_lab === 'Cuidador CPN') $sl_cpn = 'X';
+
+    $cno = trim($alumno['ocupacion_cno'] ?? '');
+    $cno_chars = str_split(str_pad($cno, 4, ' ', STR_PAD_RIGHT));
+
+    $sit_cod = trim($alumno['situacion_laboral_codigo'] ?? '');
+
+    // Empresa
+    $emp_tam = trim($alumno['empresa_tamano'] ?? '');
+    $et_10 = $et_49 = $et_99 = $et_249 = $et_250 = '&nbsp;';
+    if ($emp_tam === 'Inferior a 10') $et_10 = 'X';
+    elseif ($emp_tam === 'De 10 a 49') $et_49 = 'X';
+    elseif ($emp_tam === 'De 50 a 99') $et_99 = 'X';
+    elseif ($emp_tam === 'De 100 a 249') $et_249 = 'X';
+    elseif ($emp_tam === '250 y más') $et_250 = 'X';
     
 ?>
 <div class="student-wrapper">
@@ -362,8 +433,8 @@ if (empty($alumnos)) {
                 
                 <div style="flex: 0 0 auto;">
                     Discapacidad: 
-                    <span class="chk-box" style="margin-left: 5px;">&nbsp;</span> SI &nbsp;&nbsp;&nbsp; 
-                    <span class="chk-box">&nbsp;</span> NO
+                    <span class="chk-box" style="margin-left: 5px;"><?= $chk_disc_si ?></span> SI &nbsp;&nbsp;&nbsp; 
+                    <span class="chk-box"><?= $chk_disc_no ?></span> NO
                 </div>
             </div>
         </div>
@@ -378,7 +449,8 @@ if (empty($alumnos)) {
                     <div class="list-item"><span class="chk-box"><?= $e_1 ?></span> 1 - Educación Primaria.</div>
                     <div class="list-item"><span class="chk-box"><?= $e_22 ?></span> 22 - Título de Graduado E.S.O./ E.G.B.</div>
                     <div class="list-item"><span class="chk-box"><?= $e_23 ?></span> 23 - Certificados de Profesionalidad Nivel 1.</div>
-                    <div class="list-item"><span class="chk-box"><?= $e_24 ?></span> 24 - Certificados de Profesionalidad Nivel 2.</div>
+                    <div class="list-item"><span class="chk-box"><?= $e_24 ?? '&nbsp;' ?></span> 24 - Certificados de Profesionalidad Nivel 2.</div>
+                    <div class="list-item"><span class="chk-box"><?= $e_25 ?? '&nbsp;' ?></span> 25 - Certificados de Profesionalidad Nivel 3.</div>
                     <div class="list-item"><span class="chk-box"><?= $e_32 ?></span> 32 - Bachillerato.</div>
                     <div class="list-item"><span class="chk-box"><?= $e_33 ?></span> 33 - Enseñanzas de Formación Profesional de Grado Medio.</div>
                     <div class="list-item"><span class="chk-box"><?= $e_34 ?></span> 34 - Enseñanzas Profesionales de Música-danza.</div>
@@ -405,17 +477,17 @@ if (empty($alumnos)) {
                 </td>
                 <td style="width: 50%;">
                     <div class="box-header">GRUPO DE COTIZACIÓN</div>
-                    <div class="list-item"><span class="chk-box">&nbsp;</span> 01 - Ingenieros y Licenciados. Personal de alta dirección no incluido en el artículo 1.3.c) del Estatuto de los Trabajadores.</div>
-                    <div class="list-item"><span class="chk-box">&nbsp;</span> 02 - Ingenieros Técnicos, Peritos y Ayudantes titulados.</div>
-                    <div class="list-item"><span class="chk-box">&nbsp;</span> 03 - Jefes administrativos y de Taller.</div>
-                    <div class="list-item"><span class="chk-box">&nbsp;</span> 04 - Ayudantes no Titulados.</div>
-                    <div class="list-item"><span class="chk-box">&nbsp;</span> 05 - Oficiales Administrativos.</div>
-                    <div class="list-item"><span class="chk-box">&nbsp;</span> 06 - Subalternos.</div>
-                    <div class="list-item"><span class="chk-box">&nbsp;</span> 07 - Auxiliares Administrativos.</div>
-                    <div class="list-item"><span class="chk-box">&nbsp;</span> 08 - Oficiales de primera y segunda.</div>
-                    <div class="list-item"><span class="chk-box">&nbsp;</span> 09 - Oficiales de tercera y Especialistas.</div>
-                    <div class="list-item"><span class="chk-box">&nbsp;</span> 10 - Peones.</div>
-                    <div class="list-item"><span class="chk-box">&nbsp;</span> 11 - Trabajadores menores de dieciocho años cualquiera que sea su categoría profesional.</div>
+                    <div class="list-item"><span class="chk-box"><?= $g_01 ?></span> 01 - Ingenieros y Licenciados. Personal de alta dirección no incluido en el artículo 1.3.c) del Estatuto de los Trabajadores.</div>
+                    <div class="list-item"><span class="chk-box"><?= $g_02 ?></span> 02 - Ingenieros Técnicos, Peritos y Ayudantes titulados.</div>
+                    <div class="list-item"><span class="chk-box"><?= $g_03 ?></span> 03 - Jefes administrativos y de Taller.</div>
+                    <div class="list-item"><span class="chk-box"><?= $g_04 ?></span> 04 - Ayudantes no Titulados.</div>
+                    <div class="list-item"><span class="chk-box"><?= $g_05 ?></span> 05 - Oficiales Administrativos.</div>
+                    <div class="list-item"><span class="chk-box"><?= $g_06 ?></span> 06 - Subalternos.</div>
+                    <div class="list-item"><span class="chk-box"><?= $g_07 ?></span> 07 - Auxiliares Administrativos.</div>
+                    <div class="list-item"><span class="chk-box"><?= $g_08 ?></span> 08 - Oficiales de primera y segunda.</div>
+                    <div class="list-item"><span class="chk-box"><?= $g_09 ?></span> 09 - Oficiales de tercera y Especialistas.</div>
+                    <div class="list-item"><span class="chk-box"><?= $g_10 ?></span> 10 - Peones.</div>
+                    <div class="list-item"><span class="chk-box"><?= $g_11 ?></span> 11 - Trabajadores menores de dieciocho años cualquiera que sea su categoría profesional.</div>
                 </td>
             </tr>
         </table>
@@ -438,11 +510,11 @@ if (empty($alumnos)) {
             <tr>
                 <td style="width: 50%;">
                     <div class="box-header">CATEGORÍA PROFESIONAL</div>
-                    <div class="list-item"><span class="chk-box">&nbsp;</span> Directivo</div>
-                    <div class="list-item"><span class="chk-box">&nbsp;</span> Mando Intermedio</div>
-                    <div class="list-item"><span class="chk-box">&nbsp;</span> Técnico</div>
-                    <div class="list-item"><span class="chk-box">&nbsp;</span> Trabajador cualificado</div>
-                    <div class="list-item"><span class="chk-box">&nbsp;</span> Trabajador de baja cualificación (*)</div>
+                    <div class="list-item"><span class="chk-box"><?= $cp_dir ?></span> Directivo</div>
+                    <div class="list-item"><span class="chk-box"><?= $cp_mando ?></span> Mando Intermedio</div>
+                    <div class="list-item"><span class="chk-box"><?= $cp_tec ?></span> Técnico</div>
+                    <div class="list-item"><span class="chk-box"><?= $cp_cual ?></span> Trabajador cualificado</div>
+                    <div class="list-item"><span class="chk-box"><?= $cp_baja ?></span> Trabajador de baja cualificación (*)</div>
                     
                     <div style="font-size: 8px; margin-top: 15px; line-height: 1.2;">
                         (*) Grupos de cotización 06, 07, 09 o 10 de la última ocupación. En el caso de tratarse personas desempleadas aquellas que no estén en posesión de un carnet profesional, certificado de profesionalidad de nivel 2 o 3, título de formación profesional o de una titulación universitaria.
@@ -450,17 +522,17 @@ if (empty($alumnos)) {
                 </td>
                 <td style="width: 50%;">
                     <div class="box-header">ÁREA FUNCIONAL (solo ocupados)</div>
-                    <div class="list-item"><span class="chk-box">&nbsp;</span> Dirección</div>
-                    <div class="list-item"><span class="chk-box">&nbsp;</span> Administración</div>
-                    <div class="list-item"><span class="chk-box">&nbsp;</span> Comercial</div>
-                    <div class="list-item"><span class="chk-box">&nbsp;</span> Mantenimiento</div>
-                    <div class="list-item"><span class="chk-box">&nbsp;</span> Producción</div>
+                    <div class="list-item"><span class="chk-box"><?= $af_dir ?></span> Dirección</div>
+                    <div class="list-item"><span class="chk-box"><?= $af_adm ?></span> Administración</div>
+                    <div class="list-item"><span class="chk-box"><?= $af_com ?></span> Comercial</div>
+                    <div class="list-item"><span class="chk-box"><?= $af_man ?></span> Mantenimiento</div>
+                    <div class="list-item"><span class="chk-box"><?= $af_pro ?></span> Producción</div>
                 </td>
             </tr>
             <tr>
                 <td colspan="2">
                     <div class="box-header" style="display:inline-block; margin-right: 10px;">OCUPACIÓN (Clasificación Nacional de Ocupaciones 2011 (CNO-11):</div>
-                    <span class="cno-box"></span><span class="cno-box"></span><span class="cno-box"></span><span class="cno-box"></span>
+                    <span class="cno-box"><?= $cno_chars[0] ?? '&nbsp;' ?></span><span class="cno-box"><?= $cno_chars[1] ?? '&nbsp;' ?></span><span class="cno-box"><?= $cno_chars[2] ?? '&nbsp;' ?></span><span class="cno-box"><?= $cno_chars[3] ?? '&nbsp;' ?></span>
                     <span style="font-size: 9px; margin-left: 5px;">(Si está desempleado, indicar la última ocupación)</span>
                     <div style="font-size: 8px; margin-top: 5px;">(Si fuera necesario, requerir la ayuda de la entidad solicitante del Programa de Formación para cumplimentar este epígrafe)</div>
                 </td>
@@ -468,43 +540,43 @@ if (empty($alumnos)) {
             <tr>
                 <td colspan="2">
                     <div class="box-header">PARTICIPANTE:</div>
-                    <div class="list-item"><span class="chk-box">&nbsp;</span> Ocupado. Consignar Código (1): <span class="dotted-line" style="width: 150px;"></span></div>
-                    <div class="list-item"><span class="chk-box">&nbsp;</span> Desempleado (DSP)</div>
-                    <div class="list-item"><span class="chk-box">&nbsp;</span> Desempleado de larga duración (*)(DSPLD)</div>
-                    <div class="list-item"><span class="chk-box">&nbsp;</span> Cuidador no profesional (CPN)</div>
+                    <div class="list-item"><span class="chk-box"><?= $sl_ocu ?></span> Ocupado. Consignar Código (1): <span class="dotted-line" style="width: 150px;"><?= htmlspecialchars($sit_cod) ?></span></div>
+                    <div class="list-item"><span class="chk-box"><?= $sl_dsp ?></span> Desempleado (DSP)</div>
+                    <div class="list-item"><span class="chk-box"><?= $sl_dspld ?></span> Desempleado de larga duración (*)(DSPLD)</div>
+                    <div class="list-item"><span class="chk-box"><?= $sl_cpn ?></span> Cuidador no profesional (CPN)</div>
                     <div style="font-size: 8px; margin-top: 5px;">(*) Personas inscritas como demandantes en la oficina de empleo al menos 12 meses en los 18 meses anteriores a la selección.</div>
                 </td>
             </tr>
             <tr>
                 <td colspan="2">
-                    <div class="box-header" style="display:inline-block; margin-bottom: 10px;">ENTIDAD DONDE TRABAJA ACTUALMENTE:</div> <span class="dotted-line" style="width: 450px;"></span>
+                    <div class="box-header" style="display:inline-block; margin-bottom: 10px;">ENTIDAD DONDE TRABAJA ACTUALMENTE:</div> <span class="dotted-line" style="width: 450px;"><?= htmlspecialchars($alumno['empresa_nombre'] ?? '') ?></span>
                     
                     <div class="field-row" style="margin-top: 10px; margin-bottom: 10px;">
                         TAMAÑO DE EMPRESA: 
-                        &nbsp;&nbsp;<span class="chk-box">&nbsp;</span> Inferior a 10
-                        &nbsp;&nbsp;<span class="chk-box">&nbsp;</span> De 10 a 49
-                        &nbsp;&nbsp;<span class="chk-box">&nbsp;</span> De 50 a 99
-                        &nbsp;&nbsp;<span class="chk-box">&nbsp;</span> De 100 a 249
-                        &nbsp;&nbsp;<span class="chk-box">&nbsp;</span> 250 y más
+                        &nbsp;&nbsp;<span class="chk-box"><?= $et_10 ?></span> Inferior a 10
+                        &nbsp;&nbsp;<span class="chk-box"><?= $et_49 ?></span> De 10 a 49
+                        &nbsp;&nbsp;<span class="chk-box"><?= $et_99 ?></span> De 50 a 99
+                        &nbsp;&nbsp;<span class="chk-box"><?= $et_249 ?></span> De 100 a 249
+                        &nbsp;&nbsp;<span class="chk-box"><?= $et_250 ?></span> 250 y más
                     </div>
                     
                     <div class="field-row">
-                        SECTOR DE ACTIVIDAD: <span class="dotted-line" style="width: 580px;"></span>
+                        SECTOR DE ACTIVIDAD: <span class="dotted-line" style="width: 580px;"><?= htmlspecialchars($alumno['empresa_sector'] ?? '') ?></span>
                     </div>
                     <div class="field-row">
-                        CONVENIO DE APLICACIÓN: <span class="dotted-line" style="width: 560px;"></span>
+                        CONVENIO DE APLICACIÓN: <span class="dotted-line" style="width: 560px;"><?= htmlspecialchars($alumno['empresa_convenio'] ?? '') ?></span>
                     </div>
                     
                     <div class="field-row" style="margin-top: 15px;">
-                        Razón Social: <span class="dotted-line" style="width: 630px;"></span>
+                        Razón Social: <span class="dotted-line" style="width: 630px;"><?= htmlspecialchars($alumno['empresa_nombre'] ?? '') ?></span>
                     </div>
                     <div class="field-row">
-                        C. I. F. <span class="dotted-line" style="width: 180px;"></span>
-                        Domicilio del Centro de Trabajo: <span class="dotted-line" style="width: 380px;"></span>
+                        C. I. F. <span class="dotted-line" style="width: 180px;"><?= htmlspecialchars($alumno['empresa_cif'] ?? '') ?></span>
+                        Domicilio del Centro de Trabajo: <span class="dotted-line" style="width: 380px;"><?= htmlspecialchars($alumno['empresa_domicilio'] ?? '') ?></span>
                     </div>
                     <div class="field-row">
                         Localidad <span class="dotted-line" style="width: 350px;"></span>
-                        C.P. <span class="dotted-line" style="width: 100px;"></span>
+                        C.P. <span class="dotted-line" style="width: 100px;"><?= htmlspecialchars($alumno['empresa_cp'] ?? '') ?></span>
                     </div>
                 </td>
             </tr>
