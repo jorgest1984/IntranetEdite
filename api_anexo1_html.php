@@ -65,7 +65,7 @@ if (empty($alumnos)) {
     .page {
         box-sizing: border-box;
         width: 793px;
-        height: 1050px;
+        height: 1020px;
         position: relative;
         page-break-after: always;
         overflow: hidden;
@@ -138,6 +138,12 @@ if (empty($alumnos)) {
     .field-row {
         margin-bottom: 5px;
         font-size: 10px;
+        display: flex;
+        align-items: flex-end;
+    }
+    .field-row > div {
+        display: flex;
+        align-items: flex-end;
     }
     .field-inline {
         display: inline-block;
@@ -146,6 +152,17 @@ if (empty($alumnos)) {
         display: inline-block;
         border-bottom: 1px solid #000;
         min-height: 12px;
+        flex: 1;
+        margin-left: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .fixed-line {
+        display: inline-block;
+        border-bottom: 1px solid #000;
+        min-height: 12px;
+        margin-left: 4px;
     }
     
     /* Boxed Sections */
@@ -287,14 +304,18 @@ if (empty($alumnos)) {
         <h3 class="section-title">Solicitud de Participación</h3>
 
         <div class="field-row">
-            N.º de Expediente <span class="dotted-line" style="width: 150px;"><?= htmlspecialchars($expediente) ?></span>
-            &nbsp;&nbsp;&nbsp;&nbsp;Sector al que se dirige el programa de formación: <span class="dotted-line" style="width: 250px;"></span>
+            <div style="flex: 0 0 auto;">N.º de Expediente</div>
+            <span class="fixed-line" style="width: 150px;"><?= htmlspecialchars($expediente) ?></span>
+            <div style="flex: 0 0 auto; margin-left: 15px;">Sector al que se dirige el programa de formación:</div>
+            <span class="dotted-line"></span>
         </div>
         <div class="field-row">
-            Entidad solicitante del Programa de formación: <span class="dotted-line" style="width: 480px;"></span>
+            <div style="flex: 0 0 auto;">Entidad solicitante del Programa de formación:</div>
+            <span class="dotted-line"></span>
         </div>
         <div class="field-row">
-            Acción Formativa (denominación y número): <span class="dotted-line" style="width: 500px;"><?= $cursoTitulo ?> (<?= $cursoCodigo ?>)</span>
+            <div style="flex: 0 0 auto;">Acción Formativa (denominación y número):</div>
+            <span class="dotted-line"><?= $cursoTitulo ?> (<?= $cursoCodigo ?>)</span>
         </div>
 
         <!-- DATOS DEL PARTICIPANTE -->
@@ -302,35 +323,43 @@ if (empty($alumnos)) {
             <div class="box-header">DATOS DEL PARTICIPANTE:</div>
             
             <div class="field-row">
-                1er. Apellido: <span class="dotted-line" style="width: 180px;"><?= htmlspecialchars($apellido1) ?></span>
-                2º. Apellido: <span class="dotted-line" style="width: 180px;"><?= htmlspecialchars($apellido2) ?></span>
-                Nombre: <span class="dotted-line" style="width: 200px;"><?= htmlspecialchars($nombre) ?></span>
+                <div style="flex: 0 0 auto;">1er. Apellido:</div> <span class="dotted-line"><?= htmlspecialchars($apellido1) ?></span>
+                <div style="flex: 0 0 auto; margin-left: 10px;">2º. Apellido:</div> <span class="dotted-line"><?= htmlspecialchars($apellido2) ?></span>
+                <div style="flex: 0 0 auto; margin-left: 10px;">Nombre:</div> <span class="dotted-line"><?= htmlspecialchars($nombre) ?></span>
             </div>
             
             <div class="field-row" style="margin-top: 8px;">
-                Dirección <span class="dotted-line" style="width: 260px;"><?= htmlspecialchars($direccionCompleta) ?></span>
-                Localidad <span class="dotted-line" style="width: 180px;"><?= htmlspecialchars($localidad) ?></span>
-                C.P. <span class="dotted-line" style="width: 80px;"><?= htmlspecialchars($cp) ?></span>
+                <div style="flex: 0 0 auto;">Dirección</div> <span class="dotted-line"><?= htmlspecialchars($direccionCompleta) ?></span>
+                <div style="flex: 0 0 auto; margin-left: 10px;">Localidad</div> <span class="fixed-line" style="width: 150px;"><?= htmlspecialchars($localidad) ?></span>
+                <div style="flex: 0 0 auto; margin-left: 10px;">C.P.</div> <span class="fixed-line" style="width: 60px;"><?= htmlspecialchars($cp) ?></span>
             </div>
             
             <div class="field-row" style="margin-top: 8px;">
-                Tfno.: <span class="dotted-line" style="width: 120px;"><?= htmlspecialchars($telefono) ?></span>
-                Email: <span class="dotted-line" style="width: 250px;"><?= htmlspecialchars($email) ?></span>
-                N.I.F.: <span class="dotted-line" style="width: 120px;"><?= htmlspecialchars($dni) ?></span>
+                <div style="flex: 0 0 auto;">Tfno.:</div> <span class="fixed-line" style="width: 100px;"><?= htmlspecialchars($telefono) ?></span>
+                <div style="flex: 0 0 auto; margin-left: 10px;">Email:</div> <span class="dotted-line"><?= htmlspecialchars($email) ?></span>
+                <div style="flex: 0 0 auto; margin-left: 10px;">N.I.F.:</div> <span class="fixed-line" style="width: 100px;"><?= htmlspecialchars($dni) ?></span>
             </div>
             
             <div class="field-row" style="margin-top: 8px;">
-                Nº. de afiliación a la Seguridad Social: <span class="dotted-line" style="width: 60px;"></span> / <span class="dotted-line" style="width: 200px;"></span>
+                <div style="flex: 0 0 auto;">Nº. de afiliación a la Seguridad Social:</div> <span class="fixed-line" style="width: 60px;"></span> / <span class="dotted-line"></span>
             </div>
             
             <div class="field-row" style="margin-top: 8px;">
-                Fecha de nacimiento: <span class="dotted-line" style="width: 20px; text-align: center;"><?= $diaNac ?></span> / <span class="dotted-line" style="width: 20px; text-align: center;"><?= $mesNac ?></span> / <span class="dotted-line" style="width: 35px; text-align: center;"><?= $anioNac ?></span>
-                &nbsp;&nbsp;Género: <span class="dotted-line" style="width: 120px;"><?= htmlspecialchars($genero_text) ?></span>
-                <span style="float: right;">
+                <div style="flex: 0 0 auto;">Fecha de nacimiento:</div> 
+                <span class="fixed-line" style="width: 25px; text-align: center;"><?= $diaNac ?></span> / 
+                <span class="fixed-line" style="width: 25px; text-align: center;"><?= $mesNac ?></span> / 
+                <span class="fixed-line" style="width: 40px; text-align: center;"><?= $anioNac ?></span>
+                
+                <div style="flex: 0 0 auto; margin-left: 15px;">Género:</div> 
+                <span class="fixed-line" style="width: 80px;"><?= htmlspecialchars($genero_text) ?></span>
+                
+                <div style="flex: 1;"></div>
+                
+                <div style="flex: 0 0 auto;">
                     Discapacidad: 
-                    <span class="chk-box">&nbsp;</span> SI &nbsp;&nbsp;&nbsp; 
+                    <span class="chk-box" style="margin-left: 5px;">&nbsp;</span> SI &nbsp;&nbsp;&nbsp; 
                     <span class="chk-box">&nbsp;</span> NO
-                </span>
+                </div>
             </div>
         </div>
 
