@@ -64,14 +64,14 @@ if (empty($alumnos)) {
     }
     .page {
         box-sizing: border-box;
-        width: 760px;
-        height: 1020px;
+        width: 800px;
+        height: 1050px;
         position: relative;
         page-break-after: always;
         overflow: hidden;
         background: #fff;
         margin: 0;
-        padding: 30px;
+        padding: 40px 60px 40px 30px;
     }
     .page:last-child {
         page-break-after: auto; /* Prevent trailing blank page */
@@ -107,11 +107,11 @@ if (empty($alumnos)) {
     .header-logos {
         display: flex;
         justify-content: space-between;
-        align-items: flex-start;
+        align-items: center;
         margin-bottom: 20px;
     }
     .header-logos img {
-        max-height: 50px;
+        max-height: 45px;
     }
 
     h1.main-title {
@@ -294,11 +294,9 @@ if (empty($alumnos)) {
     <!-- PÁGINA 1 -->
     <div class="page">
         <!-- CABECERA LOGOS -->
-        <div class="header-logos" style="justify-content: flex-end;">
-            <div style="display: flex; align-items: center;">
-                <img src="img/logo_fundae.png" alt="Fundae" style="margin-right: 15px; max-height: 40px;">
-                <img src="img/logo_ministerio.png" alt="Ministerio y SEPE" style="max-height: 40px;">
-            </div>
+        <div class="header-logos">
+            <img src="img/logo_fundae.png" alt="Fundae" style="max-height: 45px;">
+            <img src="img/logo_ministerio.png" alt="Ministerio y SEPE" style="max-height: 45px;">
         </div>
 
         <h1 class="main-title">CONVOCATORIA PARA LA CONCESIÓN DE SUBVENCIONES PÚBLICAS PARA LA EJECUCIÓN DE PROGRAMAS DE FORMACIÓN DE ÁMBITO ESTATAL, DIRIGIDOS PRIORITARIAMENTE A LAS PERSONAS OCUPADAS</h1>
@@ -430,11 +428,9 @@ if (empty($alumnos)) {
     <!-- PÁGINA 2 -->
     <div class="page">
         <!-- CABECERA LOGOS -->
-        <div class="header-logos" style="justify-content: flex-end;">
-            <div style="display: flex; align-items: center;">
-                <img src="img/logo_fundae.png" alt="Fundae" style="margin-right: 15px; max-height: 40px;">
-                <img src="img/logo_ministerio.png" alt="Ministerio y SEPE" style="max-height: 40px;">
-            </div>
+        <div class="header-logos">
+            <img src="img/logo_fundae.png" alt="Fundae" style="max-height: 45px;">
+            <img src="img/logo_ministerio.png" alt="Ministerio y SEPE" style="max-height: 45px;">
         </div>
 
         <table class="border-table">
@@ -528,11 +524,9 @@ if (empty($alumnos)) {
     <!-- PÁGINA 3 -->
     <div class="page">
         <!-- CABECERA LOGOS -->
-        <div class="header-logos" style="justify-content: flex-end;">
-            <div style="display: flex; align-items: center;">
-                <img src="img/logo_fundae.png" alt="Fundae" style="margin-right: 15px; max-height: 40px;">
-                <img src="img/logo_ministerio.png" alt="Ministerio y SEPE" style="max-height: 40px;">
-            </div>
+        <div class="header-logos">
+            <img src="img/logo_fundae.png" alt="Fundae" style="max-height: 45px;">
+            <img src="img/logo_ministerio.png" alt="Ministerio y SEPE" style="max-height: 45px;">
         </div>
 
         <h3 style="font-size: 11px; font-weight: bold; margin-bottom: 10px;">Información básica sobre protección de datos:</h3>
