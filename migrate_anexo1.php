@@ -2,27 +2,41 @@
 require_once 'includes/config.php';
 
 try {
-    $pdo->exec("
-    ALTER TABLE alumnos
-    ADD COLUMN IF NOT EXISTS discapacidad tinyint(1) DEFAULT 0,
-    ADD COLUMN IF NOT EXISTS grupo_cotizacion varchar(50) DEFAULT NULL,
-    ADD COLUMN IF NOT EXISTS categoria_profesional varchar(100) DEFAULT NULL,
-    ADD COLUMN IF NOT EXISTS area_funcional varchar(100) DEFAULT NULL,
-    ADD COLUMN IF NOT EXISTS ocupacion_cno varchar(10) DEFAULT NULL,
-    ADD COLUMN IF NOT EXISTS situacion_laboral varchar(100) DEFAULT NULL,
-    ADD COLUMN IF NOT EXISTS situacion_laboral_codigo varchar(10) DEFAULT NULL;
-    ");
-    echo "Tabla alumnos actualizada correctamente.<br>";
+    $columns_alumnos = [
+        "discapacidad" => "tinyint(1) DEFAULT 0",
+        "grupo_cotizacion" => "varchar(50) DEFAULT NULL",
+        "categoria_profesional" => "varchar(100) DEFAULT NULL",
+        "area_funcional" => "varchar(100) DEFAULT NULL",
+        "ocupacion_cno" => "varchar(10) DEFAULT NULL",
+        "situacion_laboral" => "varchar(100) DEFAULT NULL",
+        "situacion_laboral_codigo" => "varchar(10) DEFAULT NULL"
+    ];
 
-    $pdo->exec("
-    ALTER TABLE empresas
-    ADD COLUMN IF NOT EXISTS domicilio varchar(255) DEFAULT NULL,
-    ADD COLUMN IF NOT EXISTS cp varchar(20) DEFAULT NULL,
-    ADD COLUMN IF NOT EXISTS tamano_empresa varchar(50) DEFAULT NULL,
-    ADD COLUMN IF NOT EXISTS sector_actividad varchar(200) DEFAULT NULL,
-    ADD COLUMN IF NOT EXISTS convenio_aplicacion varchar(255) DEFAULT NULL;
-    ");
-    echo "Tabla empresas actualizada correctamente.<br>";
+    foreach ($columns_alumnos as $col => $def) {
+        try {
+            $pdo->exec("ALTER TABLE alumnos ADD COLUMN $col $def");
+        } catch (Exception $e) {
+            // Ignorar si la columna ya existe
+        }
+    }
+    echo "Tabla alumnos revisada/actualizada.<br>";
+
+    $columns_empresas = [
+        "domicilio" => "varchar(255) DEFAULT NULL",
+        "cp" => "varchar(20) DEFAULT NULL",
+        "tamano_empresa" => "varchar(50) DEFAULT NULL",
+        "sector_actividad" => "varchar(200) DEFAULT NULL",
+        "convenio_aplicacion" => "varchar(255) DEFAULT NULL"
+    ];
+
+    foreach ($columns_empresas as $col => $def) {
+        try {
+            $pdo->exec("ALTER TABLE empresas ADD COLUMN $col $def");
+        } catch (Exception $e) {
+            // Ignorar si la columna ya existe
+        }
+    }
+    echo "Tabla empresas revisada/actualizada.<br>";
 
     // Update existing 'estudios' to match the new strict values
     $estudios_map = [
