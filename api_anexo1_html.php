@@ -214,7 +214,7 @@ if (empty($alumnos)) {
     }
 
     .list-item {
-        margin-bottom: 4px;
+        margin-bottom: 2px;
     }
     
     .cno-box {
@@ -492,7 +492,7 @@ if (empty($alumnos)) {
         </table>
         
         <!-- Pie de página 1: Firmante/CSV simulado o espacio -->
-        <div style="position: absolute; bottom: 20px; left: 30px; font-size: 8px; border-top: 1px solid #000; padding-top: 5px; width: calc(100% - 60px);">
+        <div style="position: absolute; bottom: 10px; left: 30px; font-size: 8px; border-top: 1px solid #000; padding-top: 5px; width: calc(100% - 60px);">
             <!-- Espacio reservado para CSV de firma digital (como en la captura) -->
         </div>
     </div> <!-- FIN PAGINA 1 -->
