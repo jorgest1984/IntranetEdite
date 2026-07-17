@@ -18,7 +18,8 @@ if (!$cursoid) {
     $stmt = $pdo->prepare("SELECT g.id as grupo_id, g.numero_grupo, af.id as accion_id, af.titulo, af.num_accion
                            FROM grupos g
                            JOIN acciones_formativas af ON g.accion_id = af.id
-                           WHERE g.curso_moodle_id = ?");
+                           JOIN cursos c ON af.curso_id = c.id
+                           WHERE c.moodle_id = ?");
     $stmt->execute([$cursoid]);
     $grupo = $stmt->fetch(PDO::FETCH_ASSOC);
 
