@@ -64,13 +64,13 @@ if (empty($alumnos)) {
     }
     .page {
         box-sizing: border-box;
-        width: 793px;
+        width: 760px;
         height: 1020px;
         position: relative;
         page-break-after: always;
         overflow: hidden;
         background: #fff;
-        margin: 0 auto;
+        margin: 0;
         padding: 30px;
     }
     .page:last-child {
@@ -144,6 +144,7 @@ if (empty($alumnos)) {
     .field-row > div {
         display: flex;
         align-items: flex-end;
+        min-width: 0;
     }
     .field-inline {
         display: inline-block;
@@ -153,6 +154,7 @@ if (empty($alumnos)) {
         border-bottom: 1px solid #000;
         min-height: 12px;
         flex: 1;
+        min-width: 0;
         margin-left: 4px;
         white-space: nowrap;
         overflow: hidden;
@@ -292,11 +294,10 @@ if (empty($alumnos)) {
     <!-- PÁGINA 1 -->
     <div class="page">
         <!-- CABECERA LOGOS -->
-        <div class="header-logos">
-            <img src="img/logo_efp.png" alt="Escuela Formación Profesional">
+        <div class="header-logos" style="justify-content: flex-end;">
             <div style="display: flex; align-items: center;">
-                <img src="img/logo_fundae.png" alt="Fundae" style="margin-right: 15px;">
-                <img src="img/logo_ministerio.png" alt="Ministerio y SEPE">
+                <img src="img/logo_fundae.png" alt="Fundae" style="margin-right: 15px; max-height: 40px;">
+                <img src="img/logo_ministerio.png" alt="Ministerio y SEPE" style="max-height: 40px;">
             </div>
         </div>
 
@@ -429,11 +430,10 @@ if (empty($alumnos)) {
     <!-- PÁGINA 2 -->
     <div class="page">
         <!-- CABECERA LOGOS -->
-        <div class="header-logos">
-            <img src="img/logo_efp.png" alt="Escuela Formación Profesional">
+        <div class="header-logos" style="justify-content: flex-end;">
             <div style="display: flex; align-items: center;">
-                <img src="img/logo_fundae.png" alt="Fundae" style="margin-right: 15px;">
-                <img src="img/logo_ministerio.png" alt="Ministerio y SEPE">
+                <img src="img/logo_fundae.png" alt="Fundae" style="margin-right: 15px; max-height: 40px;">
+                <img src="img/logo_ministerio.png" alt="Ministerio y SEPE" style="max-height: 40px;">
             </div>
         </div>
 
@@ -528,11 +528,10 @@ if (empty($alumnos)) {
     <!-- PÁGINA 3 -->
     <div class="page">
         <!-- CABECERA LOGOS -->
-        <div class="header-logos">
-            <img src="img/logo_efp.png" alt="Escuela Formación Profesional">
+        <div class="header-logos" style="justify-content: flex-end;">
             <div style="display: flex; align-items: center;">
-                <img src="img/logo_fundae.png" alt="Fundae" style="margin-right: 15px;">
-                <img src="img/logo_ministerio.png" alt="Ministerio y SEPE">
+                <img src="img/logo_fundae.png" alt="Fundae" style="margin-right: 15px; max-height: 40px;">
+                <img src="img/logo_ministerio.png" alt="Ministerio y SEPE" style="max-height: 40px;">
             </div>
         </div>
 
