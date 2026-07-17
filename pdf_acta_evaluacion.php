@@ -81,10 +81,7 @@ class ActaPDF extends FPDF {
             $this->Image('img/logo_fundae.png', $x, 8, 25);
             $x += 28;
         }
-        if (file_exists('img/logo_ministerio.png')) {
-            $this->Image('img/logo_ministerio.png', $x, 8, 25);
-            $x += 28;
-        }
+
         if (file_exists('img/logo_sepe.png')) {
             $this->Image('img/logo_sepe.png', $x, 8, 25);
         }
