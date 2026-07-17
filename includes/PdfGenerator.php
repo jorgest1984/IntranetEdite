@@ -187,18 +187,54 @@ class PdfGenerator {
 
         // ------ PANEL DERECHO (Contenidos) ------
         $pdf->SetXY(185, 70);
-        $pdf->SetFont('Arial', 'B', 10); // Reducir un poco el título
+        $pdf->SetFont('Arial', 'B', 10);
         $pdf->SetTextColor(255, 255, 255); // White text
         $pdf->Cell(100, 8, "CONTENIDOS:", 0, 1, 'L');
         $pdf->Ln(1);
 
-        $pdf->SetFont('Arial', '', 8.5); // Reducir la fuente de contenidos para que quepa más texto
         $lineas_contenidos = explode("\n", $contenidos);
+        
+        // Calcular tamaño de fuente óptimo para que no se desborde (Dynamic Font Resizing)
+        $max_height = 125; // Espacio vertical disponible (aprox desde Y=80 hasta Y=205)
+        $w = 105; // Ancho de la caja de contenidos
+        $fontSize = 9.5; // Tamaño máximo inicial
+        
+        while ($fontSize >= 4) {
+            $pdf->SetFont('Arial', '', $fontSize);
+            $lh = $fontSize * 0.45; // Interlineado dinámico
+            $totalHeight = 0;
+            
+            foreach ($lineas_contenidos as $linea) {
+                $linea = trim($linea);
+                if (empty($linea)) continue;
+                
+                $str = pdf_utf8_to_iso($linea);
+                $strWidth = $pdf->GetStringWidth($str);
+                
+                // Aproximación de líneas que ocupará el texto
+                if ($strWidth <= $w) {
+                    $lines = 1;
+                } else {
+                    $lines = ceil($strWidth / $w) + 0.3; // Margen de seguridad para palabras largas
+                }
+                $totalHeight += ceil($lines) * $lh;
+            }
+            
+            if ($totalHeight <= $max_height) {
+                break; // Cabe en el espacio disponible
+            }
+            $fontSize -= 0.5; // Reducir fuente y volver a intentar
+        }
+
+        // Renderizar con el tamaño óptimo calculado
+        $pdf->SetFont('Arial', '', $fontSize);
+        $lh = $fontSize * 0.45;
+        
         foreach ($lineas_contenidos as $linea) {
             $linea = trim($linea);
             if (!empty($linea)) {
                 $pdf->SetX(185);
-                $pdf->MultiCell(105, 4, pdf_utf8_to_iso($linea), 0, 'L'); // Interlineado ajustado a 4
+                $pdf->MultiCell($w, $lh, pdf_utf8_to_iso($linea), 0, 'L');
             }
         }
 
