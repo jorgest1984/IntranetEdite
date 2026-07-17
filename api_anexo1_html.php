@@ -71,7 +71,7 @@ if (empty($alumnos)) {
         overflow: hidden;
         background: #fff;
         margin: 0 auto;
-        padding: 0;
+        padding: 30px;
     }
     .page:last-child {
         page-break-after: auto; /* Prevent trailing blank page */
@@ -293,8 +293,11 @@ if (empty($alumnos)) {
     <div class="page">
         <!-- CABECERA LOGOS -->
         <div class="header-logos">
-            <img src="img/logo_efp.png" alt="Fundación Estatal">
-            <img src="img/logo_ministerio.png" alt="Ministerio y SEPE">
+            <img src="img/logo_efp.png" alt="Escuela Formación Profesional">
+            <div style="display: flex; align-items: center;">
+                <img src="img/logo_fundae.png" alt="Fundae" style="margin-right: 15px;">
+                <img src="img/logo_ministerio.png" alt="Ministerio y SEPE">
+            </div>
         </div>
 
         <h1 class="main-title">CONVOCATORIA PARA LA CONCESIÓN DE SUBVENCIONES PÚBLICAS PARA LA EJECUCIÓN DE PROGRAMAS DE FORMACIÓN DE ÁMBITO ESTATAL, DIRIGIDOS PRIORITARIAMENTE A LAS PERSONAS OCUPADAS</h1>
@@ -427,8 +430,11 @@ if (empty($alumnos)) {
     <div class="page">
         <!-- CABECERA LOGOS -->
         <div class="header-logos">
-            <img src="img/logo_efp.png" alt="Fundación Estatal">
-            <img src="img/logo_ministerio.png" alt="Ministerio y SEPE">
+            <img src="img/logo_efp.png" alt="Escuela Formación Profesional">
+            <div style="display: flex; align-items: center;">
+                <img src="img/logo_fundae.png" alt="Fundae" style="margin-right: 15px;">
+                <img src="img/logo_ministerio.png" alt="Ministerio y SEPE">
+            </div>
         </div>
 
         <table class="border-table">
@@ -523,8 +529,11 @@ if (empty($alumnos)) {
     <div class="page">
         <!-- CABECERA LOGOS -->
         <div class="header-logos">
-            <img src="img/logo_efp.png" alt="Fundación Estatal">
-            <img src="img/logo_ministerio.png" alt="Ministerio y SEPE">
+            <img src="img/logo_efp.png" alt="Escuela Formación Profesional">
+            <div style="display: flex; align-items: center;">
+                <img src="img/logo_fundae.png" alt="Fundae" style="margin-right: 15px;">
+                <img src="img/logo_ministerio.png" alt="Ministerio y SEPE">
+            </div>
         </div>
 
         <h3 style="font-size: 11px; font-weight: bold; margin-bottom: 10px;">Información básica sobre protección de datos:</h3>
