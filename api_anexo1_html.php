@@ -17,7 +17,7 @@ if (!$accion_id) {
 $query = "
     SELECT 
         a.id, a.nombre, a.primer_apellido, a.segundo_apellido, a.dni, a.telefono, a.email,
-        a.fecha_nacimiento, a.sexo, a.domicilio, a.cp, a.localidad, a.provincia, a.estudios,
+        a.fecha_nacimiento, a.sexo, a.seguridad_social, a.domicilio, a.cp, a.localidad, a.provincia, a.estudios,
         a.tipo_via, a.nombre_via, a.num_domicilio, a.planta, a.puerta,
         a.discapacidad, a.grupo_cotizacion, a.categoria_profesional, a.area_funcional,
         a.ocupacion_cno, a.situacion_laboral, a.situacion_laboral_codigo,
@@ -249,6 +249,21 @@ if (empty($alumnos)) {
     $sexo = strtolower(trim($alumno['sexo'] ?? ''));
     $genero_text = ($sexo === 'mujer' || $sexo === 'f') ? 'MUJER' : (($sexo === 'hombre' || $sexo === 'm') ? 'HOMBRE' : '');
     
+    $ss = trim($alumno['seguridad_social'] ?? '');
+    $ss_prov = '';
+    $ss_num = '';
+    if (strpos($ss, '/') !== false) {
+        $parts = explode('/', $ss, 2);
+        $ss_prov = trim($parts[0]);
+        $ss_num = trim($parts[1]);
+    } elseif (strlen($ss) >= 2) {
+        // Asumimos primeros 2 dígitos son provincia, resto es número
+        $ss_prov = substr($ss, 0, 2);
+        $ss_num = substr($ss, 2);
+    } else {
+        $ss_num = $ss;
+    }
+
     $fechaNac = $alumno['fecha_nacimiento'] ?? '';
     $diaNac = '&nbsp;&nbsp;'; $mesNac = '&nbsp;&nbsp;'; $anioNac = '&nbsp;&nbsp;&nbsp;&nbsp;';
     if ($fechaNac && $fechaNac !== '0000-00-00') {
@@ -416,7 +431,7 @@ if (empty($alumnos)) {
             </div>
             
             <div class="field-row" style="margin-top: 8px;">
-                <div style="flex: 0 0 auto;">Nº. de afiliación a la Seguridad Social:</div> <span class="fixed-line" style="width: 60px;"></span> / <span class="dotted-line"></span>
+                <div style="flex: 0 0 auto;">Nº. de afiliación a la Seguridad Social:</div> <span class="fixed-line" style="width: 60px; text-align: center;"><?= htmlspecialchars($ss_prov) ?></span> / <span class="dotted-line"><?= htmlspecialchars($ss_num) ?></span>
             </div>
             
             <div class="field-row" style="margin-top: 8px;">
