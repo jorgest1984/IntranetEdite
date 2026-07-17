@@ -59,12 +59,16 @@ $e2 = $data['moodle_e2_grade'] !== null ? number_format((float)$data['moodle_e2_
 $e3 = $data['moodle_e3_grade'] !== null ? number_format((float)$data['moodle_e3_grade'], 2) : '      ';
 $final = $data['moodle_final_grade'] !== null ? number_format((float)$data['moodle_final_grade'], 2) : '0.00';
 
-$apto = ((float)$data['moodle_final_grade'] >= 5) ? 'APTO' : 'NO APTO';
-
 $controles_hechos = 0;
 if ($data['moodle_e1_completed'] || $data['moodle_e1_grade'] !== null) $controles_hechos++;
 if ($data['moodle_e2_completed'] || $data['moodle_e2_grade'] !== null) $controles_hechos++;
 if ($data['moodle_e3_completed'] || $data['moodle_e3_grade'] !== null) $controles_hechos++;
+
+if ($controles_hechos < 3 || (float)$data['moodle_final_grade'] < 5) {
+    $apto = 'NO APTO';
+} else {
+    $apto = 'APTO';
+}
 
 $porcentaje_controles = number_format(($controles_hechos / 3) * 100, 2);
 
