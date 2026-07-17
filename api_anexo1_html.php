@@ -188,8 +188,8 @@ if (empty($alumnos)) {
     $cursoTitulo = mb_strtoupper($alumno['curso_titulo'] ?? '', 'UTF-8');
     $cursoCodigo = htmlspecialchars($alumno['num_accion'] ?? '');
     
-    $nombre = mb_strtoupper($alumno['nombre'], 'UTF-8');
-    $apellidos = mb_strtoupper($alumno['primer_apellido'] . ' ' . $alumno['segundo_apellido'], 'UTF-8');
+    $nombre = mb_strtoupper($alumno['nombre'] ?? '', 'UTF-8');
+    $apellidos = mb_strtoupper(($alumno['primer_apellido'] ?? '') . ' ' . ($alumno['segundo_apellido'] ?? ''), 'UTF-8');
     $apellido1 = mb_strtoupper($alumno['primer_apellido'] ?? '', 'UTF-8');
     $apellido2 = mb_strtoupper($alumno['segundo_apellido'] ?? '', 'UTF-8');
     $dni = trim($alumno['dni'] ?? '');
@@ -198,13 +198,20 @@ if (empty($alumnos)) {
     $genero_text = ($sexo === 'mujer' || $sexo === 'f') ? 'MUJER' : (($sexo === 'hombre' || $sexo === 'm') ? 'HOMBRE' : '');
     
     $fechaNac = $alumno['fecha_nacimiento'] ?? '';
+    $diaNac = '&nbsp;&nbsp;'; $mesNac = '&nbsp;&nbsp;'; $anioNac = '&nbsp;&nbsp;&nbsp;&nbsp;';
     if ($fechaNac && $fechaNac !== '0000-00-00') {
-        $fechaNacObj = new DateTime($fechaNac);
-        $diaNac = $fechaNacObj->format('d');
-        $mesNac = $fechaNacObj->format('m');
-        $anioNac = $fechaNacObj->format('Y');
-    } else {
-        $diaNac = '&nbsp;&nbsp;'; $mesNac = '&nbsp;&nbsp;'; $anioNac = '&nbsp;&nbsp;&nbsp;&nbsp;';
+        try {
+            // Reemplazar barras por guiones para que strtotime no confunda mes/dia
+            $fechaLimpiada = str_replace('/', '-', $fechaNac);
+            $ts = strtotime($fechaLimpiada);
+            if ($ts) {
+                $diaNac = date('d', $ts);
+                $mesNac = date('m', $ts);
+                $anioNac = date('Y', $ts);
+            }
+        } catch (Exception $e) {
+            // Ignore date format errors
+        }
     }
     
     $domicilio = mb_strtoupper(trim($alumno['domicilio'] ?? ''), 'UTF-8');
