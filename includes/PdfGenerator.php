@@ -103,6 +103,7 @@ class PdfGenerator {
 
         // Inicializar PDF Horizontal (Landscape, A4)
         $pdf = new PDF_Diploma('L', 'mm', 'A4');
+        $pdf->SetAutoPageBreak(false); // EVITA QUE CREE PÁGINAS EN BLANCO SI EL TEXTO ES LARGO
         $pdf->AddPage();
         $pdf->drawBackground();
 
@@ -186,18 +187,18 @@ class PdfGenerator {
 
         // ------ PANEL DERECHO (Contenidos) ------
         $pdf->SetXY(185, 70);
-        $pdf->SetFont('Arial', 'B', 12);
+        $pdf->SetFont('Arial', 'B', 10); // Reducir un poco el título
         $pdf->SetTextColor(255, 255, 255); // White text
-        $pdf->Cell(100, 10, "CONTENIDOS:", 0, 1, 'L');
-        $pdf->Ln(2);
+        $pdf->Cell(100, 8, "CONTENIDOS:", 0, 1, 'L');
+        $pdf->Ln(1);
 
-        $pdf->SetFont('Arial', '', 10);
+        $pdf->SetFont('Arial', '', 8.5); // Reducir la fuente de contenidos para que quepa más texto
         $lineas_contenidos = explode("\n", $contenidos);
         foreach ($lineas_contenidos as $linea) {
             $linea = trim($linea);
             if (!empty($linea)) {
                 $pdf->SetX(185);
-                $pdf->MultiCell(105, 5, pdf_utf8_to_iso($linea), 0, 'L');
+                $pdf->MultiCell(105, 4, pdf_utf8_to_iso($linea), 0, 'L'); // Interlineado ajustado a 4
             }
         }
 
