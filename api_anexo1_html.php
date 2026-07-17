@@ -60,123 +60,157 @@ if (empty($alumnos)) {
         font-family: Arial, sans-serif;
         font-size: 10px;
         background: #fff;
+        color: #000;
     }
     .page {
         box-sizing: border-box;
         background: #fff;
+        padding: 40px 30px;
+        position: relative;
+        min-height: 297mm;
+        width: 210mm;
     }
     .page-break {
         page-break-after: always;
     }
-    /* Estilos base */
-    table { width: 100%; border-collapse: collapse; margin-bottom: 3px; }
-    td, th { border: 1px solid #000; padding: 1px 3px; vertical-align: middle; }
     
     .text-center { text-align: center; }
     .text-right { text-align: right; }
+    .text-justify { text-align: justify; }
     .bold { font-weight: bold; }
     
-    /* Cabeceras y barras */
-    .header-red {
-        background-color: #f14135;
-        color: white;
+    .header-logos {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 20px;
+    }
+    .header-logos img {
+        max-height: 50px;
+    }
+
+    h1.main-title {
         text-align: center;
-        font-weight: bold;
         font-size: 13px;
-        padding: 4px;
-        border: 1px solid #f14135;
-    }
-    .header-blue {
-        background-color: #5b9bd5;
-        color: white;
-        text-align: center;
         font-weight: bold;
-        font-size: 11px;
-        padding: 2px;
-        border: 1px solid #5b9bd5;
-        margin-top: 5px;
+        margin: 0 0 10px 0;
+        line-height: 1.2;
     }
-    .header-orange {
-        background-color: #ed7d31;
-        color: white;
+    h2.sub-title {
         text-align: center;
+        font-size: 12px;
         font-weight: bold;
-        font-size: 11px;
-        padding: 2px;
-        border: 1px solid #ed7d31;
-        margin-top: 5px;
+        margin: 15px 0;
+    }
+    h3.section-title {
+        text-align: center;
+        font-size: 14px;
+        font-weight: bold;
+        margin: 0 0 15px 0;
     }
 
-    .border-orange { border: 2px solid #ed7d31; padding: 3px; margin-top: 1px; }
-    
-    /* Checkboxes falsos */
-    .checkbox {
+    /* Form Fields */
+    .field-row {
+        margin-bottom: 5px;
+        font-size: 10px;
+    }
+    .field-inline {
         display: inline-block;
-        width: 9px;
-        height: 9px;
-        border: 1px solid #000;
-        text-align: center;
-        line-height: 9px;
-        font-size: 9px;
-        margin-right: 3px;
-        vertical-align: middle;
-        font-weight: bold;
     }
-    .check-label { margin-right: 12px; font-size: 9px; vertical-align: middle; }
-
-    /* Inputs simulados (fondos grises) */
-    .input-box {
-        background-color: #e7e6e6;
-        border: 1px solid #000;
-        padding: 2px;
+    .dotted-line {
+        display: inline-block;
+        border-bottom: 1px solid #000;
         min-height: 12px;
+    }
+    
+    /* Boxed Sections */
+    .box-section {
+        border: 2px solid #000;
+        padding: 5px;
+        margin-bottom: 10px;
+    }
+    .box-header {
+        font-weight: bold;
+        margin-bottom: 5px;
         font-size: 10px;
     }
 
-    .row { display: flex; width: 100%; margin-bottom: 3px; }
-    .col { flex: 1; padding: 0 2px; }
+    /* Tables */
+    table.border-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 10px;
+    }
+    table.border-table td, table.border-table th {
+        border: 2px solid #000;
+        padding: 5px;
+        vertical-align: top;
+        font-size: 10px;
+    }
     
-    .section-title { color: #2e74b5; font-weight: bold; margin-top: 5px; font-size: 11px; border-bottom: 1px solid #2e74b5; display: inline-block; width: 100%; }
+    /* Checkboxes */
+    .chk-box {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border: 1px solid #000;
+        text-align: center;
+        line-height: 10px;
+        font-size: 9px;
+        margin-right: 4px;
+        vertical-align: middle;
+    }
 
-    /* Página 2 */
-    .p2-title { color: #f00; font-size: 14px; font-weight: bold; margin-bottom: 15px; }
-    .p2-q { color: #f00; font-weight: bold; margin-top: 10px; font-size: 10px; }
-    .p2-text { font-size: 9px; margin-bottom: 5px; text-align: justify; }
+    .list-item {
+        margin-bottom: 4px;
+    }
+    
+    .cno-box {
+        display: inline-block;
+        width: 14px;
+        height: 18px;
+        border: 1px solid #000;
+        margin-right: 2px;
+        vertical-align: middle;
+    }
+
+    /* Layout Helpers */
+    .flex-row {
+        display: flex;
+        justify-content: space-between;
+    }
+    .flex-col {
+        flex: 1;
+    }
 
 </style>
 <?php foreach($alumnos as $alumno): 
-    $cursoTitulo = strtoupper($alumno['curso_codigo'] ?? '') . ' - ' . mb_strtoupper($alumno['curso_titulo'] ?? '', 'UTF-8');
-    $nif_full = trim($alumno['dni'] ?? '');
-    $nif_letter = '';
-    $nif_numbers = $nif_full;
-    if (preg_match('/([a-zA-Z])$/', $nif_full, $matches)) {
-        $nif_letter = strtoupper($matches[1]);
-        $nif_numbers = substr($nif_full, 0, -1);
-    }
+    $cursoTitulo = mb_strtoupper($alumno['curso_titulo'] ?? '', 'UTF-8');
+    $cursoCodigo = htmlspecialchars($alumno['num_accion'] ?? '');
     
     $nombre = mb_strtoupper($alumno['nombre'], 'UTF-8');
     $apellidos = mb_strtoupper($alumno['primer_apellido'] . ' ' . $alumno['segundo_apellido'], 'UTF-8');
+    $apellido1 = mb_strtoupper($alumno['primer_apellido'] ?? '', 'UTF-8');
+    $apellido2 = mb_strtoupper($alumno['segundo_apellido'] ?? '', 'UTF-8');
+    $dni = trim($alumno['dni'] ?? '');
     
     $sexo = strtolower(trim($alumno['sexo'] ?? ''));
-    $chkMujer = ($sexo === 'mujer' || $sexo === 'f') ? 'X' : '&nbsp;';
-    $chkHombre = ($sexo === 'hombre' || $sexo === 'm') ? 'X' : '&nbsp;';
+    $genero_text = ($sexo === 'mujer' || $sexo === 'f') ? 'MUJER' : (($sexo === 'hombre' || $sexo === 'm') ? 'HOMBRE' : '');
     
     $fechaNac = $alumno['fecha_nacimiento'] ?? '';
     if ($fechaNac && $fechaNac !== '0000-00-00') {
-        $fechaNac = date('d/m/Y', strtotime($fechaNac));
+        $fechaNacObj = new DateTime($fechaNac);
+        $diaNac = $fechaNacObj->format('d');
+        $mesNac = $fechaNacObj->format('m');
+        $anioNac = $fechaNacObj->format('Y');
     } else {
-        $fechaNac = '';
+        $diaNac = '&nbsp;&nbsp;'; $mesNac = '&nbsp;&nbsp;'; $anioNac = '&nbsp;&nbsp;&nbsp;&nbsp;';
     }
     
     $domicilio = mb_strtoupper(trim($alumno['domicilio'] ?? ''), 'UTF-8');
-    
-    // Si tenemos campos detallados, los usamos, si no intentamos usar el domicilio general
     $nombreVia = mb_strtoupper(trim($alumno['tipo_via'] . ' ' . $alumno['nombre_via']), 'UTF-8');
     $numDomicilio = trim($alumno['num_domicilio'] ?? '');
-    $planta = trim($alumno['planta'] ?? '');
-    
     if (empty(trim($nombreVia))) {
-        // Fallback: si no tenemos la via separada, intentamos separarlo de "domicilio_full" (CALLE LAGARES, 30)
         if (preg_match('/^(.*?),\s*(\d+.*)$/', $domicilio, $matches)) {
             $nombreVia = $matches[1];
             $numDomicilio = $matches[2];
@@ -184,292 +218,270 @@ if (empty($alumnos)) {
             $nombreVia = $domicilio;
         }
     }
+    $direccionCompleta = trim($nombreVia . ' ' . $numDomicilio);
     
     $cp = trim($alumno['cp'] ?? '');
     $localidad = mb_strtoupper(trim($alumno['localidad'] ?? ''), 'UTF-8');
-    $provincia = mb_strtoupper(trim($alumno['provincia'] ?? ''), 'UTF-8');
-
-    // Situacion laboral not available in local schema currently, we keep empty
-    $chkDesempleado = '&nbsp;';
-    $chkOcupado = '&nbsp;';
+    $telefono = trim($alumno['telefono'] ?? '');
+    $email = trim($alumno['email'] ?? '');
     
-    // Estudios mapping
+    $expediente = trim($alumno['codigo_expediente'] ?? '');
+    
+    // Mapeo de Estudios (aproximado basado en el esquema anterior)
     $estudios = trim($alumno['estudios'] ?? '');
-    $chk_est_sin_titulacion = '&nbsp;';
-    $chk_est_eso = '&nbsp;';
-    $chk_est_bach = '&nbsp;';
-    $chk_est_fpm = '&nbsp;';
-    $chk_est_fps = '&nbsp;';
-    $chk_est_uni = '&nbsp;';
-    $chk_est_otro = '&nbsp;';
-
-    if ($estudios === 'Sin estudios' || $estudios === 'Primaria') {
-        $chk_est_sin_titulacion = 'X';
-    } elseif ($estudios === 'ESO/EGB') {
-        $chk_est_eso = 'X';
-    } elseif ($estudios === 'Bachillerato') {
-        $chk_est_bach = 'X';
-    } elseif ($estudios === 'FP Grado Medio') {
-        $chk_est_fpm = 'X';
-    } elseif ($estudios === 'FP Grado Superior') {
-        $chk_est_fps = 'X';
-    } elseif ($estudios === 'Universidad') {
-        $chk_est_uni = 'X'; 
-    } elseif ($estudios === 'Carnet Profesional' || $estudios !== '') {
-        $chk_est_otro = 'X';
-    }
+    $e_0 = $e_1 = $e_22 = $e_23 = $e_24 = $e_32 = $e_33 = $e_34 = $e_38 = $e_41 = $e_51 = $e_61 = $e_62 = $e_71 = $e_72 = $e_73 = $e_74 = $e_81 = '&nbsp;';
+    if ($estudios === 'Sin estudios') $e_0 = 'X';
+    elseif ($estudios === 'Primaria') $e_1 = 'X';
+    elseif ($estudios === 'ESO/EGB') $e_22 = 'X';
+    elseif ($estudios === 'Bachillerato') $e_32 = 'X';
+    elseif ($estudios === 'FP Grado Medio') $e_33 = 'X';
+    elseif ($estudios === 'FP Grado Superior') $e_51 = 'X';
+    elseif ($estudios === 'Universidad') $e_61 = 'X'; // Asignamos genéricamente al 61
+    
 ?>
 <div class="student-wrapper">
-<!-- PÁGINA 1: FICHA -->
-<div class="page">
-    
-    <!-- Cabecera Logos (usamos imagenes locales si existen, sino texto) -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; height: 40px;">
-        <div><img src="img/logo_efp.png" style="max-height: 40px;" onerror="this.style.display='none'"></div>
-        <div><img src="img/logo_fundae.png" style="max-height: 40px;" onerror="this.style.display='none'"></div>
-        <div><img src="img/logo_ministerio.png" style="max-height: 40px;" onerror="this.style.display='none'"></div>
-    </div>
-
-    <div class="header-red">FICHA DEL ALUMNO</div>
-    
-    <div class="row" style="margin-top: 5px;">
-        <div style="width: 10%; line-height: 20px;">CURSO</div>
-        <div style="width: 70%;" class="input-box text-center bold"><?= htmlspecialchars($cursoTitulo) ?></div>
-        <div style="width: 10%; line-height: 20px; text-align: center;">CÓDIGOS</div>
-        <div style="width: 10%;" class="input-box text-center bold"><?= htmlspecialchars($alumno['num_accion']) ?></div>
-    </div>
-    <div class="row" style="font-size: 8px;">
-        <div style="width: 10%;"></div>
-        <div style="width: 70%; text-align: center;">(Si es de certificado de profesionalidad poner nombre del certificado completo)</div>
-        <div style="width: 10%;"></div>
-        <div style="width: 10%; text-align: center;"></div>
-    </div>
-
-    <div class="header-blue">DATOS PERSONALES</div>
-
-    <div class="row" style="margin-top: 5px;">
-        <div style="width: 50%; display: flex; align-items: center;">
-            <div class="checkbox">X</div><span class="check-label">DNI</span>
-            <div class="checkbox">&nbsp;</div><span class="check-label">Permiso de residencia</span>
-            <div class="checkbox">&nbsp;</div><span class="check-label">Otras autorizaciones</span>
+    <!-- PÁGINA 1 -->
+    <div class="page">
+        <!-- CABECERA LOGOS -->
+        <div class="header-logos">
+            <img src="img/logo_efp.png" alt="Fundación Estatal">
+            <img src="img/logo_ministerio.png" alt="Ministerio y SEPE">
         </div>
-        <div style="width: 50%; display: flex; justify-content: flex-end; align-items: center;">
-            <span style="margin-right: 5px;">Nº</span>
-            <div class="input-box text-center bold" style="width: 120px; margin-right: 5px;"><?= htmlspecialchars($nif_numbers) ?></div>
-            <span style="margin-right: 5px;">Letra</span>
-            <div class="input-box text-center bold" style="width: 30px; margin-right: 5px;"><?= htmlspecialchars($nif_letter) ?></div>
-            <span style="margin-right: 5px;">Nacionalidad</span>
-            <div class="input-box text-center bold" style="width: 80px;">ESPAÑOLA</div>
+
+        <h1 class="main-title">CONVOCATORIA PARA LA CONCESIÓN DE SUBVENCIONES PÚBLICAS PARA LA EJECUCIÓN DE PROGRAMAS DE FORMACIÓN DE ÁMBITO ESTATAL, DIRIGIDOS PRIORITARIAMENTE A LAS PERSONAS OCUPADAS</h1>
+        
+        <h2 class="sub-title">ANEXO I</h2>
+        
+        <h3 class="section-title">Solicitud de Participación</h3>
+
+        <div class="field-row">
+            N.º de Expediente <span class="dotted-line" style="width: 150px;"><?= htmlspecialchars($expediente) ?></span>
+            &nbsp;&nbsp;&nbsp;&nbsp;Sector al que se dirige el programa de formación: <span class="dotted-line" style="width: 250px;"></span>
         </div>
-    </div>
-
-    <table style="margin-top: 5px;">
-        <tr>
-            <td style="width: 15%; background: #f0f0f0;">APELLIDOS</td>
-            <td style="width: 35%;" class="input-box bold"><?= htmlspecialchars($apellidos) ?></td>
-            <td style="width: 15%; background: #f0f0f0;">NOMBRE</td>
-            <td style="width: 35%;" class="input-box bold"><?= htmlspecialchars($nombre) ?></td>
-        </tr>
-    </table>
-
-    <table style="border:none; margin-bottom: 0;">
-        <tr>
-            <td style="border:none; width: 15%; padding-left:0;">Fecha de nacimiento</td>
-            <td style="border:none; width: 15%; padding-left:0;"><div class="input-box text-center"><?= htmlspecialchars($fechaNac) ?></div></td>
-            <td style="border:none; width: 20%;">
-                <div class="checkbox"><?= $chkMujer ?></div>Mujer 
-                <div class="checkbox"><?= $chkHombre ?></div>Hombre
-            </td>
-            <td style="border:none; width: 10%;">Teléfono 1</td>
-            <td style="border:none; width: 20%;"><div class="input-box"><?= htmlspecialchars($alumno['telefono'] ?? '') ?></div></td>
-            <td style="border:none; width: 10%;">Teléfono 2</td>
-            <td style="border:none; width: 10%;"><div class="input-box"></div></td>
-        </tr>
-    </table>
-
-    <table style="border:none; margin-bottom: 0;">
-        <tr>
-            <td style="border:none; width: 15%; padding-left:0;">Correo electrónico</td>
-            <td style="border:none; width: 35%; padding-left:0;"><div class="input-box"><?= htmlspecialchars($alumno['email'] ?? '') ?></div></td>
-            <td style="border:none; width: 10%;">Dirección</td>
-            <td style="border:none; width: 40%;"><div class="input-box"><?= htmlspecialchars($nombreVia) ?></div></td>
-        </tr>
-    </table>
-
-    <table style="border:none;">
-        <tr>
-            <td style="border:none; width: 5%; padding-left:0;">Nº</td>
-            <td style="border:none; width: 10%;"><div class="input-box text-center"><?= htmlspecialchars($numDomicilio) ?></div></td>
-            <td style="border:none; width: 5%;">Piso</td>
-            <td style="border:none; width: 10%;"><div class="input-box text-center"><?= htmlspecialchars($planta) ?></div></td>
-            <td style="border:none; width: 5%;">CP</td>
-            <td style="border:none; width: 10%;"><div class="input-box text-center"><?= htmlspecialchars($cp) ?></div></td>
-            <td style="border:none; width: 10%;">Población</td>
-            <td style="border:none; width: 20%;"><div class="input-box"><?= htmlspecialchars($localidad) ?></div></td>
-            <td style="border:none; width: 10%;">Provincia</td>
-            <td style="border:none; width: 15%;"><div class="input-box"><?= htmlspecialchars($provincia) ?></div></td>
-        </tr>
-    </table>
-
-    <div style="margin-top: 5px;">
-        ¿Posee algún tipo de minusvalía certificada (más del 33%)? 
-        <div class="checkbox">&nbsp;</div><span class="check-label">Física</span>
-        <div class="checkbox">&nbsp;</div><span class="check-label">Psíquica</span>
-        <div class="checkbox">&nbsp;</div><span class="check-label">Sensorial</span>
-    </div>
-
-    <div class="header-blue">DATOS ACADÉMICOS</div>
-    <div class="section-title">3. Titulación actual</div>
-    
-    <div class="row" style="margin-top: 5px;">
-        <div style="width: 50%;">
-            <div style="margin-bottom: 4px;"><div class="checkbox"><?= $chk_est_sin_titulacion ?></div><span class="check-label">Sin titulación</span></div>
-            <div style="margin-bottom: 4px;"><div class="checkbox"><?= $chk_est_eso ?></div><span class="check-label">Graduado Escolar / ESO</span></div>
-            <div style="margin-bottom: 4px;"><div class="checkbox"><?= $chk_est_bach ?></div><span class="check-label">Título de Bachiller / BUP / COU / Acc. mayores 25</span></div>
-            <div style="margin-bottom: 4px;"><div class="checkbox"><?= $chk_est_fpm ?></div><span class="check-label">Título de Técnico / FP Grado Medio</span></div>
-            <div style="margin-bottom: 4px;"><div class="checkbox"><?= $chk_est_fps ?></div><span class="check-label">Título de Técnico Superior / FP Superior</span></div>
+        <div class="field-row">
+            Entidad solicitante del Programa de formación: <span class="dotted-line" style="width: 480px;"></span>
         </div>
-        <div style="width: 50%;">
-            <div style="margin-bottom: 4px;"><div class="checkbox"><?= $chk_est_uni ?></div><span class="check-label">E. Universitarios 1er ciclo (Diplomatura/Grado)</span></div>
-            <div style="margin-bottom: 4px;"><div class="checkbox">&nbsp;</div><span class="check-label">E. Universitarios 2º ciclo (Licenciatura/Master)</span></div>
-            <div style="margin-bottom: 4px;"><div class="checkbox">&nbsp;</div><span class="check-label">E. Universitarios 3er ciclo (Doctor)</span></div>
-            <div style="margin-bottom: 4px;"><div class="checkbox">&nbsp;</div><span class="check-label">Título de Doctorado</span></div>
-            <div style="margin-bottom: 4px;"><div class="checkbox"><?= $chk_est_otro ?></div><span class="check-label">Otra titulación (especificar): ..............................</span></div>
+        <div class="field-row">
+            Acción Formativa (denominación y número): <span class="dotted-line" style="width: 500px;"><?= $cursoTitulo ?> (<?= $cursoCodigo ?>)</span>
         </div>
-    </div>
 
-    <div class="header-blue">DATOS LABORALES</div>
-    <div class="section-title">4. Situación laboral</div>
-    <div style="margin-top: 5px; margin-bottom: 10px;">
-        <div class="checkbox"><?= $chkDesempleado ?></div><span class="check-label">Desempleado</span>
-        <div class="checkbox">&nbsp;</div><span class="check-label">Trabajador por cuenta propia (empresario, autónomo)</span>
-        <div class="checkbox"><?= $chkOcupado ?></div><span class="check-label">Trabajador por cuenta ajena (público, privado)</span>
-    </div>
-
-    <div class="section-title">5. Lugar de residencia/trabajo</div>
-    <div class="row" style="margin-top: 5px;">
-        <div style="width: 50%;">
-            Si está desempleado. Lugar de residencia:<br>
-            <div class="input-box" style="margin-right: 10px; margin-top: 3px;"></div>
-        </div>
-        <div style="width: 50%;">
-            Si está ocupado. Lugar de centro de trabajo:<br>
-            <div class="input-box" style="margin-top: 3px;"></div>
-        </div>
-    </div>
-
-    <div class="section-title">6. ¿Cómo conoció la existencia de este curso?</div>
-    <div class="row" style="margin-top: 5px;">
-        <div style="width: 33%;">
-            <div style="margin-bottom: 4px;"><div class="checkbox">&nbsp;</div><span class="check-label">Servicio Público Estatal</span></div>
-            <div style="margin-bottom: 4px;"><div class="checkbox">&nbsp;</div><span class="check-label">Itinerario Formativo</span></div>
-        </div>
-        <div style="width: 33%;">
-            <div style="margin-bottom: 4px;"><div class="checkbox">&nbsp;</div><span class="check-label">A través de mi empresa</span></div>
-            <div style="margin-bottom: 4px;"><div class="checkbox">&nbsp;</div><span class="check-label">Organización empresarial o sindical</span></div>
-        </div>
-        <div style="width: 33%;">
-            <div style="margin-bottom: 4px;"><div class="checkbox">&nbsp;</div><span class="check-label">Medios de comunicación</span></div>
-            <div style="margin-bottom: 4px;"><div class="checkbox">&nbsp;</div><span class="check-label">Otros (especificar): ........................</span></div>
-        </div>
-    </div>
-
-    <div class="header-orange">A RESPONDER SOLO POR LOS PARTICIPANTES OCUPADOS</div>
-    <div class="border-orange">
-        <div class="section-title" style="color: #ed7d31; border-bottom: 1px solid #ed7d31;">7. Categoría profesional</div>
-        <div class="row" style="margin-top: 5px;">
-            <div style="width: 33%;">
-                <div style="margin-bottom: 4px;"><div class="checkbox">&nbsp;</div><span class="check-label">Directivo</span></div>
-                <div style="margin-bottom: 4px;"><div class="checkbox">&nbsp;</div><span class="check-label">Mando intermedio</span></div>
+        <!-- DATOS DEL PARTICIPANTE -->
+        <div class="box-section" style="margin-top: 15px;">
+            <div class="box-header">DATOS DEL PARTICIPANTE:</div>
+            
+            <div class="field-row">
+                1er. Apellido: <span class="dotted-line" style="width: 180px;"><?= htmlspecialchars($apellido1) ?></span>
+                2º. Apellido: <span class="dotted-line" style="width: 180px;"><?= htmlspecialchars($apellido2) ?></span>
+                Nombre: <span class="dotted-line" style="width: 200px;"><?= htmlspecialchars($nombre) ?></span>
             </div>
-            <div style="width: 33%;">
-                <div style="margin-bottom: 4px;"><div class="checkbox">&nbsp;</div><span class="check-label">Técnico</span></div>
-                <div style="margin-bottom: 4px;"><div class="checkbox">&nbsp;</div><span class="check-label">Trabajador cualificado</span></div>
+            
+            <div class="field-row" style="margin-top: 8px;">
+                Dirección <span class="dotted-line" style="width: 260px;"><?= htmlspecialchars($direccionCompleta) ?></span>
+                Localidad <span class="dotted-line" style="width: 180px;"><?= htmlspecialchars($localidad) ?></span>
+                C.P. <span class="dotted-line" style="width: 80px;"><?= htmlspecialchars($cp) ?></span>
             </div>
-            <div style="width: 33%;">
-                <div style="margin-bottom: 4px;"><div class="checkbox">&nbsp;</div><span class="check-label">Trabajador de baja cualificación</span></div>
-                <div style="margin-bottom: 4px;"><div class="checkbox">&nbsp;</div><span class="check-label">Otra categoría (especificar): .........</span></div>
+            
+            <div class="field-row" style="margin-top: 8px;">
+                Tfno.: <span class="dotted-line" style="width: 120px;"><?= htmlspecialchars($telefono) ?></span>
+                Email: <span class="dotted-line" style="width: 250px;"><?= htmlspecialchars($email) ?></span>
+                N.I.F.: <span class="dotted-line" style="width: 120px;"><?= htmlspecialchars($dni) ?></span>
+            </div>
+            
+            <div class="field-row" style="margin-top: 8px;">
+                Nº. de afiliación a la Seguridad Social: <span class="dotted-line" style="width: 60px;"></span> / <span class="dotted-line" style="width: 200px;"></span>
+            </div>
+            
+            <div class="field-row" style="margin-top: 8px;">
+                Fecha de nacimiento: <span class="dotted-line" style="width: 20px; text-align: center;"><?= $diaNac ?></span> / <span class="dotted-line" style="width: 20px; text-align: center;"><?= $mesNac ?></span> / <span class="dotted-line" style="width: 35px; text-align: center;"><?= $anioNac ?></span>
+                &nbsp;&nbsp;Género: <span class="dotted-line" style="width: 120px;"><?= htmlspecialchars($genero_text) ?></span>
+                <span style="float: right;">
+                    Discapacidad: 
+                    <span class="chk-box">&nbsp;</span> SI &nbsp;&nbsp;&nbsp; 
+                    <span class="chk-box">&nbsp;</span> NO
+                </span>
             </div>
         </div>
 
-        <div class="section-title" style="color: #ed7d31; border-bottom: 1px solid #ed7d31;">8. Horario del curso y Tamaño empresa</div>
-        <div class="row" style="margin-top: 5px;">
-            <div style="width: 100%;">
-                <div class="checkbox">&nbsp;</div><span class="check-label">De 1 a 9 empleados</span>
-                <div class="checkbox">&nbsp;</div><span class="check-label">De 10 a 49 empleados</span>
-                <div class="checkbox">&nbsp;</div><span class="check-label">De 50 a 99 empleados</span>
-                <div class="checkbox">&nbsp;</div><span class="check-label">De 100 a 250 empleados</span>
-                <div class="checkbox">&nbsp;</div><span class="check-label">Más de 250 empleados</span>
-            </div>
+        <!-- TABLA ESTUDIOS Y COTIZACION -->
+        <table class="border-table">
+            <tr>
+                <td style="width: 50%;">
+                    <div class="box-header">ESTUDIOS <span style="font-weight: normal; color: #222;">(Indicar nivel máximo alcanzado)</span></div>
+                    
+                    <div class="list-item"><span class="chk-box"><?= $e_0 ?></span> 0 - Sin titulación.</div>
+                    <div class="list-item"><span class="chk-box"><?= $e_1 ?></span> 1 - Educación Primaria.</div>
+                    <div class="list-item"><span class="chk-box"><?= $e_22 ?></span> 22 - Título de Graduado E.S.O./ E.G.B.</div>
+                    <div class="list-item"><span class="chk-box"><?= $e_23 ?></span> 23 - Certificados de Profesionalidad Nivel 1.</div>
+                    <div class="list-item"><span class="chk-box"><?= $e_24 ?></span> 24 - Certificados de Profesionalidad Nivel 2.</div>
+                    <div class="list-item"><span class="chk-box"><?= $e_32 ?></span> 32 - Bachillerato.</div>
+                    <div class="list-item"><span class="chk-box"><?= $e_33 ?></span> 33 - Enseñanzas de Formación Profesional de Grado Medio.</div>
+                    <div class="list-item"><span class="chk-box"><?= $e_34 ?></span> 34 - Enseñanzas Profesionales de Música-danza.</div>
+                    <div class="list-item"><span class="chk-box"><?= $e_38 ?></span> 38 - Formación Profesional Básica.</div>
+                    <div class="list-item"><span class="chk-box"><?= $e_41 ?></span> 41 - Certificados de Profesionalidad Nivel 3.</div>
+                    <div class="list-item"><span class="chk-box"><?= $e_51 ?></span> 51 - Enseñanzas de Formación Profesional de Grado Superior.</div>
+                    <div class="list-item"><span class="chk-box"><?= $e_61 ?></span> 61 - Grados Universitarios de hasta 240 créditos.</div>
+                    <div class="list-item"><span class="chk-box"><?= $e_62 ?></span> 62 - Diplomados Universitarios.</div>
+                    <div class="list-item"><span class="chk-box"><?= $e_71 ?></span> 71 - Grados Universitarios de más 240 créditos.</div>
+                    <div class="list-item"><span class="chk-box"><?= $e_72 ?></span> 72 - Licenciados o equivalentes.</div>
+                    <div class="list-item"><span class="chk-box"><?= $e_73 ?></span> 73 - Másteres oficiales Universitarios.</div>
+                    <div class="list-item"><span class="chk-box"><?= $e_74 ?></span> 74 - Especialidades en CC. Salud (residentes).</div>
+                    <div class="list-item"><span class="chk-box"><?= $e_81 ?></span> 81 - Doctorado Universitario.</div>
+                    
+                    <div class="box-header" style="margin-top: 15px;">OTRA TITULACIÓN</div>
+                    <div class="list-item"><span class="chk-box">&nbsp;</span> PR - Carnet profesional /Profesiones Reguladas.</div>
+                    <div class="list-item"><span class="chk-box">&nbsp;</span> A1 - Nivel de idioma A1 del MCER.</div>
+                    <div class="list-item"><span class="chk-box">&nbsp;</span> A2 - Nivel de idioma A2 del MCER.</div>
+                    <div class="list-item"><span class="chk-box">&nbsp;</span> B1 - Nivel de idioma B1 del MCER.</div>
+                    <div class="list-item"><span class="chk-box">&nbsp;</span> B2 - Nivel de idioma B2 del MCER.</div>
+                    <div class="list-item"><span class="chk-box">&nbsp;</span> C1 - Nivel de idioma C1 del MCER.</div>
+                    <div class="list-item"><span class="chk-box">&nbsp;</span> C2 - Nivel de idioma C2 del MCER.</div>
+                    <div class="list-item"><span class="chk-box">&nbsp;</span> ZZ - Otra: (Especificar) <span class="dotted-line" style="width: 150px;"></span></div>
+                </td>
+                <td style="width: 50%;">
+                    <div class="box-header">GRUPO DE COTIZACIÓN</div>
+                    <div class="list-item"><span class="chk-box">&nbsp;</span> 01 - Ingenieros y Licenciados. Personal de alta dirección no incluido en el artículo 1.3.c) del Estatuto de los Trabajadores.</div>
+                    <div class="list-item"><span class="chk-box">&nbsp;</span> 02 - Ingenieros Técnicos, Peritos y Ayudantes titulados.</div>
+                    <div class="list-item"><span class="chk-box">&nbsp;</span> 03 - Jefes administrativos y de Taller.</div>
+                    <div class="list-item"><span class="chk-box">&nbsp;</span> 04 - Ayudantes no Titulados.</div>
+                    <div class="list-item"><span class="chk-box">&nbsp;</span> 05 - Oficiales Administrativos.</div>
+                    <div class="list-item"><span class="chk-box">&nbsp;</span> 06 - Subalternos.</div>
+                    <div class="list-item"><span class="chk-box">&nbsp;</span> 07 - Auxiliares Administrativos.</div>
+                    <div class="list-item"><span class="chk-box">&nbsp;</span> 08 - Oficiales de primera y segunda.</div>
+                    <div class="list-item"><span class="chk-box">&nbsp;</span> 09 - Oficiales de tercera y Especialistas.</div>
+                    <div class="list-item"><span class="chk-box">&nbsp;</span> 10 - Peones.</div>
+                    <div class="list-item"><span class="chk-box">&nbsp;</span> 11 - Trabajadores menores de dieciocho años cualquiera que sea su categoría profesional.</div>
+                </td>
+            </tr>
+        </table>
+        
+        <!-- Pie de página 1: Firmante/CSV simulado o espacio -->
+        <div style="position: absolute; bottom: 20px; left: 30px; font-size: 8px; border-top: 1px solid #000; padding-top: 5px; width: calc(100% - 60px);">
+            <!-- Espacio reservado para CSV de firma digital (como en la captura) -->
         </div>
-    </div>
+    </div> <!-- FIN PAGINA 1 -->
 
-    <div class="row" style="margin-top: 10px;">
-        <div style="width: 50%; text-align: center; border: 1px solid #ed7d31; padding: 10px; margin-right: 5px;">
-            <div style="color: #ed7d31; font-weight: bold; margin-bottom: 10px;">En el caso de ser desempleado</div>
-            Fecha de Inscripción como demandante en la oficina de empleo<br><br>
-            <div class="input-box" style="width: 100px; display: inline-block;"></div><br><br>
-            <span style="color: #ed7d31;">(A rellenar por la entidad)</span>
+    <div class="page-break"></div>
+
+    <!-- PÁGINA 2 -->
+    <div class="page">
+        <!-- CABECERA LOGOS -->
+        <div class="header-logos">
+            <img src="img/logo_efp.png" alt="Fundación Estatal">
+            <img src="img/logo_ministerio.png" alt="Ministerio y SEPE">
         </div>
-        <div style="width: 50%; text-align: center; border: 1px solid #000; padding: 10px; position: relative;">
-            <div style="text-align: left; font-weight: bold;">Firma (*)</div>
-            <div style="text-align: right; position: absolute; top: 10px; right: 10px;">Fecha:</div>
-            <br><br><br><br>
-            <div style="font-weight: bold; font-size: 8px;">Espacio reservado para el sello de la Administración</div>
+
+        <table class="border-table">
+            <tr>
+                <td style="width: 50%;">
+                    <div class="box-header">CATEGORÍA PROFESIONAL</div>
+                    <div class="list-item"><span class="chk-box">&nbsp;</span> Directivo</div>
+                    <div class="list-item"><span class="chk-box">&nbsp;</span> Mando Intermedio</div>
+                    <div class="list-item"><span class="chk-box">&nbsp;</span> Técnico</div>
+                    <div class="list-item"><span class="chk-box">&nbsp;</span> Trabajador cualificado</div>
+                    <div class="list-item"><span class="chk-box">&nbsp;</span> Trabajador de baja cualificación (*)</div>
+                    
+                    <div style="font-size: 8px; margin-top: 15px; line-height: 1.2;">
+                        (*) Grupos de cotización 06, 07, 09 o 10 de la última ocupación. En el caso de tratarse personas desempleadas aquellas que no estén en posesión de un carnet profesional, certificado de profesionalidad de nivel 2 o 3, título de formación profesional o de una titulación universitaria.
+                    </div>
+                </td>
+                <td style="width: 50%;">
+                    <div class="box-header">ÁREA FUNCIONAL (solo ocupados)</div>
+                    <div class="list-item"><span class="chk-box">&nbsp;</span> Dirección</div>
+                    <div class="list-item"><span class="chk-box">&nbsp;</span> Administración</div>
+                    <div class="list-item"><span class="chk-box">&nbsp;</span> Comercial</div>
+                    <div class="list-item"><span class="chk-box">&nbsp;</span> Mantenimiento</div>
+                    <div class="list-item"><span class="chk-box">&nbsp;</span> Producción</div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <div class="box-header" style="display:inline-block; margin-right: 10px;">OCUPACIÓN (Clasificación Nacional de Ocupaciones 2011 (CNO-11):</div>
+                    <span class="cno-box"></span><span class="cno-box"></span><span class="cno-box"></span><span class="cno-box"></span>
+                    <span style="font-size: 9px; margin-left: 5px;">(Si está desempleado, indicar la última ocupación)</span>
+                    <div style="font-size: 8px; margin-top: 5px;">(Si fuera necesario, requerir la ayuda de la entidad solicitante del Programa de Formación para cumplimentar este epígrafe)</div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <div class="box-header">PARTICIPANTE:</div>
+                    <div class="list-item"><span class="chk-box">&nbsp;</span> Ocupado. Consignar Código (1): <span class="dotted-line" style="width: 150px;"></span></div>
+                    <div class="list-item"><span class="chk-box">&nbsp;</span> Desempleado (DSP)</div>
+                    <div class="list-item"><span class="chk-box">&nbsp;</span> Desempleado de larga duración (*)(DSPLD)</div>
+                    <div class="list-item"><span class="chk-box">&nbsp;</span> Cuidador no profesional (CPN)</div>
+                    <div style="font-size: 8px; margin-top: 5px;">(*) Personas inscritas como demandantes en la oficina de empleo al menos 12 meses en los 18 meses anteriores a la selección.</div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <div class="box-header" style="display:inline-block; margin-bottom: 10px;">ENTIDAD DONDE TRABAJA ACTUALMENTE:</div> <span class="dotted-line" style="width: 450px;"></span>
+                    
+                    <div class="field-row" style="margin-top: 10px; margin-bottom: 10px;">
+                        TAMAÑO DE EMPRESA: 
+                        &nbsp;&nbsp;<span class="chk-box">&nbsp;</span> Inferior a 10
+                        &nbsp;&nbsp;<span class="chk-box">&nbsp;</span> De 10 a 49
+                        &nbsp;&nbsp;<span class="chk-box">&nbsp;</span> De 50 a 99
+                        &nbsp;&nbsp;<span class="chk-box">&nbsp;</span> De 100 a 249
+                        &nbsp;&nbsp;<span class="chk-box">&nbsp;</span> 250 y más
+                    </div>
+                    
+                    <div class="field-row">
+                        SECTOR DE ACTIVIDAD: <span class="dotted-line" style="width: 580px;"></span>
+                    </div>
+                    <div class="field-row">
+                        CONVENIO DE APLICACIÓN: <span class="dotted-line" style="width: 560px;"></span>
+                    </div>
+                    
+                    <div class="field-row" style="margin-top: 15px;">
+                        Razón Social: <span class="dotted-line" style="width: 630px;"></span>
+                    </div>
+                    <div class="field-row">
+                        C. I. F. <span class="dotted-line" style="width: 180px;"></span>
+                        Domicilio del Centro de Trabajo: <span class="dotted-line" style="width: 380px;"></span>
+                    </div>
+                    <div class="field-row">
+                        Localidad <span class="dotted-line" style="width: 350px;"></span>
+                        C.P. <span class="dotted-line" style="width: 100px;"></span>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+        <div style="font-size: 9px; line-height: 1.3; text-align: justify; margin-top: 15px;">
+            <b>(1) Relación de Códigos:</b> <b>RG</b> Régimen general, <b>FD</b> Fijos discontinuos en periodos de no ocupación <b>RE</b> Regulación de empleo en períodos de no ocupación, <b>ERTE</b> Personas trabajadoras afectadas por expedientes de regulación temporal de empleo, <b>RERED</b> Trabajadores en ERTE afectados por Mecanismo RED, <b>AGP</b> Régimen especial agrario por cuenta propia, <b>AGA</b> Régimen especial agrario por cuenta ajena, <b>AU</b> Régimen especial autónomos, <b>AP</b> Administración Pública, <b>EH</b> Empleado hogar, <b>DF</b> Trabajadores que accedan al desempleo durante el periodo formativo, <b>RLE</b> trabajadores con relaciones laborales de carácter especial que se recogen en el art. 2 del Estatuto de los Trabajadores, <b>CESS</b> Trabajadores con convenio especial con la Seguridad Social, <b>FDI</b> Trabajadores a tiempo parcial de carácter indefinido(con trabajos discontinuos) en sus periodos de no ocupación, <b>TM</b> Régimen especial del mar, <b>CP</b> Mutualistas de Colegios Profesionales no incluidos como autónomos, <b>OCTP</b> Trabajadores ocupados con contrato a tiempo parcial, <b>OCT</b> Trabajadores ocupados con contrato temporal.
         </div>
-    </div>
-    <div style="font-size: 7px; text-align: justify; margin-top: 5px; line-height: 1.2;">
-        (*) Declara bajo su responsabilidad que todos los datos expuestos son ciertos. Autoriza a la Consejería de Economía, Hacienda y Empleo al tratamiento automatizado y cesión de los datos personales aquí reflejados para el seguimiento y justificación...
-    </div>
 
-</div> <!-- Fin Pagina 1 -->
+        <div style="font-size: 10px; line-height: 1.3; text-align: justify; margin-top: 30px;">
+            El abajo firmante declara que los datos declarados se corresponden con la realidad, y en la presente convocatoria, no participa en otra acción formativa de igual contenido a la solicitada.
+        </div>
+        
+    </div> <!-- FIN PAGINA 2 -->
 
-<div class="page-break"></div>
+    <div class="page-break"></div>
 
-<!-- PÁGINA 2: LOPD -->
-<div class="page">
-    <div class="p2-title">Información sobre Protección de Datos</div>
+    <!-- PÁGINA 3 -->
+    <div class="page">
+        <!-- CABECERA LOGOS -->
+        <div class="header-logos">
+            <img src="img/logo_efp.png" alt="Fundación Estatal">
+            <img src="img/logo_ministerio.png" alt="Ministerio y SEPE">
+        </div>
+
+        <h3 style="font-size: 11px; font-weight: bold; margin-bottom: 10px;">Información básica sobre protección de datos:</h3>
+        
+        <div style="font-size: 10px; line-height: 1.4; text-align: justify;">
+            Responsable: SERVICIO PÚBLICO DE EMPLEO ESTATAL.; Finalidad: gestionar la solicitud, evaluación, gestión y concesión, en su caso, control y seguimiento de la beca o ayuda solicitada en las iniciativas de formación profesional para el empleo, directamente por el Servicio Público de Empleo Estatal o a través de la Fundación para la Formación en el Empleo. Así mismo, autorizo al Servicio Público de Empleo Estatal para que compruebe mis datos mediante el Sistema de Verificación de Datos de Identidad, según establece el Real Decreto 522/2006, de 28 de abril; Legitimación: cumplimiento de una obligación legal; ejercicio de poderes públicos; Destinatarios: están previstas cesiones de datos a: Administración pública con competencia en la materia; Derechos: tiene derecho a acceder, rectificar y suprimir los datos, así como otros derechos, indicados en la información adicional, que puede ejercer dirigiéndose al correo electrónico <a href="mailto:datos@fundae.es" style="color: #000;">datos@fundae.es</a> ; Información adicional: Consultando el Aviso legal/Política de Privacidad- Protección de datos de carácter personal de la página <a href="http://www.sepe.es/HomeSepe/mas-informacion/aviso-legal.html" style="color: #000;">www.sepe.es/HomeSepe/mas-informacion/aviso-legal.html</a>
+        </div>
+
+        <div style="margin-top: 60px; text-align: center;">
+            Fecha: en <span class="dotted-line" style="width: 150px;"></span>, a <span class="dotted-line" style="width: 30px;"></span> de <span class="dotted-line" style="width: 120px;"></span> 202<span class="dotted-line" style="width: 15px;"></span>
+        </div>
+
+        <div style="margin-top: 80px; text-align: center;">
+            Firma del/la trabajador /a
+        </div>
+        
+    </div> <!-- FIN PAGINA 3 -->
     
-    <div class="p2-q">1. Responsable del tratamiento de sus datos</div>
-    <div class="p2-text">Responsable: Consejería de Economía, Hacienda y Empleo, D.G. de Formación.<br>Domicilio social: Consultar www.comunidad.madrid/centros<br>Contacto con el Delegado de Protección de Datos: protecciondatos@madrid.org.</div>
-
-    <div class="p2-q">2. ¿En qué actividad de tratamiento están incluidos sus datos personales y con qué fines se tratarán?</div>
-    <div class="p2-text">CURSOS.<br>En cumplimiento de lo establecido por el Reglamento (UE) 2016/679, de Protección de Datos Personales, sus datos serán tratados para las siguientes finalidades:<br>Realizar seguimiento del alumnado asistente a los mismos.</div>
-
-    <div class="p2-q">3. ¿Cuál es la legitimación en la que se basa la licitud del tratamiento?</div>
-    <div class="p2-text">RGPD 6.1. c) el tratamiento es necesario para el cumplimiento de una obligación legal aplicable al responsable del tratamiento.<br>RGPD 6.1. e) el tratamiento es necesario para el cumplimiento de una misión realizada en interés público o en el ejercicio de poderes públicos conferidos al responsable del tratamiento.<br>Ley 30/2015 por la que se regula el Sistema de Formación Profesional para el Empleo. Real Decreto 694/2017, de 3 de julio, por el que se desarrolla la Ley 30/2015. Orden TAS/718/2008, de 7 de marzo, se desarrolla la formación de oferta prevista en el Real Decreto 395/2007.</div>
-
-    <div class="p2-q">4. ¿Cómo ejercer sus derechos? ¿Cuáles son sus derechos cuando nos facilita sus datos?</div>
-    <div class="p2-text">Puede ejercer, si lo desea, los derechos de acceso, rectificación y supresión de datos, así como solicitar que se limite el tratamiento de sus datos personales, oponerse al mismo, solicitar en su caso la portabilidad de sus datos, así como a no ser objeto de una decisión individual basada únicamente en el tratamiento automatizado, incluida la elaboración de perfiles.<br>Según la Ley 39/2015, el RGPD y la Ley Orgánica 3/2018, puede ejercer sus derechos por Registro Electrónico o Registro Presencial o en los lugares y formas previstos en el artículo 16.4 de la Ley 39/2015, preferentemente mediante el formulario de solicitud "Ejercicio de derechos en materia de protección de datos personales".</div>
-
-    <div class="p2-q">5. Tratamientos que incluyen decisiones automatizadas, incluida la elaboración de perfiles, con efectos jurídicos o relevantes.</div>
-    <div class="p2-text">No se realizan</div>
-
-    <div class="p2-q">6. ¿Por cuánto tiempo conservaremos sus datos personales?</div>
-    <div class="p2-text">Los datos personales proporcionados se conservarán por el siguiente periodo:<br>Periodo indeterminado.<br>Los datos se mantendrán de forma indefinida mientras el interesado no solicite su supresión o ejercite su derecho de oposición.</div>
-
-    <div class="p2-q">7. ¿A qué destinatarios se comunicarán sus datos?</div>
-    <div class="p2-text">No se prevén cesiones.</div>
-
-    <div class="p2-q">8. Transferencias internacionales.</div>
-    <div class="p2-text">No.</div>
-
-    <div class="p2-q">9. Derecho a retirar el consentimiento prestado para el tratamiento en cualquier momento.</div>
-    <div class="p2-text">Cuando el tratamiento esté basado en el consentimiento explícito, tiene derecho a retirar el consentimiento en cualquier momento, sin que ello afecte a la licitud del tratamiento basado en el consentimiento previo a su retirada.</div>
-
-    <div class="p2-q">10. Derecho a presentar una reclamación ante la Autoridad de Control.</div>
-    <div class="p2-text">Tiene derecho a presentar una reclamación ante la Agencia Española de Protección de Datos www.aepd.es si no está conforme con el tratamiento que se hace de sus datos personales.</div>
-
-    <div class="p2-q">11. Categoría de datos objeto de tratamiento.</div>
-    <div class="p2-text">Datos de carácter identificativo.</div>
-
-    <div class="p2-q">12. Fuente de la que proceden los datos</div>
-    <div class="p2-text">Interesado.</div>
-
-    <div class="p2-q">Más información.</div>
-    <div class="p2-text">Puede consultar más información y la normativa aplicable en materia de protección de datos en la web de la Agencia Española de Protección de Datos https://www.aepd.es, así como en el siguiente enlace: www.comunidad.madrid/protecciondedatos.</div>
-
-</div> <!-- Fin Pagina 2 -->
 </div> <!-- Fin student-wrapper -->
-
 <?php endforeach; ?>
+
