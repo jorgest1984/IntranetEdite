@@ -54,7 +54,6 @@ if (empty($alumnos)) {
 ?>
 <style>
     @page { margin: 0; size: A4 portrait; }
-    * { box-sizing: border-box; }
     body {
         margin: 0;
         padding: 0;
@@ -63,15 +62,19 @@ if (empty($alumnos)) {
         background: #fff;
         color: #000;
     }
+    .page, .page * {
+        box-sizing: border-box !important;
+    }
     .page {
-        width: 793px;
+        width: 100% !important;
+        max-width: 800px !important;
         height: 1040px;
         position: relative;
         page-break-after: always;
         overflow: hidden;
         background: #fff;
-        margin: 0 auto;
-        padding: 40px 40px 40px 40px;
+        margin: 0 !important;
+        padding: 40px !important;
     }
     .page:last-child {
         page-break-after: auto; /* Prevent trailing blank page */
