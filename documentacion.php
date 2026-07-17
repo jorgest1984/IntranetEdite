@@ -966,6 +966,9 @@ function generateAnexo1PDF() {
         return response.text();
     })
     .then(htmlStr => {
+        if (htmlStr.includes("SQL ERROR:")) {
+            throw new Error(htmlStr.replace(/(<([^>]+)>)/gi, ""));
+        }
         let fname = alumnoId ? `Anexo1_Alumno_${alumnoId}.pdf` : `Anexo1_Todos.pdf`;
         
         // Creamos un contenedor oculto para que html2canvas pueda renderizar
