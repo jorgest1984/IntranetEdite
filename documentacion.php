@@ -502,7 +502,7 @@ $empresaNombre = $stmtConf->fetchColumn() ?: APP_NAME;
 
             <!-- Grupo Selector -->
             <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Grupo *</label>
-            <select id="grupoSelectInformeAlumno" class="form-input" style="width: 100%; margin-bottom: 1rem;" disabled onchange="loadAlumnos('informe_alumno', this.value)">
+            <select id="grupoSelectInformeAlumno" class="form-input" style="width: 100%; margin-bottom: 1rem;" disabled onchange="loadAlumnosPorGrupo('informe_alumno', this.value)">
                 <option value="">-- Primero elige Acción Formativa --</option>
             </select>
 
@@ -1058,7 +1058,7 @@ function generateActaEvaluacionPDF() {
     closeModal();
 }
 
-function loadAlumnos(type, grupoId) {
+function loadAlumnosPorGrupo(type, grupoId) {
     let suffix = type === 'recibi' ? '' : (type === 'informe_alumno' ? 'InformeAlumno' : (type === 'anexo' ? 'Anexo' : ''));
     const alumnoSelect = document.getElementById('alumnoSelect' + suffix);
     if (!alumnoSelect) return;
