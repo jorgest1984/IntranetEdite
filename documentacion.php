@@ -976,6 +976,11 @@ function generateAnexo1PDF() {
         container.style.width = '800px';
         container.style.zIndex = '-9999';
         container.innerHTML = htmlStr;
+        
+        // Temporarily remove overflow-x: hidden from body to prevent clipping
+        const origOverflowX = document.body.style.overflowX;
+        document.body.style.overflowX = 'visible';
+        
         document.body.appendChild(container);
         
         const students = container.querySelectorAll('.student-wrapper');
@@ -1004,6 +1009,7 @@ function generateAnexo1PDF() {
             // Finalmente guardamos el documento
             worker.save().then(() => {
                 document.body.removeChild(container);
+                document.body.style.overflowX = origOverflowX;
                 btn.innerText = originalText;
                 btn.disabled = false;
                 closeModal();
@@ -1011,6 +1017,7 @@ function generateAnexo1PDF() {
                 console.error(e);
                 alert("Error al generar PDF: " + e.message);
                 document.body.removeChild(container);
+                document.body.style.overflowX = origOverflowX;
                 btn.innerText = originalText;
                 btn.disabled = false;
             });
