@@ -8,6 +8,25 @@ if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA, ROLE_TUTOR, ROLE_FORM
 }
 
 $convocatoria_id = isset($_GET['convocatoria_id']) ? intval($_GET['convocatoria_id']) : 0;
+$grupo_id = isset($_GET['grupo_id']) ? intval($_GET['grupo_id']) : 0;
+$accion_id = 0;
+$plan_id = 0;
+
+if ($grupo_id) {
+    $stmtGrupo = $pdo->prepare("
+        SELECT g.accion_id, af.plan_id, p.convocatoria_id 
+        FROM grupos g
+        JOIN acciones_formativas af ON g.accion_id = af.id
+        LEFT JOIN planes p ON af.plan_id = p.id
+        WHERE g.id = ?
+    ");
+    $stmtGrupo->execute([$grupo_id]);
+    if ($row = $stmtGrupo->fetch()) {
+        $accion_id = $row['accion_id'];
+        $plan_id = $row['plan_id'];
+        $convocatoria_id = $row['convocatoria_id'];
+    }
+}
 
 // Cargar convocatorias para el selector
 $stmtConvs = $pdo->query("SELECT id, codigo_expediente, nombre FROM convocatorias ORDER BY creado_en DESC");
@@ -691,25 +710,83 @@ const loadedData = {
     }
 };
 
-function openDocModal(type) {
-    document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
-    
-    let modalId = type === 'recibi' ? 'docModal' : (type === 'didactica' ? 'didacticaModal' : (type === 'informe' ? 'informeModal' : (type === 'tutorias' ? 'tutoriasModal' : (type === 'acta' ? 'actaModal' : (type === 'informe_alumno' ? 'informeAlumnoModal' : (type === 'diploma' ? 'diplomaModal' : (type === 'xml' ? 'xmlModal' : (type === 'xml_encuestas' ? 'xmlEncuestasModal' : 'anexoModal'))))))));
-    let modal = document.getElementById(modalId);
+const PRELOAD = {
+    convocatoria_id: <?= $convocatoria_id ?: 'null' ?>,
+    plan_id: <?= $plan_id ?: 'null' ?>,
+    accion_id: <?= $accion_id ?: 'null' ?>,
+    grupo_id: <?= $grupo_id ?: 'null' ?>
+};
+
+window.openDocModal = async function(type) {
+    let modalId = type === 'recibi' ? 'docModal' : 
+                 (type === 'didactica' ? 'didacticaModal' : 
+                 (type === 'informe' ? 'informeModal' : 
+                 (type === 'tutorias' ? 'tutoriasModal' : 
+                 (type === 'acta' ? 'actaModal' : 
+                 (type === 'informe_alumno' ? 'informeAlumnoModal' : 
+                 (type === 'diploma' ? 'diplomaModal' : 
+                 (type === 'xml' ? 'xmlModal' : 
+                 (type === 'xml_encuestas' ? 'xmlEncuestasModal' : 'anexoModal'))))))));
+                 
+    const modal = document.getElementById(modalId);
     if (!modal) return;
     
     modal.classList.add('active');
     
-    // Auto-load cascade if Convocatoria is pre-selected on main page
-    let convSelectId = 'convocatoriaSelect' + (type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'informe_alumno' ? 'InformeAlumno' : (type === 'diploma' ? 'Diploma' : (type === 'xml' ? 'Xml' : (type === 'xml_encuestas' ? 'XmlEnc' : 'Anexo')))))))));
-    let planSelectId = 'planSelect' + (type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'informe_alumno' ? 'InformeAlumno' : (type === 'diploma' ? 'Diploma' : (type === 'xml' ? 'Xml' : (type === 'xml_encuestas' ? 'XmlEnc' : 'Anexo')))))))));
+    let suffix = type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'informe_alumno' ? 'InformeAlumno' : (type === 'diploma' ? 'Diploma' : (type === 'xml' ? 'Xml' : (type === 'xml_encuestas' ? 'XmlEnc' : 'Anexo')))))))));
+    let convSelect = document.getElementById('convocatoriaSelect' + suffix);
+    let planSelect = document.getElementById('planSelect' + suffix);
+    let accionSelect = document.getElementById('accionSelect' + suffix);
+    let grupoSelect = document.getElementById('grupoSelect' + suffix);
     
-    let convSelect = document.getElementById(convSelectId);
-    if (convSelect && convSelect.value) {
-        let planSelect = document.getElementById(planSelectId);
-        if (planSelect && planSelect.options.length <= 1) {
-            loadPlanes(type, convSelect.value);
+    if (PRELOAD.convocatoria_id && convSelect) {
+        if (convSelect.value == PRELOAD.convocatoria_id && planSelect && planSelect.value == PRELOAD.plan_id) {
+            return; // Already preloaded
         }
+        
+        convSelect.value = PRELOAD.convocatoria_id;
+        
+        if (PRELOAD.plan_id && planSelect) {
+            planSelect.innerHTML = '<option>Cargando...</option>';
+            let resP = await fetch(`api_documentos_cascade.php?action=get_planes&convocatoria_id=${PRELOAD.convocatoria_id}`);
+            let planes = await resP.json();
+            planSelect.innerHTML = '<option value="">-- Selecciona Plan --</option>';
+            planes.forEach(p => planSelect.innerHTML += `<option value="${p.id}">${p.codigo ? p.codigo + ' - ' : ''}${p.nombre}</option>`);
+            planSelect.disabled = false;
+            planSelect.value = PRELOAD.plan_id;
+            
+            if (PRELOAD.accion_id && accionSelect) {
+                accionSelect.innerHTML = '<option>Cargando...</option>';
+                let resA = await fetch(`api_documentos_cascade.php?action=get_acciones&plan_id=${PRELOAD.plan_id}`);
+                let acciones = await resA.json();
+                accionSelect.innerHTML = '<option value="">-- Selecciona Acción Formativa --</option>';
+                acciones.forEach(af => accionSelect.innerHTML += `<option value="${af.id}">${af.num_accion ? '#' + af.num_accion + ' - ' : ''}${af.titulo}</option>`);
+                accionSelect.disabled = false;
+                accionSelect.value = PRELOAD.accion_id;
+                
+                // Trigger subsequent loaders manually so we can preselect groups if needed
+                let hasAlumno = type === 'recibi' || type === 'anexo1' || type === 'informe_alumno';
+                if (hasAlumno) {
+                    loadAlumnos(type, PRELOAD.accion_id);
+                }
+                
+                if (grupoSelect) {
+                    grupoSelect.innerHTML = '<option>Cargando...</option>';
+                    let resG = await fetch(`api_documentos_cascade.php?action=get_grupos&accion_id=${PRELOAD.accion_id}`);
+                    let grupos = await resG.json();
+                    grupoSelect.innerHTML = type === 'xml_encuestas' ? '<option value="">-- Exportar toda la Acción Formativa --</option>' : '<option value="">-- Selecciona Grupo --</option>';
+                    grupos.forEach(g => grupoSelect.innerHTML += `<option value="${g.id}">Grupo ${g.numero_grupo}</option>`);
+                    grupoSelect.disabled = false;
+                    loadedData[type].grupos = grupos;
+                    if (PRELOAD.grupo_id) {
+                        grupoSelect.value = PRELOAD.grupo_id;
+                    }
+                }
+            }
+        }
+    } else if (convSelect && convSelect.value && planSelect && planSelect.options.length <= 1) {
+        // Fallback to normal behavior if just Convocatoria was pre-selected on main page
+        loadPlanes(type, convSelect.value);
     }
 }
 
