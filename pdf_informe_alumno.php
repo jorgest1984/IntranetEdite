@@ -54,9 +54,9 @@ $horas = (int)($data['horas_teoricas'] ?? 0) + (int)($data['horas_practicas'] ??
 
 $moodle_progress = $data['moodle_progress'] !== null ? number_format((float)$data['moodle_progress'], 2) : '0.00';
 
-$e1 = $data['moodle_e1_grade'] !== null ? number_format((float)$data['moodle_e1_grade'], 2) : '____';
-$e2 = $data['moodle_e2_grade'] !== null ? number_format((float)$data['moodle_e2_grade'], 2) : '____';
-$e3 = $data['moodle_e3_grade'] !== null ? number_format((float)$data['moodle_e3_grade'], 2) : '____';
+$e1 = $data['moodle_e1_grade'] !== null ? number_format((float)$data['moodle_e1_grade'], 2) : '      ';
+$e2 = $data['moodle_e2_grade'] !== null ? number_format((float)$data['moodle_e2_grade'], 2) : '      ';
+$e3 = $data['moodle_e3_grade'] !== null ? number_format((float)$data['moodle_e3_grade'], 2) : '      ';
 $final = $data['moodle_final_grade'] !== null ? number_format((float)$data['moodle_final_grade'], 2) : '0.00';
 
 $apto = ((float)$data['moodle_final_grade'] >= 5) ? 'APTO' : 'NO APTO';
@@ -71,6 +71,14 @@ $porcentaje_controles = number_format(($controles_hechos / 3) * 100, 2);
 $pdf = new FPDF('P', 'mm', 'A4');
 $pdf->AddPage();
 
+// Logos
+if (file_exists('img/logo_fundae.png')) {
+    $pdf->Image('img/logo_fundae.png', 10, 8, 25);
+}
+if (file_exists('img/logo_sepe.png')) {
+    $pdf->Image('img/logo_sepe.png', 38, 8, 25);
+}
+
 // INFORME ALUMNO
 $pdf->SetFont('Arial', 'B', 12);
 $pdf->Cell(0, 10, 'INFORME ALUMNO', 0, 1, 'C');
@@ -79,24 +87,24 @@ $pdf->Ln(15);
 // Cabecera de datos
 $pdf->SetFont('Arial', '', 10);
 $pdf->Cell(15, 6, 'Alumno:', 0, 0);
-$pdf->Cell(95, 6, pdf_utf8_to_iso($nombre_completo), 'B', 0);
+$pdf->Cell(85, 6, pdf_utf8_to_iso($nombre_completo), 'B', 0);
 
-$pdf->Cell(25, 6, 'Expediente:', 0, 0, 'R');
-$pdf->Cell(30, 6, pdf_utf8_to_iso($expediente), 'B', 0);
+$pdf->Cell(20, 6, 'Expediente:', 0, 0, 'R');
+$pdf->Cell(25, 6, pdf_utf8_to_iso($expediente), 'B', 0);
 
 $pdf->Cell(18, 6, pdf_utf8_to_iso('Nº Accion:'), 0, 0, 'R');
 $pdf->Cell(10, 6, pdf_utf8_to_iso($num_accion), 'B', 0);
 
 $pdf->Cell(12, 6, 'Grupo:', 0, 0, 'R');
-$pdf->Cell(15, 6, pdf_utf8_to_iso($numero_grupo), 'B', 1);
+$pdf->Cell(13, 6, pdf_utf8_to_iso($numero_grupo), 'B', 1);
 
 $pdf->Ln(2);
 
 $pdf->Cell(15, 6, 'Curso:', 0, 0);
-$pdf->Cell(150, 6, pdf_utf8_to_iso($curso), 'B', 0);
+$pdf->Cell(140, 6, pdf_utf8_to_iso($curso), 'B', 0);
 
-$pdf->Cell(20, 6, pdf_utf8_to_iso('Nº horas:'), 0, 0, 'R');
-$pdf->Cell(15, 6, $horas . ' h', 'B', 1, 'C');
+$pdf->Cell(18, 6, pdf_utf8_to_iso('Nº horas:'), 0, 0, 'R');
+$pdf->Cell(17, 6, $horas . ' h', 'B', 1, 'C');
 
 $pdf->Ln(15);
 
