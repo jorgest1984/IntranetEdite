@@ -54,6 +54,7 @@ if (empty($alumnos)) {
 ?>
 <style>
     @page { margin: 0; size: A4 portrait; }
+    * { box-sizing: border-box; }
     body {
         margin: 0;
         padding: 0;
@@ -63,15 +64,14 @@ if (empty($alumnos)) {
         color: #000;
     }
     .page {
-        box-sizing: border-box;
-        width: 800px;
-        height: 1050px;
+        width: 793px;
+        height: 1040px;
         position: relative;
         page-break-after: always;
         overflow: hidden;
         background: #fff;
-        margin: 0;
-        padding: 40px 60px 40px 30px;
+        margin: 0 auto;
+        padding: 40px 40px 40px 40px;
     }
     .page:last-child {
         page-break-after: auto; /* Prevent trailing blank page */
@@ -423,8 +423,6 @@ if (empty($alumnos)) {
         </div>
     </div> <!-- FIN PAGINA 1 -->
 
-    <div class="page-break"></div>
-
     <!-- PÁGINA 2 -->
     <div class="page">
         <!-- CABECERA LOGOS -->
@@ -518,8 +516,6 @@ if (empty($alumnos)) {
         </div>
         
     </div> <!-- FIN PAGINA 2 -->
-
-    <div class="page-break"></div>
 
     <!-- PÁGINA 3 -->
     <div class="page">
