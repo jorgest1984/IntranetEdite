@@ -108,8 +108,9 @@ class PdfGenerator {
         $pdf->drawBackground();
 
         // Logos (Esquina superior derecha en la zona azul oscuro)
-        if (file_exists('img/logo_efp.png')) {
-            $pdf->Image('img/logo_efp.png', 210, 15, 60); 
+        if (file_exists('img/logo_diploma.png')) {
+            // El nuevo logo es apaisado con certificados ISO, lo hacemos más grande y ajustamos la X
+            $pdf->Image('img/logo_diploma.png', 190, 12, 95); 
         }
 
         // Título Principal
