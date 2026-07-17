@@ -64,14 +64,39 @@ if (empty($alumnos)) {
     }
     .page {
         box-sizing: border-box;
-        background: #fff;
-        padding: 40px 30px;
+        width: 793px;
+        height: 1050px;
         position: relative;
-        min-height: 297mm;
-        width: 210mm;
-    }
-    .page-break {
         page-break-after: always;
+        overflow: hidden;
+        background: #fff;
+        margin: 0 auto;
+        padding: 0;
+    }
+    .page:last-child {
+        page-break-after: auto; /* Prevent trailing blank page */
+    }
+    .form-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .form-table td, .form-table th {
+        border: 1px solid #000;
+        padding: 4px;
+        vertical-align: top;
+        font-size: 8.5px;
+        word-wrap: break-word;
+        line-height: 1.1;
+    }
+    .checkbox-box {
+        width: 10px;
+        height: 10px;
+        border: 1px solid #000;
+        display: inline-block;
+        text-align: center;
+        line-height: 10px;
+        font-size: 9px;
+        margin-right: 4px;
     }
     
     .text-center { text-align: center; }
