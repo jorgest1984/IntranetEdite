@@ -15,11 +15,16 @@ try {
     foreach ($columns_alumnos as $col => $def) {
         try {
             $pdo->exec("ALTER TABLE alumnos ADD COLUMN $col $def");
+            echo "<span style='color:green'>Columna alumnos.$col añadida correctamente.</span><br>";
         } catch (Exception $e) {
-            // Ignorar si la columna ya existe
+            if (strpos($e->getMessage(), 'Duplicate column') !== false) {
+                echo "<span style='color:orange'>La columna alumnos.$col ya existe.</span><br>";
+            } else {
+                echo "<span style='color:red'>ERROR añadiendo alumnos.$col: " . $e->getMessage() . "</span><br>";
+            }
         }
     }
-    echo "Tabla alumnos revisada/actualizada.<br>";
+    echo "<b>Tabla alumnos procesada.</b><br><br>";
 
     $columns_empresas = [
         "domicilio" => "varchar(255) DEFAULT NULL",
@@ -32,11 +37,16 @@ try {
     foreach ($columns_empresas as $col => $def) {
         try {
             $pdo->exec("ALTER TABLE empresas ADD COLUMN $col $def");
+            echo "<span style='color:green'>Columna empresas.$col añadida correctamente.</span><br>";
         } catch (Exception $e) {
-            // Ignorar si la columna ya existe
+            if (strpos($e->getMessage(), 'Duplicate column') !== false) {
+                echo "<span style='color:orange'>La columna empresas.$col ya existe.</span><br>";
+            } else {
+                echo "<span style='color:red'>ERROR añadiendo empresas.$col: " . $e->getMessage() . "</span><br>";
+            }
         }
     }
-    echo "Tabla empresas revisada/actualizada.<br>";
+    echo "<b>Tabla empresas procesada.</b><br><br>";
 
     // Update existing 'estudios' to match the new strict values
     $estudios_map = [
