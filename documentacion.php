@@ -765,8 +765,8 @@ window.openDocModal = async function(type) {
                 accionSelect.value = PRELOAD.accion_id;
                 
                 // Trigger subsequent loaders manually so we can preselect groups if needed
-                let hasAlumno = type === 'recibi' || type === 'anexo1' || type === 'informe_alumno';
-                if (hasAlumno) {
+                let isGlobalAlumno = type === 'recibi';
+                if (isGlobalAlumno) {
                     loadAlumnos(type, PRELOAD.accion_id);
                 }
                 
@@ -780,6 +780,9 @@ window.openDocModal = async function(type) {
                     loadedData[type].grupos = grupos;
                     if (PRELOAD.grupo_id) {
                         grupoSelect.value = PRELOAD.grupo_id;
+                        if (type === 'informe_alumno' || type === 'anexo') {
+                            loadAlumnosPorGrupo(type, PRELOAD.grupo_id);
+                        }
                     }
                 }
             }
