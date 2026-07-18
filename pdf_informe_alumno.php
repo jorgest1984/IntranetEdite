@@ -27,7 +27,7 @@ function pdf_utf8_to_iso($str) {
 
 // Obtener datos
 $stmt = $pdo->prepare("SELECT a.nombre, a.primer_apellido, a.segundo_apellido,
-                              af.num_accion, af.titulo as curso_titulo, af.horas_teoricas, af.horas_practicas,
+                              af.num_accion, af.titulo as curso_titulo, af.horas_teoricas, af.horas_practicas, af.duracion as af_duracion,
                               g.numero_grupo, c.codigo_expediente,
                               m.moodle_progress, m.moodle_e1_grade, m.moodle_e2_grade, m.moodle_e3_grade, m.moodle_final_grade,
                               m.moodle_e1_completed, m.moodle_e2_completed, m.moodle_e3_completed
@@ -50,7 +50,10 @@ $expediente = strtoupper($data['codigo_expediente'] ?? '');
 $num_accion = strtoupper($data['num_accion'] ?? '');
 $numero_grupo = strtoupper($data['numero_grupo'] ?? '');
 $curso = $num_accion . ' - ' . mb_strtoupper($data['curso_titulo']);
-$horas = (int)($data['horas_teoricas'] ?? 0) + (int)($data['horas_practicas'] ?? 0);
+$horas = (int)($data['af_duracion'] ?? 0);
+if ($horas <= 0) {
+    $horas = (int)($data['horas_teoricas'] ?? 0) + (int)($data['horas_practicas'] ?? 0);
+}
 
 $moodle_progress = $data['moodle_progress'] !== null ? number_format((float)$data['moodle_progress'], 2) : '0.00';
 
