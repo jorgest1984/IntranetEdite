@@ -136,6 +136,14 @@ $empresaNombre = $stmtConf->fetchColumn() ?: APP_NAME;
                     <button class="btn btn-primary" onclick="openDocModal('recibi')">Generar PDF</button>
                 </div>
                 
+                <!-- Hoja de Bienvenida -->
+                <div class="doc-card">
+                    <svg class="doc-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+                    <div class="doc-title">Hoja de Bienvenida</div>
+                    <div class="doc-desc">Documento con las instrucciones de acceso, credenciales URL, usuario y contraseña.</div>
+                    <button class="btn btn-primary" onclick="openDocModal('bienvenida')">Generar PDF</button>
+                </div>
+                
                 <!-- Diploma Provisional -->
                 <div class="doc-card">
                     <svg class="doc-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
@@ -261,6 +269,51 @@ $empresaNombre = $stmtConf->fetchColumn() ?: APP_NAME;
         </div>
         
         <button class="btn btn-primary" style="width: 100%; justify-content:center; margin-top: 1rem;" onclick="generateRecibiPDF()">
+            Descargar PDF
+        </button>
+    </div>
+</div>
+
+<!-- Modal Selección Hoja Bienvenida -->
+<div id="bienvenidaModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Generar "Hoja de Bienvenida"</h2>
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+        </div>
+        
+        <div style="margin-bottom: 1rem;">
+            <!-- Convocatoria Selector -->
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Convocatoria *</label>
+            <select id="convocatoriaSelect_bienvenida" class="form-input" style="width: 100%; margin-bottom: 1rem;" onchange="loadPlanes('bienvenida', this.value)">
+                <option value="">-- Selecciona Convocatoria --</option>
+                <?php foreach ($convocatorias as $c): ?>
+                    <option value="<?= $c['id'] ?>" <?= $convocatoria_id == $c['id'] ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($c['codigo_expediente']) ?> - <?= htmlspecialchars($c['nombre']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+
+            <!-- Plan Selector -->
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Plan *</label>
+            <select id="planSelect_bienvenida" class="form-input" style="width: 100%; margin-bottom: 1rem;" disabled onchange="loadAcciones('bienvenida', this.value)">
+                <option value="">-- Primero elige Convocatoria --</option>
+            </select>
+
+            <!-- Acción Formativa Selector -->
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Acción Formativa *</label>
+            <select id="accionSelect_bienvenida" class="form-input" style="width: 100%; margin-bottom: 1rem;" disabled onchange="loadAlumnos('bienvenida', this.value)">
+                <option value="">-- Primero elige Plan --</option>
+            </select>
+
+            <!-- Alumno Selector -->
+            <label class="form-label" style="display:block; margin-bottom: 0.25rem;">Alumno Receptor *</label>
+            <select id="alumnoSelect_bienvenida" class="form-input" style="width: 100%; margin-bottom: 1rem;" disabled>
+                <option value="">-- Primero elige Acción Formativa --</option>
+            </select>
+        </div>
+        
+        <button class="btn btn-primary" style="width: 100%; justify-content:center; margin-top: 1rem;" onclick="generateBienvenidaPDF()">
             Descargar PDF
         </button>
     </div>
@@ -1020,6 +1073,22 @@ function generateRecibiPDF() {
     }
     
     window.location.href = `pdf_recibi_material.php?accion_id=${accionId}&alumno_id=${alumnoId}`;
+    closeModal();
+}
+
+function generateBienvenidaPDF() {
+    let selectAccion = document.getElementById('accionSelect_bienvenida');
+    let selectAlumno = document.getElementById('alumnoSelect_bienvenida');
+    
+    let accionId = selectAccion.value;
+    let alumnoId = selectAlumno.value;
+    
+    if (!accionId) {
+        alert("Por favor, selecciona una acción formativa válida.");
+        return;
+    }
+    
+    window.location.href = `pdf_hoja_bienvenida.php?accion_id=${accionId}&alumno_id=${alumnoId}`;
     closeModal();
 }
 
