@@ -73,7 +73,7 @@ if ($tipo === 'recibi') {
     <head>
         <meta charset="UTF-8">
         <title>Descargando Hoja de Bienvenida...</title>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+        <script src="js/html2pdf.bundle.min.js"></script>
         <style>
             body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background-color: #f8fafc; }
             .loader { border: 4px solid #e2e8f0; border-top: 4px solid #3b82f6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
