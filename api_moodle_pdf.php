@@ -33,7 +33,7 @@ if (!hash_equals($expected_token, $token)) {
 }
 
 // Mapear moodle_user_id -> Intranet alumno_id
-$stmtUser = $pdo->prepare("SELECT id FROM alumnos WHERE moodle_id = ?");
+$stmtUser = $pdo->prepare("SELECT id FROM alumnos WHERE moodle_user_id = ?");
 $stmtUser->execute([$moodle_user_id]);
 $alumno = $stmtUser->fetch();
 
