@@ -28,7 +28,7 @@ function pdf_utf8_to_iso($str) {
 // Obtener datos
 $stmt = $pdo->prepare("SELECT a.nombre, a.primer_apellido, a.segundo_apellido,
                               af.num_accion, af.titulo as curso_titulo, af.horas_teoricas, af.horas_practicas, af.duracion as af_duracion,
-                              g.numero_grupo, c.codigo_expediente,
+                              g.numero_grupo, COALESCE(NULLIF(g.expediente, ''), c.codigo_expediente) as codigo_expediente,
                               m.moodle_progress, m.moodle_e1_grade, m.moodle_e2_grade, m.moodle_e3_grade, m.moodle_final_grade,
                               m.moodle_e1_completed, m.moodle_e2_completed, m.moodle_e3_completed
                        FROM matriculas m

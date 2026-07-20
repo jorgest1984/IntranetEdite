@@ -26,7 +26,7 @@ $query = "
         emp.convenio_aplicacion as empresa_convenio, emp.cif as empresa_cif,
         g.numero_grupo, g.fecha_inicio, g.fecha_fin,
         af.num_accion, af.modalidad, af.abreviatura as curso_codigo, af.titulo as curso_titulo,
-        conv.codigo_expediente
+        COALESCE(NULLIF(g.expediente, ''), conv.codigo_expediente) as codigo_expediente
     FROM matriculas m
     JOIN alumnos a ON m.alumno_id = a.id
     LEFT JOIN empresas emp ON a.ultima_empresa_id = emp.id

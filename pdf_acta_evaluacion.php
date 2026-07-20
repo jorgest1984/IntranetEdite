@@ -28,7 +28,7 @@ try {
 
 // 1. Obtener datos de cabecera
 $stmt = $pdo->prepare("SELECT g.*, af.num_accion, af.titulo as curso_titulo, 
-                              c.codigo_expediente, u.nombre as tutor_nombre, u.apellidos as tutor_apellidos, pd.dni as tutor_dni
+                              COALESCE(NULLIF(g.expediente, ''), c.codigo_expediente) as codigo_expediente, u.nombre as tutor_nombre, u.apellidos as tutor_apellidos, pd.dni as tutor_dni
                        FROM grupos g
                        JOIN acciones_formativas af ON g.accion_id = af.id
                        LEFT JOIN planes p ON af.plan_id = p.id

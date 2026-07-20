@@ -63,7 +63,7 @@ class PdfGenerator {
 
         // 2. Obtener datos de la acción, plan, convocatoria
         $stmtData = $pdo->prepare("SELECT g.fecha_inicio, g.fecha_fin, af.num_accion, af.titulo as curso_titulo, af.contenidos as af_contenidos,
-                                          c.codigo_expediente, c.contenidos_diploma, u.nombre as tutor_nombre, u.apellidos as tutor_apellidos
+                                          COALESCE(NULLIF(g.expediente, ''), c.codigo_expediente) as codigo_expediente, c.contenidos_diploma, u.nombre as tutor_nombre, u.apellidos as tutor_apellidos
                                    FROM grupos g
                                    JOIN acciones_formativas af ON g.accion_id = af.id
                                    LEFT JOIN planes p ON af.plan_id = p.id

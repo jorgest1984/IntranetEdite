@@ -42,23 +42,25 @@ if (!$accion) {
 // Reasignar el ID real de la intranet para que el resto del script funcione igual
 $id = (int)$accion['id'];
 
-// Fetch Plan for Expediente
+// Fetch Expediente (Priority: first group's expediente, Fallback: convocatoria)
 $expediente = '---';
-if (!empty($accion['plan_id'])) {
-    try {
-        $stmtPlan = $pdo->prepare("
-            SELECT co.codigo_expediente 
-            FROM planes pl
-            JOIN convocatorias co ON pl.convocatoria_id = co.id
-            WHERE pl.id = ?
-        ");
-        $stmtPlan->execute([$accion['plan_id']]);
-        $plan = $stmtPlan->fetch();
-        if ($plan && !empty($plan['codigo_expediente'])) {
-            $expediente = $plan['codigo_expediente'];
-        }
-    } catch (Throwable $e) {}
-}
+try {
+    $stmtExp = $pdo->prepare("
+        SELECT COALESCE(NULLIF(g.expediente, ''), co.codigo_expediente) as codigo_expediente
+        FROM acciones_formativas af
+        LEFT JOIN grupos g ON g.accion_id = af.id
+        LEFT JOIN planes pl ON af.plan_id = pl.id
+        LEFT JOIN convocatorias co ON pl.convocatoria_id = co.id
+        WHERE af.id = ?
+        ORDER BY g.id ASC
+        LIMIT 1
+    ");
+    $stmtExp->execute([$id]);
+    $expRow = $stmtExp->fetch();
+    if ($expRow && !empty($expRow['codigo_expediente'])) {
+        $expediente = $expRow['codigo_expediente'];
+    }
+} catch (Throwable $e) {}
 $num_accion = !empty($accion['num_accion']) ? $accion['num_accion'] : '---';
 $curso_nombre = ($accion['abreviatura'] ? $accion['abreviatura'] : $accion['id_plataforma']) . ' - ' . $accion['titulo'];
 $horas = !empty($accion['duracion']) ? $accion['duracion'] . ' h' : '---';

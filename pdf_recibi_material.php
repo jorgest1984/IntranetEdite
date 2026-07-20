@@ -22,7 +22,7 @@ $query = "
         a.id, a.nombre, a.primer_apellido, a.segundo_apellido, a.dni,
         g.numero_grupo, g.fecha_inicio, g.fecha_fin,
         af.num_accion, af.modalidad, af.abreviatura as curso_codigo, af.titulo as curso_titulo,
-        conv.codigo_expediente
+        COALESCE(NULLIF(g.expediente, ''), conv.codigo_expediente) as codigo_expediente
     FROM matriculas m
     JOIN alumnos a ON m.alumno_id = a.id
     JOIN grupos g ON m.grupo_id = g.id
