@@ -78,7 +78,7 @@ if ($tipo === 'recibi') {
             body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background-color: #f8fafc; }
             .loader { border: 4px solid #e2e8f0; border-top: 4px solid #3b82f6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
             @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-            #content { display: none; }
+            #content { position: absolute; top: -9999px; left: -9999px; }
         </style>
     </head>
     <body>
@@ -90,29 +90,33 @@ if ($tipo === 'recibi') {
 
         <script>
             setTimeout(() => {
-                const htmlStr = <?= $htmlContentEscaped ?>;
-                
-                if(htmlStr.includes('SQL ERROR') || htmlStr.includes('Acceso denegado')) {
-                    document.body.innerHTML = '<h2>Error al generar el documento.</h2>';
-                    return;
+                try {
+                    const htmlStr = <?= $htmlContentEscaped ?>;
+                    
+                    if(htmlStr.includes('SQL ERROR') || htmlStr.includes('Acceso denegado')) {
+                        document.body.innerHTML = '<h2>Error al generar el documento.</h2>';
+                        return;
+                    }
+                    
+                    document.getElementById('content').innerHTML = htmlStr;
+                    
+                    const opt = {
+                        margin: 0,
+                        filename: `Hoja_Bienvenida_<?= $alumno_id ?>.pdf`,
+                        image: { type: 'jpeg', quality: 0.98 },
+                        html2canvas: { scale: 2, useCORS: true, logging: true },
+                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                    };
+                    
+                    html2pdf().set(opt).from(document.getElementById('content')).save().then(() => {
+                        document.body.innerHTML = '<h2>Descarga completada</h2><p>Ya puedes cerrar esta ventana.</p>';
+                    }).catch(err => {
+                        document.body.innerHTML = '<h2>Error al generar el PDF.</h2><p>' + err + '</p>';
+                    });
+                } catch(e) {
+                    document.body.innerHTML = '<h2>Error general en Javascript.</h2><p>' + e + '</p>';
                 }
-                
-                document.getElementById('content').innerHTML = htmlStr;
-                
-                const opt = {
-                    margin: 0,
-                    filename: `Hoja_Bienvenida_<?= $alumno_id ?>.pdf`,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2 },
-                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                };
-                
-                html2pdf().set(opt).from(htmlStr).save().then(() => {
-                    document.body.innerHTML = '<h2>Descarga completada</h2><p>Ya puedes cerrar esta ventana.</p>';
-                }).catch(err => {
-                    document.body.innerHTML = '<h2>Error al generar el PDF.</h2><p>' + err + '</p>';
-                });
-            }, 500);
+            }, 1500); // Dar tiempo a que carguen las imagenes del DOM insertado
         </script>
     </body>
     </html>
