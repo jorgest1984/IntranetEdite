@@ -107,8 +107,10 @@ if ($tipo === 'recibi') {
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
                 };
                 
-                html2pdf().set(opt).from(document.getElementById('content')).save().then(() => {
+                html2pdf().set(opt).from(htmlStr).save().then(() => {
                     document.body.innerHTML = '<h2>Descarga completada</h2><p>Ya puedes cerrar esta ventana.</p>';
+                }).catch(err => {
+                    document.body.innerHTML = '<h2>Error al generar el PDF.</h2><p>' + err + '</p>';
                 });
             }, 500);
         </script>
