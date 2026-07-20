@@ -156,9 +156,9 @@ foreach ($alumnos as $data) {
     
     $pdf->Ln(2);
     $pdf->SetX(20);
-    $pdf->WriteText("• Hoja de bienvenida al curso en formato electrónico, con la dirección Web de la plataforma de teleformación y claves para el acceso al curso.\n");
+    $pdf->WriteText("- Hoja de bienvenida al curso en formato electrónico, con la dirección Web de la plataforma de teleformación y claves para el acceso al curso.\n");
     $pdf->SetX(20);
-    $pdf->WriteText("• La siguiente documentación en formato electrónico disponible en la plataforma de teleformación:\n");
+    $pdf->WriteText("- La siguiente documentación en formato electrónico disponible en la plataforma de teleformación:\n");
     
     $pdf->SetX(30);
     $pdf->WriteText("- Guía didáctica del alumno\n");
