@@ -3,7 +3,8 @@
 require_once 'includes/auth.php';
 require_once 'includes/config.php';
 
-if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA, ROLE_TUTOR, ROLE_ADMINISTRATIVO])) {
+global $moodle_bypass_auth;
+if (empty($moodle_bypass_auth) && !has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA, ROLE_TUTOR, ROLE_ADMINISTRATIVO])) {
     die("Acceso denegado");
 }
 

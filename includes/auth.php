@@ -3,7 +3,8 @@
 require_once __DIR__ . '/config.php';
 
 // Verificar si el usuario está logueado
-if (!isset($_SESSION['user_id'])) {
+global $moodle_bypass_auth;
+if (empty($moodle_bypass_auth) && !isset($_SESSION['user_id'])) {
     header("Location: index.php");
     exit();
 }

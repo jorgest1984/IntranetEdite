@@ -3,6 +3,9 @@
 // Este archivo recibe peticiones firmadas desde Moodle para descargar PDFs
 require_once 'includes/config.php';
 
+global $moodle_bypass_auth;
+$moodle_bypass_auth = true;
+
 $secret = "EfpMoodleSecret2026!#";
 
 $token = $_GET['token'] ?? '';
@@ -54,9 +57,16 @@ if ($tipo === 'recibi') {
     exit;
 
 } elseif ($tipo === 'bienvenida') {
-    // La bienvenida es Anexo 1, que usa html2pdf en el frontend.
-    // Renderizamos una página que auto-descarga el PDF
-    $htmlUrl = "api_anexo1_html.php?accion_id={$accion_id}&alumno_id={$alumno_id}";
+    // Capturamos el HTML del anexo directamente en el servidor
+    $_GET['accion_id'] = $accion_id;
+    $_GET['alumno_id'] = $alumno_id;
+    
+    ob_start();
+    require 'api_anexo1_html.php';
+    $htmlContent = ob_get_clean();
+    
+    // Escapar el HTML para poder meterlo en Javascript de forma segura
+    $htmlContentEscaped = json_encode($htmlContent);
     ?>
     <!DOCTYPE html>
     <html lang="es">
@@ -79,10 +89,10 @@ if ($tipo === 'recibi') {
         <div id="content"></div>
 
         <script>
-            fetch('<?= $htmlUrl ?>')
-            .then(res => res.text())
-            .then(htmlStr => {
-                if(htmlStr.includes('SQL ERROR')) {
+            setTimeout(() => {
+                const htmlStr = <?= $htmlContentEscaped ?>;
+                
+                if(htmlStr.includes('SQL ERROR') || htmlStr.includes('Acceso denegado')) {
                     document.body.innerHTML = '<h2>Error al generar el documento.</h2>';
                     return;
                 }
@@ -97,13 +107,10 @@ if ($tipo === 'recibi') {
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
                 };
                 
-                html2pdf().set(opt).from(htmlStr).save().then(() => {
+                html2pdf().set(opt).from(document.getElementById('content')).save().then(() => {
                     document.body.innerHTML = '<h2>Descarga completada</h2><p>Ya puedes cerrar esta ventana.</p>';
                 });
-            })
-            .catch(err => {
-                document.body.innerHTML = '<h2>Error de conexión</h2>';
-            });
+            }, 500);
         </script>
     </body>
     </html>
