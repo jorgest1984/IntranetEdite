@@ -1,7 +1,4 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 // api_moodle_pdf.php
 // Este archivo recibe peticiones firmadas desde Moodle para descargar PDFs
 require_once 'includes/config.php';
