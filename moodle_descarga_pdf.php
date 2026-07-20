@@ -28,12 +28,21 @@ require_login();
 $tipo = required_param('tipo', PARAM_ALPHA); // 'recibi' o 'bienvenida'
 $courseid = optional_param('courseid', 0, PARAM_INT);
 
-// Si no viene courseid por URL, intentamos sacarlo de la sesión o del curso actual
+// Si no viene courseid por URL, intentamos sacarlo de la sesión o del referer
 if (!$courseid) {
-    global $COURSE;
-    $courseid = $COURSE->id;
+    if (isset($_SERVER['HTTP_REFERER'])) {
+        $referer = $_SERVER['HTTP_REFERER'];
+        if (preg_match('/id=(\d+)/', $referer, $matches)) {
+            $courseid = (int)$matches[1];
+        }
+    }
     
-    // Si sigue siendo 1 (curso portada de Moodle), es inválido
+    if (!$courseid) {
+        global $COURSE;
+        $courseid = $COURSE->id;
+    }
+    
+    // Si sigue siendo 1 (curso portada de Moodle) o 0, es inválido
     if ($courseid <= 1) {
         die("Error: No se ha especificado un curso válido.");
     }
