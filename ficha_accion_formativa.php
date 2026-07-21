@@ -1083,7 +1083,7 @@ try {
             <?= !empty($accion['titulo']) ? htmlspecialchars($accion['titulo']) : 'NUEVA ACCIÓN FORMATIVA' ?>
             <?= !empty($accion['abreviatura']) ? '('.htmlspecialchars($accion['abreviatura']).')' : '' ?>
         </div>
-        <form id="main-form" method="POST" action="guardar_accion.php">
+        <form id="main-form" method="POST" action="guardar_accion.php" enctype="multipart/form-data">
         <?php if (isset($_GET['success'])): ?>
             <div style="background: #dcfce7; color: #166534; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: 700; text-align: center; border: 1px solid #166534;">
                 ¡Acción formativa guardada con éxito!
@@ -1214,7 +1214,7 @@ try {
 
 
                     <div class="form-row">
-                        <div class="form-group form-col" style="width: 100%;">
+                        <div class="form-group form-col" style="width: 50%;">
                             <label>Familia profesional:</label>
                             <select name="familia_profesional">
                                 <option value=""></option>
@@ -1222,6 +1222,15 @@ try {
                                     <option value="<?= htmlspecialchars($fam) ?>" <?= ($accion['familia_profesional'] ?? '') == $fam ? 'selected' : '' ?>><?= htmlspecialchars($fam) ?></option>
                                 <?php endforeach; ?>
                             </select>
+                        </div>
+                        <div class="form-group form-col" style="width: 50%;">
+                            <label>Programa Formativo (PDF):</label>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <input type="file" name="programa_formativo" accept=".pdf" style="flex: 1;">
+                                <?php if (!empty($accion['programa_formativo'])): ?>
+                                    <a href="<?= htmlspecialchars($accion['programa_formativo']) ?>" target="_blank" style="color: #1e40af; text-decoration: none; font-weight: bold; font-size: 0.9rem;">📥 Descargar</a>
+                                <?php endif; ?>
+                            </div>
                         </div>
                     </div>
 
