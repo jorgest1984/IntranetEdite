@@ -725,6 +725,10 @@ const loadedData = {
         alumnos: [],
         context: null
     },
+    bienvenida: {
+        alumnos: [],
+        context: null
+    },
     anexo1: {
         alumnos: [],
         context: null
