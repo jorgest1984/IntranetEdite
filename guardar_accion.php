@@ -106,6 +106,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     try {
+        $pdo->exec("ALTER TABLE acciones_formativas ADD COLUMN programa_formativo VARCHAR(255) DEFAULT NULL");
+    } catch (PDOException $e) {
+        // Ignorar si la columna ya existe
+    }
+
+    try {
         if ($id) {
             // Update
             $sql = "UPDATE acciones_formativas SET 

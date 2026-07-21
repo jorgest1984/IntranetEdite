@@ -140,6 +140,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                             $_SESSION['nombre_completo'] = $user['nombre'] . ' ' . trim($apellidos);
                             $_SESSION['rol_id']          = $user['rol_id'];
                             $_SESSION['rol_nombre']      = $user['rol_nombre'];
+                            $_SESSION['centro_id']       = $user['centro_id'] ?? null;
                             
                             // Guardar huella de sesión para evitar secuestro (Hijacking)
                             $_SESSION['created_ip']      = $ip_address;
