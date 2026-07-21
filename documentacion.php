@@ -772,6 +772,7 @@ const PRELOAD = {
 
 window.openDocModal = async function(type) {
     let modalId = type === 'recibi' ? 'docModal' : 
+                 (type === 'bienvenida' ? 'bienvenidaModal' : 
                  (type === 'didactica' ? 'didacticaModal' : 
                  (type === 'informe' ? 'informeModal' : 
                  (type === 'tutorias' ? 'tutoriasModal' : 
@@ -779,14 +780,14 @@ window.openDocModal = async function(type) {
                  (type === 'informe_alumno' ? 'informeAlumnoModal' : 
                  (type === 'diploma' ? 'diplomaModal' : 
                  (type === 'xml' ? 'xmlModal' : 
-                 (type === 'xml_encuestas' ? 'xmlEncuestasModal' : 'anexoModal'))))))));
+                 (type === 'xml_encuestas' ? 'xmlEncuestasModal' : 'anexoModal')))))))));
                  
     const modal = document.getElementById(modalId);
     if (!modal) return;
     
     modal.classList.add('active');
     
-    let suffix = type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'informe_alumno' ? 'InformeAlumno' : (type === 'diploma' ? 'Diploma' : (type === 'xml' ? 'Xml' : (type === 'xml_encuestas' ? 'XmlEnc' : 'Anexo'))))))));
+    let suffix = type === 'recibi' ? '' : (type === 'bienvenida' ? '_bienvenida' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'informe_alumno' ? 'InformeAlumno' : (type === 'diploma' ? 'Diploma' : (type === 'xml' ? 'Xml' : (type === 'xml_encuestas' ? 'XmlEnc' : 'Anexo')))))))));
     let convSelect = document.getElementById('convocatoriaSelect' + suffix);
     let planSelect = document.getElementById('planSelect' + suffix);
     let accionSelect = document.getElementById('accionSelect' + suffix);
@@ -857,7 +858,7 @@ window.onclick = function(event) {
 }
 
 function loadPlanes(type, convocatoriaId) {
-    let suffix = type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'informe_alumno' ? 'InformeAlumno' : (type === 'diploma' ? 'Diploma' : (type === 'xml' ? 'Xml' : (type === 'xml_encuestas' ? 'XmlEnc' : 'Anexo'))))))));
+    let suffix = type === 'recibi' ? '' : (type === 'bienvenida' ? '_bienvenida' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'informe_alumno' ? 'InformeAlumno' : (type === 'diploma' ? 'Diploma' : (type === 'xml' ? 'Xml' : (type === 'xml_encuestas' ? 'XmlEnc' : 'Anexo')))))))));
     const planSelect = document.getElementById('planSelect' + suffix);
     const accionSelect = document.getElementById('accionSelect' + suffix);
     const alumnoSelect = document.getElementById('alumnoSelect' + suffix); // null if didactica/informe/tutorias/acta/diploma
@@ -907,7 +908,7 @@ function loadPlanes(type, convocatoriaId) {
 }
 
 function loadAcciones(type, planId) {
-    let suffix = type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'informe_alumno' ? 'InformeAlumno' : (type === 'diploma' ? 'Diploma' : (type === 'xml' ? 'Xml' : (type === 'xml_encuestas' ? 'XmlEnc' : 'Anexo'))))))));
+    let suffix = type === 'recibi' ? '' : (type === 'bienvenida' ? '_bienvenida' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'informe_alumno' ? 'InformeAlumno' : (type === 'diploma' ? 'Diploma' : (type === 'xml' ? 'Xml' : (type === 'xml_encuestas' ? 'XmlEnc' : 'Anexo')))))))));
     const accionSelect = document.getElementById('accionSelect' + suffix);
     const alumnoSelect = document.getElementById('alumnoSelect' + suffix);
     const grupoSelect = document.getElementById('grupoSelect' + suffix);
@@ -1005,7 +1006,7 @@ function loadAlumnos(type, accionId) {
 }
 
 function loadGrupos(type, accionId) {
-    let suffix = type === 'recibi' ? '' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'informe_alumno' ? 'InformeAlumno' : (type === 'diploma' ? 'Diploma' : (type === 'xml' ? 'Xml' : (type === 'xml_encuestas' ? 'XmlEnc' : 'Anexo'))))))));
+    let suffix = type === 'recibi' ? '' : (type === 'bienvenida' ? '_bienvenida' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'informe_alumno' ? 'InformeAlumno' : (type === 'diploma' ? 'Diploma' : (type === 'xml' ? 'Xml' : (type === 'xml_encuestas' ? 'XmlEnc' : 'Anexo')))))))));
     const grupoSelect = document.getElementById('grupoSelect' + suffix);
     
     grupoSelect.innerHTML = type === 'xml_encuestas' ? '<option value="">-- Exportar toda la Acción Formativa --</option>' : '<option value="">-- Selecciona Grupo --</option>';
