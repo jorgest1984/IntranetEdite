@@ -1080,7 +1080,7 @@ function generateRecibiPDF() {
         return;
     }
     
-    window.location.href = `pdf_recibi_material.php?accion_id=${accionId}&alumno_id=${alumnoId}`;
+    window.open(`pdf_recibi_material.php?accion_id=${accionId}&alumno_id=${alumnoId}`, '_blank');
     closeModal();
 }
 
@@ -1096,7 +1096,7 @@ function generateBienvenidaPDF() {
         return;
     }
     
-    window.location.href = `pdf_hoja_bienvenida.php?accion_id=${accionId}&alumno_id=${alumnoId}`;
+    window.open(`pdf_hoja_bienvenida.php?accion_id=${accionId}&alumno_id=${alumnoId}`, '_blank');
     closeModal();
 }
 
