@@ -138,8 +138,8 @@ foreach ($alumnos as $alumno) {
     $pdf->SectionTitle('FECHAS');
     $pdf->WriteText("Las fechas previstas para la realización del curso son las siguientes:");
     $pdf->SetFont('Arial', '', 9);
-    $pdf->Cell(10, 5, '', 0, 0); $pdf->Cell(0, 5, pdf_utf8_to_iso("• Inicio: $fecha_inicio"), 0, 1);
-    $pdf->Cell(10, 5, '', 0, 0); $pdf->Cell(0, 5, pdf_utf8_to_iso("• Finalización: $fecha_fin"), 0, 1);
+    $pdf->Cell(10, 5, '', 0, 0); $pdf->Cell(0, 5, pdf_utf8_to_iso("- Inicio: $fecha_inicio"), 0, 1);
+    $pdf->Cell(10, 5, '', 0, 0); $pdf->Cell(0, 5, pdf_utf8_to_iso("- Finalización: $fecha_fin"), 0, 1);
     $pdf->Ln(4);
     
     $pdf->SectionTitle('ACCESO AL CURSO');
@@ -151,8 +151,8 @@ foreach ($alumnos as $alumno) {
     $pdf->SetFont('Arial', '', 9);
     $pdf->MultiCell(0, 5, pdf_utf8_to_iso("y debe acceder a \"Aula Virtual\". Recuerde que no podrá acceder al aula hasta la fecha de inicio indicada. Sus datos de usuario y contraseña son los siguientes:"), 0, 'J');
     $pdf->Ln(2);
-    $pdf->Cell(10, 5, '', 0, 0); $pdf->Cell(0, 5, pdf_utf8_to_iso("• Usuario: $dni"), 0, 1);
-    $pdf->Cell(10, 5, '', 0, 0); $pdf->Cell(0, 5, pdf_utf8_to_iso("• Contraseña: $password"), 0, 1);
+    $pdf->Cell(10, 5, '', 0, 0); $pdf->Cell(0, 5, pdf_utf8_to_iso("- Usuario: $dni"), 0, 1);
+    $pdf->Cell(10, 5, '', 0, 0); $pdf->Cell(0, 5, pdf_utf8_to_iso("- Contraseña: $password"), 0, 1);
     $pdf->Ln(4);
     
     $pdf->SectionTitle('OBJETIVOS DEL CURSO');
@@ -179,18 +179,18 @@ foreach ($alumnos as $alumno) {
     $pdf->WriteText("Para considerar a un alumno iniciado en la acción formativa, debe haberse conectado y tener actividad antes de alcanzar el primer 25%, $fecha_25. Teniendo en cuenta los siguientes aspectos:");
     
     $pdf->SetFont('Arial', '', 9);
-    $pdf->Cell(5, 5, '', 0, 0); $pdf->MultiCell(0, 5, pdf_utf8_to_iso("• El participante deberá visualizar todos los contenidos del curso y consultar al tutor/formador las dudas, en su caso, a través de la propia plataforma."), 0, 'J');
-    $pdf->Cell(5, 5, '', 0, 0); $pdf->MultiCell(0, 5, pdf_utf8_to_iso("• Aquellos alumnos que hayan realizado el 75 por ciento de los controles periódicos de seguimiento de su aprendizaje, se podrán considerar alumnos finalizados."), 0, 'J');
+    $pdf->Cell(5, 5, '', 0, 0); $pdf->MultiCell(0, 5, pdf_utf8_to_iso("- El participante deberá visualizar todos los contenidos del curso y consultar al tutor/formador las dudas, en su caso, a través de la propia plataforma."), 0, 'J');
+    $pdf->Cell(5, 5, '', 0, 0); $pdf->MultiCell(0, 5, pdf_utf8_to_iso("- Aquellos alumnos que hayan realizado el 75 por ciento de los controles periódicos de seguimiento de su aprendizaje, se podrán considerar alumnos finalizados."), 0, 'J');
     $pdf->Ln(4);
     
     $pdf->SetFont('Arial', 'B', 10);
     $pdf->Cell(0, 8, pdf_utf8_to_iso("Herramientas de evaluación"), 0, 1, 'L');
     $pdf->WriteText("Se establecen las siguientes evaluaciones, que le permitirán comprobar su grado de aprovechamiento realizado en el curso, siendo requisito imprescindible para la finalización del mismo:");
     $pdf->SetFont('Arial', '', 9);
-    $pdf->Cell(5, 5, '', 0, 0); $pdf->Cell(0, 5, pdf_utf8_to_iso("• Evaluación Inicial."), 0, 1);
-    $pdf->Cell(5, 5, '', 0, 0); $pdf->Cell(0, 5, pdf_utf8_to_iso("• Evaluación Intermedia. Fecha máxima aconsejable de realización:"), 0, 1);
-    $pdf->Cell(5, 5, '', 0, 0); $pdf->Cell(0, 5, pdf_utf8_to_iso("• Evaluación Final. Fecha máxima aconsejable de realización:"), 0, 1);
-    $pdf->Cell(5, 5, '', 0, 0); $pdf->Cell(0, 5, pdf_utf8_to_iso("• Evaluación de Calidad."), 0, 1);
+    $pdf->Cell(5, 5, '', 0, 0); $pdf->Cell(0, 5, pdf_utf8_to_iso("- Evaluación Inicial."), 0, 1);
+    $pdf->Cell(5, 5, '', 0, 0); $pdf->Cell(0, 5, pdf_utf8_to_iso("- Evaluación Intermedia. Fecha máxima aconsejable de realización:"), 0, 1);
+    $pdf->Cell(5, 5, '', 0, 0); $pdf->Cell(0, 5, pdf_utf8_to_iso("- Evaluación Final. Fecha máxima aconsejable de realización:"), 0, 1);
+    $pdf->Cell(5, 5, '', 0, 0); $pdf->Cell(0, 5, pdf_utf8_to_iso("- Evaluación de Calidad."), 0, 1);
     $pdf->Ln(4);
     
     $pdf->SectionTitle('CERTIFICACIÓN');
