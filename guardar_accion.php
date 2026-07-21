@@ -93,6 +93,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'observaciones_gestion' => $_POST['observaciones_gestion'] ?? null
     ];
 
+    if (isset($_FILES['programa_formativo']) && $_FILES['programa_formativo']['error'] == UPLOAD_ERR_OK) {
+        $upload_dir = 'uploads/programas/';
+        if (!is_dir($upload_dir)) {
+            mkdir($upload_dir, 0777, true);
+        }
+        $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9_\.-]/', '', basename($_FILES['programa_formativo']['name']));
+        $target_file = $upload_dir . $filename;
+        if (move_uploaded_file($_FILES['programa_formativo']['tmp_name'], $target_file)) {
+            $data['programa_formativo'] = $target_file;
+        }
+    }
+
     try {
         if ($id) {
             // Update
@@ -131,8 +143,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 supuesto_practico = :supuesto_practico, conexia_check = :conexia_check,
                 cae_check = :cae_check, edite_gestion_check = :edite_gestion_check,
                 nivel_gestion = :nivel_gestion, paquete_gestion = :paquete_gestion,
-                observaciones_gestion = :observaciones_gestion
-                WHERE id = :id";
+                observaciones_gestion = :observaciones_gestion";
+            if (isset($data['programa_formativo'])) {
+                $sql .= ", programa_formativo = :programa_formativo";
+            }
+            $sql .= " WHERE id = :id";
             $data['id'] = $id;
         } else {
             // Insert
@@ -156,8 +171,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 eval2_check, eval2_titulo, eval3_check, eval3_titulo,
                 eval4_check, eval4_titulo, supuesto_practico, conexia_check,
                 cae_check, edite_gestion_check, nivel_gestion, paquete_gestion,
-                observaciones_gestion
-            ) VALUES (
+                observaciones_gestion";
+            if (isset($data['programa_formativo'])) {
+                $sql .= ", programa_formativo";
+            }
+            $sql .= ") VALUES (
                 :plan_id, :nivel, :prioridad, :estado, :ultimas_plazas, :id_plataforma, 
                 :titulo, :abreviatura, :num_accion, :duracion, :p, :d, :t, :modalidad, 
                 :familia_profesional, :horas_teoricas, :horas_practicas, :dias_extra, :asignacion, 
@@ -177,8 +195,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 :eval2_check, :eval2_titulo, :eval3_check, :eval3_titulo,
                 :eval4_check, :eval4_titulo, :supuesto_practico, :conexia_check,
                 :cae_check, :edite_gestion_check, :nivel_gestion, :paquete_gestion,
-                :observaciones_gestion
-            )";
+                :observaciones_gestion";
+            if (isset($data['programa_formativo'])) {
+                $sql .= ", :programa_formativo";
+            }
+            $sql .= ")";
         }
 
         $stmt = $pdo->prepare($sql);

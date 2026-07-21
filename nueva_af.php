@@ -134,7 +134,7 @@ $familias = [
             </div>
         </header>
 
-        <form action="procesar_nueva_af.php" method="POST" class="form-card">
+        <form action="procesar_nueva_af.php" method="POST" enctype="multipart/form-data" class="form-card">
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
             
             <div class="section-title">
@@ -195,6 +195,11 @@ $familias = [
                             <option value="<?= $f ?>"><?= $f ?></option>
                         <?php endforeach; ?>
                     </select>
+                </div>
+                <div class="form-group full-width">
+                    <label>Programa Formativo (PDF):</label>
+                    <input type="file" name="programa_formativo" class="form-control" accept=".pdf">
+                    <span style="font-size: 0.75rem; color: #6b7280; margin-top: 5px; display: block;">Sube aquí el PDF con el programa formativo de la acción.</span>
                 </div>
             </div>
 

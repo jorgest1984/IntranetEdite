@@ -21,6 +21,25 @@ $familia = $_POST['familia_profesional'] ?? '';
 $crear_moodle = isset($_POST['crear_moodle']);
 
 try {
+    $pdo->exec("ALTER TABLE acciones_formativas ADD COLUMN programa_formativo VARCHAR(255) DEFAULT NULL");
+} catch (PDOException $e) {
+    // Column might already exist
+}
+
+$programa_path = null;
+if (isset($_FILES['programa_formativo']) && $_FILES['programa_formativo']['error'] == UPLOAD_ERR_OK) {
+    $upload_dir = 'uploads/programas/';
+    if (!is_dir($upload_dir)) {
+        mkdir($upload_dir, 0777, true);
+    }
+    $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9_\.-]/', '', basename($_FILES['programa_formativo']['name']));
+    $target_file = $upload_dir . $filename;
+    if (move_uploaded_file($_FILES['programa_formativo']['tmp_name'], $target_file)) {
+        $programa_path = $target_file;
+    }
+}
+
+try {
     $pdo->beginTransaction();
 
     $id_plataforma = null;
@@ -53,10 +72,10 @@ try {
     // 3. Insertar en DB local (acciones_formativas)
     $sql = "INSERT INTO acciones_formativas (
         titulo, abreviatura, num_accion, plan_id, modalidad, 
-        duracion, familia_profesional, id_plataforma, curso_id, estado
+        duracion, familia_profesional, id_plataforma, curso_id, estado, programa_formativo
     ) VALUES (
         :titulo, :abreviatura, :num_accion, :plan_id, :modalidad, 
-        :duracion, :familia, :id_plataforma, :curso_id, 'Programable'
+        :duracion, :familia, :id_plataforma, :curso_id, 'Programable', :programa_formativo
     )";
 
     $stmt = $pdo->prepare($sql);
@@ -69,7 +88,8 @@ try {
         'duracion' => $duracion,
         'familia' => $familia,
         'id_plataforma' => $id_plataforma,
-        'curso_id' => $curso_id
+        'curso_id' => $curso_id,
+        'programa_formativo' => $programa_path
     ]);
 
     $new_id = $pdo->lastInsertId();

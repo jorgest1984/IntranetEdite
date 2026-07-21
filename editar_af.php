@@ -138,7 +138,7 @@ if (!$af) die("No se encontró la Acción Formativa");
                 </div>
             <?php endif; ?>
 
-            <form method="POST">
+            <form method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                 <div class="form-grid">
                     <div class="form-group">
@@ -161,6 +161,16 @@ if (!$af) die("No se encontró la Acción Formativa");
                             <option value="Media" <?= $af['prioridad'] == 'Media' ? 'selected' : '' ?>>Media</option>
                             <option value="Baja" <?= $af['prioridad'] == 'Baja' ? 'selected' : '' ?>>Baja</option>
                         </select>
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Programa Formativo (PDF)</label>
+                        <?php if (!empty($af['programa_formativo'])): ?>
+                            <div style="margin-bottom: 10px;">
+                                <a href="<?= htmlspecialchars($af['programa_formativo']) ?>" target="_blank" style="color: #3b82f6; text-decoration: none; font-weight: 600;">📄 Ver PDF Actual</a>
+                            </div>
+                        <?php endif; ?>
+                        <input type="file" name="programa_formativo" class="form-control" accept=".pdf">
+                        <span style="font-size: 0.75rem; color: #6b7280; display: block; margin-top: 5px;">Sube un PDF para reemplazar el actual.</span>
                     </div>
                     <div class="form-group">
                         <label>Estado</label>
