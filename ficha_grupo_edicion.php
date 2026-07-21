@@ -16,6 +16,7 @@ function check_and_add_columns_edit($pdo) {
         'plan_id' => "INT NULL",
         'expediente' => "VARCHAR(100) NULL",
         'consultora_id' => "INT NULL",
+        'sede_id' => "INT NULL",
         'curso_id' => "INT NULL",
         'codigo_plat' => "VARCHAR(50) NULL",
         'denominacion_grupo' => "VARCHAR(255) NULL",
@@ -138,11 +139,18 @@ try {
                                 ORDER BY u.nombre ASC");
     if ($stmtTutores) $tutores = $stmtTutores->fetchAll(PDO::FETCH_ASSOC);
 
-    // Centers / Consultoras
+    // Centers / Consultoras (Legacy empresas)
     $stmtCentros = $pdo->query("SELECT id, nombre FROM empresas ORDER BY nombre ASC");
     if ($stmtCentros) {
         $centros = $stmtCentros->fetchAll(PDO::FETCH_ASSOC);
         $consultoras = $centros;
+    }
+
+    // Sedes Físicas (Tabla Centros)
+    $sedes_fisicas = [];
+    $stmtSedes = $pdo->query("SELECT id, nombre FROM centros ORDER BY nombre ASC");
+    if ($stmtSedes) {
+        $sedes_fisicas = $stmtSedes->fetchAll(PDO::FETCH_ASSOC);
     }
 
     // Convocatorias
@@ -553,6 +561,15 @@ $ccaa = [
                             <option value="">Seleccione consultora...</option>
                             <?php foreach ($consultoras as $con): ?>
                                 <option value="<?= $con['id'] ?>" <?= ($grupo['consultora_id'] ?? '') == $con['id'] ? 'selected' : '' ?>><?= htmlspecialchars($con['nombre']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group col-span-2">
+                        <label style="color: #0369a1; font-weight: 800;">Sede / Centro Físico:</label>
+                        <select name="sede_id" class="form-control" style="border: 2px solid #bae6fd;">
+                            <option value="">-- Sin Asignar (Global) --</option>
+                            <?php foreach ($sedes_fisicas as $sede): ?>
+                                <option value="<?= $sede['id'] ?>" <?= ($grupo['sede_id'] ?? '') == $sede['id'] ? 'selected' : '' ?>><?= htmlspecialchars($sede['nombre']) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>

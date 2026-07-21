@@ -22,15 +22,17 @@ $query = "
         a.id, a.nombre, a.primer_apellido, a.segundo_apellido, a.dni,
         g.numero_grupo, g.fecha_inicio, g.fecha_fin, g.fecha_25, 
         g.horario_desde, g.horario_hasta, g.horario_info, g.horas_tutorias_programadas,
-        af.num_accion, af.titulo as curso_titulo, af.objetivos, af.contenidos,
+        af.num_accion, af.titulo as curso_titulo, af.objetivos, af.contenidos, af.modalidad,
         COALESCE(NULLIF(g.expediente, ''), conv.codigo_expediente) as codigo_expediente,
-        conv.texto_resolucion
+        conv.texto_resolucion,
+        c_sede.nombre as sede_nombre, c_sede.direccion as sede_direccion, c_sede.provincia as sede_provincia, c_sede.cp as sede_cp
     FROM matriculas m
     JOIN alumnos a ON m.alumno_id = a.id
     JOIN grupos g ON m.grupo_id = g.id
     JOIN acciones_formativas af ON g.accion_id = af.id
     LEFT JOIN planes p ON af.plan_id = p.id
     LEFT JOIN convocatorias conv ON p.convocatoria_id = conv.id
+    LEFT JOIN centros c_sede ON g.sede_id = c_sede.id
     WHERE g.accion_id = ? AND m.estado != 'Baja' AND m.estado != 'Cancelada'
 ";
 $params = [$accion_id];
@@ -135,12 +137,25 @@ foreach ($alumnos as $alumno) {
     $pdf->SectionTitle('FINANCIACIÓN DE LA ACCIÓN FORMATIVA');
     $pdf->WriteText("La acción formativa en la que está usted participando corresponde a la convocatoria para planes de formación de ámbito estatal, citada anteriormente. Los recursos para financiar el subsistema de formación para el empleo proceden de la cuota de formación profesional que recauda la Seguridad Social a la que se suman las aportaciones del Servicio Público de Empleo Estatal (SEPE). Por lo que, al ser un curso subvencionado, no tiene coste ni para los trabajadores ni para las empresas donde trabajan.");
     
-    $pdf->SectionTitle('FECHAS');
+    $pdf->SectionTitle('FECHAS Y LUGAR DE IMPARTICIÓN');
     $pdf->WriteText("Las fechas previstas para la realización del curso son las siguientes:");
     $pdf->SetFont('Arial', '', 9);
     $pdf->Cell(10, 5, '', 0, 0); $pdf->Cell(0, 5, pdf_utf8_to_iso("- Inicio: $fecha_inicio"), 0, 1);
     $pdf->Cell(10, 5, '', 0, 0); $pdf->Cell(0, 5, pdf_utf8_to_iso("- Finalización: $fecha_fin"), 0, 1);
-    $pdf->Ln(4);
+    $pdf->Ln(2);
+
+    $modalidad = strtoupper($alumno['modalidad'] ?? '');
+    if ($modalidad === 'PRESENCIAL' || $modalidad === 'MIXTA') {
+        $sede_nombre = $alumno['sede_nombre'] ?? 'Sede Principal';
+        $sede_dir = trim(($alumno['sede_direccion'] ?? '') . ' ' . ($alumno['sede_cp'] ?? '') . ' ' . ($alumno['sede_provincia'] ?? ''));
+        if (empty($sede_dir)) $sede_dir = 'Dirección no especificada';
+
+        $pdf->WriteText("El lugar de impartición presencial será:");
+        $pdf->SetFont('Arial', '', 9);
+        $pdf->Cell(10, 5, '', 0, 0); $pdf->Cell(0, 5, pdf_utf8_to_iso("- Centro: $sede_nombre"), 0, 1);
+        $pdf->Cell(10, 5, '', 0, 0); $pdf->Cell(0, 5, pdf_utf8_to_iso("- Dirección: $sede_dir"), 0, 1);
+        $pdf->Ln(2);
+    }
     
     $pdf->SectionTitle('ACCESO AL CURSO');
     $pdf->WriteText("A continuación le indicamos los datos para acceder al aula virtual. La dirección es la siguiente:");

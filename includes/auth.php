@@ -45,4 +45,12 @@ define('ROLE_ADMINISTRATIVO', 7); // Separado de Coordinador
 
 // Alias para compatibilidad con código antiguo
 define('ROLE_FORMADOR', 3);
+
+function get_user_centro_filter($column_name = 'grupos.centro_id') {
+    if (!empty($_SESSION['centro_id'])) {
+        $cid = intval($_SESSION['centro_id']);
+        return " {$column_name} = {$cid} ";
+    }
+    return " 1=1 ";
+}
 ?>

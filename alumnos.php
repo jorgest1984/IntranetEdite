@@ -171,11 +171,21 @@ try {
 $search = trim($_GET['search'] ?? '');
 $alumnosList = [];
 try {
+    $centro_filter = get_user_centro_filter('g.sede_id');
+    
+    // Si hay filtro de centro, necesitamos JOIN con matriculas y grupos
+    $join_clause = "";
+    $distinct = "";
+    if ($centro_filter !== "1=1") {
+        $join_clause = " JOIN matriculas m ON alumnos.id = m.alumno_id JOIN grupos g ON m.grupo_id = g.id ";
+        $distinct = "DISTINCT";
+    }
+
     if ($search !== '') {
-        $stmtList = $pdo->prepare("SELECT * FROM alumnos WHERE nombre LIKE :search OR primer_apellido LIKE :search OR segundo_apellido LIKE :search OR dni LIKE :search OR email LIKE :search ORDER BY creado_en DESC LIMIT 100");
+        $stmtList = $pdo->prepare("SELECT $distinct alumnos.* FROM alumnos $join_clause WHERE (alumnos.nombre LIKE :search OR alumnos.primer_apellido LIKE :search OR alumnos.segundo_apellido LIKE :search OR alumnos.dni LIKE :search OR alumnos.email LIKE :search) AND $centro_filter ORDER BY alumnos.creado_en DESC LIMIT 100");
         $stmtList->execute(['search' => "%$search%"]);
     } else {
-        $stmtList = $pdo->query("SELECT * FROM alumnos ORDER BY creado_en DESC LIMIT 100");
+        $stmtList = $pdo->query("SELECT $distinct alumnos.* FROM alumnos $join_clause WHERE $centro_filter ORDER BY alumnos.creado_en DESC LIMIT 100");
     }
     $alumnosList = $stmtList->fetchAll();
 } catch (Exception $e) {

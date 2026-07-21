@@ -43,8 +43,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                 } else {
                     try {
                         $password_hash = password_hash($password, PASSWORD_BCRYPT);
-                        $stmt = $pdo->prepare("INSERT INTO usuarios (username, password_hash, nombre, apellidos, dni, email, rol_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
-                        $stmt->execute([$username, $password_hash, $nombre, $apellidos, $dni, $email, $rol_id]);
+                        $centro_id = !empty($_POST['centro_id']) ? intval($_POST['centro_id']) : null;
+                        
+                        $stmt = $pdo->prepare("INSERT INTO usuarios (username, password_hash, nombre, apellidos, dni, email, rol_id, centro_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+                        $stmt->execute([$username, $password_hash, $nombre, $apellidos, $dni, $email, $rol_id, $centro_id]);
                         
                         audit_log($pdo, 'USUARIO_CREADO', 'usuarios', $pdo->lastInsertId(), null, ['username' => $username, 'rol' => $rol_id]);
                         $success = "Usuario '$username' creado correctamente.";
@@ -178,14 +180,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
 }
 
 // Listado de usuarios
-$stmt = $pdo->query("SELECT u.*, r.nombre as rol_nombre 
+$stmt = $pdo->query("SELECT u.*, r.nombre as rol_nombre, c.nombre as centro_nombre 
                      FROM usuarios u 
                      JOIN roles r ON u.rol_id = r.id 
+                     LEFT JOIN centros c ON u.centro_id = c.id
                      ORDER BY u.activo DESC, u.username ASC");
 $usuarios = $stmt->fetchAll();
 
 // Listado de roles para el combo (excluyendo Solo Lectura)
 $roles = $pdo->query("SELECT * FROM roles WHERE id != " . ROLE_LECTURA . " ORDER BY id ASC")->fetchAll();
+
+// Listado de centros para el combo
+$centros_list = $pdo->query("SELECT id, nombre FROM centros ORDER BY nombre ASC")->fetchAll();
 
 // Moodle Sync Data
 $syncedUserIds = [];
@@ -847,6 +853,7 @@ try {
                         <th>Identidad Acceso</th>
                         <th>Nombre y Apellidos</th>
                         <th>Nivel de Acceso</th>
+                        <th>Sede / Centro</th>
                         <th>Estado Actual</th>
                         <th style="text-align: right;">Acciones</th>
                     </tr>
@@ -900,6 +907,9 @@ try {
                             <span class="badge-premium-pill <?= $badge_class ?>">
                                 <?= htmlspecialchars($u['rol_nombre']) ?>
                             </span>
+                        </td>
+                        <td>
+                            <?= htmlspecialchars($u['centro_nombre'] ?? 'Global / Sin Asignar') ?>
                         </td>
                         <td>
                             <div class="status-badge-premium">
@@ -1036,6 +1046,16 @@ try {
                     <select name="rol_id" required>
                         <?php foreach ($roles as $r): ?>
                             <option value="<?= $r['id'] ?>"><?= htmlspecialchars($r['nombre']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <div class="premium-field">
+                    <label>Sede / Centro (Opcional)</label>
+                    <select name="centro_id">
+                        <option value="">-- Todas (Global / Administrador) --</option>
+                        <?php foreach ($centros_list as $c): ?>
+                            <option value="<?= $c['id'] ?>"><?= htmlspecialchars($c['nombre']) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>

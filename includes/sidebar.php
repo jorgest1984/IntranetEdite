@@ -136,8 +136,14 @@ $current_page = basename($_SERVER['PHP_SELF']);
             </a>
         </li>
         
-        <?php if (has_permission([ROLE_ADMIN])) { ?>
+        <?php if (has_permission([ROLE_ADMIN, ROLE_COORD])) { ?>
         <li class="menu-divider">Mantenimiento</li>
+        <li>
+            <a href="centros.php" class="<?= $current_page == 'centros.php' ? 'active' : '' ?>">
+                <svg viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2zm0 3.8L18.2 18H5.8L12 5.8z"/></svg>
+                Sedes y Centros
+            </a>
+        </li>
         <li>
             <a href="usuarios.php" class="<?= $current_page == 'usuarios.php' ? 'active' : '' ?>">
                 <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>

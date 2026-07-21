@@ -114,6 +114,12 @@ try {
         $params[] = $_GET['situacion'];
     }
 
+    // Apply Center Isolation Filter
+    $centro_filter = get_user_centro_filter('g.sede_id');
+    if ($centro_filter !== "1=1") {
+        $where[] = $centro_filter;
+    }
+
     $sql = "SELECT g.*, 
                    af.num_accion,
                    af.modalidad as af_modalidad,
@@ -123,6 +129,7 @@ try {
                    cu.nombre_corto as curso_codigo,
                    e.nombre as centro_nombre,
                    e.provincia as centro_provincia,
+                   c_sede.nombre as sede_nombre,
                    COALESCE(CONCAT(u_tutor.nombre, ' ', u_tutor.apellidos), CONCAT(altut.nombre, ' ', altut.primer_apellido), '-') as tutor1_nombre,
                    (SELECT COUNT(*) FROM matriculas m_inscr WHERE m_inscr.grupo_id = g.id) as total_inscritos,
                    (SELECT COUNT(*) FROM matriculas m_admit WHERE m_admit.grupo_id = g.id AND m_admit.estado = 'Activo') as total_admitidos,
@@ -135,6 +142,7 @@ try {
             LEFT JOIN usuarios u_tutor ON g.tutor_id = u_tutor.id
             LEFT JOIN alumnos altut ON g.tutor_id = altut.id
             LEFT JOIN empresas e ON g.centro_id = e.id
+            LEFT JOIN centros c_sede ON g.sede_id = c_sede.id
             WHERE " . implode(" AND ", $where) . "
             ORDER BY g.fecha_inicio DESC, g.id DESC
             LIMIT 150";

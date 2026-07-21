@@ -23,6 +23,10 @@ if (!$trabajador) {
     die("Trabajador no encontrado.");
 }
 
+$roles = $pdo->query("SELECT * FROM roles ORDER BY id ASC")->fetchAll();
+$centros_list = $pdo->query("SELECT id, nombre FROM centros ORDER BY nombre ASC")->fetchAll();
+
+
 // Cargar detalles de profesorado (vínculo a usuario)
 $stmtProf = $pdo->prepare("SELECT * FROM profesorado_detalles WHERE usuario_id = ?");
 $stmtProf->execute([$id]);
@@ -232,6 +236,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             $password = $_POST['password'];
             $codigo_profesor = $_POST['codigo_profesor'] ?? '0';
             $centro = $_POST['centro'] ?? '';
+            $centro_id = !empty($_POST['centro_id']) ? intval($_POST['centro_id']) : null;
+            $rol_id = intval($_POST['rol_id'] ?? 1);
             $nivel_acceso = intval($_POST['nivel_acceso'] ?? 1);
             $acceso_multicentro = isset($_POST['acceso_multicentro']) ? 1 : 0;
             $activo = isset($_POST['activo']) ? 1 : 0;
@@ -239,8 +245,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             $comercial = isset($_POST['comercial']) ? 1 : 0;
             $mensajeria_interna = isset($_POST['mensajeria_interna']) ? 1 : 0;
 
-            $params = [$username, $codigo_profesor, $centro, $nivel_acceso, $acceso_multicentro, $activo, $fuentes_grandes, $comercial, $mensajeria_interna];
-            $sql = "UPDATE usuarios SET username = ?, codigo_profesor = ?, centro = ?, nivel_acceso = ?, acceso_multicentro = ?, activo = ?, fuentes_grandes = ?, comercial = ?, mensajeria_interna = ?";
+            $params = [$username, $codigo_profesor, $centro, $centro_id, $rol_id, $nivel_acceso, $acceso_multicentro, $activo, $fuentes_grandes, $comercial, $mensajeria_interna];
+            $sql = "UPDATE usuarios SET username = ?, codigo_profesor = ?, centro = ?, centro_id = ?, rol_id = ?, nivel_acceso = ?, acceso_multicentro = ?, activo = ?, fuentes_grandes = ?, comercial = ?, mensajeria_interna = ?";
             
             if (!empty($password)) {
                 $sql .= ", password_hash = ?";
@@ -1395,19 +1401,29 @@ $tareas = $stmt_tareas->fetchAll();
                                         <!-- Otros códigos si existieran -->
                                     </select>
                                 </td>
-                                <td style="background: #fff; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; padding: 12px; border: 1px solid #cbd5e1; text-align: left;">Centro:</td>
+                            </tr>
+                            <tr>
+                                <td style="background: #fff; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; padding: 12px; border: 1px solid #cbd5e1; text-align: left;">Sede / Centro:</td>
                                 <td style="background: #fff; border: 1px solid #cbd5e1; padding: 5px;">
-                                    <select name="centro" style="width: 100%; border: 1px solid #1e3a8a; background: #fff; padding: 8px; color: #1e3a8a; font-weight: 600; box-sizing: border-box; border-radius: 4px;">
-                                        <option value="Granada" <?= ($trabajador['centro'] ?? '') == 'Granada' ? 'selected' : '' ?>>Granada</option>
-                                        <option value="Madrid" <?= ($trabajador['centro'] ?? '') == 'Madrid' ? 'selected' : '' ?>>Madrid</option>
-                                        <option value="Almería" <?= ($trabajador['centro'] ?? '') == 'Almería' ? 'selected' : '' ?>>Almería</option>
-                                        <option value="Barcelona" <?= ($trabajador['centro'] ?? '') == 'Barcelona' ? 'selected' : '' ?>>Barcelona</option>
+                                    <select name="centro_id" style="width: 100%; border: 1px solid #1e3a8a; background: #fff; padding: 8px; color: #1e3a8a; font-weight: 600; box-sizing: border-box; border-radius: 4px;">
+                                        <option value="">-- Global / Sin Asignar --</option>
+                                        <?php foreach ($centros_list as $c): ?>
+                                            <option value="<?= $c['id'] ?>" <?= ($trabajador['centro_id'] ?? '') == $c['id'] ? 'selected' : '' ?>><?= htmlspecialchars($c['nombre']) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </td>
+                                <td style="background: #fff; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; padding: 12px; border: 1px solid #cbd5e1; text-align: left;">Rol ISO:</td>
+                                <td style="background: #fff; border: 1px solid #cbd5e1; padding: 5px;">
+                                    <select name="rol_id" style="width: 100%; border: 1px solid #1e3a8a; background: #fff; padding: 8px; color: #1e3a8a; font-weight: 600; box-sizing: border-box; border-radius: 4px;">
+                                        <?php foreach ($roles as $r): ?>
+                                            <option value="<?= $r['id'] ?>" <?= ($trabajador['rol_id'] ?? '') == $r['id'] ? 'selected' : '' ?>><?= htmlspecialchars($r['nombre']) ?></option>
+                                        <?php endforeach; ?>
                                     </select>
                                 </td>
                             </tr>
                             <!-- Nivel de Acceso y Checkboxes -->
                             <tr>
-                                <td style="background: #fff; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; padding: 12px; border: 1px solid #cbd5e1; text-align: left;">Nivel de Acceso:</td>
+                                <td style="background: #fff; color: #1e3a8a; font-weight: 800; font-size: 0.85rem; padding: 12px; border: 1px solid #cbd5e1; text-align: left;">Legacy:</td>
                                 <td colspan="3" style="background: #fff; border: 1px solid #cbd5e1; padding: 15px;">
                                     <div style="display: flex; align-items: center; gap: 25px; flex-wrap: wrap;">
                                         <select name="nivel_acceso" style="width: 300px; border: 1px solid #1e3a8a; background: #fff; padding: 8px; color: #1e3a8a; font-weight: 700; box-sizing: border-box; border-radius: 4px;">
