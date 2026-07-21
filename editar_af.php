@@ -66,6 +66,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $sets[] = "$f = ?";
             $data[] = $_POST[$f] ?? '';
         }
+
+        // Handle file upload
+        if (isset($_FILES['programa_formativo']) && $_FILES['programa_formativo']['error'] == UPLOAD_ERR_OK) {
+            $upload_dir = 'uploads/programas/';
+            if (!is_dir($upload_dir)) {
+                mkdir($upload_dir, 0777, true);
+            }
+            $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9_\.-]/', '', basename($_FILES['programa_formativo']['name']));
+            $target_file = $upload_dir . $filename;
+            if (move_uploaded_file($_FILES['programa_formativo']['tmp_name'], $target_file)) {
+                $sets[] = "programa_formativo = ?";
+                $data[] = $target_file;
+            }
+        }
+
         $data[] = $id;
         $sql .= implode(", ", $sets) . " WHERE id = ?";
         
