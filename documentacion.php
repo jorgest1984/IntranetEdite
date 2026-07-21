@@ -819,7 +819,7 @@ window.openDocModal = async function(type) {
                 accionSelect.value = PRELOAD.accion_id;
                 
                 // Trigger subsequent loaders manually so we can preselect groups if needed
-                let isGlobalAlumno = type === 'recibi';
+                let isGlobalAlumno = type === 'recibi' || type === 'bienvenida' || type === 'anexo1';
                 if (isGlobalAlumno) {
                     loadAlumnos(type, PRELOAD.accion_id);
                 }
@@ -953,8 +953,11 @@ function loadAcciones(type, planId) {
 }
 
 function loadAlumnos(type, accionId) {
-    const alumnoSelect = document.getElementById(type === 'recibi' ? 'alumnoSelect' : 'alumnoSelectAnexo');
+    let suffix = type === 'recibi' ? '' : (type === 'bienvenida' ? '_bienvenida' : (type === 'didactica' ? 'Didactica' : (type === 'informe' ? 'Informe' : (type === 'tutorias' ? 'Tutorias' : (type === 'acta' ? 'Acta' : (type === 'informe_alumno' ? 'InformeAlumno' : (type === 'diploma' ? 'Diploma' : (type === 'xml' ? 'Xml' : (type === 'xml_encuestas' ? 'XmlEnc' : 'Anexo')))))))));
+    const alumnoSelect = document.getElementById('alumnoSelect' + suffix);
     
+    if (!alumnoSelect) return;
+
     alumnoSelect.innerHTML = '<option value="">-- Buscando alumnos... --</option>';
     alumnoSelect.disabled = true;
     
