@@ -60,8 +60,8 @@ function pdf_utf8_to_iso($string) {
 
 class PDF_Bienvenida extends FPDF {
     function Header() {
-        if (file_exists('img/logo_ministerio.png')) {
-            $this->Image('img/logo_ministerio.png', 10, 10, 50);
+        if (file_exists('img/logo_efp.png')) {
+            $this->Image('img/logo_efp.png', 10, 10, 50);
         }
         if (file_exists('img/logo_fundae.png')) {
             $this->Image('img/logo_fundae.png', 110, 10, 30);
