@@ -162,16 +162,7 @@ if (!$af) die("No se encontró la Acción Formativa");
                             <option value="Baja" <?= $af['prioridad'] == 'Baja' ? 'selected' : '' ?>>Baja</option>
                         </select>
                     </div>
-                    <div class="form-group full-width">
-                        <label>Programa Formativo (PDF)</label>
-                        <?php if (!empty($af['programa_formativo'])): ?>
-                            <div style="margin-bottom: 10px;">
-                                <a href="<?= htmlspecialchars($af['programa_formativo']) ?>" target="_blank" style="color: #3b82f6; text-decoration: none; font-weight: 600;">📄 Ver PDF Actual</a>
-                            </div>
-                        <?php endif; ?>
-                        <input type="file" name="programa_formativo" class="form-control" accept=".pdf">
-                        <span style="font-size: 0.75rem; color: #6b7280; display: block; margin-top: 5px;">Sube un PDF para reemplazar el actual.</span>
-                    </div>
+
                     <div class="form-group">
                         <label>Estado</label>
                         <select name="estado" class="form-control">
@@ -181,14 +172,26 @@ if (!$af) die("No se encontró la Acción Formativa");
                             <option value="PENDIENTE" <?= $af['estado'] == 'PENDIENTE' ? 'selected' : '' ?>>PENDIENTE</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label>Familia Profesional</label>
-                        <select name="familia_profesional" class="form-control">
-                            <option value=""></option>
-                            <?php foreach($familias as $f): ?>
-                                <option value="<?= htmlspecialchars($f) ?>" <?= ($af['familia_profesional'] ?? '') == $f ? 'selected' : '' ?>><?= htmlspecialchars($f) ?></option>
-                            <?php endforeach; ?>
-                        </select>
+                    <div class="form-group full-width" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div>
+                            <label>Familia Profesional</label>
+                            <select name="familia_profesional" class="form-control">
+                                <option value=""></option>
+                                <?php foreach($familias as $f): ?>
+                                    <option value="<?= htmlspecialchars($f) ?>" <?= ($af['familia_profesional'] ?? '') == $f ? 'selected' : '' ?>><?= htmlspecialchars($f) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Programa Formativo (PDF)</label>
+                            <?php if (!empty($af['programa_formativo'])): ?>
+                                <div style="margin-bottom: 5px;">
+                                    <a href="<?= htmlspecialchars($af['programa_formativo']) ?>" target="_blank" style="color: #3b82f6; text-decoration: none; font-weight: 600;">📄 Ver PDF Actual</a>
+                                </div>
+                            <?php endif; ?>
+                            <input type="file" name="programa_formativo" class="form-control" accept=".pdf">
+                            <span style="font-size: 0.75rem; color: #6b7280; display: block; margin-top: 5px;">Sube un PDF para reemplazar el actual.</span>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label style="color: #b91c1c; font-weight: 800;">Número de Acción Formativa</label>

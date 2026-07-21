@@ -187,19 +187,21 @@ $familias = [
                     <label>Duración (Horas Totales):</label>
                     <input type="number" name="duracion" class="form-control" value="60">
                 </div>
-                <div class="form-group">
-                    <label>Familia Profesional:</label>
-                    <select name="familia_profesional" class="form-control">
-                        <option value=""></option>
-                        <?php foreach($familias as $f): ?>
-                            <option value="<?= $f ?>"><?= $f ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="form-group full-width">
-                    <label>Programa Formativo (PDF):</label>
-                    <input type="file" name="programa_formativo" class="form-control" accept=".pdf">
-                    <span style="font-size: 0.75rem; color: #6b7280; margin-top: 5px; display: block;">Sube aquí el PDF con el programa formativo de la acción.</span>
+                <div class="form-group full-width" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom: 8px; text-transform: uppercase;">Familia Profesional:</label>
+                        <select name="familia_profesional" class="form-control">
+                            <option value=""></option>
+                            <?php foreach($familias as $f): ?>
+                                <option value="<?= $f ?>"><?= $f ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom: 8px; text-transform: uppercase;">Programa Formativo (PDF):</label>
+                        <input type="file" name="programa_formativo" class="form-control" accept=".pdf">
+                        <span style="font-size: 0.75rem; color: #6b7280; margin-top: 5px; display: block;">Sube el PDF con el programa de la acción.</span>
+                    </div>
                 </div>
             </div>
 
