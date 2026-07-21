@@ -156,10 +156,12 @@ foreach ($alumnos as $alumno) {
     $pdf->Ln(4);
     
     $pdf->SectionTitle('OBJETIVOS DEL CURSO');
-    $pdf->WriteText(strip_tags($alumno['objetivos'] ?? 'Sin definir'));
+    $objetivos_text = html_entity_decode(strip_tags(str_replace('&nbsp;', ' ', $alumno['objetivos'] ?? 'Sin definir')), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    $pdf->WriteText($objetivos_text);
     
     $pdf->SectionTitle('CONTENIDOS');
-    $pdf->WriteText(strip_tags($alumno['contenidos'] ?? 'Sin definir'));
+    $contenidos_text = html_entity_decode(strip_tags(str_replace('&nbsp;', ' ', $alumno['contenidos'] ?? 'Sin definir')), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    $pdf->WriteText($contenidos_text);
     
     $pdf->SectionTitle('MATERIAL DIDÁCTICO');
     $pdf->WriteText("Todo lo que usted necesita para realizar el curso se encuentra en la plataforma de teleformación, donde una vez finalizado el estudio de los contenidos, debe realizar tanto los ejercicios propuestos como las evaluaciones, así como el cuestionario de evaluación de la calidad debidamente cumplimentado.");
