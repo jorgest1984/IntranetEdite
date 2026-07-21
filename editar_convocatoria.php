@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                 fecha_inicio_prevista = ?, fecha_fin_prevista = ?, 
                 ambito = ?, solicitante = ?, url = ?, url_aula_virtual = ?, 
                 activa = ?, descripcion = ?, requisitos = ?, estado = ?,
-                codigo_expediente = ?, contenidos_diploma = ?
+                codigo_expediente = ?, contenidos_diploma = ?, texto_resolucion = ?
                 WHERE id = ?";
         
         $stmtUpdate = $pdo->prepare($sql);
@@ -55,6 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             $_POST['estado'] ?? 'Borrador',
             trim($_POST['codigo_expediente'] ?? ''),
             $_POST['contenidos_diploma'] ?? null,
+            $_POST['texto_resolucion'] ?? null,
             $id
         ]);
         
@@ -224,6 +225,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                         <label class="form-label">Solicitante</label>
                         <div class="form-input-container">
                             <input type="text" name="solicitante" class="form-control" value="<?= htmlspecialchars($convocatoria['solicitante'] ?? '') ?>">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <label class="form-label">Texto de Resolución</label>
+                        <div class="form-input-container">
+                            <textarea name="texto_resolucion" class="form-control" rows="3" placeholder="Ej: perteneciente a la aprobación de subvenciones..."><?= htmlspecialchars($convocatoria['texto_resolucion'] ?? '') ?></textarea>
+                            <div class="input-hint">Texto que aparecerá en la Hoja de Bienvenida de los alumnos.</div>
                         </div>
                     </div>
 
