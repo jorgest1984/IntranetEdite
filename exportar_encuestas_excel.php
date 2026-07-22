@@ -3,8 +3,8 @@
 require_once 'includes/auth.php';
 require_once 'includes/config.php';
 
-if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_TUTOR])) {
-    die("Acceso denegado.");
+if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_TUTOR, ROLE_COMERCIAL])) {
+    die("No tiene permisos suficientes.");
 }
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;

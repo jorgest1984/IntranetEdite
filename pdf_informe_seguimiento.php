@@ -4,7 +4,7 @@ require_once 'includes/config.php';
 require_once 'includes/fpdf/fpdf.php';
 
 // Solo personal autorizado
-if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_TUTOR])) {
+if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_TUTOR, ROLE_COMERCIAL])) {
     die("Acceso denegado.");
 }
 

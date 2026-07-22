@@ -8,7 +8,7 @@ require_once 'includes/auth.php';
 require_once 'includes/config.php';
 require_once 'includes/fpdf/fpdf.php';
 
-if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA, ROLE_TUTOR])) {
+if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA, ROLE_TUTOR, ROLE_COMERCIAL])) {
     die("Acceso denegado.");
 }
 
