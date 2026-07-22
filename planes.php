@@ -11,7 +11,7 @@ if (!has_permission([ROLE_ADMIN, ROLE_TUTOR])) {
 $success = '';
 $error = '';
 
-// Procesar nuevo plan
+// Procesar nuevo o editar plan
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     if ($_POST['action'] === 'create') {
         $nombre = trim($_POST['nombre'] ?? '');
@@ -32,6 +32,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $stmt->execute([$nombre, $convocatoria_id, $codigo]);
                 $success = "Plan estratégico creado con éxito.";
             } catch (Exception $e) { $error = "Error: " . $e->getMessage(); }
+        }
+    } elseif ($_POST['action'] === 'edit') {
+        $plan_id = (int)$_POST['plan_id'];
+        $nombre = trim($_POST['nombre'] ?? '');
+        $convocatoria_id = (int)$_POST['convocatoria_id'];
+        $codigo = trim($_POST['codigo'] ?? '');
+
+        if ($plan_id && $nombre && $convocatoria_id) {
+            try {
+                $checkSql = "SELECT id FROM planes WHERE (nombre = ? OR (codigo != '' AND codigo = ?)) AND convocatoria_id = ? AND id != ?";
+                $stmtCheck = $pdo->prepare($checkSql);
+                $stmtCheck->execute([$nombre, $codigo, $convocatoria_id, $plan_id]);
+                if ($stmtCheck->fetch()) {
+                    throw new Exception("Ya existe otro plan con el mismo nombre o código en esta convocatoria.");
+                }
+
+                $stmt = $pdo->prepare("UPDATE planes SET nombre = ?, convocatoria_id = ?, codigo = ? WHERE id = ?");
+                $stmt->execute([$nombre, $convocatoria_id, $codigo, $plan_id]);
+                $success = "Plan estratégico actualizado con éxito.";
+            } catch (Exception $e) { $error = "Error al actualizar: " . $e->getMessage(); }
         }
     }
 }
@@ -327,8 +347,9 @@ $convocatorias = $pdo->query("SELECT id, nombre, codigo_expediente FROM convocat
 
         <div id="formPlan" class="modal-form">
             <h2 style="margin-top: 0; color: var(--primary-color); font-size: 1.2rem; font-weight: 800; text-transform: uppercase;">Crear Plan Estratégico</h2>
-            <form action="" method="POST" style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; width: 100%;">
-                <input type="hidden" name="action" value="create">
+            <form id="planForm" action="" method="POST" style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; width: 100%;">
+                <input type="hidden" name="action" id="formAction" value="create">
+                <input type="hidden" name="plan_id" id="formPlanId" value="">
                 <div class="form-group" style="flex: 2 1 300px; display: flex; flex-direction: column; gap: 8px;">
                     <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Nombre del Plan</label>
                     <input type="text" name="nombre" class="form-control" required placeholder="Ej: Plan Digital 2024" style="width: 100%;">
@@ -375,6 +396,9 @@ $convocatorias = $pdo->query("SELECT id, nombre, codigo_expediente FROM convocat
                     </div>
                     <div style="display: flex; gap: 10px;">
                         <a href="acciones_formativas.php?plan_id=<?= $p['id'] ?>" class="btn-icon" title="Ver Cursos"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg></a>
+                        <a href="javascript:void(0)" onclick='editPlan(<?= json_encode(["id"=>$p["id"], "nombre"=>$p["nombre"], "convocatoria_id"=>$p["convocatoria_id"], "codigo"=>$p["codigo"]]) ?>)' class="btn-icon" style="color: #64748b;" title="Editar Plan">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        </a>
                         <a href="?delete_id=<?= $p['id'] ?>" 
                            onclick="return confirm('¿Estás seguro de que deseas eliminar este plan? Esta acción no se puede deshacer.');" 
                            class="btn-icon" style="color: #ef4444;" title="Borrar Plan">
@@ -391,7 +415,22 @@ $convocatorias = $pdo->query("SELECT id, nombre, codigo_expediente FROM convocat
 <script>
 function toggleForm() {
     const f = document.getElementById('formPlan');
+    document.getElementById('formAction').value = 'create';
+    document.getElementById('formPlanId').value = '';
+    document.getElementById('planForm').reset();
     f.style.display = (f.style.display === 'none' || f.style.display === '') ? 'block' : 'none';
+}
+
+function editPlan(plan) {
+    const f = document.getElementById('formPlan');
+    f.style.display = 'block';
+    f.scrollIntoView({ behavior: 'smooth' });
+    
+    document.getElementById('formAction').value = 'edit';
+    document.getElementById('formPlanId').value = plan.id;
+    document.querySelector('#planForm input[name="nombre"]').value = plan.nombre;
+    document.querySelector('#planForm input[name="codigo"]').value = plan.codigo || '';
+    document.querySelector('#planForm select[name="convocatoria_id"]').value = plan.convocatoria_id;
 }
 
 // Abrir formulario automáticamente si viene el parámetro 'new'

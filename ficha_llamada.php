@@ -369,7 +369,7 @@ if (!$llamada_db) {
     // Si la llamada ya existe, solo la puede editar el creador, coordinadores o administradores
     if (has_permission([ROLE_ADMIN, ROLE_COORD])) {
         $puede_editar = true;
-    } elseif (isset($_SESSION['user_id']) && $llamada_db['usuario_id'] == $_SESSION['user_id']) {
+    } elseif (isset($_SESSION['user_id']) && $llamada_db['usuario_id'] == $_SESSION['user_id'] && !has_permission([ROLE_COMERCIAL])) {
         $puede_editar = true;
     }
 }

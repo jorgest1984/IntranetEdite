@@ -777,11 +777,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['buscar'])) {
                                                 <a href="ficha_llamada.php?call_id=<?= $ll['id'] ?>" class="icon-edit" title="Editar">
                                                     <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 000-1.41l-2.34-2.34a.996.996 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
                                                 </a>
+                                                <?php if (!$is_comercial_only): ?>
                                                 <form method="POST" style="display:inline;" onsubmit="return confirm('¿Seguro que deseas eliminar esta llamada?');">
                                                     <input type="hidden" name="action" value="delete_llamada">
                                                     <input type="hidden" name="llamada_id" value="<?= $ll['id'] ?>">
                                                     <button type="submit" class="icon-delete" title="Eliminar" style="background:none; border:none; padding:0; font:inherit; cursor:pointer;">✕</button>
                                                 </form>
+                                                <?php endif; ?>
                                             </div>
                                         </td>
                                     </tr>
