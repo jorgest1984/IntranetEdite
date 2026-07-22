@@ -176,6 +176,38 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             }
         }
 
+        // Suplantar Usuario (Impersonate)
+        if ($_POST['action'] == 'impersonate') {
+            $id = intval($_POST['user_id']);
+            if ($id != $_SESSION['user_id']) {
+                // Guardar el ID del administrador actual
+                $_SESSION['impersonator_id'] = $_SESSION['user_id'];
+                
+                // Cargar datos del usuario a suplantar
+                $stmt = $pdo->prepare("SELECT u.*, r.nombre as rol_nombre FROM usuarios u JOIN roles r ON u.rol_id = r.id WHERE u.id = ? AND u.activo = 1");
+                $stmt->execute([$id]);
+                $user = $stmt->fetch();
+                
+                if ($user) {
+                    $_SESSION['user_id'] = $user['id'];
+                    $_SESSION['username'] = $user['username'];
+                    $_SESSION['nombre_completo'] = trim($user['nombre'] . ' ' . $user['apellidos']);
+                    $_SESSION['rol_id'] = $user['rol_id'];
+                    $_SESSION['rol_nombre'] = $user['rol_nombre'];
+                    $_SESSION['centro_id'] = $user['centro_id'] ?? null;
+                    
+                    audit_log($pdo, 'USUARIO_IMPERSONATE', 'usuarios', $id, null, ['impersonator' => $_SESSION['impersonator_id']]);
+                    header("Location: dashboard.php");
+                    exit();
+                } else {
+                    $error = "No se puede entrar a la cuenta de este usuario (no existe o está inactiva).";
+                    unset($_SESSION['impersonator_id']);
+                }
+            } else {
+                $error = "Ya estás usando esta cuenta.";
+            }
+        }
+
     }
 }
 
@@ -962,6 +994,15 @@ try {
                                     <?php endif; ?>
                                 </form>
                                 <?php if ($u['id'] != $_SESSION['user_id']): ?>
+                                    <form method="POST" style="margin: 0;" onsubmit="return confirm('¿Seguro que deseas entrar en la cuenta de este usuario?');">
+                                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
+                                        <input type="hidden" name="action" value="impersonate">
+                                        <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
+                                        <button type="submit" class="btn-action-premium" style="background: #fdf4ff; color: #a21caf; border-color: #f5d0fe;">
+                                            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                                            Entrar como
+                                        </button>
+                                    </form>
                                     <form method="POST" style="margin: 0;" onsubmit="return confirm('¿Seguro que desea eliminar de forma permanente a este usuario? Esta acción no se puede deshacer.');">
                                         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                                         <input type="hidden" name="action" value="delete">

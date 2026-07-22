@@ -20,6 +20,14 @@ $current_page = basename($_SERVER['PHP_SELF']);
         }
     })();
 </script>
+
+<?php if (isset($_SESSION['impersonator_id'])): ?>
+<div style="background: #ef4444; color: white; padding: 10px 15px; text-align: center; font-weight: 600; font-size: 0.9rem; z-index: 9999; position: relative; display: flex; justify-content: center; align-items: center; gap: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <span>⚠️ Modo Visualización: Estás usando la cuenta de <strong><?= htmlspecialchars($_SESSION['nombre_completo']) ?></strong></span>
+    <a href="revert_impersonate.php" style="background: white; color: #ef4444; text-decoration: none; padding: 4px 12px; border-radius: 4px; font-weight: 700; font-size: 0.8rem; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">Volver a mi cuenta</a>
+</div>
+<?php endif; ?>
+
 <!-- Mobile Toggle Button -->
 <button class="menu-toggle" onclick="toggleSidebar()" aria-label="Abrir menú">
     <svg viewBox="0 0 24 24" width="24" height="24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
