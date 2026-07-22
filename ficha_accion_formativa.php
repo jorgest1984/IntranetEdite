@@ -1229,6 +1229,9 @@ try {
                                 <input type="file" name="programa_formativo" accept=".pdf" style="flex: 1;">
                                 <?php if (!empty($accion['programa_formativo'])): ?>
                                     <a href="<?= htmlspecialchars($accion['programa_formativo']) ?>" target="_blank" style="color: #1e40af; text-decoration: none; font-weight: bold; font-size: 0.9rem;">📥 Descargar</a>
+                                    <label style="display: flex; align-items: center; gap: 5px; color: #ef4444; font-size: 0.85rem; font-weight: 600; cursor: pointer; margin: 0; text-transform: none;">
+                                        <input type="checkbox" name="borrar_programa_formativo" value="1"> 🗑️ Borrar
+                                    </label>
                                 <?php endif; ?>
                             </div>
                         </div>

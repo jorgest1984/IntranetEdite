@@ -93,7 +93,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'observaciones_gestion' => $_POST['observaciones_gestion'] ?? null
     ];
 
-    if (isset($_FILES['programa_formativo']) && $_FILES['programa_formativo']['error'] == UPLOAD_ERR_OK) {
+    if (!empty($_POST['borrar_programa_formativo']) && $id) {
+        $stmt_file = $pdo->prepare("SELECT programa_formativo FROM acciones_formativas WHERE id = ?");
+        $stmt_file->execute([$id]);
+        $old_file = $stmt_file->fetchColumn();
+        if ($old_file && file_exists($old_file)) {
+            @unlink($old_file);
+        }
+        $data['programa_formativo'] = null;
+    } elseif (isset($_FILES['programa_formativo']) && $_FILES['programa_formativo']['error'] == UPLOAD_ERR_OK) {
         $upload_dir = 'uploads/programas/';
         if (!is_dir($upload_dir)) {
             mkdir($upload_dir, 0777, true);
@@ -150,7 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 cae_check = :cae_check, edite_gestion_check = :edite_gestion_check,
                 nivel_gestion = :nivel_gestion, paquete_gestion = :paquete_gestion,
                 observaciones_gestion = :observaciones_gestion";
-            if (isset($data['programa_formativo'])) {
+            if (array_key_exists('programa_formativo', $data)) {
                 $sql .= ", programa_formativo = :programa_formativo";
             }
             $sql .= " WHERE id = :id";
@@ -178,7 +186,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 eval4_check, eval4_titulo, supuesto_practico, conexia_check,
                 cae_check, edite_gestion_check, nivel_gestion, paquete_gestion,
                 observaciones_gestion";
-            if (isset($data['programa_formativo'])) {
+            if (array_key_exists('programa_formativo', $data)) {
                 $sql .= ", programa_formativo";
             }
             $sql .= ") VALUES (
@@ -202,7 +210,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 :eval4_check, :eval4_titulo, :supuesto_practico, :conexia_check,
                 :cae_check, :edite_gestion_check, :nivel_gestion, :paquete_gestion,
                 :observaciones_gestion";
-            if (isset($data['programa_formativo'])) {
+            if (array_key_exists('programa_formativo', $data)) {
                 $sql .= ", :programa_formativo";
             }
             $sql .= ")";

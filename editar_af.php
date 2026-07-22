@@ -67,8 +67,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data[] = $_POST[$f] ?? '';
         }
 
-        // Handle file upload
-        if (isset($_FILES['programa_formativo']) && $_FILES['programa_formativo']['error'] == UPLOAD_ERR_OK) {
+        // Handle file deletion or upload
+        if (!empty($_POST['borrar_programa_formativo'])) {
+            $stmt_file = $pdo->prepare("SELECT programa_formativo FROM acciones_formativas WHERE id = ?");
+            $stmt_file->execute([$id]);
+            $old_file = $stmt_file->fetchColumn();
+            if ($old_file && file_exists($old_file)) {
+                @unlink($old_file);
+            }
+            $sets[] = "programa_formativo = NULL";
+        } elseif (isset($_FILES['programa_formativo']) && $_FILES['programa_formativo']['error'] == UPLOAD_ERR_OK) {
             $upload_dir = 'uploads/programas/';
             if (!is_dir($upload_dir)) {
                 mkdir($upload_dir, 0777, true);
@@ -200,8 +208,11 @@ if (!$af) die("No se encontró la Acción Formativa");
                         <div>
                             <label>Programa Formativo (PDF)</label>
                             <?php if (!empty($af['programa_formativo'])): ?>
-                                <div style="margin-bottom: 5px;">
+                                <div style="margin-bottom: 5px; display: flex; align-items: center; gap: 15px;">
                                     <a href="<?= htmlspecialchars($af['programa_formativo']) ?>" target="_blank" style="color: #3b82f6; text-decoration: none; font-weight: 600;">📄 Ver PDF Actual</a>
+                                    <label style="display: flex; align-items: center; gap: 5px; color: #ef4444; font-size: 0.85rem; font-weight: 600; cursor: pointer; margin: 0; text-transform: none;">
+                                        <input type="checkbox" name="borrar_programa_formativo" value="1"> 🗑️ Borrar
+                                    </label>
                                 </div>
                             <?php endif; ?>
                             <input type="file" name="programa_formativo" class="form-control" accept=".pdf">
