@@ -2,7 +2,7 @@
 // ficha_grupo_edicion.php
 require_once 'includes/auth.php';
 
-if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA, ROLE_FORMADOR, ROLE_COMERCIAL])) {
+if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA, ROLE_FORMADOR])) {
     die("No tiene permisos suficientes.");
 }
 
