@@ -2,7 +2,7 @@
 // inscripciones.php
 require_once 'includes/auth.php';
 
-if (!has_permission([ROLE_ADMIN, ROLE_TUTOR])) {
+if (!has_permission([ROLE_ADMIN, ROLE_TUTOR, ROLE_COMERCIAL])) {
     header("Location: home.php");
     exit();
 }
