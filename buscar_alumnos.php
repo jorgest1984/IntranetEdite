@@ -135,12 +135,14 @@ try {
         $searchPerformed = true;
     }
 
-    if ($searchPerformed) {
-        $sql .= " ORDER BY a.primer_apellido ASC, a.nombre ASC LIMIT 100";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($params);
-        $alumnos = $stmt->fetchAll();
-    }
+    // Always run the query, even if no filters are applied
+    $sql .= " ORDER BY a.primer_apellido ASC, a.nombre ASC LIMIT 100";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    $alumnos = $stmt->fetchAll();
+    
+    // Set to true so the template renders the table instead of the helper message
+    $searchPerformed = true;
 
 } catch (Exception $e) {
     $error = "Error en la búsqueda: " . $e->getMessage();
