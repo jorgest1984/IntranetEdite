@@ -4,6 +4,9 @@ require_once 'includes/config.php';
 require_once 'includes/auth.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (has_permission([ROLE_COMERCIAL])) {
+        die("Acceso denegado. Los comerciales no pueden modificar acciones formativas.");
+    }
     // Sanitización básica y recolección de datos
     $id = isset($_POST['id']) ? (int)$_POST['id'] : null;
     

@@ -5,9 +5,11 @@ header("Cache-Control: post-check=0, pre-check=0", false);
 header("Pragma: no-cache");
 require_once 'includes/auth.php';
 
-if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA, ROLE_FORMADOR])) {
+if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA, ROLE_FORMADOR, ROLE_COMERCIAL])) {
     die("No tiene permisos suficientes. Su rol actual es: " . ($_SESSION['rol_nombre'] ?? 'Desconocido'));
 }
+
+$is_comercial = has_permission([ROLE_COMERCIAL]);
 
 // Moodle tracking variables
 $alumnos_seguimiento = [];
@@ -1075,7 +1077,9 @@ try {
                 <a href="#" class="btn-header">Duplicar Acción Formativa</a>
                 <a href="#" class="btn-header">Duplicar en Bonificados</a>
                 <a href="#" class="btn-header">Peticiones</a>
+                <?php if (!$is_comercial): ?>
                 <button type="button" id="btn-save-record" class="btn-header" onclick="submitMainForm()">Guardar registro</button>
+                <?php endif; ?>
             </div>
         </header>
 
@@ -1095,24 +1099,31 @@ try {
         <input type="hidden" name="active_tab" id="active-tab-input" value="datos-generales">
         <div class="tabs-container">
             <div class="tabs-header">
+                <?php if (!$is_comercial): ?>
                 <button type="button" class="tab-btn active" onclick="switchTab(event, 'datos-generales')">Datos Generales</button>
-                <button type="button" class="tab-btn" onclick="switchTab(event, 'grupos')">Grupos</button>
+                <?php endif; ?>
+                <button type="button" class="tab-btn <?= $is_comercial ? 'active' : '' ?>" onclick="switchTab(event, 'grupos')">Grupos</button>
+                <?php if (!$is_comercial): ?>
                 <button type="button" class="tab-btn" onclick="switchTab(event, 'contenidos')">Contenidos</button>
+                <?php endif; ?>
                 <?php
-                $modality = $accion['modalidad'] ?? 'Teleformacion';
-                $show_material = ($modality === 'Presencial' || $modality === 'Mixta');
+                $show_material = isset($accion['modalidad']) && $accion['modalidad'] !== 'Teleformacion';
                 ?>
+                <?php if (!$is_comercial): ?>
                 <button type="button" class="tab-btn" id="tab-btn-material" style="<?= $show_material ? '' : 'display: none;' ?>" onclick="switchTab(event, 'material')">Material</button>
+                <?php endif; ?>
                 <button type="button" class="tab-btn" onclick="switchTab(event, 'gestion')">Gestión</button>
                 <button type="button" class="tab-btn" onclick="switchTab(event, 'ejecucion')">Ejecución</button>
+                <?php if (!$is_comercial): ?>
                 <button type="button" class="tab-btn" onclick="switchTab(event, 'instalacion')">Instalación</button>
-                <?php if ($id): ?>
+                <?php endif; ?>
+                <?php if ($moodle_connected): ?>
                     <button type="button" class="tab-btn" onclick="switchTab(event, 'seguimiento-moodle')">Seguimiento Moodle</button>
                     <button type="button" class="tab-btn" onclick="switchTab(event, 'encuestas')">Encuestas Fundae</button>
                 <?php endif; ?>
             </div>
 
-            <div class="tab-content" id="datos-generales">
+            <div class="tab-content" id="datos-generales" <?= $is_comercial ? 'style="display: none;"' : '' ?>>
                 <div class="form-section-title">Datos Generales</div>
                 
                 
@@ -1264,7 +1275,7 @@ try {
                     </div>
             </div>
 
-            <div class="tab-content" id="grupos" style="display: none;">
+            <div class="tab-content" id="grupos" <?= $is_comercial ? '' : 'style="display: none;"' ?>>
                 <div class="form-section-title">Grupos vinculados a esta acción</div>
                 <div class="table-responsive">
 
@@ -1303,7 +1314,9 @@ try {
                                         <td>
                                             <div style="display:flex; gap:5px;">
                                                 <a href="ficha_grupo_edicion.php?id=<?= $g['id'] ?>" style="color:#64748b;" title="Ver/Editar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></a>
+                                                <?php if (!$is_comercial): ?>
                                                 <button type="button" onclick="deleteGrupo(<?= $g['id'] ?>, '<?= htmlspecialchars(addslashes($g['numero_grupo'])) ?>')" style="background:none; border:none; padding:0; cursor:pointer; color:#ef4444;" title="Eliminar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+                                                <?php endif; ?>
                                             </div>
                                         </td>
                                     </tr>
@@ -1312,7 +1325,9 @@ try {
                         </tbody>
                     </table>
                     <div style="margin-top:20px; text-align:center;">
+                        <?php if (!$is_comercial): ?>
                         <a href="ficha_grupo_edicion.php?accion_id=<?= $id ?>" class="btn-add-sector" style="background:var(--primary-color); color:white; border:none; padding:10px 20px; text-decoration:none; display:inline-block;">+ Crear Nuevo Grupo para esta Acción</a>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -2386,6 +2401,7 @@ try {
 
                     <!-- Botón de Sincronización -->
                     <div class="seguimiento-actions" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
+                        <?php if (!$is_comercial): ?>
                         <button type="button" class="btn-sync-moodle" id="btn-sync-moodle-times" onclick="syncMoodleTimes(<?= $id ?>)" <?= empty($alumnos_seguimiento) ? 'disabled' : '' ?> title="<?= empty($alumnos_seguimiento) ? 'Primero debes importar alumnos' : 'Sincronizar tiempos' ?>">
                             <svg class="sync-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="transition: transform 0.2s;">
                                 <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
@@ -2400,6 +2416,7 @@ try {
                             </svg>
                             Importar Alumnos de Moodle
                         </button>
+                        <?php endif; ?>
                         
                         <a href="pdf_informe_seguimiento.php?id=<?= $id ?>" target="_blank" class="btn-sync-moodle" style="background-color: #0f172a; border-color: #020617; text-decoration: none; color: white; display: inline-flex; align-items: center;" <?= empty($alumnos_seguimiento) ? 'onclick="event.preventDefault();"' : '' ?>>
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="margin-right: 8px;">
