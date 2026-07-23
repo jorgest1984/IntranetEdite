@@ -500,6 +500,7 @@ try {
 
         .badge-admin { background: #ffe4e6; color: #be123c; border: 1px solid #fecdd3; }
         .badge-adm { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
+        .badge-jefe { background: #ede9fe; color: #6d28d9; border: 1px solid #ddd6fe; }
         .badge-tutor { background: #d1fae5; color: #047857; border: 1px solid #a7f3d0; }
         .badge-comercial { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
         .badge-default { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
@@ -915,7 +916,7 @@ try {
                             break;
                         case ROLE_JEFE_COMERCIAL:
                             $avatar_class = 'avatar-com';
-                            $badge_class = 'badge-admin'; // Distinct badge for Jefe
+                            $badge_class = 'badge-jefe'; // Purple distinct badge
                             break;
                         case ROLE_COMERCIAL:
                             $avatar_class = 'avatar-com';
