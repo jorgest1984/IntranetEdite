@@ -12,8 +12,18 @@ $error = '';
 $success = '';
 
 $is_subvencionada = (isset($_GET['context']) && $_GET['context'] === 'subvencionada');
-$page_title_prefix = $is_subvencionada ? 'FORMACIÓN SUBVENCIONADA' : 'EMPRESAS';
-$back_url = $is_subvencionada ? 'formacion_subvencionada.php' : 'formacion_bonificada.php';
+$is_comercial = (isset($_GET['context']) && $_GET['context'] === 'comercial');
+
+if ($is_subvencionada) {
+    $page_title_prefix = 'FORMACIÓN SUBVENCIONADA';
+    $back_url = 'formacion_subvencionada.php';
+} elseif ($is_comercial) {
+    $page_title_prefix = 'EMPRESAS';
+    $back_url = 'comerciales_empresas.php';
+} else {
+    $page_title_prefix = 'EMPRESAS';
+    $back_url = 'formacion_bonificada.php';
+}
 
 // Listas para dropdowns
 $provincias = [

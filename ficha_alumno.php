@@ -4,10 +4,11 @@ require_once 'includes/auth.php';
 require_once 'includes/moodle_api.php';
 $moodle = new MoodleAPI($pdo);
 
-if (!has_permission([ROLE_ADMIN, ROLE_TUTOR])) {
-    header("Location: home.php");
+if (!has_permission([ROLE_ADMIN, ROLE_TUTOR, ROLE_COMERCIAL, ROLE_COORD])) {
+    header("Location: dashboard.php");
     exit();
 }
+$is_comercial = has_permission([ROLE_COMERCIAL]);
 
 $id = $_GET['id'] ?? null;
 if (!$id) {
@@ -679,13 +680,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                         🔄 Sincronizar Moodle
                     </button>
                 </form>
+                <?php if (!$is_comercial): ?>
                 <form method="POST" style="margin:0;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar permanentemente a este alumno? Se archivará en la Papelera con todos sus documentos e inscripciones asociadas.');">
-                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                     <input type="hidden" name="action" value="delete_alumno">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                     <button type="submit" style="background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">
-                        🗑️ Eliminar Alumno
+                        <i class="fas fa-trash"></i> Eliminar Alumno
                     </button>
                 </form>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -1162,7 +1165,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                             </div>
 
                             <div style="margin-top: 2rem; text-align: right; border-top: 1px solid #e2e8f0; padding-top: 1.5rem;">
+                                <?php if (!$is_comercial): ?>
                                 <button type="submit" class="btn btn-primary" style="padding: 0.8rem 2.5rem; font-weight: 700; font-size: 0.9rem;">💾 Guardar Todos los Cambios</button>
+                                <?php endif; ?>
                             </div>
                 </form>
             </div>
@@ -1246,6 +1251,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                                 </a>
                                             </td>
                                             <td style="text-align: center;">
+                                                <?php if (!$is_comercial): ?>
                                                 <form method="POST" style="display: inline; margin: 0;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta inscripción?');">
                                                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                                                     <input type="hidden" name="action" value="delete_inscripcion">
@@ -1254,6 +1260,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                                         <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="display: inline-block;"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
                                                     </button>
                                                 </form>
+                                                <?php endif; ?>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>

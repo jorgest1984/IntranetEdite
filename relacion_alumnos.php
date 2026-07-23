@@ -2,8 +2,8 @@
 // relacion_alumnos.php
 require_once 'includes/auth.php';
 
-if (!has_permission([ROLE_ADMIN, ROLE_TUTOR, ROLE_COORD])) {
-    header("Location: home.php");
+if (!has_permission([ROLE_ADMIN, ROLE_TUTOR, ROLE_COORD, ROLE_COMERCIAL])) {
+    header("Location: dashboard.php");
     exit();
 }
 

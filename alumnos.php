@@ -4,8 +4,8 @@ require_once 'includes/config.php';
 require_once 'includes/auth.php';
 require_once 'includes/moodle_api.php';
 
-if (!has_permission([ROLE_ADMIN, ROLE_TUTOR])) {
-    header("Location: home.php");
+if (!has_permission([ROLE_ADMIN, ROLE_TUTOR, ROLE_COMERCIAL])) {
+    header("Location: dashboard.php");
     exit();
 }
 
