@@ -9,7 +9,6 @@ if (!has_permission([ROLE_ADMIN])) {
 }
 
 $page_title = "Gestión de Centros/Sedes";
-require_once 'includes/header.php';
 
 // Eliminar centro si se solicita
 if (isset($_GET['delete'])) {
@@ -29,6 +28,15 @@ $stmt = $pdo->query("SELECT c.*,
                     FROM centros c ORDER BY c.nombre ASC");
 $centros = $stmt->fetchAll();
 ?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="icon" type="image/png" href="/img/logo_efp.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= $page_title ?> - <?= APP_NAME ?></title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
 <style>
     .centro-grid {
         display: grid;
@@ -126,10 +134,12 @@ $centros = $stmt->fetchAll();
         color: white;
     }
 </style>
-<div class="dashboard-layout">
-    <?php include 'includes/sidebar.php'; ?>
+</head>
+<body>
+<div class="app-container">
+    <?php include 'includes/fp_sidebar.php'; ?>
 
-    <main class="main-content">
+    <main class="main-content" style="flex: 1; overflow-y: auto; padding: 2rem;">
         <header class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <div>
                 <h1 class="page-title" style="margin: 0; color: #1e3a8a; font-size: 1.8rem; font-weight: 800;">Sedes y Centros Físicos</h1>
@@ -203,5 +213,5 @@ $centros = $stmt->fetchAll();
         </div>
     </main>
 </div>
-
-<?php require_once 'includes/footer.php'; ?>
+</body>
+</html>
