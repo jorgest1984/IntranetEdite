@@ -2,7 +2,7 @@
 // documentacion.php
 require_once 'includes/auth.php';
 
-if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA, ROLE_TUTOR, ROLE_FORMADOR])) {
+if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA, ROLE_TUTOR, ROLE_FORMADOR, ROLE_COMERCIAL])) {
     header("Location: dashboard.php");
     exit();
 }
