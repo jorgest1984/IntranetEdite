@@ -673,6 +673,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                 <p style="margin:0; color:#64748b; font-weight:500;">DNI/NIE: <strong><?= htmlspecialchars($alumno['dni']) ?></strong> | Moodle ID: <strong><?= $alumno['moodle_user_id'] ?: 'No sincronizado' ?></strong></p>
             </div>
             <div style="display: flex; gap: 1rem; align-items: center;">
+                <?php if (!$is_comercial): ?>
                 <form method="POST" style="margin:0;">
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                     <input type="hidden" name="action" value="moodle_update">
@@ -680,6 +681,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                         🔄 Sincronizar Moodle
                     </button>
                 </form>
+                <?php endif; ?>
                 <?php if (!$is_comercial): ?>
                 <form method="POST" style="margin:0;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar permanentemente a este alumno? Se archivará en la Papelera con todos sus documentos e inscripciones asociadas.');">
                     <input type="hidden" name="action" value="delete_alumno">

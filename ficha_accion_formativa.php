@@ -2122,6 +2122,7 @@ try {
                         
                         <div id="moodle-create-status-msg" style="margin-bottom: 1.5rem; font-size: 0.85rem; font-weight: 600;"></div>
                         
+                        <?php if (!$is_comercial): ?>
                         <button type="button" class="btn-sync-moodle" onclick="createMoodleCourse(<?= $id ?>)" style="background-color: #1e3a8a; border-color: #172554;">
                             <svg class="create-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="transition: transform 0.2s; margin-right: 8px;">
                                 <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -2129,6 +2130,7 @@ try {
                             </svg>
                             Crear Curso en Moodle
                         </button>
+                        <?php endif; ?>
 
                         <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 2rem 0;">
                         
@@ -2146,11 +2148,13 @@ try {
                                     <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">ID del Curso en Moodle:</label>
                                     <input type="number" id="moodle-course-id-input" placeholder="Ej: 53" style="width: 100%; height: 38px; border: 1px solid #cbd5e1; border-radius: 6px; padding: 0 10px; font-size: 0.85rem; background: #fff;">
                                 </div>
+                                <?php if (!$is_comercial): ?>
                                 <div style="margin-top: 20px;">
                                     <button type="button" class="btn-sync-moodle" onclick="linkExistingMoodleCourse(<?= $id ?>, true)" style="background-color: #16a34a; border-color: #15803d; margin: 0; height: 38px; padding: 0 15px; font-size: 0.85rem; white-space: nowrap;">
                                         Vincular por ID
                                     </button>
                                 </div>
+                                <?php endif; ?>
                             </div>
                             
                             <div style="width: 100%; height: 1px; background: #e2e8f0; margin: 5px 0;"></div>
@@ -2163,11 +2167,13 @@ try {
                                         <option value="">Cargando cursos disponibles...</option>
                                     </select>
                                 </div>
+                                <?php if (!$is_comercial): ?>
                                 <div>
                                     <button type="button" class="btn-sync-moodle" onclick="linkExistingMoodleCourse(<?= $id ?>, false)" style="background-color: #475569; border-color: #334155; margin: 0; height: 38px; padding: 0 15px; font-size: 0.85rem; white-space: nowrap;">
                                         Vincular
                                     </button>
                                 </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -2185,6 +2191,7 @@ try {
                         }
                         ?>
                         <div style="display: flex; gap: 10px; align-items: center;">
+                            <?php if (!$is_comercial): ?>
                             <button type="button" class="btn-sync-moodle" onclick="unlinkMoodleCourse(<?= $id ?>)" style="background-color: #dc2626; border-color: #991b1b; margin: 0; height: 28px; padding: 0 10px; font-size: 0.78rem; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
                                     <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
@@ -2192,6 +2199,7 @@ try {
                                 </svg>
                                 Desvincular Moodle
                             </button>
+                            <?php endif; ?>
                             <span style="font-size: 0.8rem; color: #64748b; font-weight: 600; background: #e2e8f0; padding: 4px 12px; border-radius: 4px; height: 28px; display: inline-flex; align-items: center;">
                                 Última Sincronización: <strong>&nbsp;<?= $last_sync_time ?></strong>
                             </span>
@@ -2302,6 +2310,7 @@ try {
                                     <tr>
                                         <td colspan="12" style="text-align:center; padding: 40px; color: #64748b;">
                                             <p style="margin-bottom: 15px; font-weight: 500;">No hay alumnos matriculados en los grupos vinculados a esta acción formativa.</p>
+                                            <?php if (!$is_comercial): ?>
                                             <button type="button" class="btn-sync-moodle" id="btn-empty-import-moodle" onclick="importMoodleStudents(<?= $id ?>)" style="background-color: #1e3a8a; border-color: #172554;">
                                                 <svg class="import-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="transition: transform 0.2s; margin-right: 8px; display: inline-block; vertical-align: middle;">
                                                     <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -2309,6 +2318,7 @@ try {
                                                 </svg>
                                                 Importar Alumnos desde Moodle
                                             </button>
+                                            <?php endif; ?>
                                         </td>
                                     </tr>
                                 <?php else: ?>
