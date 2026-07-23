@@ -30,7 +30,7 @@ $stmtAl = $pdo->prepare("SELECT m.id as matricula_id, m.estado as matricula_esta
                                 m.moodle_e1_grade, m.moodle_e2_grade, m.moodle_e3_grade, 
                                 m.moodle_e1_completed, m.moodle_e2_completed, m.moodle_e3_completed,
                                 m.moodle_final_grade, m.moodle_aptitud,
-                                a.id as alumno_id, a.nombre, a.primer_apellido, a.segundo_apellido, a.moodle_user_id
+                                a.id as alumno_id, a.nombre, a.primer_apellido, a.segundo_apellido, a.moodle_user_id, a.provincia
                          FROM matriculas m
                          JOIN alumnos a ON m.alumno_id = a.id
                          WHERE m.grupo_id = ?
@@ -103,13 +103,14 @@ $pdf->SetFont('Arial', 'B', 8);
 $pdf->SetFillColor(240, 246, 255);
 $pdf->SetTextColor(0, 108, 228);
 
-$pdf->Cell(60, 8, pdf_utf8_to_iso('Alumno'), 1, 0, 'L', true);
-$pdf->Cell(24, 8, pdf_utf8_to_iso('Ev. Inicial'), 1, 0, 'C', true);
-$pdf->Cell(24, 8, pdf_utf8_to_iso('Ev. Intermed.'), 1, 0, 'C', true);
-$pdf->Cell(24, 8, pdf_utf8_to_iso('Ev. Final'), 1, 0, 'C', true);
+$pdf->Cell(55, 8, pdf_utf8_to_iso('Alumno'), 1, 0, 'L', true);
+$pdf->Cell(15, 8, pdf_utf8_to_iso('Prov.'), 1, 0, 'C', true);
+$pdf->Cell(20, 8, pdf_utf8_to_iso('Ev. Inicial'), 1, 0, 'C', true);
+$pdf->Cell(20, 8, pdf_utf8_to_iso('Ev. Inter.'), 1, 0, 'C', true);
+$pdf->Cell(20, 8, pdf_utf8_to_iso('Ev. Final'), 1, 0, 'C', true);
 $pdf->Cell(20, 8, pdf_utf8_to_iso('Comp. Tod.'), 1, 0, 'C', true);
 $pdf->Cell(20, 8, pdf_utf8_to_iso('Media'), 1, 0, 'C', true);
-$pdf->Cell(18, 8, pdf_utf8_to_iso('Aptitud'), 1, 1, 'C', true);
+$pdf->Cell(20, 8, pdf_utf8_to_iso('Aptitud'), 1, 1, 'C', true);
 
 // Contenido de la tabla
 $pdf->SetFont('Arial', '', 8);
@@ -123,17 +124,17 @@ if (empty($alumnos)) {
         if ($pdf->GetY() > 265) {
             $pdf->AddPage();
             
-            // Redibujar cabeceras tras salto
             $pdf->SetFont('Arial', 'B', 8);
             $pdf->SetFillColor(240, 246, 255);
             $pdf->SetTextColor(0, 108, 228);
-            $pdf->Cell(60, 8, pdf_utf8_to_iso('Alumno'), 1, 0, 'L', true);
-            $pdf->Cell(24, 8, pdf_utf8_to_iso('Ev. Inicial'), 1, 0, 'C', true);
-            $pdf->Cell(24, 8, pdf_utf8_to_iso('Ev. Intermed.'), 1, 0, 'C', true);
-            $pdf->Cell(24, 8, pdf_utf8_to_iso('Ev. Final'), 1, 0, 'C', true);
+            $pdf->Cell(55, 8, pdf_utf8_to_iso('Alumno'), 1, 0, 'L', true);
+            $pdf->Cell(15, 8, pdf_utf8_to_iso('Prov.'), 1, 0, 'C', true);
+            $pdf->Cell(20, 8, pdf_utf8_to_iso('Ev. Inicial'), 1, 0, 'C', true);
+            $pdf->Cell(20, 8, pdf_utf8_to_iso('Ev. Inter.'), 1, 0, 'C', true);
+            $pdf->Cell(20, 8, pdf_utf8_to_iso('Ev. Final'), 1, 0, 'C', true);
             $pdf->Cell(20, 8, pdf_utf8_to_iso('Comp. Tod.'), 1, 0, 'C', true);
             $pdf->Cell(20, 8, pdf_utf8_to_iso('Media'), 1, 0, 'C', true);
-            $pdf->Cell(18, 8, pdf_utf8_to_iso('Aptitud'), 1, 1, 'C', true);
+            $pdf->Cell(20, 8, pdf_utf8_to_iso('Aptitud'), 1, 1, 'C', true);
             
             $pdf->SetFont('Arial', '', 8);
             $pdf->SetTextColor(50, 50, 50);
@@ -156,13 +157,14 @@ if (empty($alumnos)) {
         $final = $alumno['moodle_e3_grade'] !== null ? number_format($alumno['moodle_e3_grade'], 2) : '---';
         $aptitud = mb_strtoupper(trim($alumno['moodle_aptitud'] ?: 'PENDIENTE'));
         
-        $pdf->Cell(60, 7, pdf_utf8_to_iso($nombre_completo), 1, 0, 'L');
-        $pdf->Cell(24, 7, $initial, 1, 0, 'C');
-        $pdf->Cell(24, 7, $intermediate, 1, 0, 'C');
-        $pdf->Cell(24, 7, $final, 1, 0, 'C');
+        $pdf->Cell(55, 7, pdf_utf8_to_iso($nombre_completo), 1, 0, 'L');
+        $pdf->Cell(15, 7, pdf_utf8_to_iso($alumno['provincia'] ?? '-'), 1, 0, 'C');
+        $pdf->Cell(20, 7, $initial, 1, 0, 'C');
+        $pdf->Cell(20, 7, $intermediate, 1, 0, 'C');
+        $pdf->Cell(20, 7, $final, 1, 0, 'C');
         $pdf->Cell(20, 7, $completed_all, 1, 0, 'C');
         $pdf->Cell(20, 7, $media, 1, 0, 'C');
-        $pdf->Cell(18, 7, pdf_utf8_to_iso($aptitud), 1, 1, 'C');
+        $pdf->Cell(20, 7, pdf_utf8_to_iso($aptitud), 1, 1, 'C');
     }
 }
 

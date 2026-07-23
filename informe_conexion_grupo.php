@@ -27,7 +27,7 @@ if (!$grupo) {
 }
 
 // 2. Obtener alumnos del grupo
-$stmtAl = $pdo->prepare("SELECT m.id as matricula_id, a.id as alumno_id, a.nombre, a.primer_apellido, a.segundo_apellido, a.moodle_user_id
+$stmtAl = $pdo->prepare("SELECT m.id as matricula_id, a.id as alumno_id, a.nombre, a.primer_apellido, a.segundo_apellido, a.moodle_user_id, a.provincia
                          FROM matriculas m
                          JOIN alumnos a ON m.alumno_id = a.id
                          WHERE m.grupo_id = ?
@@ -341,7 +341,7 @@ $current_page = 'grupos.php';
                     <div class="student-header">
                         <span><?= htmlspecialchars($nombre_completo) ?></span>
                         <span class="badge-status <?= $alumno['moodle_user_id'] ? 'status-online' : 'status-offline' ?>">
-                            <?= $alumno['moodle_user_id'] ? 'Moodle ID: ' . $alumno['moodle_user_id'] : 'Sin Moodle ID' ?>
+                            <?= $alumno['moodle_user_id'] ? 'Moodle ID: ' . $alumno['moodle_user_id'] : 'Sin Moodle ID' ?> | <?= htmlspecialchars($alumno['provincia'] ?? 'Sin provincia') ?>
                         </span>
                     </div>
                     <div class="connection-summary">

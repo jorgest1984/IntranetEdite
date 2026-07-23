@@ -28,7 +28,7 @@ if (!$grupo) {
 }
 
 // 2. Obtener alumnos del grupo
-$stmtAl = $pdo->prepare("SELECT m.id as matricula_id, a.id as alumno_id, a.nombre, a.primer_apellido, a.segundo_apellido, a.moodle_user_id
+$stmtAl = $pdo->prepare("SELECT m.id as matricula_id, a.id as alumno_id, a.nombre, a.primer_apellido, a.segundo_apellido, a.moodle_user_id, a.provincia
                          FROM matriculas m
                          JOIN alumnos a ON m.alumno_id = a.id
                          WHERE m.grupo_id = ?
@@ -209,7 +209,7 @@ foreach ($alumnos as $alumno) {
     
     $pdf->SetFont('Arial', 'B', 11);
     $pdf->SetTextColor(0, 108, 228); // Color primario
-    $pdf->Cell(0, 8, pdf_utf8_to_iso($nombre_completo), 0, 1);
+    $pdf->Cell(0, 8, pdf_utf8_to_iso($nombre_completo . ' | Provincia: ' . ($alumno['provincia'] ?? '-')), 0, 1);
     
     $pdf->SetFont('Arial', '', 9.5);
     $pdf->SetTextColor(30, 41, 59);

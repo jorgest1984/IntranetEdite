@@ -30,7 +30,7 @@ $stmtAl = $pdo->prepare("SELECT m.id as matricula_id, m.estado as matricula_esta
                                 m.moodle_e1_grade, m.moodle_e2_grade, m.moodle_e3_grade, 
                                 m.moodle_e1_completed, m.moodle_e2_completed, m.moodle_e3_completed,
                                 m.moodle_final_grade, m.moodle_aptitud,
-                                a.id as alumno_id, a.nombre, a.primer_apellido, a.segundo_apellido, a.moodle_user_id
+                                a.id as alumno_id, a.nombre, a.primer_apellido, a.segundo_apellido, a.moodle_user_id, a.provincia
                          FROM matriculas m
                          JOIN alumnos a ON m.alumno_id = a.id
                          WHERE m.grupo_id = ?
@@ -220,6 +220,7 @@ $current_page = 'grupos.php';
                     <thead>
                         <tr>
                             <th>Alumno</th>
+                            <th style="text-align: center;">Provincia</th>
                             <th style="text-align: center;">Evaluación Inicial</th>
                             <th style="text-align: center;">Evaluación Intermedia</th>
                             <th style="text-align: center;">Evaluación Final</th>
@@ -261,7 +262,16 @@ $current_page = 'grupos.php';
                                 }
                                 ?>
                                 <tr>
-                                    <td style="font-weight: 600;"><?= htmlspecialchars($nombre_completo) ?></td>
+                                    <td>
+                                        <div style="font-weight: 700; color: var(--primary-color); font-size: 0.95rem; line-height: 1.2;">
+                                            <?= htmlspecialchars($nombre_completo) ?>
+                                        </div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span style="font-size: 0.85rem; color: var(--text-color); font-weight: 500;">
+                                            <?= htmlspecialchars($alumno['provincia'] ?? '-') ?>
+                                        </span>
+                                    </td>
                                     
                                     <!-- Ev Inicial -->
                                     <td style="text-align: center;">
