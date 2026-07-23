@@ -42,7 +42,7 @@ $enviada_info_options = ["SI", "NO"];
 
 // Cargar comerciales
 try {
-    $stmtComerciales = $pdo->query("SELECT u.id, u.nombre, u.apellidos FROM usuarios u JOIN roles r ON u.rol_id = r.id WHERE r.nombre LIKE '%Comercial%' AND u.activo = 1 ORDER BY u.nombre ASC");
+    $stmtComerciales = $pdo->query("SELECT u.id, u.nombre, u.apellidos FROM usuarios u JOIN roles r ON u.rol_id = r.id WHERE r.nombre LIKE '%Comercial%' ORDER BY u.nombre ASC");
     $comerciales = $stmtComerciales->fetchAll();
     
     // Cargar algunos destinatarios (empresas) para el dropdown
@@ -84,7 +84,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['buscar'])) {
             $params[] = $_GET['resultado'];
         }
 
-        $sql = "SELECT ts.*, a.nombre as alumno_nombre, a.primer_apellido as alumno_apellido, e.nombre as empresa_nombre, c.nombre as curso_nombre, u.nombre as comercial_nombre, u.apellidos as comercial_apellidos
+        $sql = "SELECT ts.*, a.nombre as alumno_nombre, a.primer_apellido as alumno_apellido, e.nombre as empresa_nombre, c.nombre as curso_nombre, u.nombre as comercial_nombre, u.apellidos as comercial_apellidos,
+                       (SELECT conv.nombre FROM matriculas m JOIN convocatorias conv ON m.convocatoria_id = conv.id WHERE m.alumno_id = a.id ORDER BY m.id DESC LIMIT 1) as convocatoria_nombre
                 FROM tutorias_seguimiento ts
                 LEFT JOIN alumnos a ON ts.alumno_id = a.id
                 LEFT JOIN empresas e ON ts.empresa_id = e.id
@@ -761,9 +762,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['buscar'])) {
                             <?php else: ?>
                                 <?php foreach ($llamadas as $index => $ll): 
                                     $display_name = $ll['empresa'] ?: ($ll['alumno_nombre'] ? trim($ll['alumno_nombre'] . ' ' . $ll['alumno_apellido']) : ($ll['empresa_nombre'] ?: 'DESEMPLEADO'));
+                                    
+                                    $conv_nombre = strtolower($ll['convocatoria_nombre'] ?? '');
+                                    $row_style = '';
+                                    if (strpos($conv_nombre, 'estatal') !== false) {
+                                        $row_style = 'background-color: #dbeafe;'; // blue
+                                    } elseif (strpos($conv_nombre, 'madrid') !== false || strpos($conv_nombre, 'ocupados') !== false) {
+                                        $row_style = 'background-color: #fce7f3;'; // pinkish
+                                    } elseif (strpos($conv_nombre, '2016') !== false) {
+                                        $row_style = 'background-color: #f3e8ff;'; // purple
+                                    } elseif (strpos($conv_nombre, '2018') !== false) {
+                                        $row_style = 'background-color: #e0e7ff;'; // light indigo
+                                    } else {
+                                        $row_style = ($index % 2 == 0) ? 'background-color: var(--row-pink);' : 'background-color: var(--row-beige);';
+                                    }
                                 ?>
-                                    <tr class="<?= ($index % 2 == 0) ? 'row-odd' : 'row-even' ?>">
-                                        <td class="cell-bold-blue"><?= htmlspecialchars($display_name) ?></td>
+                                    <tr style="<?= $row_style ?>">
+                                        <td class="cell-bold-blue"><?= htmlspecialchars($display_name) ?>
+                                            <?php if (!empty($ll['convocatoria_nombre'])): ?>
+                                                <div style="font-size: 0.65rem; color: #64748b; font-weight: normal; margin-top: 2px;">
+                                                    <?= htmlspecialchars($ll['convocatoria_nombre']) ?>
+                                                </div>
+                                            <?php endif; ?>
+                                        </td>
                                         <td><?= $ll['fecha'] ? date('d/m/Y', strtotime($ll['fecha'])) : '' ?></td>
                                         <td class="cell-bold-blue"><?= htmlspecialchars($ll['hora']) ?></td>
                                         <td class="cell-bold-blue"><?= htmlspecialchars($ll['asunto']) ?></td>
