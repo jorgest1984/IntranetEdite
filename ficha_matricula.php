@@ -18,7 +18,7 @@ $stmtMatricula = $pdo->prepare("
            c.nombre as convocatoria_nombre, c.codigo_expediente,
            p.id as matricula_plan_id, p.nombre as plan_nombre, 
            e.nombre as empresa_nombre,
-           g.numero_grupo, g.codigo_plataforma as grupo_cod, g.fecha_inicio as grupo_inicio, g.fecha_fin as grupo_fin,
+           g.numero_grupo, g.codigo_plataforma as grupo_cod, g.fecha_inicio as grupo_inicio, g.fecha_fin as grupo_fin, g.accion_id,
            af.abreviatura as af_abreviatura, af.prioridad as af_prioridad, af.num_accion as af_num_accion,
            cu.nombre_corto as curso_nombre, cu.nombre_largo as curso_titulo
     FROM matriculas m
@@ -1640,6 +1640,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <button type="button" class="btn-modern" style="background: #fbbf24; color: #92400e; font-weight: 700; border: 1px solid #f59e0b; padding: 0.4rem 1rem;">
                             🎓 Enviar Diploma
                         </button>
+                        <a href="pdf_diploma.php?alumno_id=<?= $matricula['alumno_id'] ?>&grupo_id=<?= $matricula['grupo_id'] ?>&accion_id=<?= $matricula['accion_id'] ?>&tipo=diploma" target="_blank" class="btn-modern" style="background: #2563eb; color: white; font-weight: 700; border: 1px solid #1d4ed8; padding: 0.4rem 1rem; text-decoration: none; margin-left: 0.5rem;">
+                            ⬇️ Descargar Diploma
+                        </a>
                         
                         <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; color: #431407; margin-left: 1rem;">
                             <input type="checkbox" name="comunicado" value="1" <?= !empty($matricula['comunicado']) ? 'checked' : '' ?> style="width: 16px; height: 16px;"> Comunicado:

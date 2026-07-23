@@ -62,6 +62,7 @@ try {
         nif VARCHAR(50),
         empresa_id INT DEFAULT NULL,
         empresa_nombre VARCHAR(255),
+        sector VARCHAR(255),
         puesto VARCHAR(255),
         telefono VARCHAR(50),
         movil VARCHAR(50),
@@ -76,6 +77,11 @@ try {
 } catch (PDOException $e) {
     // Ignorar si falla por permisos
 }
+
+// ALTER TABLE para añadir sector a trabajador si no existe
+try {
+    $pdo->exec("ALTER TABLE comerciales_contactos_trabajador ADD COLUMN sector VARCHAR(255) AFTER empresa_nombre");
+} catch (PDOException $e) {}
 
 // PROCESAR FORMULARIO
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -118,9 +124,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (isset($_POST['tipo_contacto']) && $_POST['tipo_contacto'] === 'trabajador') {
         try {
             $stmt = $pdo->prepare("INSERT INTO comerciales_contactos_trabajador (
-                comercial_id, nombre, apellidos, nif, empresa_nombre, puesto,
+                comercial_id, nombre, apellidos, nif, empresa_nombre, sector, puesto,
                 telefono, movil, email, domicilio, cp, localidad, provincia, notas
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             
             $stmt->execute([
                 $comercial_id,
@@ -128,6 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_POST['apellidos'] ?? '',
                 $_POST['nif'] ?? '',
                 $_POST['empresa_nombre'] ?? '',
+                $_POST['sector'] ?? '',
                 $_POST['puesto'] ?? '',
                 $_POST['telefono'] ?? '',
                 $_POST['movil'] ?? '',
@@ -388,7 +395,11 @@ $provincias = [
                         <div class="form-row">
                             <div class="form-group" style="flex: 2;">
                                 <span class="label" style="width: 100px;">Empresa:</span>
-                                <input type="text" class="form-control" name="empresa_nombre" placeholder="Empresa en la que trabaja actualmente">
+                                <input type="text" class="form-control" name="empresa_nombre" placeholder="Opcional: Empresa en la que trabaja">
+                            </div>
+                            <div class="form-group" style="flex: 1.5;">
+                                <span class="label">Sector:</span>
+                                <input type="text" class="form-control" name="sector" placeholder="Opcional: Sector del trabajador">
                             </div>
                             <div class="form-group" style="flex: 1.5;">
                                 <span class="label">Puesto:</span>
