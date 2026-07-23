@@ -5,7 +5,7 @@ require_once 'includes/config.php';
 require_once 'includes/fpdf/fpdf.php';
 
 global $moodle_bypass_auth;
-if (empty($moodle_bypass_auth) && !has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA, ROLE_TUTOR, ROLE_ADMINISTRATIVO, ROLE_COMERCIAL])) {
+if (empty($moodle_bypass_auth) && !has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA, ROLE_TUTOR, ROLE_ADMINISTRATIVO, ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL])) {
     header("Location: dashboard.php");
     exit();
 }

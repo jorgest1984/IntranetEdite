@@ -5,12 +5,12 @@ header("Cache-Control: post-check=0, pre-check=0", false);
 header("Pragma: no-cache");
 require_once 'includes/auth.php';
 
-if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA, ROLE_FORMADOR, ROLE_COMERCIAL])) {
+if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA, ROLE_FORMADOR, ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL])) {
     header("Location: dashboard.php");
     exit();
 }
 
-$is_comercial = has_permission([ROLE_COMERCIAL]);
+$is_comercial = has_permission([ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL]);
 
 // Moodle tracking variables
 $alumnos_seguimiento = [];

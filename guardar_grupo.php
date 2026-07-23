@@ -7,7 +7,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
-if (has_permission([ROLE_COMERCIAL])) {
+if (has_permission([ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL])) {
     die("Acceso denegado. Los comerciales no pueden modificar grupos.");
 }
 

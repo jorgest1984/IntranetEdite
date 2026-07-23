@@ -2,7 +2,7 @@
 // buscar_empresas.php
 require_once 'includes/auth.php';
 
-if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_COMERCIAL, ROLE_LECTURA])) {
+if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL, ROLE_LECTURA])) {
     header("Location: dashboard.php");
     exit();
 }

@@ -3,7 +3,7 @@
 require_once 'includes/auth.php';
 require_once 'includes/config.php';
 
-if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_COMERCIAL, ROLE_TUTOR])) {
+if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL, ROLE_TUTOR])) {
     echo json_encode(['success' => false, 'message' => 'No autorizado']);
     exit();
 }

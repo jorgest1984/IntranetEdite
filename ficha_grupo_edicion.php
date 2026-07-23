@@ -2,11 +2,11 @@
 // ficha_grupo_edicion.php
 require_once 'includes/auth.php';
 
-if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA, ROLE_FORMADOR, ROLE_COMERCIAL])) {
+if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA, ROLE_FORMADOR, ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL])) {
     die("No tiene permisos suficientes.");
 }
 
-$is_comercial = has_permission([ROLE_COMERCIAL]);
+$is_comercial = has_permission([ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL]);
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
 $accion_id = isset($_GET['accion_id']) ? (int)$_GET['accion_id'] : null;

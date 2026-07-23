@@ -2,7 +2,7 @@
 // comerciales_llamadas.php
 require_once 'includes/auth.php';
 
-if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_COMERCIAL])) {
+if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL])) {
     header("Location: dashboard.php");
     exit();
 }
@@ -10,7 +10,7 @@ if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_COMERCIAL])) {
 $error = '';
 $success = '';
 
-$is_comercial_only = has_permission([ROLE_COMERCIAL]) && !has_permission([ROLE_ADMIN, ROLE_COORD]);
+$is_comercial_only = has_permission([ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL]) && !has_permission([ROLE_ADMIN, ROLE_COORD]);
 
 // Eliminar llamada
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete_llamada') {
@@ -798,7 +798,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['buscar'])) {
                                                 <a href="ficha_llamada.php?call_id=<?= $ll['id'] ?>" class="icon-edit" title="Editar">
                                                     <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 000-1.41l-2.34-2.34a.996.996 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
                                                 </a>
-                                                <?php if (!$is_comercial_only): ?>
+                                                <?php if (!$is_comercial_only || $ll['usuario_id'] == $_SESSION['user_id']): ?>
                                                 <form method="POST" style="display:inline;" onsubmit="return confirm('¿Seguro que deseas eliminar esta llamada?');">
                                                     <input type="hidden" name="action" value="delete_llamada">
                                                     <input type="hidden" name="llamada_id" value="<?= $ll['id'] ?>">

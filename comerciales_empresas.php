@@ -3,7 +3,7 @@
 require_once 'includes/auth.php';
 
 // Verificar permisos
-if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_COMERCIAL])) {
+if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL])) {
     header("Location: dashboard.php");
     exit();
 }

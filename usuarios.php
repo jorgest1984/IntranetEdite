@@ -913,6 +913,10 @@ try {
                             $avatar_class = 'avatar-tutor';
                             $badge_class = 'badge-tutor';
                             break;
+                        case ROLE_JEFE_COMERCIAL:
+                            $avatar_class = 'avatar-com';
+                            $badge_class = 'badge-admin'; // Distinct badge for Jefe
+                            break;
                         case ROLE_COMERCIAL:
                             $avatar_class = 'avatar-com';
                             $badge_class = 'badge-comercial';

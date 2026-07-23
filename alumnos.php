@@ -4,7 +4,7 @@ require_once 'includes/config.php';
 require_once 'includes/auth.php';
 require_once 'includes/moodle_api.php';
 
-if (!has_permission([ROLE_ADMIN, ROLE_TUTOR, ROLE_COMERCIAL])) {
+if (!has_permission([ROLE_ADMIN, ROLE_TUTOR, ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL])) {
     header("Location: dashboard.php");
     exit();
 }
@@ -153,7 +153,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 
 // Control de pestaña activa
 $active_tab = 'listado';
-if (($_SERVER['REQUEST_METHOD'] == 'POST' || (isset($_GET['tab']) && $_GET['tab'] == 'nuevo')) && !has_permission([ROLE_COMERCIAL])) {
+if (($_SERVER['REQUEST_METHOD'] == 'POST' || (isset($_GET['tab']) && $_GET['tab'] == 'nuevo')) && !has_permission([ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL])) {
     $active_tab = 'nuevo';
 }
 
@@ -545,7 +545,7 @@ $empresas = $pdo->query("SELECT id, nombre FROM empresas ORDER BY nombre ASC LIM
                     <svg viewBox="0 0 24 24" width="16" height="16" style="vertical-align: middle; margin-right: 6px; fill: currentColor;"><path d="M4 14h6v-6H4v6zm0 7h6v-6H4v6zm7 0h6v-6h-6v6zm0-14v6h6V7h-6z"/></svg>
                     Listado de Alumnos
                 </button>
-                <?php if (!has_permission([ROLE_COMERCIAL])): ?>
+                <?php if (!has_permission([ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL])): ?>
                 <button class="tab-btn <?= $active_tab == 'nuevo' ? 'active' : '' ?>" onclick="location.href='?tab=nuevo'">
                     <svg viewBox="0 0 24 24" width="16" height="16" style="vertical-align: middle; margin-right: 6px; fill: currentColor;"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
                     Registrar Nuevo Alumno

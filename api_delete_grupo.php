@@ -3,7 +3,7 @@ require_once 'includes/auth.php';
 
 header('Content-Type: application/json');
 
-if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_COMERCIAL])) {
+if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL])) {
     echo json_encode(['success' => false, 'error' => 'No tienes permisos']);
     exit();
 }

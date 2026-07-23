@@ -5,7 +5,7 @@ require_once 'includes/config.php';
 
 header('Content-Type: application/json');
 
-if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA, ROLE_TUTOR, ROLE_ADMINISTRATIVO, ROLE_COMERCIAL])) {
+if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA, ROLE_TUTOR, ROLE_ADMINISTRATIVO, ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL])) {
     header('HTTP/1.1 403 Forbidden');
     echo json_encode(['error' => 'No autorizado']);
     exit();

@@ -3,7 +3,7 @@
 require_once 'includes/auth.php';
 require_once 'includes/config.php';
 
-if (!has_permission([ROLE_ADMIN, ROLE_TUTOR, ROLE_COMERCIAL, ROLE_COORD])) {
+if (!has_permission([ROLE_ADMIN, ROLE_TUTOR, ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL, ROLE_COORD])) {
     die("Acceso denegado.");
 }
 

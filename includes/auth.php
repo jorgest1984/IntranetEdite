@@ -41,6 +41,7 @@ define('ROLE_COORD', 2);
 define('ROLE_TUTOR', 3);
 define('ROLE_LECTURA', 4); // Legacy / Mantenimiento
 define('ROLE_COMERCIAL', 5);
+define('ROLE_JEFE_COMERCIAL', 6);
 define('ROLE_ADMINISTRATIVO', 7); // Separado de Coordinador
 
 // Alias para compatibilidad con código antiguo
@@ -52,5 +53,19 @@ function get_user_centro_filter($column_name = 'grupos.centro_id') {
         return " {$column_name} = {$cid} ";
     }
     return " 1=1 ";
+}
+
+// Temporary migration for Jefe Comercial
+if (!isset($_SESSION['jefe_comercial_migrated']) && isset($pdo)) {
+    try {
+        $stmt = $pdo->query("SELECT COUNT(*) FROM roles WHERE id = 6");
+        if ($stmt->fetchColumn() == 0) {
+            $pdo->exec("INSERT INTO roles (id, nombre) VALUES (6, 'Jefe Comercial')");
+        }
+        $pdo->exec("UPDATE usuarios SET rol_id = 6 WHERE nombre LIKE '%Eva%' AND apellidos LIKE '%lvarez%'");
+        $_SESSION['jefe_comercial_migrated'] = true;
+    } catch (Exception $e) {
+        // Ignore silently
+    }
 }
 ?>

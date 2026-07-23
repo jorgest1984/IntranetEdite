@@ -2,7 +2,7 @@
 // ficha_llamada.php
 require_once 'includes/auth.php';
 
-if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_COMERCIAL])) {
+if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL])) {
     header("Location: dashboard.php");
     exit();
 }
@@ -369,7 +369,7 @@ if (!$llamada_db) {
     // Si la llamada ya existe, solo la puede editar el creador, coordinadores o administradores
     if (has_permission([ROLE_ADMIN, ROLE_COORD])) {
         $puede_editar = true;
-    } elseif (isset($_SESSION['user_id']) && $llamada_db['usuario_id'] == $_SESSION['user_id'] && !has_permission([ROLE_COMERCIAL])) {
+    } elseif (isset($_SESSION['user_id']) && $llamada_db['usuario_id'] == $_SESSION['user_id'] && !has_permission([ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL])) {
         $puede_editar = true;
     }
 }
@@ -474,7 +474,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_delete_call'])
 // PROCESAR BORRADO DE LLAMADA DESDE EL HISTORIAL
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_delete_history_call'])) {
     $delete_call_id = $_POST['delete_call_id'] ?? null;
-    if ($delete_call_id && has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_COMERCIAL])) {
+    if ($delete_call_id && has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL])) {
         try {
             // Cargar detalles antes de borrar para auditar
             $stmt_check = $pdo->prepare("SELECT * FROM tutorias_seguimiento WHERE id = ?");
