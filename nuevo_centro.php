@@ -34,13 +34,42 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 
 $page_title = "Añadir Nuevo Centro";
-require_once 'includes/header.php';
 ?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="icon" type="image/png" href="/img/logo_efp.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= $page_title ?> - <?= APP_NAME ?></title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        .back-link {
+            display: inline-flex; align-items: center; gap: 5px; color: #64748b; text-decoration: none; font-weight: 600; font-size: 0.9rem; margin-bottom: 10px; transition: color 0.2s;
+        }
+        .back-link:hover { color: #1e3a8a; }
+        .page-header { margin-bottom: 30px; }
+        .page-title { margin: 0; color: #1e3a8a; font-size: 1.8rem; font-weight: 800; }
+        .card { background: white; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+        .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .form-group { margin-bottom: 15px; }
+        .form-label { display: block; font-weight: 600; color: #475569; margin-bottom: 8px; font-size: 0.9rem; }
+        .form-input { width: 100%; padding: 12px 15px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 0.95rem; transition: all 0.3s; }
+        .form-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        .form-actions { display: flex; gap: 15px; margin-top: 30px; padding-top: 20px; border-top: 1px solid #f1f5f9; }
+        .btn { padding: 12px 24px; border-radius: 8px; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-block; text-align: center; border: none; font-size: 0.95rem; }
+        .btn-primary { background: #1e3a8a; color: white; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.2); }
+        .btn-primary:hover { background: #172554; transform: translateY(-1px); }
+        .btn-secondary { background: #f1f5f9; color: #475569; }
+        .btn-secondary:hover { background: #e2e8f0; color: #1e293b; }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <?php include 'includes/fp_sidebar.php'; ?>
 
-<div class="dashboard-layout">
-    <?php include 'includes/sidebar.php'; ?>
-
-    <main class="main-content">
+    <main class="main-content" style="flex: 1; overflow-y: auto; padding: 2rem;">
         <header class="page-header">
             <div>
                 <a href="centros.php" class="back-link">
@@ -53,7 +82,7 @@ require_once 'includes/header.php';
 
         <div class="card form-card fade-in">
             <?php if ($error): ?>
-                <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+                <div class="alert alert-danger" style="background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: 600;"><?= htmlspecialchars($error) ?></div>
             <?php endif; ?>
 
             <form method="POST" action="">
@@ -97,5 +126,5 @@ require_once 'includes/header.php';
         </div>
     </main>
 </div>
-
-<?php require_once 'includes/footer.php'; ?>
+</body>
+</html>
