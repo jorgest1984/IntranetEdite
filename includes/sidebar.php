@@ -95,6 +95,18 @@ $current_page = basename($_SERVER['PHP_SELF']);
             </a>
         </li>
         <li>
+            <a href="importar_alumnos.php" class="<?= $current_page == 'importar_alumnos.php' ? 'active' : '' ?>">
+                <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                Importar Alumnos (CSV)
+            </a>
+        </li>
+        <li>
+            <a href="importar_empresas.php" class="<?= $current_page == 'importar_empresas.php' ? 'active' : '' ?>">
+                <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                Importar Empresas (CSV)
+            </a>
+        </li>
+        <li>
             <a href="cursos.php" class="<?= $current_page == 'cursos.php' ? 'active' : '' ?>">
                 <svg viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14zM5 15h14v2H5zM5 11h9v2H5zm0-4h14v2H5z"/></svg>
                 Cursos Moodle
