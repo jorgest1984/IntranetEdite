@@ -137,6 +137,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['archivo_csv'])) {
 
                     $dni_val = !empty($dni) ? $dni : null;
                     $email_val = !empty($email) ? $email : null;
+                    if (empty($email_val)) {
+                        $slug = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $nombre . $primer_apellido));
+                        $email_val = "sin_email_" . $slug . "_" . ($num_linea) . "@noemail.local";
+                    }
 
                     // Comprobar si ya existe alumno por DNI o Email
                     $existe = false;
