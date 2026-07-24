@@ -73,12 +73,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ejecutar_importacion'
 
                 try {
                     if ($existe_id) {
-                        $stUp = $pdo->prepare("UPDATE alumnos SET nombre=?, apellidos=?, primer_apellido=?, segundo_apellido=?, email=?, centro_trabajo=?, provincia=?, colectivo=?, comercial_id=COALESCE(?, comercial_id) WHERE id=?");
-                        $stUp->execute([$nombre, $apellidos_combined, $primer_apellido, $segundo_apellido, $email_val, $empresa_nombre, $provincia, $colectivo, $comercial_id, $existe_id]);
+                        $stUp = $pdo->prepare("UPDATE alumnos SET nombre=?, primer_apellido=?, segundo_apellido=?, email=?, centro_trabajo=?, provincia=?, colectivo=?, comercial_id=COALESCE(?, comercial_id) WHERE id=?");
+                        $stUp->execute([$nombre, $primer_apellido, $segundo_apellido, $email_val, $empresa_nombre, $provincia, $colectivo, $comercial_id, $existe_id]);
                         $actualizados++;
                     } else {
-                        $stIns = $pdo->prepare("INSERT INTO alumnos (nombre, apellidos, primer_apellido, segundo_apellido, dni, email, telefono, centro_trabajo, localidad, provincia, cp, colectivo, puesto_trabajo, comercial_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                        $stIns->execute([$nombre, $apellidos_combined, $primer_apellido, $segundo_apellido, $dni_val, $email_val, $telefono, $empresa_nombre, $localidad, $provincia, $cp, $colectivo, $puesto, $comercial_id]);
+                        $stIns = $pdo->prepare("INSERT INTO alumnos (nombre, primer_apellido, segundo_apellido, dni, email, telefono, centro_trabajo, localidad, provincia, cp, colectivo, puesto_trabajo, comercial_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                        $stIns->execute([$nombre, $primer_apellido, $segundo_apellido, $dni_val, $email_val, $telefono, $empresa_nombre, $localidad, $provincia, $cp, $colectivo, $puesto, $comercial_id]);
                         $insertados++;
                     }
                 } catch (PDOException $e) {

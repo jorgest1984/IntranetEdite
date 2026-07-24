@@ -174,13 +174,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['archivo_csv'])) {
                         try {
                             if ($existe) {
                                 // Actualizar si existe
-                                $stUp = $pdo->prepare("UPDATE alumnos SET nombre=?, apellidos=?, primer_apellido=?, segundo_apellido=?, email=?, telefono=?, centro_trabajo=?, localidad=?, provincia=?, cp=?, colectivo=?, puesto_trabajo=?, comercial_id=COALESCE(?, comercial_id) WHERE dni=? OR email=?");
-                                $stUp->execute([$nombre, $apellidos_combined, $primer_apellido, $segundo_apellido, $email_val, $telefono, $empresa_nombre, $localidad, $provincia, $cp, $colectivo, $puesto, $comercial_id_asignado, $dni_val, $email_val]);
+                                $stUp = $pdo->prepare("UPDATE alumnos SET nombre=?, primer_apellido=?, segundo_apellido=?, email=?, telefono=?, centro_trabajo=?, localidad=?, provincia=?, cp=?, colectivo=?, puesto_trabajo=?, comercial_id=COALESCE(?, comercial_id) WHERE dni=? OR email=?");
+                                $stUp->execute([$nombre, $primer_apellido, $segundo_apellido, $email_val, $telefono, $empresa_nombre, $localidad, $provincia, $cp, $colectivo, $puesto, $comercial_id_asignado, $dni_val, $email_val]);
                                 $actualizados++;
                             } else {
                                 // Insertar nuevo
-                                $stIns = $pdo->prepare("INSERT INTO alumnos (nombre, apellidos, primer_apellido, segundo_apellido, dni, email, telefono, centro_trabajo, localidad, provincia, cp, colectivo, puesto_trabajo, comercial_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                                $stIns->execute([$nombre, $apellidos_combined, $primer_apellido, $segundo_apellido, $dni_val, $email_val, $telefono, $empresa_nombre, $localidad, $provincia, $cp, $colectivo, $puesto, $comercial_id_asignado]);
+                                $stIns = $pdo->prepare("INSERT INTO alumnos (nombre, primer_apellido, segundo_apellido, dni, email, telefono, centro_trabajo, localidad, provincia, cp, colectivo, puesto_trabajo, comercial_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                                $stIns->execute([$nombre, $primer_apellido, $segundo_apellido, $dni_val, $email_val, $telefono, $empresa_nombre, $localidad, $provincia, $cp, $colectivo, $puesto, $comercial_id_asignado]);
                                 $insertados++;
                             }
                         } catch (PDOException $e) {
