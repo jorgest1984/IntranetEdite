@@ -138,10 +138,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         }
 
         if ($action == 'update_personales') {
+            $centro_id = !empty($_POST['centro_id']) ? intval($_POST['centro_id']) : null;
+            $centro_nombre = null;
+            if ($centro_id) {
+                $stC = $pdo->prepare("SELECT nombre FROM centros WHERE id = ?");
+                $stC->execute([$centro_id]);
+                $centro_nombre = $stC->fetchColumn() ?: null;
+            }
+
             // Actualizar tabla usuarios (datos básicos)
-            $stmt = $pdo->prepare("UPDATE usuarios SET nombre = ?, apellidos = ? WHERE id = ?");
+            $stmt = $pdo->prepare("UPDATE usuarios SET nombre = ?, apellidos = ?, centro_id = ? WHERE id = ?");
             $apellidos_full = trim(($_POST['apellido1'] ?? '') . ' ' . ($_POST['apellido2'] ?? ''));
-            $stmt->execute([$_POST['nombre'] ?? '', $apellidos_full, $id]);
+            $stmt->execute([$_POST['nombre'] ?? '', $apellidos_full, $centro_id, $id]);
 
             // Actualizar tabla profesorado_detalles (datos extendidos)
             $obs = $_POST['observaciones_personales'] ?? '';
@@ -163,6 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                 cuenta_bancaria = ?,
                 activo_hasta = ?,
                 nuestro = ?,
+                centro = ?,
                 observaciones_personales = ? 
                 WHERE usuario_id = ?");
             
@@ -184,6 +193,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                 $_POST['cuenta_bancaria'] ?? null,
                 $_POST['activo_hasta'] ?: null,
                 ($_POST['nuestro'] == 'SI' ? 1 : 0),
+                $centro_nombre,
                 $obs, 
                 $id
             ]);
@@ -761,6 +771,17 @@ $tareas = $stmt_tareas->fetchAll();
                         <div class="form-group" style="grid-column: span 3;">
                             <label>Skype:</label>
                             <input type="text" name="skype" value="<?= htmlspecialchars($prof['skype'] ?? '') ?>">
+                        </div>
+                        <div class="form-group" style="grid-column: span 6;">
+                            <label>Centro de trabajo asignado:</label>
+                            <select name="centro_id">
+                                <option value="">--- Sin centro asignado ---</option>
+                                <?php foreach ($centros_list as $c): ?>
+                                    <option value="<?= $c['id'] ?>" <?= ($trabajador['centro_id'] ?? '') == $c['id'] ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($c['nombre']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
 
                         <div class="form-group" style="grid-column: span 3;">
