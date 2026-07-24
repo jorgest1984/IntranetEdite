@@ -292,7 +292,10 @@ $current_page = 'buscar_empresas.php';
         <main class="main-content" style="flex: 1; overflow-y: auto;">
 
             <!-- Barra de acciones superior -->
-            <div style="display: flex; justify-content: flex-end; margin-bottom: 1.5rem; padding: 2rem 2rem 0;">
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 1.5rem; padding: 2rem 2rem 0;">
+                <a href="importar_empresas.php" class="btn" style="background: #0284c7; color: white; border: none; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; padding: 0.6rem 1.2rem; border-radius: 8px;">
+                    📥 Importar Empresas (CSV/Excel)
+                </a>
                 <a href="ficha_empresa.php?new=1" class="btn btn-primary">
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                         <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>

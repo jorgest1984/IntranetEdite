@@ -326,7 +326,10 @@ try {
         <main class="main-content" style="flex: 1; overflow-y: auto;">
 
             <!-- Barra de acciones superior -->
-            <div style="display: flex; justify-content: flex-end; margin-bottom: 1.5rem; padding: 2rem 2rem 0;">
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 1.5rem; padding: 2rem 2rem 0;">
+                <a href="importar_alumnos.php" class="btn" style="background: #0284c7; color: white; border: none; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; padding: 0.6rem 1.2rem; border-radius: 8px;">
+                    📥 Importar Alumnos (CSV/Excel)
+                </a>
                 <?php if (has_permission([ROLE_ADMIN, ROLE_TUTOR])): ?>
                     <a href="alumnos.php" class="btn btn-primary">
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
