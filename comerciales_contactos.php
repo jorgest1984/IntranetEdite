@@ -301,6 +301,32 @@ $provincias = [
                     <div class="form-section">
                         <div class="section-header"><h2>FICHA DE CONTACTOS EMPRESA</h2></div>
 
+                        <div class="form-row" style="background: #f8fafc; padding: 10px; border-radius: 4px; border: 1px solid #e2e8f0; margin-bottom: 15px;">
+                            <div class="form-group" style="flex: 1;">
+                                <label class="label" style="cursor: pointer;">
+                                    <input type="checkbox" name="es_promax" value="1"> 🌟 Es de PROMAX
+                                </label>
+                            </div>
+                            <div class="form-group" style="flex: 1.5;">
+                                <label class="label" style="cursor: pointer; color: #b91c1c;">
+                                    <input type="checkbox" name="no_valido" value="1"> ⚠️ Contacto no válido
+                                </label>
+                                <select class="form-control" name="motivo_no_valido" style="margin-left: 5px;">
+                                    <option value="">Elige motivo...</option>
+                                    <option value="Teléfono erróneo">Teléfono erróneo</option>
+                                    <option value="Email rebotado">Email rebotado</option>
+                                    <option value="Jubilado / Cierre">Jubilado / Cierre</option>
+                                    <option value="No le interesa">No le interesa</option>
+                                    <option value="Duplicado">Duplicado</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label class="label" style="cursor: pointer; color: #b91c1c;">
+                                    <input type="checkbox" name="baja" value="1"> 🚫 BAJA
+                                </label>
+                            </div>
+                        </div>
+
                         <div class="form-row">
                             <div class="form-group" style="flex: 2;">
                                 <span class="label">Empresa:</span>

@@ -55,23 +55,39 @@ if (!$is_new) {
 
 // Datos comunes del formulario
 $campos = [
-    'nombre'           => trim($_POST['nombre']            ?? ''),
-    'cif'              => trim($_POST['cif']               ?? ''),
-    'email'            => trim($_POST['email']             ?? ''),
-    'telefono'         => trim($_POST['telefono']          ?? ''),
-    'localidad'        => trim($_POST['localidad']         ?? ''),
-    'cp'               => trim($_POST['cp']                ?? ''),
-    'actividad'        => trim($_POST['actividad']         ?? ''),
-    'provincia'        => trim($_POST['provincia']         ?? ''),
-    'contacto_nombre'  => trim($_POST['contacto_nombre']   ?? ''),
-    'contacto_telefono'=> trim($_POST['contacto_telefono'] ?? ''),
-    'es_vigilante'     => isset($_POST['es_vigilante'])  ? 1 : 0,
-    'es_adhesion'      => isset($_POST['es_adhesion'])   ? 1 : 0,
-    'es_gestora'       => isset($_POST['es_gestora'])    ? 1 : 0,
-    'es_mercadolid'    => isset($_POST['es_mercadolid']) ? 1 : 0,
-    'comercial_id'     => !empty($_POST['comercial_id'])  ? intval($_POST['comercial_id']) : null,
-    'sector'           => trim($_POST['sector']            ?? ''),
-    'rlt'              => trim($_POST['rlt']               ?? ''),
+    'nombre'                       => trim($_POST['nombre']                        ?? ''),
+    'cif'                          => trim($_POST['cif']                           ?? ''),
+    'email'                        => trim($_POST['email']                         ?? ''),
+    'telefono'                     => trim($_POST['telefono']                      ?? ''),
+    'localidad'                    => trim($_POST['localidad']                     ?? ''),
+    'cp'                           => trim($_POST['cp']                            ?? ''),
+    'actividad'                    => trim($_POST['actividad']                     ?? ''),
+    'provincia'                    => trim($_POST['provincia']                     ?? ''),
+    'contacto_nombre'              => trim($_POST['contacto_nombre']               ?? ''),
+    'contacto_telefono'            => trim($_POST['contacto_telefono']            ?? ''),
+    'es_vigilante'                 => isset($_POST['es_vigilante'])              ? 1 : 0,
+    'es_adhesion'                  => isset($_POST['es_adhesion'])               ? 1 : 0,
+    'es_gestora'                   => isset($_POST['es_gestora'])                ? 1 : 0,
+    'es_mercadolid'                => isset($_POST['es_mercadolid'])             ? 1 : 0,
+    'es_promax'                    => isset($_POST['es_promax'])                 ? 1 : 0,
+    'no_llamar'                    => isset($_POST['no_llamar'])                 ? 1 : 0,
+    'en_reserva'                   => isset($_POST['en_reserva'])                ? 1 : 0,
+    'bloqueado'                    => isset($_POST['bloqueado'])                 ? 1 : 0,
+    'comercial_id'                 => !empty($_POST['comercial_id'])              ? intval($_POST['comercial_id']) : null,
+    'sector'                       => trim($_POST['sector']                        ?? ''),
+    'rlt'                          => trim($_POST['rlt']                           ?? ''),
+    'redes_total_participantes'    => intval($_POST['redes_total_participantes']   ?? 0),
+    'redes_colectivos_prioritarios'=> intval($_POST['redes_colectivos_prioritarios']?? 0),
+    'redes_tiempo_parcial'         => intval($_POST['redes_tiempo_parcial']        ?? 0),
+    'redes_temporal'               => intval($_POST['redes_temporal']            ?? 0),
+    'redes_mujeres'                => intval($_POST['redes_mujeres']             ?? 0),
+    'redes_mayores_45'             => intval($_POST['redes_mayores_45']          ?? 0),
+    'rep_legal_nombre'             => trim($_POST['rep_legal_nombre']              ?? ''),
+    'rep_legal_apellidos'          => trim($_POST['rep_legal_apellidos']           ?? ''),
+    'rep_legal_sexo'               => trim($_POST['rep_legal_sexo']                ?? ''),
+    'rep_legal_nif'                => trim($_POST['rep_legal_nif']                 ?? ''),
+    'rep_legal_cargo'              => trim($_POST['rep_legal_cargo']               ?? ''),
+    'rep_legal_email'              => trim($_POST['rep_legal_email']               ?? '')
 ];
 
 // Procesar formulario
@@ -82,29 +98,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             if ($is_new) {
                 // INSERT nueva empresa
-                $stmt = $pdo->prepare("
-                    INSERT INTO empresas
-                        (nombre, cif, email, telefono, localidad, cp, actividad, provincia,
-                         contacto_nombre, contacto_telefono, es_vigilante, es_adhesion,
-                         es_gestora, es_mercadolid, comercial_id, sector, rlt)
-                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-                ");
+                $cols_keys = array_keys($campos);
+                $placeholders = implode(',', array_fill(0, count($cols_keys), '?'));
+                $cols_str = implode(',', $cols_keys);
+                
+                $stmt = $pdo->prepare("INSERT INTO empresas ($cols_str) VALUES ($placeholders)");
                 $stmt->execute(array_values($campos));
                 $nuevo_id = $pdo->lastInsertId();
                 header("Location: ficha_empresa.php?id=" . $nuevo_id . "&saved=1");
                 exit();
             } else {
                 // UPDATE empresa existente
-                $stmt = $pdo->prepare("
-                    UPDATE empresas SET
-                        nombre=?, cif=?, email=?, telefono=?, localidad=?, cp=?,
-                        actividad=?, provincia=?, contacto_nombre=?, contacto_telefono=?,
-                        es_vigilante=?, es_adhesion=?, es_gestora=?, es_mercadolid=?,
-                        comercial_id=?, sector=?, rlt=?
-                    WHERE id=?
-                ");
+                $set_clause = implode('=?, ', array_keys($campos)) . '=?';
+                $stmt = $pdo->prepare("UPDATE empresas SET $set_clause WHERE id=?");
                 $stmt->execute([...array_values($campos), $empresa_id]);
                 $success = "Empresa actualizada correctamente.";
+                
                 // Recargar datos
                 $stmt2 = $pdo->prepare("SELECT * FROM empresas WHERE id = ?");
                 $stmt2->execute([$empresa_id]);

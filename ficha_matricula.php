@@ -1391,11 +1391,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     <div class="form-group" style="grid-column: span 1;">
                         <label>Estado nuevo</label>
                         <select name="estado_nuevo" class="form-control">
-                            <option value="Inscrito" <?= ($matricula['estado'] ?? '') == 'Inscrito' ? 'selected' : '' ?>>Inscrito</option>
-                            <option value="Activo" <?= ($matricula['estado'] ?? '') == 'Activo' ? 'selected' : '' ?>>Activo</option>
-                            <option value="Finalizada" <?= ($matricula['estado'] ?? '') == 'Finalizada' ? 'selected' : '' ?>>Finalizada</option>
+                            <option value="Pendiente validacion" <?= ($matricula['estado'] ?? '') == 'Pendiente validacion' ? 'selected' : '' ?>>Pendiente validacion</option>
+                            <option value="Pendiente estado" <?= ($matricula['estado'] ?? '') == 'Pendiente estado' ? 'selected' : '' ?>>Pendiente estado</option>
+                            <option value="Admitido" <?= ($matricula['estado'] ?? '') == 'Admitido' ? 'selected' : '' ?>>Admitido</option>
+                            <option value="Pendiente docu" <?= ($matricula['estado'] ?? '') == 'Pendiente docu' ? 'selected' : '' ?>>Pendiente docu</option>
+                            <option value="Reserva" <?= ($matricula['estado'] ?? '') == 'Reserva' ? 'selected' : '' ?>>Reserva</option>
+                            <option value="Espera" <?= ($matricula['estado'] ?? '') == 'Espera' ? 'selected' : '' ?>>Espera</option>
+                            <option value="Empleado en curso" <?= ($matricula['estado'] ?? '') == 'Empleado en curso' ? 'selected' : '' ?>>Empleado en curso</option>
+                            <option value="Finalizado" <?= ($matricula['estado'] ?? '') == 'Finalizado' || ($matricula['estado'] ?? '') == 'Finalizada' ? 'selected' : '' ?>>Finalizado</option>
+                            <option value="Abandono" <?= ($matricula['estado'] ?? '') == 'Abandono' ? 'selected' : '' ?>>Abandono</option>
                             <option value="Baja" <?= ($matricula['estado'] ?? '') == 'Baja' ? 'selected' : '' ?>>Baja</option>
-                            <option value="Cancelada" <?= ($matricula['estado'] ?? '') == 'Cancelada' ? 'selected' : '' ?>>Cancelada</option>
+                            <option value="Inscrito" <?= ($matricula['estado'] ?? '') == 'Inscrito' ? 'selected' : '' ?>>Inscrito</option>
+                            <option value="Preinscrito" <?= ($matricula['estado'] ?? '') == 'Preinscrito' ? 'selected' : '' ?>>Preinscrito</option>
                         </select>
                     </div>
                     <div class="form-group" style="grid-column: span 1;">
@@ -1654,6 +1661,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; color: #431407; margin-left: 1rem;">
                             <input type="checkbox" name="comunicado_ugt" value="1" <?= !empty($matricula['comunicado_ugt']) ? 'checked' : '' ?> style="width: 16px; height: 16px;"> Comunicado UGT:
                         </label>
+                    </div>
+                </div>
+
+                <!-- NOMENCLATURA ESTÁNDAR DE ARCHIVOS (VISTA EN VIDEO IMG_5398) -->
+                <?php
+                    $std_dni = preg_replace('/[^a-zA-Z0-9]/', '', $matricula['dni'] ?? 'DNI');
+                    $std_grp = preg_replace('/[^a-zA-Z0-9]/', '', $matricula['af_abreviatura'] ?? $matricula['grupo_cod'] ?? 'GRUPO');
+                    if (empty($std_grp)) { $std_grp = 'GRUPO' . ($matricula['numero_grupo'] ?? '1'); }
+                    
+                    $file_types = [
+                        'Ficha' => $std_dni . '-FCH-' . $std_grp . '.pdf',
+                        'Anexo 1' => $std_dni . '-ANX-' . $std_grp . '.pdf',
+                        'Recibí 1' => $std_dni . '-RCB1-' . $std_grp . '.pdf',
+                        'Recibí 2' => $std_dni . '-RCB2-' . $std_grp . '.pdf',
+                        'Recibí diploma' => $std_dni . '-RCBD-' . $std_grp . '.pdf',
+                        'Copia diploma' => $std_dni . '-CPD-' . $std_grp . '.pdf',
+                        'Encuesta' => $std_dni . '-ENC-' . $std_grp . '.pdf',
+                        'Eval 0' => $std_dni . '-EVO-' . $std_grp . '.pdf',
+                        'Eval 1' => $std_dni . '-EV1-' . $std_grp . '.pdf',
+                        'Protección de datos' => $std_dni . '-PDD-' . $std_grp . '.pdf'
+                    ];
+                ?>
+                <div style="background: #f0f9ff; border: 1px solid #bae6fd; padding: 1.25rem; border-radius: 8px; margin-bottom: 2rem;">
+                    <h4 style="margin-top: 0; margin-bottom: 0.75rem; color: #0369a1; font-size: 0.95rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                        📁 Nomenclatura Estándar para Archivos (Clic para copiar el nombre exacto):
+                    </h4>
+                    <p style="font-size: 0.8rem; color: #0284c7; margin-top: 0; margin-bottom: 1rem;">
+                        Forma de nombrar los archivos para cumplimiento administrativo y almacenamiento digital:
+                    </p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 0.6rem;">
+                        <?php foreach ($file_types as $label => $fname): ?>
+                            <div style="display: flex; align-items: center; justify-content: space-between; background: white; padding: 0.4rem 0.8rem; border-radius: 6px; border: 1px solid #e0f2fe; font-size: 0.82rem;">
+                                <span><strong><?= $label ?>:</strong> <code style="color: #0369a1; font-weight: 600; background: #f8fafc; padding: 2px 6px; border-radius: 4px;"><?= $fname ?></code></span>
+                                <button type="button" onclick="navigator.clipboard.writeText('<?= $fname ?>'); alert('¡Copiado!: <?= $fname ?>');" class="btn-outline" style="padding: 2px 8px; font-size: 0.75rem; border-color: #38bdf8; color: #0284c7; background: #f0f9ff; cursor: pointer;">
+                                    📋 Copiar
+                                </button>
+                            </div>
+                        <?php endforeach; ?>
                     </div>
                 </div>
 

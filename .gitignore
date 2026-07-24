@@ -28,3 +28,6 @@ uploads/
 # Otros
 node_modules/
 vendor/
+*.mp4
+scratch_*
+
