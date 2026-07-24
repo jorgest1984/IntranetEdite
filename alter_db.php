@@ -57,6 +57,7 @@ try {
         'comercial_id' => 'INT NULL',
         'colectivo' => 'VARCHAR(255) NULL',
         'profesion' => 'VARCHAR(150) NULL',
+        'puesto_trabajo' => 'VARCHAR(150) NULL',
         'estudios' => 'VARCHAR(150) NULL',
         'discapacidad' => 'TINYINT(1) DEFAULT 0'
     ];
