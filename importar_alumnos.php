@@ -130,16 +130,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['archivo_csv'])) {
                         continue;
                     }
 
+                    $apellidos_combined = trim("$primer_apellido $segundo_apellido");
+                    if (empty($apellidos_combined)) {
+                        $apellidos_combined = '—';
+                    }
+
+                    $dni_val = !empty($dni) ? $dni : null;
+                    $email_val = !empty($email) ? $email : null;
+
                     // Comprobar si ya existe alumno por DNI o Email
                     $existe = false;
-                    if (!empty($dni)) {
-                        $stCh = $pdo->prepare("SELECT id FROM alumnos WHERE dni = ? AND dni <> '' LIMIT 1");
-                        $stCh->execute([$dni]);
+                    if (!empty($dni_val)) {
+                        $stCh = $pdo->prepare("SELECT id FROM alumnos WHERE dni = ? LIMIT 1");
+                        $stCh->execute([$dni_val]);
                         if ($stCh->fetch()) $existe = true;
                     }
-                    if (!$existe && !empty($email)) {
-                        $stChE = $pdo->prepare("SELECT id FROM alumnos WHERE email = ? AND email <> '' LIMIT 1");
-                        $stChE->execute([$email]);
+                    if (!$existe && !empty($email_val)) {
+                        $stChE = $pdo->prepare("SELECT id FROM alumnos WHERE email = ? LIMIT 1");
+                        $stChE->execute([$email_val]);
                         if ($stChE->fetch()) $existe = true;
                     }
 
@@ -166,13 +174,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['archivo_csv'])) {
                         try {
                             if ($existe) {
                                 // Actualizar si existe
-                                $stUp = $pdo->prepare("UPDATE alumnos SET nombre=?, primer_apellido=?, segundo_apellido=?, email=?, telefono=?, centro_trabajo=?, localidad=?, provincia=?, cp=?, colectivo=?, puesto_trabajo=?, comercial_id=COALESCE(?, comercial_id) WHERE dni=? OR email=?");
-                                $stUp->execute([$nombre, $primer_apellido, $segundo_apellido, $email, $telefono, $empresa_nombre, $localidad, $provincia, $cp, $colectivo, $puesto, $comercial_id_asignado, $dni, $email]);
+                                $stUp = $pdo->prepare("UPDATE alumnos SET nombre=?, apellidos=?, primer_apellido=?, segundo_apellido=?, email=?, telefono=?, centro_trabajo=?, localidad=?, provincia=?, cp=?, colectivo=?, puesto_trabajo=?, comercial_id=COALESCE(?, comercial_id) WHERE dni=? OR email=?");
+                                $stUp->execute([$nombre, $apellidos_combined, $primer_apellido, $segundo_apellido, $email_val, $telefono, $empresa_nombre, $localidad, $provincia, $cp, $colectivo, $puesto, $comercial_id_asignado, $dni_val, $email_val]);
                                 $actualizados++;
                             } else {
                                 // Insertar nuevo
-                                $stIns = $pdo->prepare("INSERT INTO alumnos (nombre, primer_apellido, segundo_apellido, dni, email, telefono, centro_trabajo, localidad, provincia, cp, colectivo, puesto_trabajo, comercial_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                                $stIns->execute([$nombre, $primer_apellido, $segundo_apellido, $dni, $email, $telefono, $empresa_nombre, $localidad, $provincia, $cp, $colectivo, $puesto, $comercial_id_asignado]);
+                                $stIns = $pdo->prepare("INSERT INTO alumnos (nombre, apellidos, primer_apellido, segundo_apellido, dni, email, telefono, centro_trabajo, localidad, provincia, cp, colectivo, puesto_trabajo, comercial_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                                $stIns->execute([$nombre, $apellidos_combined, $primer_apellido, $segundo_apellido, $dni_val, $email_val, $telefono, $empresa_nombre, $localidad, $provincia, $cp, $colectivo, $puesto, $comercial_id_asignado]);
                                 $insertados++;
                             }
                         } catch (PDOException $e) {

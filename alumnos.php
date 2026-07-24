@@ -182,10 +182,10 @@ try {
     }
 
     if ($search !== '') {
-        $stmtList = $pdo->prepare("SELECT $distinct alumnos.* FROM alumnos $join_clause WHERE (alumnos.nombre LIKE :search OR alumnos.primer_apellido LIKE :search OR alumnos.segundo_apellido LIKE :search OR alumnos.dni LIKE :search OR alumnos.email LIKE :search) AND $centro_filter ORDER BY alumnos.creado_en DESC LIMIT 100");
+        $stmtList = $pdo->prepare("SELECT $distinct alumnos.* FROM alumnos $join_clause WHERE (alumnos.nombre LIKE :search OR alumnos.primer_apellido LIKE :search OR alumnos.segundo_apellido LIKE :search OR alumnos.dni LIKE :search OR alumnos.email LIKE :search) AND $centro_filter ORDER BY alumnos.creado_en DESC LIMIT 500");
         $stmtList->execute(['search' => "%$search%"]);
     } else {
-        $stmtList = $pdo->query("SELECT $distinct alumnos.* FROM alumnos $join_clause WHERE $centro_filter ORDER BY alumnos.creado_en DESC LIMIT 100");
+        $stmtList = $pdo->query("SELECT $distinct alumnos.* FROM alumnos $join_clause WHERE $centro_filter ORDER BY alumnos.creado_en DESC LIMIT 500");
     }
     $alumnosList = $stmtList->fetchAll();
 } catch (Exception $e) {

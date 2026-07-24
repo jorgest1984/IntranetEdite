@@ -50,35 +50,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ejecutar_importacion'
                 $colectivo = trim($data[10] ?? 'Desempleado');
                 $puesto = trim($data[11] ?? '');
 
-                if (empty($nombre)) continue;
+                $apellidos_combined = trim("$primer_apellido $segundo_apellido");
+                if (empty($apellidos_combined)) {
+                    $apellidos_combined = '—';
+                }
+
+                $dni_val = !empty($dni) ? $dni : null;
+                $email_val = !empty($email) ? $email : null;
 
                 // Comprobar existencia
                 $existe_id = null;
-                if (!empty($dni)) {
-                    $stEx = $pdo->prepare("SELECT id FROM alumnos WHERE dni = ? AND dni <> '' LIMIT 1");
-                    $stEx->execute([$dni]);
+                if (!empty($dni_val)) {
+                    $stEx = $pdo->prepare("SELECT id FROM alumnos WHERE dni = ? LIMIT 1");
+                    $stEx->execute([$dni_val]);
                     $existe_id = $stEx->fetchColumn();
                 }
-                if (!$existe_id && !empty($email)) {
-                    $stExE = $pdo->prepare("SELECT id FROM alumnos WHERE email = ? AND email <> '' LIMIT 1");
-                    $stExE->execute([$email]);
+                if (!$existe_id && !empty($email_val)) {
+                    $stExE = $pdo->prepare("SELECT id FROM alumnos WHERE email = ? LIMIT 1");
+                    $stExE->execute([$email_val]);
                     $existe_id = $stExE->fetchColumn();
                 }
 
                 try {
                     if ($existe_id) {
-                        $stUp = $pdo->prepare("UPDATE alumnos SET nombre=?, primer_apellido=?, segundo_apellido=?, email=?, centro_trabajo=?, provincia=?, colectivo=?, comercial_id=COALESCE(?, comercial_id) WHERE id=?");
-                        $stUp->execute([$nombre, $primer_apellido, $segundo_apellido, $email, $empresa_nombre, $provincia, $colectivo, $comercial_id, $existe_id]);
+                        $stUp = $pdo->prepare("UPDATE alumnos SET nombre=?, apellidos=?, primer_apellido=?, segundo_apellido=?, email=?, centro_trabajo=?, provincia=?, colectivo=?, comercial_id=COALESCE(?, comercial_id) WHERE id=?");
+                        $stUp->execute([$nombre, $apellidos_combined, $primer_apellido, $segundo_apellido, $email_val, $empresa_nombre, $provincia, $colectivo, $comercial_id, $existe_id]);
                         $actualizados++;
                     } else {
-                        $stIns = $pdo->prepare("INSERT INTO alumnos (nombre, primer_apellido, segundo_apellido, dni, email, telefono, centro_trabajo, localidad, provincia, cp, colectivo, puesto_trabajo, comercial_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                        $stIns->execute([$nombre, $primer_apellido, $segundo_apellido, $dni, $email, $telefono, $empresa_nombre, $localidad, $provincia, $cp, $colectivo, $puesto, $comercial_id]);
+                        $stIns = $pdo->prepare("INSERT INTO alumnos (nombre, apellidos, primer_apellido, segundo_apellido, dni, email, telefono, centro_trabajo, localidad, provincia, cp, colectivo, puesto_trabajo, comercial_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                        $stIns->execute([$nombre, $apellidos_combined, $primer_apellido, $segundo_apellido, $dni_val, $email_val, $telefono, $empresa_nombre, $localidad, $provincia, $cp, $colectivo, $puesto, $comercial_id]);
                         $insertados++;
                     }
-                } catch (PDOException $e) {}
+                } catch (PDOException $e) {
+                    $error_msg = "Línea $num_linea (" . htmlspecialchars($nombre . ' ' . $apellidos_combined) . "): " . $e->getMessage();
+                    $errores_detalle[] = $error_msg;
+                }
             }
             fclose($handle);
-            $success = "¡Importación masiva de Patricia Vaquero completada! Registros procesados: $procesados (Nuevos: $insertados, Actualizados: $actualizados) asignados a Patricia Vaquero (ID #$comercial_id).";
+            $err_summary = !empty($errores_detalle) ? "<br><br><strong>Avisos/Errores en filas (" . count($errores_detalle) . "):</strong><br>" . implode("<br>", array_slice($errores_detalle, 0, 10)) : "";
+            $success = "¡Importación masiva de Patricia Vaquero completada! Registros procesados: $procesados (Nuevos: $insertados, Actualizados: $actualizados) asignados a Patricia Vaquero (ID #$comercial_id).$err_summary";
         }
     }
 }

@@ -136,7 +136,7 @@ try {
     }
 
     // Always run the query, even if no filters are applied
-    $sql .= " ORDER BY a.primer_apellido ASC, a.nombre ASC LIMIT 100";
+    $sql .= " ORDER BY a.primer_apellido ASC, a.nombre ASC LIMIT 500";
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
     $alumnos = $stmt->fetchAll();
