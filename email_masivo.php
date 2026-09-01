@@ -48,9 +48,17 @@ $current_page = 'email_masivo.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Email Masivo - <?= APP_NAME ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/main.css">
     <style>
         :root {
+            --primary-color: #006ce4;
+            --primary-hover: #0056b3;
+            --accent-blue: #0ea5e9;
+            --text-color: #0f172a;
+            --text-muted: #64748b;
+            --border-color: rgba(0, 108, 228, 0.08);
+            --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
             --title-red: #b91c1c;
             --label-blue: #1e40af;
             --border-gray: #cbd5e1;
@@ -203,30 +211,64 @@ $current_page = 'email_masivo.php';
         /* Action Bar for Tutorias */
         .action-bar {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #fff;
-            padding: 10px 15px;
-            border: 1px solid var(--border-gray);
-            border-radius: 4px;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            background: var(--glass-bg, #ffffff);
+            backdrop-filter: var(--glass-blur, none);
+            -webkit-backdrop-filter: var(--glass-blur, none);
+            padding: 1.25rem;
+            border: 1px solid var(--glass-border, rgba(0, 108, 228, 0.08));
+            border-radius: 16px;
+            margin-bottom: 2.5rem;
+            box-shadow: var(--glass-shadow, 0 4px 20px rgba(0, 0, 0, 0.02));
         }
+
         .action-bar .btn-action {
-            background: #f1f5f9;
-            border: 1px solid var(--border-gray);
-            padding: 6px 12px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: var(--label-blue);
+            padding: 0.7rem 1.25rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--sidebar-text, #334155);
+            background: var(--card-bg, #ffffff);
+            border: 1px solid var(--border-color, #e2e8f0);
+            border-radius: 12px;
             cursor: pointer;
-            border-radius: 3px;
             text-decoration: none;
-            transition: all 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);
+            height: 42px;
+            box-sizing: border-box;
         }
+
+        .action-bar .btn-action i {
+            font-size: 0.95rem;
+            color: var(--primary-color, #006ce4);
+            transition: transform 0.3s ease;
+        }
+
         .action-bar .btn-action:hover {
-            background: #e2e8f0;
-            color: var(--title-red);
+            color: var(--primary-color, #006ce4);
+            border-color: var(--primary-hover, #0056b3);
+            background: #eff6ff;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 108, 228, 0.1);
+        }
+
+        .action-bar .btn-action:hover i {
+            transform: scale(1.15) rotate(5deg);
+        }
+
+        .action-bar .btn-action.active-btn {
+            background: linear-gradient(135deg, var(--primary-color, #006ce4) 0%, var(--primary-hover, #0056b3) 100%);
+            color: #ffffff !important;
+            border-color: transparent;
+            box-shadow: 0 8px 20px rgba(0, 108, 228, 0.25);
+        }
+
+        .action-bar .btn-action.active-btn i {
+            color: #ffffff !important;
         }
 
         /* Sidebar highlighting */
@@ -243,6 +285,39 @@ $current_page = 'email_masivo.php';
 
         <main class="main-content" style="flex: 1; overflow-y: auto;">
             
+            <!-- ACTION BAR -->
+            <div class="action-bar">
+                <a href="tutorias.php?view=calcular" class="btn-action <?= ($active_view ?? '') == 'calcular' ? 'active-btn' : '' ?>">
+                    <i class="fas fa-calculator"></i> Calcular llamadas
+                </a>
+                <a href="email_masivo.php" class="btn-action <?= $current_page == 'email_masivo.php' ? 'active-btn' : '' ?>">
+                    <i class="fas fa-envelope"></i> E-mails masivos
+                </a>
+                <button type="button" class="btn-action">
+                    <i class="fas fa-play"></i> Inicio curso ()
+                </button>
+                <button type="button" class="btn-action">
+                    <i class="fas fa-adjust"></i> Mitad de curso ()
+                </button>
+                <button type="button" class="btn-action">
+                    <i class="fas fa-calendar-check"></i> 7 días fin ()
+                </button>
+                <button type="button" class="btn-action">
+                    <i class="fas fa-file-alt"></i> Documentación ()
+                </button>
+                <button type="button" class="btn-action">
+                    <i class="fas fa-upload"></i> Subir evals
+                </button>
+                <button type="button" class="btn-action">
+                    <i class="fas fa-print"></i> Imprimir evals
+                </button>
+                <a href="tutorias.php?view=llamadas" class="btn-action <?= ($active_view ?? '') == 'llamadas' ? 'active-btn' : '' ?>">
+                    <i class="fas fa-phone-alt"></i> Llamadas seguimiento
+                </a>
+                <a href="calendario_tutorias.php" class="btn-action <?= ($current_page ?? '') == 'calendario_tutorias.php' ? 'active-btn' : '' ?>">
+                    <i class="fas fa-calendar-alt"></i> Calendario de tutorias
+                </a>
+            </div>
 
 
             <!-- BUSCADOR -->

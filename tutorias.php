@@ -470,7 +470,7 @@ $current_page = 'tutorias.php';
                 <a href="tutorias.php?view=calcular" class="btn-action <?= $active_view == 'calcular' ? 'active-btn' : '' ?>">
                     <i class="fas fa-calculator"></i> Calcular llamadas
                 </a>
-                <a href="email_masivo.php" class="btn-action">
+                <a href="email_masivo.php" class="btn-action <?= ($current_page ?? '') == 'email_masivo.php' ? 'active-btn' : '' ?>">
                     <i class="fas fa-envelope"></i> E-mails masivos
                 </a>
                 <button type="button" class="btn-action">
@@ -494,7 +494,7 @@ $current_page = 'tutorias.php';
                 <a href="tutorias.php?view=llamadas" class="btn-action <?= $active_view == 'llamadas' ? 'active-btn' : '' ?>">
                     <i class="fas fa-phone-alt"></i> Llamadas seguimiento
                 </a>
-                <a href="calendario_tutorias.php" class="btn-action">
+                <a href="calendario_tutorias.php" class="btn-action <?= ($current_page ?? '') == 'calendario_tutorias.php' ? 'active-btn' : '' ?>">
                     <i class="fas fa-calendar-alt"></i> Calendario de tutorias
                 </a>
             </div>

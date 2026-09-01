@@ -438,51 +438,58 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                 <?php if (!empty($cursos)): ?>
                     <?php foreach ($cursos as $c): 
                         // Normalizar datos (pueden venir de API o de DB local)
-                        $cid = $c['id'];
                         $af_id = $c['af_id'] ?? null;
                         $plan_nombre = $c['plan_nombre'] ?? null;
-                        $local_db_id = null;
-                        if (isset($c['moodle_id'])) {
+                        
+                        // Verificar si viene de DB local o de API Moodle
+                        $is_local_db = array_key_exists('nombre_corto', $c) || array_key_exists('nombre_largo', $c);
+                        
+                        if ($is_local_db) {
                             // Viene de DB Local
-                            $cid = $c['moodle_id'];
-                            $cname = $c['nombre_corto'];
-                            $clong = $c['nombre_largo'];
-                            $local_db_id = $c['id'];
+                            $local_db_id = $c['id'] ?? null;
+                            $cid = !empty($c['moodle_id']) ? $c['moodle_id'] : ($c['id'] ?? null);
+                            $cname = !empty($c['nombre_corto']) ? $c['nombre_corto'] : ($c['shortname'] ?? 'Sin nombre');
+                            $clong = !empty($c['nombre_largo']) ? $c['nombre_largo'] : ($c['fullname'] ?? $cname);
                         } else {
-                            // Viene directo de API
-                            $cname = $c['shortname'];
-                            $clong = $c['fullname'];
+                            // Viene directo de API Moodle
+                            $local_db_id = null;
+                            $cid = $c['id'] ?? null;
+                            $cname = !empty($c['shortname']) ? $c['shortname'] : ($c['nombre_corto'] ?? 'Sin nombre');
+                            $clong = !empty($c['fullname']) ? $c['fullname'] : ($c['nombre_largo'] ?? $cname);
                         }
+
+                        $cname_safe = (string)($cname ?? '');
+                        $clong_safe = (string)($clong ?? '');
                     ?>
                     <div class="course-card">
                         <div class="course-cover">
                             <svg viewBox="0 0 24 24"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72M12 12.72v-3.72L17 11.27v3.72L12 15.99z"/></svg>
                         </div>
                         <div class="course-body">
-                            <h3 class="course-title" title="<?= htmlspecialchars($clong) ?>">
-                                <?= htmlspecialchars($cname) ?>
+                            <h3 class="course-title" title="<?= htmlspecialchars($clong_safe) ?>">
+                                <?= htmlspecialchars($cname_safe) ?>
                             </h3>
                             <div class="course-meta" style="margin-bottom: 0.5rem;">
-                                <span>Moodle ID: <?= $cid ?></span>
-                                <span>Local ID: <?= $local_db_id ? $local_db_id : 'Sync pendiente' ?></span>
+                                <span>Moodle ID: <?= htmlspecialchars((string)($cid ?? 'Sync pendiente')) ?></span>
+                                <span>Local ID: <?= $local_db_id ? htmlspecialchars((string)$local_db_id) : 'Sync pendiente' ?></span>
                             </div>
                             <div class="course-meta" style="margin-bottom: 1.5rem; font-weight: 500;">
-                                <span>Plan: <?= !empty($plan_nombre) ? '<strong style="color: #006ce4;">' . htmlspecialchars($plan_nombre) . '</strong>' : '<em style="color: var(--text-muted);">No asignado</em>' ?></span>
+                                <span>Plan: <?= !empty($plan_nombre) ? '<strong style="color: #006ce4;">' . htmlspecialchars((string)$plan_nombre) . '</strong>' : '<em style="color: var(--text-muted);">No asignado</em>' ?></span>
                             </div>
                             
                             <div class="course-actions" style="display: flex; flex-direction: column; gap: 0.5rem;">
                                 <?php if (!empty($af_id)): ?>
-                                    <a href="ficha_accion_formativa.php?id=<?= $af_id ?>" class="btn" style="width: 100%; justify-content: center; background: #10b981; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; box-sizing: border-box; text-align: center; display: inline-flex; align-items: center; padding: 0.75rem;">
+                                    <a href="ficha_accion_formativa.php?id=<?= htmlspecialchars((string)$af_id) ?>" class="btn" style="width: 100%; justify-content: center; background: #10b981; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; box-sizing: border-box; text-align: center; display: inline-flex; align-items: center; padding: 0.75rem;">
                                         <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="margin-right: 0.4rem;"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
                                         Ver Acción Formativa
                                     </a>
                                 <?php else: ?>
-                                    <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="openProvisionModal(<?= $cid ?>, '<?= htmlspecialchars(addslashes($cname)) ?>')">
+                                    <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="openProvisionModal(<?= json_encode($cid) ?>, '<?= htmlspecialchars(addslashes($cname_safe), ENT_QUOTES) ?>')">
                                         <svg viewBox="0 0 24 24"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                                         Gestionar Alumnos
                                     </button>
                                     <?php if ($local_db_id): ?>
-                                        <button class="btn" style="width: 100%; justify-content: center; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; display: inline-flex; align-items: center;" onclick="openAssignPlanModal(<?= $local_db_id ?>, '<?= htmlspecialchars(addslashes($clong)) ?>', '<?= htmlspecialchars(addslashes($cname)) ?>')">
+                                        <button class="btn" style="width: 100%; justify-content: center; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; display: inline-flex; align-items: center;" onclick="openAssignPlanModal(<?= json_encode($local_db_id) ?>, '<?= htmlspecialchars(addslashes($clong_safe), ENT_QUOTES) ?>', '<?= htmlspecialchars(addslashes($cname_safe), ENT_QUOTES) ?>')">
                                             <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="margin-right: 0.4rem;"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
                                             Asignar a Plan
                                         </button>
@@ -597,7 +604,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                 <select name="plan_id" class="form-input" required style="width: 100%;">
                     <option value="">-- Seleccionar Plan --</option>
                     <?php foreach ($planes as $p): ?>
-                        <option value="<?= $p['id'] ?>"><?= htmlspecialchars($p['nombre']) ?> (<?= htmlspecialchars($p['codigo']) ?>)</option>
+                        <option value="<?= $p['id'] ?>"><?= htmlspecialchars((string)($p['nombre'] ?? '')) ?> (<?= htmlspecialchars((string)($p['codigo'] ?? '')) ?>)</option>
                     <?php endforeach; ?>
                 </select>
             </div>

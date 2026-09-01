@@ -6,23 +6,8 @@ $content = file_get_contents($file);
 $content = str_replace("\$current_page = 'tutorias.php';", "\$current_page = 'email_masivo.php';", $content);
 $content = str_replace("<title>Tutorías - <?= APP_NAME ?></title>", "<title>Email Masivo - <?= APP_NAME ?></title>", $content);
 
-// Eliminar la action bar
-$action_bar = <<<'HTML'
-            <!-- ACTION BAR -->
-            <div class="action-bar">
-                <button type="button" class="btn-action">Calcular llamadas</button>
-                <button type="button" class="btn-action">E-mails masivos</button>
-                <button type="button" class="btn-action">Inicio curso ()</button>
-                <button type="button" class="btn-action">Mitad de curso ()</button>
-                <button type="button" class="btn-action">7 días fin ()</button>
-                <button type="button" class="btn-action">Documentación ()</button>
-                <button type="button" class="btn-action">Subir evals</button>
-                <button type="button" class="btn-action">Imprimir evals</button>
-                <button type="button" class="btn-action">Llamadas seguimiento</button>
-                <button type="button" class="btn-action">Calendario de tutorias</button>
-            </div>
-HTML;
-$content = str_replace($action_bar, "", $content);
+// Conservar la action bar
+// $content = str_replace($action_bar, "", $content);
 
 // Reemplazar Búsqueda (Buscador -> Resultados)
 $start = strpos($content, "<!-- BUSCADOR -->");
