@@ -493,43 +493,59 @@ class MoodleAPI {
                     return [['id' => (int)$existing['id']]];
                 }
                 
+                // Resolver categoría válida en Moodle
+                $catId = (int)$categoryId;
+                try {
+                    $stmtCat = $mpdo->query("SELECT id FROM {$prefix}course_categories ORDER BY id ASC LIMIT 1");
+                    $catRow = $stmtCat ? $stmtCat->fetch() : null;
+                    if ($catRow && !empty($catRow['id'])) {
+                        $catId = (int)$catRow['id'];
+                    }
+                } catch (Exception $ce) {}
+                
                 $now = time();
                 $stmtIns = $mpdo->prepare("
                     INSERT INTO {$prefix}course (
-                        category, fullname, shortname, summary, summaryformat, 
+                        category, sortorder, fullname, shortname, idnumber, summary, summaryformat, 
                         format, showgrades, newsitems, startdate, enddate, 
-                        numsections, marker, maxbytes, legacyfiles, showreports, 
+                        marker, maxbytes, legacyfiles, showreports, 
                         visible, visibleold, groupmode, groupmodeforce, defaultgroupingid, 
-                        timecreated, timemodified, requested, enablecompletion, completionnotify
+                        lang, calendartype, theme, timecreated, timemodified, requested, enablecompletion, completionnotify
                     ) VALUES (
-                        ?, ?, ?, ?, 1, 
+                        ?, 0, ?, ?, '', ?, 1, 
                         'topics', 1, 5, ?, 0, 
-                        0, 0, 0, 0, 0, 
+                        0, 0, 0, 0, 
                         1, 1, 0, 0, 0, 
-                        ?, ?, 0, 1, 0
+                        '', '', '', ?, ?, 0, 1, 0
                     )
                 ");
-                $stmtIns->execute([(int)$categoryId, $fullname, $shortname, (string)$summary, $now, $now, $now]);
+                $stmtIns->execute([$catId, $fullname, $shortname, (string)$summary, $now, $now, $now]);
                 $newCourseId = (int)$mpdo->lastInsertId();
                 
                 if ($newCourseId > 0) {
                     // Crear contexto del curso (contextlevel 50)
-                    $stmtCtx = $mpdo->prepare("INSERT INTO {$prefix}context (contextlevel, instanceid, depth, path) VALUES (50, ?, 2, ?)");
-                    $stmtCtx->execute([$newCourseId, '/1']);
-                    $ctxId = (int)$mpdo->lastInsertId();
-                    if ($ctxId > 0) {
-                        $path = "/1/" . $ctxId;
-                        $stmtCtxUpd = $mpdo->prepare("UPDATE {$prefix}context SET path = ? WHERE id = ?");
-                        $stmtCtxUpd->execute([$path, $ctxId]);
-                    }
+                    try {
+                        $stmtCtx = $mpdo->prepare("INSERT INTO {$prefix}context (contextlevel, instanceid, depth, path) VALUES (50, ?, 2, ?)");
+                        $stmtCtx->execute([$newCourseId, '/1']);
+                        $ctxId = (int)$mpdo->lastInsertId();
+                        if ($ctxId > 0) {
+                            $path = "/1/" . $ctxId;
+                            $stmtCtxUpd = $mpdo->prepare("UPDATE {$prefix}context SET path = ? WHERE id = ?");
+                            $stmtCtxUpd->execute([$path, $ctxId]);
+                        }
+                    } catch (Exception $ctxEx) {}
                     
                     // Crear sección 0 básica
-                    $stmtSec = $mpdo->prepare("INSERT INTO {$prefix}course_sections (course, section, summary, summaryformat, sequence) VALUES (?, 0, '', 1, '')");
-                    $stmtSec->execute([$newCourseId]);
+                    try {
+                        $stmtSec = $mpdo->prepare("INSERT INTO {$prefix}course_sections (course, section, summary, summaryformat, sequence) VALUES (?, 0, '', 1, '')");
+                        $stmtSec->execute([$newCourseId]);
+                    } catch (Exception $secEx) {}
 
                     // Crear método de matriculación manual (enrol = manual)
-                    $stmtEnrol = $mpdo->prepare("INSERT INTO {$prefix}enrol (enrol, status, courseid, sortorder, expirythreshold, roleid, timecreated, timemodified) VALUES ('manual', 0, ?, 0, 0, 5, ?, ?)");
-                    $stmtEnrol->execute([$newCourseId, $now, $now]);
+                    try {
+                        $stmtEnrol = $mpdo->prepare("INSERT INTO {$prefix}enrol (enrol, status, courseid, sortorder, expirythreshold, roleid, timecreated, timemodified) VALUES ('manual', 0, ?, 0, 0, 5, ?, ?)");
+                        $stmtEnrol->execute([$newCourseId, $now, $now]);
+                    } catch (Exception $enrolEx) {}
                     
                     return [['id' => $newCourseId]];
                 }
