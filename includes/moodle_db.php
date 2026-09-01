@@ -422,5 +422,151 @@ class MoodleDB {
 
         return $stats;
     }
+
+    /**
+     * Obtiene estadísticas detalladas y logs de conexión de un inspector en Moodle
+     */
+    public function fetchInspectorStats($moodleCourseId, $gestorUsername) {
+        $result = [
+            'found' => false,
+            'moodle_user_id' => null,
+            'username' => $gestorUsername,
+            'fullname' => 'Inspector SEPE',
+            'email' => '',
+            'first_access' => null,
+            'last_access' => null,
+            'total_seconds' => 0,
+            'session_count' => 0,
+            'sessions' => [],
+            'ips' => [],
+            'logs' => []
+        ];
+
+        if (empty($gestorUsername) || !$this->isConnected()) {
+            return $result;
+        }
+
+        try {
+            $prefix = defined('MOODLE_DB_PREFIX') ? MOODLE_DB_PREFIX : 'avefp_';
+            $cleanUser = strtolower(trim($gestorUsername));
+
+            // 1. Buscar el usuario en Moodle por username o email
+            $sqlUser = "SELECT id, username, firstname, lastname, email, firstaccess, lastaccess 
+                        FROM {$prefix}user 
+                        WHERE LOWER(username) = ? OR LOWER(username) = ? OR LOWER(email) = ? 
+                        LIMIT 1";
+            $stmtUser = $this->mpdo->prepare($sqlUser);
+            $sanitizedUser = preg_replace('/[^a-z0-9_.-]/', '', str_replace(' ', '_', $cleanUser));
+            $stmtUser->execute([$cleanUser, $sanitizedUser, $cleanUser]);
+            $uRow = $stmtUser->fetch(PDO::FETCH_ASSOC);
+
+            if (!$uRow) {
+                // Buscar si hay algún usuario con rol de inspector (teacher non-editing) en el curso
+                $sqlRoleUser = "SELECT u.id, u.username, u.firstname, u.lastname, u.email 
+                                FROM {$prefix}role_assignments ra 
+                                JOIN {$prefix}context ctx ON ra.contextid = ctx.id 
+                                JOIN {$prefix}user u ON ra.userid = u.id 
+                                WHERE ctx.instanceid = ? AND ctx.contextlevel = 50 
+                                  AND (ra.roleid = 4 OR LOWER(u.username) LIKE '%inspect%' OR LOWER(u.username) LIKE '%gestor%')
+                                LIMIT 1";
+                $stmtRoleUser = $this->mpdo->prepare($sqlRoleUser);
+                $stmtRoleUser->execute([$moodleCourseId]);
+                $uRow = $stmtRoleUser->fetch(PDO::FETCH_ASSOC);
+            }
+
+            if ($uRow) {
+                $result['found'] = true;
+                $result['moodle_user_id'] = (int)$uRow['id'];
+                $result['username'] = $uRow['username'];
+                $result['fullname'] = trim($uRow['firstname'] . ' ' . $uRow['lastname']);
+                $result['email'] = $uRow['email'];
+                $muid = (int)$uRow['id'];
+
+                // 2. Obtener logs completos del inspector en este curso
+                $sqlLogs = "SELECT id, eventname, component, action, target, ip, timecreated 
+                            FROM {$prefix}logstore_standard_log 
+                            WHERE courseid = ? AND userid = ? 
+                            ORDER BY timecreated ASC";
+                $stmtLogs = $this->mpdo->prepare($sqlLogs);
+                $stmtLogs->execute([(int)$moodleCourseId, $muid]);
+                $rawLogs = $stmtLogs->fetchAll(PDO::FETCH_ASSOC);
+
+                if (!empty($rawLogs)) {
+                    $timestamps = [];
+                    $ips = [];
+                    $formattedLogs = [];
+
+                    foreach ($rawLogs as $log) {
+                        $tc = (int)$log['timecreated'];
+                        $timestamps[] = $tc;
+                        if (!empty($log['ip']) && !in_array($log['ip'], $ips)) {
+                            $ips[] = $log['ip'];
+                        }
+                        $formattedLogs[] = [
+                            'id' => $log['id'],
+                            'eventname' => $log['eventname'],
+                            'action' => $log['action'],
+                            'target' => $log['target'],
+                            'ip' => $log['ip'],
+                            'timestamp' => $tc,
+                            'datetime' => date('Y-m-d H:i:s', $tc)
+                        ];
+                    }
+
+                    $result['ips'] = $ips;
+                    $result['logs'] = array_reverse($formattedLogs); // Más recientes primero para auditoría
+                    $result['first_access'] = date('Y-m-d H:i:s', min($timestamps));
+                    $result['last_access'] = date('Y-m-d H:i:s', max($timestamps));
+
+                    // 3. Agrupar timestamps en sesiones (umbral de inactivad de 30 min)
+                    sort($timestamps);
+                    $sessions = [];
+                    $total_seconds = 0;
+                    $current_start = $timestamps[0];
+                    $current_last = $timestamps[0];
+                    $n = count($timestamps);
+
+                    for ($i = 1; $i < $n; $i++) {
+                        $diff = $timestamps[$i] - $current_last;
+                        if ($diff < 1800) { // 30 minutos
+                            $current_last = $timestamps[$i];
+                        } else {
+                            $duration = max(120, $current_last - $current_start + 120); // 2 min cortesía
+                            $sessions[] = [
+                                'start' => $current_start,
+                                'end' => $current_last,
+                                'date' => date('d/m/Y', $current_start),
+                                'start_time' => date('H:i:s', $current_start),
+                                'end_time' => date('H:i:s', $current_last),
+                                'duration' => $duration
+                            ];
+                            $total_seconds += $duration;
+                            $current_start = $timestamps[$i];
+                            $current_last = $timestamps[$i];
+                        }
+                    }
+
+                    $duration = max(120, $current_last - $current_start + 120);
+                    $sessions[] = [
+                        'start' => $current_start,
+                        'end' => $current_last,
+                        'date' => date('d/m/Y', $current_start),
+                        'start_time' => date('H:i:s', $current_start),
+                        'end_time' => date('H:i:s', $current_last),
+                        'duration' => $duration
+                    ];
+                    $total_seconds += $duration;
+
+                    $result['sessions'] = array_reverse($sessions);
+                    $result['session_count'] = count($sessions);
+                    $result['total_seconds'] = $total_seconds;
+                }
+            }
+        } catch (Exception $e) {
+            // Silencioso
+        }
+
+        return $result;
+    }
 }
 ?>
