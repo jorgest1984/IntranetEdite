@@ -21,9 +21,9 @@ $search_q     = trim($_GET['q'] ?? '');
 $status_filter = trim($_GET['status'] ?? 'all'); // all, active, low, none, missing
 
 // Obtener grupos y sus inspectores (usuario_gestor)
-$sql = "SELECT g.id as grupo_id, g.codigo as grupo_codigo, g.usuario_gestor, g.contrasena_gestor,
+$sql = "SELECT g.id as grupo_id, COALESCE(g.numero_grupo, CONCAT('G-', g.id)) as grupo_codigo, g.usuario_gestor, g.contrasena_gestor,
                g.fecha_inicio, g.fecha_fin, g.id_plataforma as grupo_moodle_id,
-               af.num_accion, af.denominacion as af_nombre, af.id_plataforma as af_moodle_id,
+               af.num_accion, af.titulo as af_nombre, af.id_plataforma as af_moodle_id,
                c.nombre_largo as curso_titulo, c.id as curso_id
         FROM grupos g
         JOIN acciones_formativas af ON g.accion_id = af.id
@@ -37,7 +37,7 @@ if (!empty($_SESSION['centro_id'])) {
 }
 
 if (!empty($search_q)) {
-    $sql .= " AND (g.codigo LIKE ? OR af.num_accion LIKE ? OR c.nombre_largo LIKE ? OR g.usuario_gestor LIKE ?)";
+    $sql .= " AND (g.numero_grupo LIKE ? OR af.num_accion LIKE ? OR c.nombre_largo LIKE ? OR g.usuario_gestor LIKE ?)";
     $term = "%{$search_q}%";
     $params = array_merge($params, [$term, $term, $term, $term]);
 }

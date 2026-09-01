@@ -19,7 +19,7 @@ if (!$grupo_id) {
 }
 
 // 1. Obtener datos del grupo y su curso
-$stmt = $pdo->prepare("SELECT g.*, af.num_accion, af.denominacion as af_nombre, af.id_plataforma as af_moodle_id,
+$stmt = $pdo->prepare("SELECT g.*, COALESCE(g.numero_grupo, CONCAT('G-', g.id)) as codigo, af.num_accion, af.titulo as af_nombre, af.id_plataforma as af_moodle_id,
                               c.nombre_largo as curso_titulo, c.id as curso_id,
                               cen.nombre as centro_nombre
                        FROM grupos g
