@@ -707,18 +707,30 @@ function resetSearch() {
 
 function syncMoodle(afId) {
     const btn = document.getElementById('btnSyncMoodle');
-    const originalText = btn.innerHTML;
+    const originalText = btn ? btn.innerHTML : '';
     
-    btn.disabled = true;
-    btn.innerHTML = '⌛ Sincronizando con Moodle...';
-    btn.style.opacity = '0.7';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '⌛ Sincronizando con Moodle...';
+        btn.style.opacity = '0.7';
+    }
     
     fetch(`api_sync_moodle.php?id=${afId}`)
-        .then(response => response.json())
+        .then(response => {
+            return response.text().then(text => {
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    throw new Error("Respuesta del servidor no válida: " + text.substring(0, 300));
+                }
+            });
+        })
         .then(data => {
-            btn.disabled = false;
-            btn.innerHTML = originalText;
-            btn.style.opacity = '1';
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                btn.style.opacity = '1';
+            }
             
             if (data.success) {
                 alert('✅ Sincronización exitosa:\n\n' + data.message);
@@ -729,10 +741,12 @@ function syncMoodle(afId) {
             }
         })
         .catch(err => {
-            btn.disabled = false;
-            btn.innerHTML = originalText;
-            btn.style.opacity = '1';
-            alert('❌ Error de red al comunicarse con la intranet para sincronizar.');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                btn.style.opacity = '1';
+            }
+            alert('❌ Error al comunicarse con el servidor:\n\n' + err.message);
             console.error('Sync error:', err);
         });
 }

@@ -1,13 +1,17 @@
 <?php
 // api_sync_moodle.php
+ob_start();
 require_once 'includes/auth.php';
 require_once 'includes/config.php';
 require_once 'includes/moodle_api.php';
 
-header('Content-Type: application/json');
-
 $af_id = (int)($_GET['id'] ?? 0);
-if (!$af_id) { echo json_encode(['success' => false, 'error' => 'ID no proporcionado']); exit; }
+if (!$af_id) { 
+    ob_clean();
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['success' => false, 'error' => 'ID no proporcionado']); 
+    exit; 
+}
 
 try {
     $moodle = new MoodleAPI($pdo);
@@ -17,9 +21,12 @@ try {
 
     // 1. Obtener datos de la Acción Formativa y su Convocatoria
     // Usamos af.id_plataforma como ID del curso en Moodle (se edita desde editar_af.php)
-    $stmt = $pdo->prepare("SELECT af.*, c.nombre_largo as titulo, c.nombre_corto, conv.nombre as convocatoria_nombre
+    $stmt = $pdo->prepare("SELECT af.*, 
+                                  COALESCE(c.nombre_largo, af.titulo) as titulo, 
+                                  COALESCE(c.nombre_corto, af.abreviatura) as nombre_corto, 
+                                  conv.nombre as convocatoria_nombre
                            FROM acciones_formativas af 
-                           JOIN cursos c ON af.curso_id = c.id 
+                           LEFT JOIN cursos c ON af.curso_id = c.id 
                            LEFT JOIN planes p ON af.plan_id = p.id
                            LEFT JOIN convocatorias conv ON p.convocatoria_id = conv.id
                            WHERE af.id = ?");
@@ -51,8 +58,9 @@ try {
             }
         }
 
-        $fullname = $af['titulo'];
-        $shortname = $af['abreviatura'] ?: 'CURSO-' . $af_id;
+        $fullname = !empty($af['titulo']) ? $af['titulo'] : (!empty($af['num_accion']) ? 'Accion ' . $af['num_accion'] : 'Curso AF-' . $af_id);
+        $shortname = !empty($af['nombre_corto']) ? $af['nombre_corto'] : (!empty($af['abreviatura']) ? $af['abreviatura'] : 'CURSO-' . $af_id);
+        
         $moodleResult = $moodle->createCourse($fullname, $shortname, $categoryId);
         if (isset($moodleResult[0]['id'])) {
             $courseId = $moodleResult[0]['id'];
@@ -67,7 +75,27 @@ try {
     $stmt = $pdo->prepare("SELECT id, id_plataforma, usuario_gestor, contrasena_gestor, tutor_id, tutor_id_2, tutor_reserva_id, fecha_inicio, fecha_fin FROM grupos WHERE accion_id = ? LIMIT 1");
     $stmt->execute([$af_id]);
     $grupo = $stmt->fetch();
-    $grupo_id_local = $grupo['id'];
+    
+    if (!$grupo) {
+        // Crear automáticamente el grupo si no existía aún en la base de datos local
+        $stmtInsGroup = $pdo->prepare("INSERT INTO grupos (accion_id, numero_grupo, estado) VALUES (?, '1', 'En proceso')");
+        $stmtInsGroup->execute([$af_id]);
+        $grupo_id_local = $pdo->lastInsertId();
+        $grupo = [
+            'id' => $grupo_id_local,
+            'id_plataforma' => null,
+            'usuario_gestor' => null,
+            'contrasena_gestor' => null,
+            'tutor_id' => null,
+            'tutor_id_2' => null,
+            'tutor_reserva_id' => null,
+            'fecha_inicio' => null,
+            'fecha_fin' => null
+        ];
+    } else {
+        $grupo_id_local = $grupo['id'];
+    }
+    
     $moodleGroupId = $grupo['id_plataforma'];
 
     // Validar si el grupo guardado realmente existe en Moodle
@@ -92,7 +120,7 @@ try {
     $is_finished = false;
     if (!empty($grupo['fecha_fin'])) {
         $fecha_fin_time = strtotime($grupo['fecha_fin']);
-        if (time() > ($fecha_fin_time + 86399)) {
+        if ($fecha_fin_time && time() > ($fecha_fin_time + 86399)) {
             $is_finished = true;
         }
     }
@@ -117,7 +145,7 @@ try {
         $moodleUserId = $moodle->provisionStudent($courseId, $moodleGroupId, $userData, $student_status);
         
         // Actualizar el moodle_user_id local si no lo tenía
-        if ($moodleUserId && $alumno['moodle_user_id'] != $moodleUserId) {
+        if ($moodleUserId && ($alumno['moodle_user_id'] ?? null) != $moodleUserId) {
             $pdo->prepare("UPDATE alumnos SET moodle_user_id = ? WHERE id = ?")->execute([$moodleUserId, $alumno['id']]);
         }
         $syncCount++;
@@ -210,11 +238,16 @@ try {
     }
 
     $finished_suffix = $is_finished ? " (Curso finalizado: alumnos suspendidos en Moodle)" : " (Curso activo)";
+    
+    ob_clean();
+    header('Content-Type: application/json; charset=utf-8');
     echo json_encode([
         'success' => true, 
         'message' => "Sincronización exitosa. Curso ID: $courseId, Alumnos sincronizados: $syncCount" . $finished_suffix . $gestor_msg . $tutor_msg
     ]);
 
 } catch (Exception $e) {
+    ob_clean();
+    header('Content-Type: application/json; charset=utf-8');
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }
