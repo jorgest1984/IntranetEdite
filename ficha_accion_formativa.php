@@ -264,14 +264,15 @@ try {
 
         .tabs-header {
             display: flex;
+            flex-wrap: wrap;
             background: #f8fafc;
             border-bottom: 1px solid var(--border-color);
-            padding: 0 1rem;
-            gap: 5px;
+            padding: 4px 1rem;
+            gap: 4px;
         }
 
         .tab-btn {
-            padding: 14px 20px;
+            padding: 12px 18px;
             border: none;
             background: none;
             cursor: pointer;
@@ -280,6 +281,9 @@ try {
             color: var(--text-muted);
             transition: all 0.2s ease;
             position: relative;
+            z-index: 2;
+            white-space: nowrap;
+            border-radius: 8px 8px 0 0;
         }
 
         .tab-btn:hover {
