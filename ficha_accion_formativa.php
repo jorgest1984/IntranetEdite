@@ -1118,7 +1118,7 @@ try {
                 <?php if (!$is_comercial): ?>
                 <button type="button" class="tab-btn" onclick="switchTab(event, 'instalacion')">Instalación</button>
                 <?php endif; ?>
-                <?php if ($moodle_connected): ?>
+                <?php if ($id): ?>
                     <button type="button" class="tab-btn" onclick="switchTab(event, 'seguimiento-moodle')">Seguimiento Moodle</button>
                     <button type="button" class="tab-btn" onclick="switchTab(event, 'encuestas')">Encuestas Fundae</button>
                 <?php endif; ?>
@@ -2599,8 +2599,8 @@ try {
 
         function switchTab(event, tabId) {
             if (event) {
-                event.preventDefault();
-                event.stopPropagation();
+                if (typeof event.preventDefault === 'function') event.preventDefault();
+                if (typeof event.stopPropagation === 'function') event.stopPropagation();
             }
             
             const tabInput = document.getElementById('active-tab-input');
@@ -2624,9 +2624,13 @@ try {
                 targetContent.style.display = 'block';
             }
             
-            // Activate the clicked button
-            if (event && event.currentTarget) {
-                event.currentTarget.classList.add('active');
+            // Activate the clicked or matched button
+            let btnToActivate = (event && event.currentTarget) ? event.currentTarget : null;
+            if (!btnToActivate) {
+                btnToActivate = document.querySelector(`.tab-btn[onclick*="'${tabId}'"]`) || document.querySelector(`.tab-btn[onclick*="${tabId}"]`);
+            }
+            if (btnToActivate) {
+                btnToActivate.classList.add('active');
             }
         }
 
