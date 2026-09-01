@@ -151,6 +151,33 @@ $current_page = 'tutorias.php';
         .span-11 { grid-column: span 11; }
         .span-12 { grid-column: span 12; }
 
+        @media (max-width: 1024px) {
+            .form-grid { grid-template-columns: repeat(6, 1fr); }
+            .span-4 { grid-column: span 3; }
+            .span-3 { grid-column: span 3; }
+            .span-2 { grid-column: span 3; }
+        }
+
+        @media (max-width: 640px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .span-1, .span-2, .span-3, .span-4, .span-5, .span-6, .span-7, .span-8, .span-9, .span-10, .span-11, .span-12 { grid-column: span 1 / -1; }
+        }
+
+        .form-section-divider {
+            grid-column: span 12;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--primary-color);
+            border-bottom: 1px dashed var(--border-color);
+            padding-bottom: 0.35rem;
+            margin-top: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
         .form-group-custom label {
             font-size: 0.72rem;
             font-weight: 700;
@@ -473,17 +500,19 @@ $current_page = 'tutorias.php';
             </div>
 
             <?php if ($active_view === 'calcular'): ?>
-            <!-- VISTA: CALCULAR LLAMADAS (BUSCADOR             <div class="card-premium">
+            <!-- VISTA: CALCULAR LLAMADAS (BUSCADOR AVANZADO v1.5) -->
+            <div class="card-premium">
                 <div class="card-header-premium">
                     <h2><i class="fas fa-calculator"></i> Calcular llamadas (Buscador Avanzado v1.5)</h2>
-                    <button type="button" class="btn btn-secondary" style="height: 32px; padding: 0 12px; font-size: 0.78rem;">Quitar autofiltro</button>
+                    <button type="button" class="btn btn-secondary" onclick="window.location.href='tutorias.php?view=calcular'" style="height: 32px; padding: 0 12px; font-size: 0.78rem;">Quitar autofiltro</button>
                 </div>
                 
                 <form class="search-form" method="GET" style="padding: 0;">
                     <input type="hidden" name="view" value="calcular">
                     
                     <div class="form-grid">
-                        <!-- Autofiltros superiores -->
+                        <!-- Section 1: Autofiltros superiores -->
+                        <div class="form-section-divider"><i class="fas fa-user-tag"></i> 1. Asignaciones y Autofiltros</div>
                         <div class="form-group-custom span-4">
                             <label>Tutor</label>
                             <select name="tutor" class="form-control-edit">
@@ -526,7 +555,8 @@ $current_page = 'tutorias.php';
                             </select>
                         </div>
                         
-                        <!-- Datos Personales -->
+                        <!-- Section 2: Datos Personales -->
+                        <div class="form-section-divider"><i class="fas fa-user"></i> 2. Datos del Alumno y Empresa</div>
                         <div class="form-group-custom span-3">
                             <label>Nombre</label>
                             <input type="text" name="nombre" class="form-control-edit">
@@ -570,7 +600,8 @@ $current_page = 'tutorias.php';
                             </select>
                         </div>
 
-                        <!-- Académico -->
+                        <!-- Section 3: Académico -->
+                        <div class="form-section-divider"><i class="fas fa-graduation-cap"></i> 3. Datos de Formación, Grupo y Convocatoria</div>
                         <div class="form-group-custom span-2">
                             <label>Acción</label>
                             <input type="text" name="accion" class="form-control-edit">
@@ -610,7 +641,8 @@ $current_page = 'tutorias.php';
                             <select name="modalidad" class="form-control-edit"><option value=""></option></select>
                         </div>
 
-                        <!-- Estados Documentales -->
+                        <!-- Section 4: Estados Documentales -->
+                        <div class="form-section-divider"><i class="fas fa-file-alt"></i> 4. Estados Documentales y Seguimiento</div>
                         <div class="form-group-custom span-2">
                             <label>Entregado mat</label>
                             <select name="entregado" class="form-control-edit"><option value=""></option></select>
@@ -636,7 +668,8 @@ $current_page = 'tutorias.php';
                             <select name="docu_curso_pte" class="form-control-edit"><option value=""></option></select>
                         </div>
 
-                        <!-- Fechas v2 -->
+                        <!-- Section 5: Fechas v2 -->
+                        <div class="form-section-divider"><i class="fas fa-calendar-alt"></i> 5. Filtros por Rangos de Fechas</div>
                         <div class="form-group-custom span-3">
                             <label>Inicio desde / hasta</label>
                             <div style="display: flex; gap: 5px;">
@@ -659,23 +692,24 @@ $current_page = 'tutorias.php';
                             </div>
                         </div>
                         <div class="form-group-custom span-3">
-                            <label>Fin desde</label>
+                            <label>Fin desde / hasta</label>
                             <div style="display: flex; gap: 5px;">
                                 <input type="text" name="fin_desde" class="form-control-edit" placeholder="Desde" style="flex: 1;">
                                 <input type="text" name="fin_hasta" class="form-control-edit" placeholder="Hasta" style="flex: 1;">
                             </div>
                         </div>
 
-                        <!-- Checkboxes / Toggles -->
-                        <div class="form-group-custom span-4" style="flex-direction: row; align-items: center; gap: 8px; padding-top: 15px;">
+                        <!-- Section 6: Checkboxes / Toggles -->
+                        <div class="form-section-divider"><i class="fas fa-exclamation-triangle"></i> 6. Alertas y Excepciones</div>
+                        <div class="form-group-custom span-4" style="flex-direction: row; align-items: center; gap: 8px; padding-top: 5px;">
                             <input type="checkbox" name="eval_hechas_sin_subir" id="eval_no_sub" style="width: 17px; height: 17px;">
                             <label for="eval_no_sub" style="cursor: pointer; margin: 0; color: #ef4444; font-weight: bold;">Evals hechas sin subir</label>
                         </div>
-                        <div class="form-group-custom span-4" style="flex-direction: row; align-items: center; gap: 8px; padding-top: 15px;">
+                        <div class="form-group-custom span-4" style="flex-direction: row; align-items: center; gap: 8px; padding-top: 5px;">
                             <input type="checkbox" name="no_conec_15" id="no_conec_15" style="width: 17px; height: 17px;">
                             <label for="no_conec_15" style="cursor: pointer; margin: 0; color: #ef4444; font-weight: bold;">No conectados antes del 15%</label>
                         </div>
-                        <div class="form-group-custom span-4" style="flex-direction: row; align-items: center; gap: 8px; padding-top: 15px;">
+                        <div class="form-group-custom span-4" style="flex-direction: row; align-items: center; gap: 8px; padding-top: 5px;">
                             <input type="checkbox" name="no_conec_25" id="no_conec_25" style="width: 17px; height: 17px;">
                             <label for="no_conec_25" style="cursor: pointer; margin: 0; color: #ef4444; font-weight: bold;">No conectados antes del 25%</label>
                         </div>
