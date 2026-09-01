@@ -52,7 +52,9 @@ function format_duration_full($seconds) {
 }
 
 function get_day_name_es($dateStr) {
-    $ts = strtotime($dateStr);
+    if (empty($dateStr)) return 'N/A';
+    $ts = strtotime((string)$dateStr);
+    if (!$ts) return 'N/A';
     $days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     return $days[date('w', $ts)];
 }
@@ -324,11 +326,11 @@ $current_page = 'conexion_inspectores.php';
                     </div>
                     <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
                         <span style="color: #64748b;">Primer Acceso:</span>
-                        <strong><?= $stats['first_access'] ? date('d/m/Y H:i:s', strtotime($stats['first_access'])) : 'N/A' ?></strong>
+                        <strong><?= !empty($stats['first_access']) ? date('d/m/Y H:i:s', strtotime((string)$stats['first_access'])) : 'N/A' ?></strong>
                     </div>
                     <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
                         <span style="color: #64748b;">Último Acceso:</span>
-                        <strong><?= $stats['last_access'] ? date('d/m/Y H:i:s', strtotime($stats['last_access'])) : 'N/A' ?></strong>
+                        <strong><?= !empty($stats['last_access']) ? date('d/m/Y H:i:s', strtotime((string)$stats['last_access'])) : 'N/A' ?></strong>
                     </div>
                     <div style="display: flex; justify-content: space-between;">
                         <span style="color: #64748b;">Total Registros en Log:</span>

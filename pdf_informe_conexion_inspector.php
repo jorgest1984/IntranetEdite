@@ -99,9 +99,12 @@ $pdf->SetFont('Arial', '', 9.5);
 $pdf->SetTextColor(40, 40, 40);
 $pdf->SetX(14);
 $pdf->Cell(90, 5, pdf_utf8('Acción Formativa: ') . pdf_utf8($grupo['num_accion']) . ' - ' . pdf_utf8($grupo['af_nombre']), 0, 1);
+$f_ini = (!empty($grupo['fecha_inicio']) && $grupo['fecha_inicio'] !== '0000-00-00') ? date('d/m/Y', strtotime((string)$grupo['fecha_inicio'])) : 'Pendiente';
+$f_fin = (!empty($grupo['fecha_fin']) && $grupo['fecha_fin'] !== '0000-00-00') ? date('d/m/Y', strtotime((string)$grupo['fecha_fin'])) : 'Pendiente';
+
 $pdf->SetX(14);
 $pdf->Cell(90, 5, pdf_utf8('Código de Grupo: ') . pdf_utf8($grupo['codigo']), 0, 0);
-$pdf->Cell(90, 5, pdf_utf8('Fechas: ') . date('d/m/Y', strtotime($grupo['fecha_inicio'])) . ' - ' . date('d/m/Y', strtotime($grupo['fecha_fin'])), 0, 1);
+$pdf->Cell(90, 5, pdf_utf8('Fechas: ') . $f_ini . ' - ' . $f_fin, 0, 1);
 $pdf->SetX(14);
 $pdf->Cell(0, 5, pdf_utf8('Curso Moodle ID: ') . $moodleCourseId . ' | ' . pdf_utf8($grupo['curso_titulo']), 0, 1);
 

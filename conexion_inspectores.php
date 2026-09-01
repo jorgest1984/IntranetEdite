@@ -87,9 +87,9 @@ foreach ($grupos as $g) {
 
     if ($stats['session_count'] > 0) {
         $count_activos++;
-        if ($stats['last_access']) {
-            $last_ts = strtotime($stats['last_access']);
-            if ($ultimo_acceso_global === null || $last_ts > $ultimo_acceso_global) {
+        if (!empty($stats['last_access'])) {
+            $last_ts = strtotime((string)$stats['last_access']);
+            if ($last_ts && ($ultimo_acceso_global === null || $last_ts > $ultimo_acceso_global)) {
                 $ultimo_acceso_global = $last_ts;
             }
         }
@@ -136,6 +136,14 @@ function format_hours_minutes($seconds) {
     $h = floor($seconds / 3600);
     $m = floor(($seconds % 3600) / 60);
     return "{$h} h {$m} min";
+}
+
+function format_date_safe($dateStr, $format = 'd/m/Y') {
+    if (empty($dateStr) || $dateStr === '0000-00-00' || $dateStr === '0000-00-00 00:00:00') {
+        return 'Pendiente';
+    }
+    $ts = strtotime((string)$dateStr);
+    return ($ts && $ts > 0) ? date($format, $ts) : 'Pendiente';
 }
 
 $current_page = 'conexion_inspectores.php';
@@ -553,7 +561,7 @@ $current_page = 'conexion_inspectores.php';
                                 <td style="max-width: 260px;">
                                     <div style="font-weight: 600; color: #1e293b;"><?= htmlspecialchars($g['curso_titulo']) ?></div>
                                     <div style="font-size: 0.78rem; color: #64748b; margin-top: 2px;">
-                                        Fechas: <?= date('d/m/Y', strtotime($g['fecha_inicio'])) ?> - <?= date('d/m/Y', strtotime($g['fecha_fin'])) ?>
+                                        Fechas: <?= format_date_safe($g['fecha_inicio']) ?> - <?= format_date_safe($g['fecha_fin']) ?>
                                     </div>
                                 </td>
                                 <td>
@@ -576,8 +584,8 @@ $current_page = 'conexion_inspectores.php';
                                 </td>
                                 <td style="font-size: 0.82rem;">
                                     <?php if ($st['first_access']): ?>
-                                        <div><span style="color: #64748b;">Inicio:</span> <?= date('d/m/Y H:i', strtotime($st['first_access'])) ?></div>
-                                        <div><span style="color: #64748b;">Último:</span> <?= date('d/m/Y H:i', strtotime($st['last_access'])) ?></div>
+                                        <div><span style="color: #64748b;">Inicio:</span> <?= format_date_safe($st['first_access'], 'd/m/Y H:i') ?></div>
+                                        <div><span style="color: #64748b;">Último:</span> <?= format_date_safe($st['last_access'], 'd/m/Y H:i') ?></div>
                                     <?php else: ?>
                                         <span style="color: #94a3b8;">Sin accesos</span>
                                     <?php endif; ?>
