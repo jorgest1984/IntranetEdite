@@ -2761,13 +2761,20 @@ try {
             const csrf = '<?= $_SESSION['csrf_token'] ?? '' ?>';
             
             fetch(`api_create_moodle_course.php?id=${actionId}&csrf_token=${csrf}`)
-                .then(response => response.json())
+                .then(response => {
+                    return response.text().then(text => {
+                        try {
+                            return JSON.parse(text);
+                        } catch (e) {
+                            throw new Error("Respuesta no válida del servidor: " + text.substring(0, 300));
+                        }
+                    });
+                })
                 .then(data => {
                     if (icon) icon.classList.remove('spinning');
                     
                     if (data.success) {
                         msgDiv.innerHTML = `<span style="color:#166534;">✓ ${data.message}</span>`;
-                        // Reload and redirect back to this tab
                         setTimeout(() => {
                             window.location.href = `ficha_accion_formativa.php?id=${actionId}&tab=seguimiento-moodle`;
                         }, 1500);
@@ -2779,7 +2786,7 @@ try {
                 .catch(error => {
                     if (icon) icon.classList.remove('spinning');
                     btn.disabled = false;
-                    msgDiv.innerHTML = '<span style="color:#991b1b;">❌ Error de conexión de red.</span>';
+                    msgDiv.innerHTML = `<span style="color:#991b1b;">❌ Error: ${error.message}</span>`;
                     console.error('Error:', error);
                 });
         }

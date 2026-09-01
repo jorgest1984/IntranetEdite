@@ -1,13 +1,27 @@
 <?php
 // api_create_moodle_course.php
+ob_start();
+
+register_shutdown_function(function() {
+    $error = error_get_last();
+    if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR])) {
+        if (ob_get_level()) { ob_clean(); }
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode([
+            'success' => false,
+            'error' => 'Error crítico en el servidor: ' . $error['message'] . ' (línea ' . $error['line'] . ')'
+        ]);
+    }
+});
+
 require_once 'includes/auth.php';
 require_once 'includes/config.php';
 require_once 'includes/moodle_api.php';
 
-header('Content-Type: application/json; charset=utf-8');
-
 // 1. Verificar permisos
 if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_TUTOR])) {
+    if (ob_get_level()) { ob_clean(); }
+    header('Content-Type: application/json; charset=utf-8');
     echo json_encode(['success' => false, 'error' => 'Permisos insuficientes para realizar esta operación.']);
     exit();
 }
@@ -15,12 +29,16 @@ if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_TUTOR])) {
 // 2. Verificar CSRF token
 $csrf_token = $_GET['csrf_token'] ?? $_POST['csrf_token'] ?? '';
 if (empty($csrf_token) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $csrf_token)) {
+    if (ob_get_level()) { ob_clean(); }
+    header('Content-Type: application/json; charset=utf-8');
     echo json_encode(['success' => false, 'error' => 'Petición no autorizada: Token CSRF no válido o expirado.']);
     exit();
 }
 
 $af_id = isset($_GET['id']) ? (int)$_GET['id'] : (isset($_POST['id']) ? (int)$_POST['id'] : 0);
 if (!$af_id) {
+    if (ob_get_level()) { ob_clean(); }
+    header('Content-Type: application/json; charset=utf-8');
     echo json_encode(['success' => false, 'error' => 'Identificador de acción formativa inválido.']);
     exit();
 }
@@ -88,6 +106,8 @@ try {
 
     $pdo->commit();
 
+    if (ob_get_level()) { ob_clean(); }
+    header('Content-Type: application/json; charset=utf-8');
     echo json_encode([
         'success' => true,
         'message' => isset($simulated) 
@@ -101,6 +121,8 @@ try {
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }
+    if (ob_get_level()) { ob_clean(); }
+    header('Content-Type: application/json; charset=utf-8');
     echo json_encode([
         'success' => false,
         'error' => 'Error al crear la acción formativa en Moodle: ' . $e->getMessage()

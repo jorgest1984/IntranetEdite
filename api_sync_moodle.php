@@ -1,6 +1,19 @@
 <?php
 // api_sync_moodle.php
 ob_start();
+
+register_shutdown_function(function() {
+    $error = error_get_last();
+    if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR])) {
+        if (ob_get_level()) { ob_clean(); }
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode([
+            'success' => false,
+            'error' => 'Error crítico en el servidor: ' . $error['message'] . ' (línea ' . $error['line'] . ')'
+        ]);
+    }
+});
+
 require_once 'includes/auth.php';
 require_once 'includes/config.php';
 require_once 'includes/moodle_api.php';

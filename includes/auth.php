@@ -5,6 +5,14 @@ require_once __DIR__ . '/config.php';
 // Verificar si el usuario está logueado
 global $moodle_bypass_auth;
 if (empty($moodle_bypass_auth) && !isset($_SESSION['user_id'])) {
+    // Si es una petición a un endpoint API, devolver JSON en lugar de redirección HTML
+    $uri = $_SERVER['REQUEST_URI'] ?? '';
+    if (strpos($uri, 'api_') !== false || strpos($uri, '/api/') !== false) {
+        if (ob_get_level()) { ob_clean(); }
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['success' => false, 'error' => 'Tu sesión ha expirado o no estás autenticado. Por favor, recarga la página o inicia sesión de nuevo.']);
+        exit();
+    }
     header("Location: index.php");
     exit();
 }
