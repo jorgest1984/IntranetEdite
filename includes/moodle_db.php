@@ -5,13 +5,6 @@ class MoodleDB {
     private $mpdo = null;
     private $connected = false;
     private $error = '';
-
-    public function __construct() {
-        if (!defined('MOODLE_DB_HOST') || !defined('MOODLE_DB_NAME') || !defined('MOODLE_DB_USER')) {
-            $this->error = 'Constantes de base de datos de Moodle no definidas.';
-            return;
-        }
-
     private $detectedPrefix = null;
 
     public function __construct() {
