@@ -53,10 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action_save_personal']
     $usuario_gestor = trim($_POST['usuario_gestor'] ?? '');
     $contrasena_gestor = trim($_POST['contrasena_gestor'] ?? '');
 
-    // Asegurar que la contraseña cumpla con la política de Moodle (al menos un carácter especial)
-    if ($contrasena_gestor !== '' && !preg_match('/[^a-zA-Z0-9]/', $contrasena_gestor)) {
-        $contrasena_gestor .= '-*';
-    }
+    // Guardar la contraseña exactamente como la escribió el usuario en la BD de la Intranet
 
     try {
         $pdo->beginTransaction();
