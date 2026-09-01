@@ -12,26 +12,45 @@ class MoodleDB {
             return;
         }
 
+    private $detectedPrefix = null;
+
+    public function __construct() {
+        if (!defined('MOODLE_DB_HOST') || !defined('MOODLE_DB_NAME') || !defined('MOODLE_DB_USER')) {
+            $this->error = 'Constantes de base de datos de Moodle no definidas.';
+            return;
+        }
+
+        $host = MOODLE_DB_HOST;
+        $port = defined('MOODLE_DB_PORT') ? MOODLE_DB_PORT : '3306';
+        $dbname = MOODLE_DB_NAME;
+        $user = MOODLE_DB_USER;
+        $pass = defined('MOODLE_DB_PASS') ? MOODLE_DB_PASS : '';
+
+        $options = [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_TIMEOUT => 3
+        ];
+
         try {
-            $host = MOODLE_DB_HOST;
-            $port = defined('MOODLE_DB_PORT') ? MOODLE_DB_PORT : '3306';
-            $dbname = MOODLE_DB_NAME;
-            $user = MOODLE_DB_USER;
-            $pass = defined('MOODLE_DB_PASS') ? MOODLE_DB_PASS : '';
-
             $dsn = "mysql:host={$host};port={$port};dbname={$dbname};charset=utf8mb4";
-            
-            $options = [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                PDO::ATTR_TIMEOUT => 3
-            ];
-
             $this->mpdo = new PDO($dsn, $user, $pass, $options);
             $this->connected = true;
         } catch (PDOException $e) {
-            $this->connected = false;
-            $this->error = $e->getMessage();
+            // Intentar con 127.0.0.1 en caso de diferencia de sockets en Plesk/Linux
+            if ($host === 'localhost') {
+                try {
+                    $dsnFallback = "mysql:host=127.0.0.1;port={$port};dbname={$dbname};charset=utf8mb4";
+                    $this->mpdo = new PDO($dsnFallback, $user, $pass, $options);
+                    $this->connected = true;
+                } catch (PDOException $e2) {
+                    $this->connected = false;
+                    $this->error = $e->getMessage() . " | " . $e2->getMessage();
+                }
+            } else {
+                $this->connected = false;
+                $this->error = $e->getMessage();
+            }
         }
     }
 
@@ -45,6 +64,31 @@ class MoodleDB {
 
     public function getError() {
         return $this->error;
+    }
+
+    public function getTablePrefix() {
+        if (!$this->connected || !$this->mpdo) {
+            return defined('MOODLE_DB_PREFIX') ? MOODLE_DB_PREFIX : 'avefp_';
+        }
+        if ($this->detectedPrefix !== null) {
+            return $this->detectedPrefix;
+        }
+        $configured = defined('MOODLE_DB_PREFIX') ? MOODLE_DB_PREFIX : 'avefp_';
+        try {
+            $stmt = $this->mpdo->query("SHOW TABLES LIKE '{$configured}course'");
+            if ($stmt && $stmt->fetch()) {
+                $this->detectedPrefix = $configured;
+                return $configured;
+            }
+            $alt = ($configured === 'avefp_') ? 'mdl_' : 'avefp_';
+            $stmtAlt = $this->mpdo->query("SHOW TABLES LIKE '{$alt}course'");
+            if ($stmtAlt && $stmtAlt->fetch()) {
+                $this->detectedPrefix = $alt;
+                return $alt;
+            }
+        } catch (Exception $e) {}
+        $this->detectedPrefix = $configured;
+        return $configured;
     }
 
     /**

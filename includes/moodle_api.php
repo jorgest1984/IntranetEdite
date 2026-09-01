@@ -483,7 +483,7 @@ class MoodleAPI {
         if ($moodleDb->isConnected()) {
             try {
                 $mpdo = $moodleDb->getPDO();
-                $prefix = defined('MOODLE_DB_PREFIX') ? MOODLE_DB_PREFIX : 'avefp_';
+                $prefix = $moodleDb->getTablePrefix();
                 
                 // Comprobar si ya existe por shortname
                 $stmtCheck = $mpdo->prepare("SELECT id FROM {$prefix}course WHERE shortname = ? LIMIT 1");
