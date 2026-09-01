@@ -477,18 +477,88 @@ class MoodleAPI {
      * Crear un curso nuevo en Moodle
      */
     public function createCourse($fullname, $shortname, $categoryId = 1, $summary = '') {
+        // 1. Intentar crear a través de MoodleDB directo si está disponible
+        require_once __DIR__ . '/moodle_db.php';
+        $moodleDb = new MoodleDB();
+        if ($moodleDb->isConnected()) {
+            try {
+                $mpdo = $moodleDb->getPDO();
+                $prefix = defined('MOODLE_DB_PREFIX') ? MOODLE_DB_PREFIX : 'avefp_';
+                
+                // Comprobar si ya existe por shortname
+                $stmtCheck = $mpdo->prepare("SELECT id FROM {$prefix}course WHERE shortname = ? LIMIT 1");
+                $stmtCheck->execute([$shortname]);
+                $existing = $stmtCheck->fetch();
+                if ($existing) {
+                    return [['id' => (int)$existing['id']]];
+                }
+                
+                $now = time();
+                $stmtIns = $mpdo->prepare("
+                    INSERT INTO {$prefix}course (
+                        category, fullname, shortname, summary, summaryformat, 
+                        format, showgrades, newsitems, startdate, enddate, 
+                        numsections, marker, maxbytes, legacyfiles, showreports, 
+                        visible, visibleold, groupmode, groupmodeforce, defaultgroupingid, 
+                        timecreated, timemodified, requested, enablecompletion, completionnotify
+                    ) VALUES (
+                        ?, ?, ?, ?, 1, 
+                        'topics', 1, 5, ?, 0, 
+                        0, 0, 0, 0, 0, 
+                        1, 1, 0, 0, 0, 
+                        ?, ?, 0, 1, 0
+                    )
+                ");
+                $stmtIns->execute([(int)$categoryId, $fullname, $shortname, (string)$summary, $now, $now, $now]);
+                $newCourseId = (int)$mpdo->lastInsertId();
+                
+                if ($newCourseId > 0) {
+                    // Crear contexto del curso (contextlevel 50)
+                    $stmtCtx = $mpdo->prepare("INSERT INTO {$prefix}context (contextlevel, instanceid, depth, path) VALUES (50, ?, 2, ?)");
+                    $stmtCtx->execute([$newCourseId, '/1']);
+                    $ctxId = (int)$mpdo->lastInsertId();
+                    if ($ctxId > 0) {
+                        $path = "/1/" . $ctxId;
+                        $stmtCtxUpd = $mpdo->prepare("UPDATE {$prefix}context SET path = ? WHERE id = ?");
+                        $stmtCtxUpd->execute([$path, $ctxId]);
+                    }
+                    
+                    // Crear sección 0 básica
+                    $stmtSec = $mpdo->prepare("INSERT INTO {$prefix}course_sections (course, section, summary, summaryformat, sequence) VALUES (?, 0, '', 1, '')");
+                    $stmtSec->execute([$newCourseId]);
+
+                    // Crear método de matriculación manual (enrol = manual)
+                    $stmtEnrol = $mpdo->prepare("INSERT INTO {$prefix}enrol (enrol, status, courseid, sortorder, expirythreshold, roleid, timecreated, timemodified) VALUES ('manual', 0, ?, 0, 0, 5, ?, ?)");
+                    $stmtEnrol->execute([$newCourseId, $now, $now]);
+                    
+                    return [['id' => $newCourseId]];
+                }
+            } catch (Exception $e) {
+                // Fallback a API REST si falla la DB
+            }
+        }
+
+        // 2. Intentar vía API REST de Moodle
         $params = [
             'courses' => [
                 [
                     'fullname' => $fullname,
                     'shortname' => $shortname,
-                    'categoryid' => $categoryId,
+                    'categoryid' => (int)$categoryId,
                     'summary' => $summary,
                     'format' => 'topics'
                 ]
             ]
         ];
-        return $this->call('core_course_create_courses', $params);
+
+        try {
+            return $this->call('core_course_create_courses', $params);
+        } catch (Exception $e) {
+            if (strpos($e->getMessage(), 'core_course_create_courses') !== false || strpos($e->getMessage(), 'Access to the function') !== false) {
+                throw new Exception("El token de la API REST de Moodle no tiene autorizada la función 'core_course_create_courses'. Solución: En Moodle, accede como Administrador a Administración del sitio > Servidores > Servicios externos > Servicios externos, edita tu Servicio y en 'Funciones' añade 'core_course_create_courses'. O configura el acceso a la Base de Datos MoodleDB en el archivo de configuración.");
+            }
+            throw $e;
+        }
     }
     
     /**
