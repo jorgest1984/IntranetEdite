@@ -146,12 +146,18 @@ try {
 
     $syncCount = 0;
     foreach ($alumnos as $alumno) {
+        $lastname = trim(($alumno['primer_apellido'] ?? '') . ' ' . ($alumno['segundo_apellido'] ?? ''));
+        if (empty($lastname)) {
+            $lastname = !empty($alumno['apellidos']) ? trim($alumno['apellidos']) : 'Sin apellidos';
+        }
+        $username = strtolower(trim(str_replace([' ', '-', '.'], '', $alumno['dni'])));
+
         $userData = [
             'firstname' => $alumno['nombre'],
-            'lastname' => $alumno['apellidos'] ?? 'Sin apellidos',
+            'lastname' => $lastname,
             'email' => $alumno['email'],
-            'username' => $alumno['dni'], // Usamos el DNI como username por defecto
-            'password' => 'Edite' . str_replace(['-', '.', ' '], '', $alumno['dni']) . '!' // Password predecible: EditeDNI!
+            'username' => $username, // Username en minúsculas y limpio para Moodle
+            'password' => 'Edite' . str_replace(['-', '.', ' '], '', $alumno['dni']) . '!' // Password: EditeDNI!
         ];
 
         // Sincronizar (Crear/Matricular/Meter en grupo) con estado activo o suspendido
