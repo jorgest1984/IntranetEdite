@@ -720,9 +720,31 @@ class MoodleAPI {
      * Obtener usuarios matriculados con su último acceso y progreso
      */
     public function getEnrolledUsers($courseId) {
+        // 1. Intentar por base de datos primero (evita bloqueos de token)
+        require_once __DIR__ . '/moodle_db.php';
+        $moodleDb = new MoodleDB();
+        if ($moodleDb->isConnected()) {
+            try {
+                $mpdo = $moodleDb->getPDO();
+                $prefix = $moodleDb->getTablePrefix();
+                $sql = "SELECT DISTINCT u.id, u.username, u.firstname, u.lastname, u.email, u.phone1, u.phone2, u.firstaccess, u.lastaccess, u.lastlogin
+                        FROM {$prefix}user u
+                        JOIN {$prefix}user_enrolments ue ON ue.userid = u.id
+                        JOIN {$prefix}enrol e ON e.id = ue.enrolid
+                        WHERE e.courseid = ? AND u.deleted = 0";
+                $stmt = $mpdo->prepare($sql);
+                $stmt->execute([(int)$courseId]);
+                $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                if (!empty($users)) {
+                    return $users;
+                }
+            } catch (Exception $e) {
+                // Fallback a API REST
+            }
+        }
+
         $params = [
-            'courseid' => $courseId,
-            // Removed options to return all fields by default
+            'courseid' => (int)$courseId,
         ];
         return $this->call('core_enrol_get_enrolled_users', $params);
     }

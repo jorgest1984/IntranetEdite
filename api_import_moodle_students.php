@@ -1,14 +1,28 @@
 <?php
 // api_import_moodle_students.php
+ob_start();
+
+register_shutdown_function(function() {
+    $error = error_get_last();
+    if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR])) {
+        if (ob_get_level()) { ob_clean(); }
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode([
+            'success' => false,
+            'error' => 'Error crítico en el servidor: ' . $error['message'] . ' (línea ' . $error['line'] . ')'
+        ]);
+    }
+});
+
 require_once 'includes/auth.php';
 require_once 'includes/config.php';
 require_once 'includes/moodle_api.php';
 require_once 'includes/moodle_db.php';
 
-header('Content-Type: application/json; charset=utf-8');
-
 // 1. Verificar permisos
 if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_TUTOR])) {
+    if (ob_get_level()) { ob_clean(); }
+    header('Content-Type: application/json; charset=utf-8');
     echo json_encode(['success' => false, 'error' => 'Permisos insuficientes para realizar esta operación.']);
     exit();
 }
@@ -16,36 +30,41 @@ if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_TUTOR])) {
 // 2. Verificar CSRF token
 $csrf_token = $_GET['csrf_token'] ?? $_POST['csrf_token'] ?? '';
 if (empty($csrf_token) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $csrf_token)) {
+    if (ob_get_level()) { ob_clean(); }
+    header('Content-Type: application/json; charset=utf-8');
     echo json_encode(['success' => false, 'error' => 'Petición no autorizada: Token CSRF no válido o expirado.']);
     exit();
 }
 
 $af_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if (!$af_id) {
+    if (ob_get_level()) { ob_clean(); }
+    header('Content-Type: application/json; charset=utf-8');
     echo json_encode(['success' => false, 'error' => 'Identificador de acción formativa inválido.']);
     exit();
 }
 
 try {
     // 3. Obtener la Acción Formativa y el Curso Moodle vinculado
-    $stmt = $pdo->prepare("SELECT af.*, c.moodle_id as curso_moodle_id, c.nombre_largo as titulo, c.nombre_corto 
+    $stmt = $pdo->prepare("SELECT af.*, c.moodle_id as curso_moodle_id, COALESCE(c.nombre_largo, af.titulo) as titulo, COALESCE(c.nombre_corto, af.abreviatura) as nombre_corto 
                            FROM acciones_formativas af 
-                           JOIN cursos c ON af.curso_id = c.id 
+                           LEFT JOIN cursos c ON af.curso_id = c.id 
                            WHERE af.id = ?");
     $stmt->execute([$af_id]);
     $af = $stmt->fetch();
 
     if (!$af) {
+        if (ob_get_level()) { ob_clean(); }
+        header('Content-Type: application/json; charset=utf-8');
         echo json_encode(['success' => false, 'error' => 'No se encontró la acción formativa especificada.']);
         exit();
     }
 
-    $courseMoodleId = (int)$af['curso_moodle_id'];
-    if (!$courseMoodleId) {
-        $courseMoodleId = (int)$af['id_plataforma'];
-    }
+    $courseMoodleId = !empty($af['curso_moodle_id']) ? (int)$af['curso_moodle_id'] : (int)$af['id_plataforma'];
 
     if (!$courseMoodleId) {
+        if (ob_get_level()) { ob_clean(); }
+        header('Content-Type: application/json; charset=utf-8');
         echo json_encode([
             'success' => false, 
             'error' => 'Esta acción formativa no está vinculada a ningún curso de Moodle (id_plataforma vacío).'
@@ -53,14 +72,14 @@ try {
         exit();
     }
 
-    // 4. Consultar alumnos matriculados (Primero por base de datos, luego fallback a la API)
+    // 4. Consultar alumnos matriculados (Primero por base de datos directa, luego fallback a la API)
     $moodleUsers = [];
     $moodleDb = new MoodleDB();
     if ($moodleDb->isConnected()) {
         try {
             $mpdo = $moodleDb->getPDO();
-            $prefix = defined('MOODLE_DB_PREFIX') ? MOODLE_DB_PREFIX : 'mdl_';
-            $sqlUsers = "SELECT u.id, u.username, u.firstname, u.lastname, u.email
+            $prefix = $moodleDb->getTablePrefix();
+            $sqlUsers = "SELECT DISTINCT u.id, u.username, u.firstname, u.lastname, u.email, u.phone1, u.phone2
                          FROM {$prefix}user u
                          JOIN {$prefix}user_enrolments ue ON ue.userid = u.id
                          JOIN {$prefix}enrol e ON e.id = ue.enrolid
@@ -82,6 +101,8 @@ try {
     }
 
     if (empty($moodleUsers) || !is_array($moodleUsers)) {
+        if (ob_get_level()) { ob_clean(); }
+        header('Content-Type: application/json; charset=utf-8');
         echo json_encode(['success' => false, 'error' => 'No se encontraron alumnos matriculados en el curso de Moodle.']);
         exit();
     }
@@ -363,6 +384,8 @@ try {
     // Registrar en auditoría
     audit_log($pdo, 'IMPORT_MOODLE_STUDENTS', 'acciones_formativas', $af_id, null, ['imported_count' => $importedCount]);
 
+    if (ob_get_level()) { ob_clean(); }
+    header('Content-Type: application/json; charset=utf-8');
     echo json_encode([
         'success' => true,
         'message' => "Importación completada con éxito. Se han importado $importedCount alumnos.",
@@ -370,9 +393,11 @@ try {
     ]);
 
 } catch (Exception $e) {
+    if (ob_get_level()) { ob_clean(); }
+    header('Content-Type: application/json; charset=utf-8');
     echo json_encode([
         'success' => false,
-        'error' => 'Ocurrió un error al realizar la importación: ' . $e->getMessage()
+        'error' => "Ocurrió un error al realizar la importación: " . $e->getMessage()
     ]);
 }
 ?>
