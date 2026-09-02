@@ -788,32 +788,47 @@ class MoodleAPI {
      * Crear, matricular y asignar grupo a un estudiante
      */
     public function provisionStudent($courseId, $groupId, $userData, $status = 0) {
-        // 1. Buscar si ya existe por email
-        $existingUsers = $this->getUsersByField('email', [$userData['email']]);
         $moodleUserId = null;
-        
-        if (!empty($existingUsers) && isset($existingUsers['users'][0])) {
-            $moodleUserId = $existingUsers['users'][0]['id'];
-        } else {
-            // 2. Crear usuario
-            $newUsers = $this->createUser(
-                $userData['username'] ?? strtolower(explode('@', $userData['email'])[0]),
-                $userData['password'] ?? 'Temporal123!',
-                $userData['firstname'],
-                $userData['lastname'],
-                $userData['email']
-            );
-            $moodleUserId = $newUsers[0]['id'];
+        $email = strtolower(trim($userData['email'] ?? ''));
+        $username = strtolower(trim($userData['username'] ?? ''));
+
+        // 1. Buscar si ya existe por email o username
+        if (!empty($email)) {
+            $existingUsers = $this->getUsersByField('email', [$email]);
+            if (!empty($existingUsers) && isset($existingUsers['users'][0]['id'])) {
+                $moodleUserId = (int)$existingUsers['users'][0]['id'];
+            }
         }
-        
-        // 3. Matricular
-        $this->enrolUser($moodleUserId, $courseId, 5, $status);
-        
-        // 4. Asignar a grupo
-        if ($groupId) {
-            $this->addUserToGroup($groupId, $moodleUserId);
+        if (!$moodleUserId && !empty($username)) {
+            $existingByUsername = $this->getUsersByField('username', [$username]);
+            if (!empty($existingByUsername) && isset($existingByUsername['users'][0]['id'])) {
+                $moodleUserId = (int)$existingByUsername['users'][0]['id'];
+            }
         }
-        
+
+        // 2. Si no existe, crearlo
+        if (!$moodleUserId) {
+            $pass = !empty($userData['password']) ? $userData['password'] : ('Edite' . preg_replace('/[^a-zA-Z0-9]/', '', $username) . '!');
+            $fname = !empty($userData['firstname']) ? $userData['firstname'] : 'Alumno';
+            $lname = !empty($userData['lastname']) ? $userData['lastname'] : 'Sin apellidos';
+            $uEmail = !empty($email) ? $email : ($username . '@aula.local');
+
+            $newUsers = $this->createUser($username, $pass, $fname, $lname, $uEmail);
+            if (!empty($newUsers) && isset($newUsers[0]['id'])) {
+                $moodleUserId = (int)$newUsers[0]['id'];
+            }
+        }
+
+        // 3. Matricular en el curso con rol de estudiante (roleid = 5)
+        if ($moodleUserId && $courseId) {
+            $this->enrolUser($moodleUserId, (int)$courseId, 5, $status);
+
+            // 4. Asignar a grupo
+            if ($groupId) {
+                $this->addUserToGroup((int)$groupId, $moodleUserId);
+            }
+        }
+
         return $moodleUserId;
     }
 
@@ -824,8 +839,7 @@ class MoodleAPI {
         $params = [
             'courseids' => [$courseId]
         ];
-        return $this->call('core_completion_get_course_completion_status', ['courseid' => $courseId, 'userid' => 0]); // 0 can mean self or need specific loop
-        // Better: core_enrol_get_enrolled_users with course completion info
+        return $this->call('core_completion_get_course_completion_status', ['courseid' => $courseId, 'userid' => 0]);
     }
 
     /**
@@ -899,20 +913,32 @@ class MoodleAPI {
         if ($moodleDb->isConnected()) {
             try {
                 $mpdo = $moodleDb->getPDO();
-                $prefix = defined('MOODLE_DB_PREFIX') ? MOODLE_DB_PREFIX : 'avefp_';
+                $prefix = $moodleDb->getTablePrefix();
                 
-                // Buscar el ID del método de matriculación manual para este curso
-                $stmtEnrol = $mpdo->prepare("SELECT id FROM {$prefix}enrol WHERE courseid = ? AND enrol = 'manual' LIMIT 1");
-                $stmtEnrol->execute([(int)$courseId]);
-                $enrolRow = $stmtEnrol->fetch();
-                
-                if ($enrolRow) {
-                    $enrolId = (int)$enrolRow['id'];
-                    // Borrar el registro de la matrícula del usuario
-                    $stmtUnenrol = $mpdo->prepare("DELETE FROM {$prefix}user_enrolments WHERE userid = ? AND enrolid = ?");
-                    $stmtUnenrol->execute([(int)$userId, $enrolId]);
-                    return ['status' => true];
+                // Borrar todas las matrículas del usuario en este curso
+                $stmtUnenrol = $mpdo->prepare("
+                    DELETE ue FROM {$prefix}user_enrolments ue
+                    JOIN {$prefix}enrol e ON ue.enrolid = e.id
+                    WHERE ue.userid = ? AND e.courseid = ?
+                ");
+                $stmtUnenrol->execute([(int)$userId, (int)$courseId]);
+
+                // Borrar asignaciones de roles en el contexto de este curso (contextlevel = 50)
+                $stmtCtx = $mpdo->prepare("SELECT id FROM {$prefix}context WHERE contextlevel = 50 AND instanceid = ? LIMIT 1");
+                $stmtCtx->execute([(int)$courseId]);
+                $ctx = $stmtCtx->fetch();
+                if ($ctx && !empty($ctx['id'])) {
+                    $mpdo->prepare("DELETE FROM {$prefix}role_assignments WHERE userid = ? AND contextid = ?")->execute([(int)$userId, (int)$ctx['id']]);
                 }
+
+                // Borrar pertenencia a grupos de este curso
+                $mpdo->prepare("
+                    DELETE gm FROM {$prefix}groups_members gm
+                    JOIN {$prefix}groups g ON gm.groupid = g.id
+                    WHERE gm.userid = ? AND g.courseid = ?
+                ")->execute([(int)$userId, (int)$courseId]);
+
+                return ['status' => true];
             } catch (Exception $dbEx) {
                 // Si falla por base de datos, dejamos que pase al fallback de la API
             }
