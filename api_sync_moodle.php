@@ -267,8 +267,12 @@ try {
         }
     }
 
+    if ($syncCount === 0 && count($alumnos) > 0 && !empty($student_errors)) {
+        throw new Exception("No se pudieron crear/matricular los alumnos en Moodle. " . implode(" | ", $student_errors));
+    }
+
     $finished_suffix = $is_finished ? " (Curso finalizado: alumnos suspendidos en Moodle)" : " (Curso activo)";
-    $err_suffix = !empty($student_errors) ? (" [Aviso alumnos: " . implode('; ', $student_errors) . "]") : "";
+    $err_suffix = !empty($student_errors) ? (" [Avisos: " . implode('; ', $student_errors) . "]") : "";
     
     ob_clean();
     header('Content-Type: application/json; charset=utf-8');
