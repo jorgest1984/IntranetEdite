@@ -33,10 +33,10 @@ try {
     }
 
     // 1. Obtener datos de la Acción Formativa y su Convocatoria
-    // Usamos af.id_plataforma como ID del curso en Moodle (se edita desde editar_af.php)
     $stmt = $pdo->prepare("SELECT af.*, 
                                   COALESCE(c.nombre_largo, af.titulo) as titulo, 
                                   COALESCE(c.nombre_corto, af.abreviatura) as nombre_corto, 
+                                  c.moodle_id as curso_moodle_id,
                                   conv.nombre as convocatoria_nombre
                            FROM acciones_formativas af 
                            LEFT JOIN cursos c ON af.curso_id = c.id 
@@ -48,8 +48,13 @@ try {
 
     if (!$af) throw new Exception("Acción Formativa no encontrada.");
 
-    // El ID del curso en Moodle se guarda en acciones_formativas.id_plataforma
-    $courseId = $af['id_plataforma'] ?: null;
+    // Priorizar el ID de Moodle definido en el curso (cursos.moodle_id) o en la AF (af.id_plataforma)
+    $courseId = !empty($af['curso_moodle_id']) ? (int)$af['curso_moodle_id'] : (!empty($af['id_plataforma']) ? (int)$af['id_plataforma'] : null);
+    
+    // Si tenemos curso_moodle_id pero no id_plataforma, actualizar id_plataforma para consistencia
+    if ($courseId && $af['id_plataforma'] != $courseId) {
+        $pdo->prepare("UPDATE acciones_formativas SET id_plataforma = ? WHERE id = ?")->execute([$courseId, $af_id]);
+    }
     
     // Validar si el curso guardado realmente existe en Moodle
     if ($courseId) {

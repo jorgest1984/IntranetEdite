@@ -246,7 +246,7 @@ if (isset($_GET['remove_id'])) {
     
     // Obtener los IDs de Moodle y datos del alumno/curso antes de borrar la matrícula
     try {
-        $stmtMat = $pdo->prepare("SELECT m.alumno_id, a.moodle_user_id, a.email, a.nombre, a.primer_apellido, a.segundo_apellido, c.nombre_largo as curso_titulo, c.moodle_id as curso_moodle_id
+        $stmtMat = $pdo->prepare("SELECT m.alumno_id, a.moodle_user_id, a.email, a.nombre, a.primer_apellido, a.segundo_apellido, c.nombre_largo as curso_titulo, COALESCE(c.moodle_id, af.id_plataforma) as curso_moodle_id
                                   FROM matriculas m 
                                   JOIN alumnos a ON m.alumno_id = a.id
                                   JOIN grupos g ON m.grupo_id = g.id
