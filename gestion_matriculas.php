@@ -169,7 +169,48 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action_save_personal']
     }
 }
 
-// Procesar Alta de Alumno
+// Procesar Creación Rápida y Matriculación de Alumno Nuevo
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action_quick_create_enrol'])) {
+    $nombre = trim($_POST['new_nombre'] ?? '');
+    $primer_apellido = trim($_POST['new_primer_apellido'] ?? '');
+    $segundo_apellido = trim($_POST['new_segundo_apellido'] ?? '');
+    $dni = strtoupper(trim(str_replace([' ', '-', '.'], '', $_POST['new_dni'] ?? '')));
+    $email = trim($_POST['new_email'] ?? '');
+    $telefono = trim($_POST['new_telefono'] ?? '');
+
+    try {
+        if (empty($nombre) || empty($dni)) {
+            throw new Exception("El nombre y el DNI son campos obligatorios.");
+        }
+
+        // Comprobar si ya existe el alumno por DNI
+        $stmtCheck = $pdo->prepare("SELECT id FROM alumnos WHERE REPLACE(REPLACE(REPLACE(dni, ' ', ''), '-', ''), '.', '') = ? LIMIT 1");
+        $stmtCheck->execute([$dni]);
+        $existing = $stmtCheck->fetch();
+
+        if ($existing) {
+            $alumno_id = (int)$existing['id'];
+        } else {
+            // Insertar nuevo alumno
+            $stmtIns = $pdo->prepare("INSERT INTO alumnos (nombre, primer_apellido, segundo_apellido, dni, email, telefono) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmtIns->execute([$nombre, $primer_apellido, $segundo_apellido, $dni, $email, $telefono]);
+            $alumno_id = (int)$pdo->lastInsertId();
+        }
+
+        if ($alumno_id > 0) {
+            $stmtMat = $pdo->prepare("INSERT IGNORE INTO matriculas (alumno_id, grupo_id, convocatoria_id, estado, fecha_matricula) VALUES (?, ?, ?, 'Inscrito', CURDATE())");
+            $stmtMat->execute([$alumno_id, $grupo_id, $accion['plan_id']]);
+            header("Location: gestion_matriculas.php?af_id=$af_id&success=1");
+            exit();
+        } else {
+            throw new Exception("No se pudo registrar el alumno.");
+        }
+    } catch (Exception $e) {
+        $error = "Error al crear y matricular alumno: " . $e->getMessage();
+    }
+}
+
+// Procesar Alta de Alumno Existente
 if (isset($_POST['add_alumno_id']) || !empty($_POST['student_search_text'])) {
     $alumno_id = (int)($_POST['add_alumno_id'] ?? 0);
     $search_text = trim($_POST['student_search_text'] ?? '');
@@ -478,6 +519,13 @@ $alumnos = $matriculados->fetchAll();
                         <button type="button" id="btnBuscar" class="btn btn-primary" style="width: 100%; padding: 12px; border-radius: 8px; background: #1e3a8a; border: none; font-weight: 700;">
                             🔍 Buscar Alumno
                         </button>
+                        
+                        <div style="margin-top: 12px;">
+                            <button type="button" onclick="openNewStudentModal()" class="btn" style="width: 100%; padding: 11px; border-radius: 8px; background: #059669; color: white; border: none; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.85rem; cursor: pointer;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                + Crear Nuevo Alumno y Matricular
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Resultado de Búsqueda -->
@@ -501,11 +549,14 @@ $alumnos = $matriculados->fetchAll();
                     </div>
 
                     <div id="noResultsMsg" style="display: none; background: #fee2e2; color: #b91c1c; padding: 15px; border-radius: 12px; border: 1px solid #fecaca; margin-bottom: 20px; font-size: 0.85rem; text-align: center;">
-                        ❌ No se encontró ningún alumno con esos datos.
+                        <div style="font-weight: 600; margin-bottom: 8px;">❌ No se encontró ningún alumno con esos datos.</div>
+                        <button type="button" onclick="openNewStudentModal()" style="background: #b91c1c; color: white; border: none; padding: 7px 14px; border-radius: 6px; font-weight: 700; font-size: 0.8rem; cursor: pointer;">
+                            + Dar de Alta y Matricular Nuevo
+                        </button>
                     </div>
 
                     <div style="background: #eff6ff; padding: 15px; border-radius: 12px; border: 1px solid #bfdbfe; font-size: 0.8rem; color: #1e40af; margin-bottom: 25px;">
-                        <strong>Instrucciones:</strong> Escribe en cualquiera de los campos anteriores para activar la búsqueda predictiva al instante.
+                        <strong>Instrucciones:</strong> Escribe en cualquiera de los campos anteriores para activar la búsqueda predictiva o pulsa en <em>Crear Nuevo Alumno</em> si no está registrado.
                     </div>
 
                     <!-- Personal del Grupo (Tutores y SEPE Inspector) -->
@@ -747,7 +798,76 @@ function syncMoodle(afId) {
             console.error('Sync error:', err);
         });
 }
+
+function openNewStudentModal() {
+    const modal = document.getElementById('modal-nuevo-alumno');
+    if (modal) {
+        modal.style.display = 'flex';
+        setTimeout(() => {
+            const input = document.getElementById('modal_new_nombre');
+            if (input) input.focus();
+        }, 100);
+    }
+}
+
+function closeNewStudentModal() {
+    const modal = document.getElementById('modal-nuevo-alumno');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
 </script>
+
+<!-- MODAL: Crear Alumno Nuevo y Matricular -->
+<div id="modal-nuevo-alumno" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;">
+    <div style="background: white; width: 100%; max-width: 520px; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); overflow: hidden; display: flex; flex-direction: column; animation: modalFadeIn 0.3s ease;">
+        <div style="background: #1e3a8a; color: white; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box;">
+            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: white;">➕ Alta y Matriculación de Alumno</h3>
+            <button type="button" onclick="closeNewStudentModal()" style="background: transparent; border: none; color: white; font-size: 1.5rem; cursor: pointer; line-height: 1;">&times;</button>
+        </div>
+        <form method="POST" style="margin: 0; padding: 1.5rem;">
+            <input type="hidden" name="action_quick_create_enrol" value="1">
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; text-align: left;">
+                <div>
+                    <label style="font-size: 0.78rem; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Nombre: *</label>
+                    <input type="text" name="new_nombre" id="modal_new_nombre" required placeholder="Ej: Juan" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-family: inherit; font-size: 0.9rem;">
+                </div>
+                <div>
+                    <label style="font-size: 0.78rem; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">DNI / NIE: *</label>
+                    <input type="text" name="new_dni" id="modal_new_dni" required placeholder="12345678X" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-family: inherit; font-size: 0.9rem;">
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; text-align: left;">
+                <div>
+                    <label style="font-size: 0.78rem; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Primer Apellido:</label>
+                    <input type="text" name="new_primer_apellido" placeholder="Ej: Pérez" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-family: inherit; font-size: 0.9rem;">
+                </div>
+                <div>
+                    <label style="font-size: 0.78rem; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Segundo Apellido:</label>
+                    <input type="text" name="new_segundo_apellido" placeholder="Ej: García" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-family: inherit; font-size: 0.9rem;">
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; text-align: left;">
+                <div>
+                    <label style="font-size: 0.78rem; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Email:</label>
+                    <input type="email" name="new_email" placeholder="alumno@correo.com" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-family: inherit; font-size: 0.9rem;">
+                </div>
+                <div>
+                    <label style="font-size: 0.78rem; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Teléfono:</label>
+                    <input type="text" name="new_telefono" placeholder="600000000" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-family: inherit; font-size: 0.9rem;">
+                </div>
+            </div>
+            
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" onclick="closeNewStudentModal()" style="padding: 9px 16px; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius: 8px; font-weight: 600; cursor: pointer;">Cancelar</button>
+                <button type="submit" style="padding: 9px 20px; background: #059669; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">💾 Guardar y Matricular</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <!-- MODAL: Enviar Claves Individual -->
 <div id="modal-envio-claves-single" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;">
