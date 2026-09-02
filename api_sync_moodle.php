@@ -160,14 +160,20 @@ try {
             'password' => 'Edite' . str_replace(['-', '.', ' '], '', $alumno['dni']) . '!' // Password: EditeDNI!
         ];
 
-        // Sincronizar (Crear/Matricular/Meter en grupo) con estado activo o suspendido
-        $moodleUserId = $moodle->provisionStudent($courseId, $moodleGroupId, $userData, $student_status);
-        
-        // Actualizar el moodle_user_id local si no lo tenía
-        if ($moodleUserId && ($alumno['moodle_user_id'] ?? null) != $moodleUserId) {
-            $pdo->prepare("UPDATE alumnos SET moodle_user_id = ? WHERE id = ?")->execute([$moodleUserId, $alumno['id']]);
+        try {
+            // Sincronizar (Crear/Matricular/Meter en grupo) con estado activo o suspendido
+            $moodleUserId = $moodle->provisionStudent($courseId, $moodleGroupId, $userData, $student_status);
+            
+            // Actualizar el moodle_user_id local si no lo tenía
+            if ($moodleUserId) {
+                if (($alumno['moodle_user_id'] ?? null) != $moodleUserId) {
+                    $pdo->prepare("UPDATE alumnos SET moodle_user_id = ? WHERE id = ?")->execute([$moodleUserId, $alumno['id']]);
+                }
+                $syncCount++;
+            }
+        } catch (Exception $studentEx) {
+            // Registrar error de este alumno si ocurriese
         }
-        $syncCount++;
     }
 
     // 6. Sincronizar el Usuario Gestor (ej: INSPECTOR SEPE)

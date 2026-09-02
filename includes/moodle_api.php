@@ -214,7 +214,7 @@ class MoodleAPI {
                 $mpdo = $moodleDb->getPDO();
                 $prefix = $moodleDb->getTablePrefix();
 
-                // Comprobar si ya existe
+                // Comprobar si ya existe por username o email
                 $stmtCheck = $mpdo->prepare("SELECT id, username FROM {$prefix}user WHERE username = ? OR email = ? LIMIT 1");
                 $stmtCheck->execute([$username, $email]);
                 $existing = $stmtCheck->fetch();
@@ -222,35 +222,92 @@ class MoodleAPI {
                     return [['id' => (int)$existing['id'], 'username' => $existing['username']]];
                 }
 
+                // Obtener columnas reales de la tabla user en esta versión de Moodle
+                $colsStmt = $mpdo->query("SHOW COLUMNS FROM {$prefix}user");
+                $existingCols = [];
+                if ($colsStmt) {
+                    while ($col = $colsStmt->fetch(PDO::FETCH_ASSOC)) {
+                        $existingCols[$col['Field']] = $col;
+                    }
+                }
+
                 $now = time();
                 $hash = password_hash($password, PASSWORD_BCRYPT);
-                $stmtIns = $mpdo->prepare("
-                    INSERT INTO {$prefix}user (
-                        auth, confirmed, policyagreed, deleted, suspended, 
-                        mnethostid, username, password, idnumber, firstname, lastname, 
-                        email, emailstop, phone1, phone2, institution, department, 
-                        address, city, country, lang, calendartype, theme, timezone, 
-                        firstaccess, lastaccess, lastlogin, currentlogin, lastip, 
-                        secret, picture, description, descriptionformat, mailformat, 
-                        maildigest, maildisplay, autosubscribe, trackforums, timecreated, 
-                        timemodified, trustbitmask, imagealt, lastnamephonetic, firstnamephonetic, 
-                        middlename, alternatename, moodlenetprofile
-                    ) VALUES (
-                        'manual', 1, 0, 0, 0, 
-                        1, ?, ?, '', ?, ?, 
-                        ?, 0, '', '', '', '', 
-                        '', '', 'ES', 'es', '', '', '99', 
-                        0, 0, 0, 0, '', 
-                        '', 0, '', 1, 1, 
-                        0, 2, 1, 0, ?, 
-                        ?, 0, '', '', '', 
-                        '', '', ''
-                    )
-                ");
-                $stmtIns->execute([$username, $hash, $firstname, $lastname, $email, $now, $now]);
+                
+                // Mapeo completo de valores estándar en Moodle
+                $dataMap = [
+                    'auth' => 'manual',
+                    'confirmed' => 1,
+                    'policyagreed' => 0,
+                    'deleted' => 0,
+                    'suspended' => 0,
+                    'mnethostid' => 1,
+                    'username' => $username,
+                    'password' => $hash,
+                    'idnumber' => '',
+                    'firstname' => $firstname,
+                    'lastname' => $lastname,
+                    'email' => $email,
+                    'emailstop' => 0,
+                    'phone1' => '',
+                    'phone2' => '',
+                    'institution' => '',
+                    'department' => '',
+                    'address' => '',
+                    'city' => '',
+                    'country' => 'ES',
+                    'lang' => 'es',
+                    'calendartype' => '',
+                    'theme' => '',
+                    'timezone' => '99',
+                    'firstaccess' => 0,
+                    'lastaccess' => 0,
+                    'lastlogin' => 0,
+                    'currentlogin' => 0,
+                    'lastip' => '',
+                    'secret' => '',
+                    'picture' => 0,
+                    'description' => '',
+                    'descriptionformat' => 1,
+                    'mailformat' => 1,
+                    'maildigest' => 0,
+                    'maildisplay' => 2,
+                    'autosubscribe' => 1,
+                    'trackforums' => 0,
+                    'timecreated' => $now,
+                    'timemodified' => $now,
+                    'trustbitmask' => 0,
+                    'imagealt' => '',
+                    'lastnamephonetic' => '',
+                    'firstnamephonetic' => '',
+                    'middlename' => '',
+                    'alternatename' => '',
+                    'moodlenetprofile' => ''
+                ];
+
+                $fields = [];
+                $placeholders = [];
+                $values = [];
+
+                foreach ($existingCols as $colName => $colInfo) {
+                    if ($colName === 'id') continue;
+                    if (array_key_exists($colName, $dataMap)) {
+                        $fields[] = $colName;
+                        $placeholders[] = '?';
+                        $values[] = $dataMap[$colName];
+                    } elseif ($colInfo['Null'] === 'NO' && $colInfo['Default'] === null) {
+                        $fields[] = $colName;
+                        $placeholders[] = '?';
+                        $values[] = (strpos(strtolower($colInfo['Type']), 'int') !== false) ? 0 : '';
+                    }
+                }
+
+                $sql = "INSERT INTO {$prefix}user (" . implode(', ', $fields) . ") VALUES (" . implode(', ', $placeholders) . ")";
+                $stmtIns = $mpdo->prepare($sql);
+                $stmtIns->execute($values);
                 $newUserId = (int)$mpdo->lastInsertId();
+
                 if ($newUserId > 0) {
-                    // Contexto de usuario (contextlevel = 30)
                     try {
                         $stmtUCtx = $mpdo->prepare("INSERT INTO {$prefix}context (contextlevel, instanceid, depth, path) VALUES (30, ?, 2, ?)");
                         $stmtUCtx->execute([$newUserId, '/1']);
