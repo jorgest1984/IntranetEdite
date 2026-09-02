@@ -148,24 +148,37 @@ class MoodleAPI {
      * Obtener usuarios por campo (ej. 'email')
      */
     public function getUsersByField($field, $values) {
-        // 1. Intentamos con core_user_get_users_by_field (método oficial y recomendado para búsquedas exactas)
-        // ya que suele estar expuesto con menores restricciones de seguridad que core_user_get_users.
+        // 1. Intentar consultar por base de datos directa primero
+        require_once __DIR__ . '/moodle_db.php';
+        $moodleDb = new MoodleDB();
+        if ($moodleDb->isConnected() && !empty($values)) {
+            try {
+                $mpdo = $moodleDb->getPDO();
+                $prefix = $moodleDb->getTablePrefix();
+                $fieldSafe = in_array($field, ['id', 'username', 'email', 'idnumber']) ? $field : 'email';
+                $val = $values[0];
+                $stmt = $mpdo->prepare("SELECT id, username, firstname, lastname, email, auth, deleted, suspended FROM {$prefix}user WHERE {$fieldSafe} = ? AND deleted = 0 LIMIT 1");
+                $stmt->execute([$val]);
+                $user = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($user) {
+                    return ['users' => [$user]];
+                }
+            } catch (Exception $dbEx) {
+                // Fallback
+            }
+        }
+
+        // 2. Intentamos con core_user_get_users_by_field (método oficial y recomendado para búsquedas exactas)
         try {
             $params = [
                 'field' => $field,
                 'values' => $values
             ];
             $res = $this->call('core_user_get_users_by_field', $params);
-            
-            // core_user_get_users_by_field devuelve un array plano de usuarios.
-            // Para mantener total compatibilidad con el código actual que espera ['users' => [...]]:
             if (is_array($res)) {
                 return ['users' => $res];
             }
         } catch (Exception $e) {
-            // Si la función core_user_get_users_by_field no está habilitada o da un error de acceso/parámetro,
-            // hacemos fallback al método genérico core_user_get_users.
-            // Ignoramos errores de control de acceso o de parámetro inválido para el fallback, pero arrojamos otros.
             if (strpos($e->getMessage(), 'control de acceso') === false && 
                 strpos($e->getMessage(), 'access') === false && 
                 strpos($e->getMessage(), 'invalidparameter') === false &&
@@ -174,12 +187,12 @@ class MoodleAPI {
             }
         }
 
-        // 2. Fallback al método original core_user_get_users
+        // 3. Fallback al método original core_user_get_users
         $params = [
             'criteria' => [
                 [
                     'key' => $field,
-                    'value' => $values[0] // ws structure requires this format
+                    'value' => $values[0]
                 ]
             ]
         ];
@@ -190,20 +203,83 @@ class MoodleAPI {
      * Crear un usuario nuevo
      */
     public function createUser($username, $password, $firstname, $lastname, $email) {
+        $username = strtolower(trim($username));
+        $email = strtolower(trim($email));
+
+        // 1. Intentar crear por base de datos directa si está disponible
+        require_once __DIR__ . '/moodle_db.php';
+        $moodleDb = new MoodleDB();
+        if ($moodleDb->isConnected()) {
+            try {
+                $mpdo = $moodleDb->getPDO();
+                $prefix = $moodleDb->getTablePrefix();
+
+                // Comprobar si ya existe
+                $stmtCheck = $mpdo->prepare("SELECT id, username FROM {$prefix}user WHERE username = ? OR email = ? LIMIT 1");
+                $stmtCheck->execute([$username, $email]);
+                $existing = $stmtCheck->fetch();
+                if ($existing) {
+                    return [['id' => (int)$existing['id'], 'username' => $existing['username']]];
+                }
+
+                $now = time();
+                $hash = password_hash($password, PASSWORD_BCRYPT);
+                $stmtIns = $mpdo->prepare("
+                    INSERT INTO {$prefix}user (
+                        auth, confirmed, policyagreed, deleted, suspended, 
+                        mnethostid, username, password, idnumber, firstname, lastname, 
+                        email, emailstop, phone1, phone2, institution, department, 
+                        address, city, country, lang, calendartype, theme, timezone, 
+                        firstaccess, lastaccess, lastlogin, currentlogin, lastip, 
+                        secret, picture, description, descriptionformat, mailformat, 
+                        maildigest, maildisplay, autosubscribe, trackforums, timecreated, 
+                        timemodified, trustbitmask, imagealt, lastnamephonetic, firstnamephonetic, 
+                        middlename, alternatename, moodlenetprofile
+                    ) VALUES (
+                        'manual', 1, 0, 0, 0, 
+                        1, ?, ?, '', ?, ?, 
+                        ?, 0, '', '', '', '', 
+                        '', '', 'ES', 'es', '', '', '99', 
+                        0, 0, 0, 0, '', 
+                        '', 0, '', 1, 1, 
+                        0, 2, 1, 0, ?, 
+                        ?, 0, '', '', '', 
+                        '', '', ''
+                    )
+                ");
+                $stmtIns->execute([$username, $hash, $firstname, $lastname, $email, $now, $now]);
+                $newUserId = (int)$mpdo->lastInsertId();
+                if ($newUserId > 0) {
+                    // Contexto de usuario (contextlevel = 30)
+                    try {
+                        $stmtUCtx = $mpdo->prepare("INSERT INTO {$prefix}context (contextlevel, instanceid, depth, path) VALUES (30, ?, 2, ?)");
+                        $stmtUCtx->execute([$newUserId, '/1']);
+                        $uctxId = (int)$mpdo->lastInsertId();
+                        if ($uctxId > 0) {
+                            $mpdo->prepare("UPDATE {$prefix}context SET path = ? WHERE id = ?")->execute(["/1/{$uctxId}", $uctxId]);
+                        }
+                    } catch (Exception $uEx) {}
+
+                    return [['id' => $newUserId, 'username' => $username]];
+                }
+            } catch (Exception $dbEx) {
+                // Fallback a API REST
+            }
+        }
+
         $params = [
             'users' => [
                 [
-                    'username' => strtolower($username),
+                    'username' => $username,
                     'password' => $password,
                     'firstname' => $firstname,
                     'lastname' => $lastname,
-                    'email' => strtolower($email),
+                    'email' => $email,
                     'auth' => 'manual',
                     'lang' => 'es'
                 ]
             ]
         ];
-        // Retorna array con info de los usuarios creados [{id, username}]
         return $this->call('core_user_create_users', $params);
     }
 
@@ -587,17 +663,23 @@ class MoodleAPI {
         if ($moodleDb->isConnected()) {
             try {
                 $mpdo = $moodleDb->getPDO();
-                $prefix = defined('MOODLE_DB_PREFIX') ? MOODLE_DB_PREFIX : 'avefp_';
+                $prefix = $moodleDb->getTablePrefix();
+                $now = time();
                 
-                // Buscar el ID del método de matriculación manual para este curso
+                // Buscar o crear el ID del método de matriculación manual para este curso
                 $stmtEnrol = $mpdo->prepare("SELECT id FROM {$prefix}enrol WHERE courseid = ? AND enrol = 'manual' LIMIT 1");
                 $stmtEnrol->execute([(int)$courseId]);
                 $enrolRow = $stmtEnrol->fetch();
                 
-                if ($enrolRow) {
+                if (!$enrolRow) {
+                    $stmtNewEnrol = $mpdo->prepare("INSERT INTO {$prefix}enrol (enrol, status, courseid, sortorder, expirythreshold, roleid, timecreated, timemodified) VALUES ('manual', 0, ?, 0, 0, 5, ?, ?)");
+                    $stmtNewEnrol->execute([(int)$courseId, $now, $now]);
+                    $enrolId = (int)$mpdo->lastInsertId();
+                } else {
                     $enrolId = (int)$enrolRow['id'];
-                    $now = time();
-                    
+                }
+                
+                if ($enrolId > 0) {
                     // Comprobar si ya está matriculado para evitar duplicados
                     $stmtCheck = $mpdo->prepare("SELECT id, status FROM {$prefix}user_enrolments WHERE userid = ? AND enrolid = ?");
                     $stmtCheck->execute([(int)$userId, $enrolId]);
@@ -618,12 +700,23 @@ class MoodleAPI {
                         }
                     }
                     
-                    // Asignar rol de estudiante en el contexto del curso si no lo tiene (contextlevel = 50)
+                    // Asignar rol en el contexto del curso (contextlevel = 50)
                     $stmtContext = $mpdo->prepare("SELECT id FROM {$prefix}context WHERE contextlevel = 50 AND instanceid = ? LIMIT 1");
                     $stmtContext->execute([(int)$courseId]);
                     $contextRow = $stmtContext->fetch();
-                    if ($contextRow) {
+                    
+                    if (!$contextRow) {
+                        $stmtNewCtx = $mpdo->prepare("INSERT INTO {$prefix}context (contextlevel, instanceid, depth, path) VALUES (50, ?, 2, ?)");
+                        $stmtNewCtx->execute([(int)$courseId, '/1']);
+                        $contextId = (int)$mpdo->lastInsertId();
+                        if ($contextId > 0) {
+                            $mpdo->prepare("UPDATE {$prefix}context SET path = ? WHERE id = ?")->execute(["/1/{$contextId}", $contextId]);
+                        }
+                    } else {
                         $contextId = (int)$contextRow['id'];
+                    }
+                    
+                    if ($contextId > 0) {
                         $stmtRoleCheck = $mpdo->prepare("SELECT id FROM {$prefix}role_assignments WHERE roleid = ? AND userid = ? AND contextid = ?");
                         $stmtRoleCheck->execute([(int)$roleId, (int)$userId, $contextId]);
                         if (!$stmtRoleCheck->fetch()) {
@@ -659,6 +752,25 @@ class MoodleAPI {
      * Añadir usuario a un grupo
      */
     public function addUserToGroup($groupId, $userId) {
+        require_once __DIR__ . '/moodle_db.php';
+        $moodleDb = new MoodleDB();
+        if ($moodleDb->isConnected()) {
+            try {
+                $mpdo = $moodleDb->getPDO();
+                $prefix = $moodleDb->getTablePrefix();
+                $now = time();
+                $stmtCheck = $mpdo->prepare("SELECT id FROM {$prefix}groups_members WHERE groupid = ? AND userid = ? LIMIT 1");
+                $stmtCheck->execute([(int)$groupId, (int)$userId]);
+                if (!$stmtCheck->fetch()) {
+                    $stmtIns = $mpdo->prepare("INSERT INTO {$prefix}groups_members (groupid, userid, timeadded, component, itemid) VALUES (?, ?, ?, '', 0)");
+                    $stmtIns->execute([(int)$groupId, (int)$userId, $now]);
+                }
+                return true;
+            } catch (Exception $e) {
+                // Fallback a API REST
+            }
+        }
+
         $params = [
             'members' => [
                 [
