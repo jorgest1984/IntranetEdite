@@ -139,12 +139,16 @@ try {
     }
     $student_status = $is_finished ? 1 : 0;
 
-    // 5. Obtener alumnos matriculados localmente
-    $stmt = $pdo->prepare("SELECT a.* FROM matriculas m JOIN alumnos a ON m.alumno_id = a.id WHERE m.grupo_id = ?");
-    $stmt->execute([$grupo_id_local]);
+    // 5. Obtener alumnos matriculados localmente para esta acción formativa
+    $stmt = $pdo->prepare("SELECT a.*, m.id as mat_id, m.grupo_id as mat_grupo_id 
+                           FROM matriculas m 
+                           JOIN alumnos a ON m.alumno_id = a.id 
+                           WHERE m.grupo_id IN (SELECT id FROM grupos WHERE accion_id = ?)");
+    $stmt->execute([$af_id]);
     $alumnos = $stmt->fetchAll();
 
     $syncCount = 0;
+    $student_errors = [];
     foreach ($alumnos as $alumno) {
         $lastname = trim(($alumno['primer_apellido'] ?? '') . ' ' . ($alumno['segundo_apellido'] ?? ''));
         if (empty($lastname)) {
@@ -156,23 +160,24 @@ try {
             'firstname' => $alumno['nombre'],
             'lastname' => $lastname,
             'email' => $alumno['email'],
-            'username' => $username, // Username en minúsculas y limpio para Moodle
-            'password' => 'Edite' . str_replace(['-', '.', ' '], '', $alumno['dni']) . '!' // Password: EditeDNI!
+            'username' => $username,
+            'password' => 'Edite' . str_replace(['-', '.', ' '], '', $alumno['dni']) . '!'
         ];
 
         try {
             // Sincronizar (Crear/Matricular/Meter en grupo) con estado activo o suspendido
             $moodleUserId = $moodle->provisionStudent($courseId, $moodleGroupId, $userData, $student_status);
             
-            // Actualizar el moodle_user_id local si no lo tenía
             if ($moodleUserId) {
                 if (($alumno['moodle_user_id'] ?? null) != $moodleUserId) {
                     $pdo->prepare("UPDATE alumnos SET moodle_user_id = ? WHERE id = ?")->execute([$moodleUserId, $alumno['id']]);
                 }
                 $syncCount++;
+            } else {
+                $student_errors[] = "No se obtuvo ID para {$alumno['nombre']} {$lastname}";
             }
         } catch (Exception $studentEx) {
-            // Registrar error de este alumno si ocurriese
+            $student_errors[] = "Error con {$alumno['nombre']}: " . $studentEx->getMessage();
         }
     }
 
@@ -263,12 +268,13 @@ try {
     }
 
     $finished_suffix = $is_finished ? " (Curso finalizado: alumnos suspendidos en Moodle)" : " (Curso activo)";
+    $err_suffix = !empty($student_errors) ? (" [Aviso alumnos: " . implode('; ', $student_errors) . "]") : "";
     
     ob_clean();
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode([
         'success' => true, 
-        'message' => "Sincronización exitosa. Curso ID: $courseId, Alumnos sincronizados: $syncCount" . $finished_suffix . $gestor_msg . $tutor_msg
+        'message' => "Sincronización exitosa. Curso ID: $courseId, Alumnos sincronizados: $syncCount" . $finished_suffix . $err_suffix . $gestor_msg . $tutor_msg
     ]);
 
 } catch (Exception $e) {

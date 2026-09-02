@@ -168,7 +168,7 @@ class MoodleAPI {
             }
         }
 
-        // 2. Intentamos con core_user_get_users_by_field (método oficial y recomendado para búsquedas exactas)
+        // 2. Intentamos con core_user_get_users_by_field
         try {
             $params = [
                 'field' => $field,
@@ -179,24 +179,29 @@ class MoodleAPI {
                 return ['users' => $res];
             }
         } catch (Exception $e) {
-            if (strpos($e->getMessage(), 'control de acceso') === false && 
-                strpos($e->getMessage(), 'access') === false && 
-                strpos($e->getMessage(), 'invalidparameter') === false &&
-                strpos($e->getMessage(), 'invalidrecord') === false) {
-                throw $e;
-            }
+            // Silencioso, intentamos el siguiente método
         }
 
         // 3. Fallback al método original core_user_get_users
-        $params = [
-            'criteria' => [
-                [
-                    'key' => $field,
-                    'value' => $values[0]
+        try {
+            $params = [
+                'criteria' => [
+                    [
+                        'key' => $field,
+                        'value' => $values[0]
+                    ]
                 ]
-            ]
-        ];
-        return $this->call('core_user_get_users', $params);
+            ];
+            $res2 = $this->call('core_user_get_users', $params);
+            if (is_array($res2)) {
+                return $res2;
+            }
+        } catch (Exception $e2) {
+            // Si el token no tiene permisos de lectura de usuarios, devolvemos vacío para continuar con la creación
+            return ['users' => []];
+        }
+
+        return ['users' => []];
     }
     
     /**
