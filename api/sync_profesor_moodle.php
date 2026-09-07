@@ -122,6 +122,18 @@ try {
         $pdo->prepare("UPDATE usuarios SET moodle_user_id = ? WHERE id = ?")->execute([$moodleUserId, $id]);
     } catch (Exception $dbEx) {}
 
+    // 4.5. Sincronizar foto de perfil con Moodle si existe localmente
+    $photoSynced = false;
+    $fotoPath = $user['foto'] ?? '';
+    if (!empty($fotoPath) && file_exists(__DIR__ . '/../' . $fotoPath)) {
+        try {
+            $moodle->updateUserPicture($moodleUserId, __DIR__ . '/../' . $fotoPath);
+            $photoSynced = true;
+        } catch (Exception $photoEx) {
+            // Silencioso
+        }
+    }
+
     // 5. Matricular como Profesor (rol 3) en todos los cursos que tenga asignados en grupos
     $cursosMatriculados = [];
     $stmtGrupos = $pdo->prepare("

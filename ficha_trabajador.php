@@ -26,6 +26,13 @@ if (!$trabajador) {
 $roles = $pdo->query("SELECT * FROM roles ORDER BY id ASC")->fetchAll();
 $centros_list = $pdo->query("SELECT id, nombre FROM centros ORDER BY nombre ASC")->fetchAll();
 
+try {
+    $checkColFoto = $pdo->query("SHOW COLUMNS FROM `usuarios` LIKE 'foto'")->fetch();
+    if (!$checkColFoto) {
+        $pdo->exec("ALTER TABLE `usuarios` ADD COLUMN `foto` VARCHAR(255) DEFAULT NULL");
+    }
+} catch (Exception $e) {}
+
 
 // Cargar detalles de profesorado (vínculo a usuario)
 $stmtProf = $pdo->prepare("SELECT * FROM profesorado_detalles WHERE usuario_id = ?");
@@ -144,6 +151,49 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                 $stC = $pdo->prepare("SELECT nombre FROM centros WHERE id = ?");
                 $stC->execute([$centro_id]);
                 $centro_nombre = $stC->fetchColumn() ?: null;
+            }
+
+            // Procesar subida de foto de perfil
+            $foto_path = $trabajador['foto'] ?? null;
+            if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
+                $allowed = ['jpg', 'jpeg', 'png', 'webp'];
+                $file_ext = strtolower(pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION));
+                if (in_array($file_ext, $allowed)) {
+                    $upload_dir = 'uploads/usuarios/' . $id . '/';
+                    if (!is_dir($upload_dir)) {
+                        mkdir($upload_dir, 0777, true);
+                    }
+                    // Borrar foto anterior si existe
+                    if (!empty($trabajador['foto']) && file_exists(__DIR__ . '/' . $trabajador['foto'])) {
+                        @unlink(__DIR__ . '/' . $trabajador['foto']);
+                    }
+                    $new_avatar_path = $upload_dir . 'avatar_' . time() . '.' . $file_ext;
+                    if (move_uploaded_file($_FILES['foto']['tmp_name'], __DIR__ . '/' . $new_avatar_path)) {
+                        $foto_path = $new_avatar_path;
+                        $pdo->prepare("UPDATE usuarios SET foto = ? WHERE id = ?")->execute([$new_avatar_path, $id]);
+                        $trabajador['foto'] = $new_avatar_path;
+                        
+                        // Sincronizar foto inmediatamente con Moodle
+                        try {
+                            require_once 'includes/moodle_api.php';
+                            $moodle = new MoodleAPI($pdo);
+                            if ($moodle->isConfigured()) {
+                                $muid = $trabajador['moodle_user_id'] ?? null;
+                                if (!$muid && !empty($trabajador['email'])) {
+                                    $mResult = $moodle->getUsersByField('email', [$trabajador['email']]);
+                                    if (!empty($mResult) && isset($mResult['users'][0])) {
+                                        $muid = $mResult['users'][0]['id'];
+                                    }
+                                }
+                                if ($muid) {
+                                    $moodle->updateUserPicture($muid, __DIR__ . '/' . $new_avatar_path);
+                                }
+                            }
+                        } catch (Exception $mEx) {
+                            // Silencioso para no bloquear el guardado
+                        }
+                    }
+                }
             }
 
             // Actualizar tabla usuarios (datos básicos)
@@ -628,6 +678,10 @@ $tareas = $stmt_tareas->fetchAll();
             grid-template-columns: 120px 1fr 120px 1fr 80px 100px;
         }
 
+        .avatar-wrapper:hover .avatar-upload-overlay {
+            opacity: 1 !important;
+        }
+
     </style>
 </head>
 <body>
@@ -637,10 +691,22 @@ $tareas = $stmt_tareas->fetchAll();
 
     <main class="main-content">
         <div class="trabajador-header" style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <a href="usuarios.php" class="btn-back" style="text-decoration:none; color:#64748b; font-size:0.85rem;">← Volver a Usuarios</a>
-                <h1 style="margin-top: 0.5rem; color: #1e3a8a;"><?= htmlspecialchars(($trabajador['nombre'] ?? '') . ' ' . ($trabajador['apellidos'] ?? '')) ?></h1>
-                <p style="color: #64748b; margin: 0; font-size:0.9rem;"><?= htmlspecialchars($trabajador['email'] ?? '') ?> | Perfil de Trabajador</p>
+            <div style="display: flex; align-items: center; gap: 1.25rem;">
+                <div style="width: 60px; height: 60px; border-radius: 50%; overflow: hidden; border: 3px solid #1e3a8a; background: #f8fafc; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center;">
+                    <?php 
+                    $header_foto = $trabajador['foto'] ?? '';
+                    if (!empty($header_foto) && file_exists(__DIR__ . '/' . $header_foto)) {
+                        echo '<img src="' . htmlspecialchars($header_foto) . '" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">';
+                    } else {
+                        echo '<i class="fas fa-user-circle" style="font-size: 60px; color: #cbd5e1;"></i>';
+                    }
+                    ?>
+                </div>
+                <div>
+                    <a href="usuarios.php" class="btn-back" style="text-decoration:none; color:#64748b; font-size:0.85rem;">← Volver a Usuarios</a>
+                    <h1 style="margin-top: 0.25rem; margin-bottom: 0.25rem; color: #1e3a8a; font-size: 1.6rem;"><?= htmlspecialchars(($trabajador['nombre'] ?? '') . ' ' . ($trabajador['apellidos'] ?? '')) ?></h1>
+                    <p style="color: #64748b; margin: 0; font-size:0.88rem;"><?= htmlspecialchars($trabajador['email'] ?? '') ?> | Perfil de Trabajador</p>
+                </div>
             </div>
             <div style="display: flex; gap: 10px; align-items: center;">
                 <button type="button" onclick="openSendKeysModal()" style="background: #0284c7; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15); transition: all 0.2s;">
@@ -680,9 +746,41 @@ $tareas = $stmt_tareas->fetchAll();
 
             <!-- TAB: Personales -->
             <div id="tab-personales" style="<?= $active_tab == 'personales' ? '' : 'display:none;' ?>">
-                <form method="POST" action="ficha_trabajador.php?id=<?= $id ?>&tab=personales">
+                <form method="POST" action="ficha_trabajador.php?id=<?= $id ?>&tab=personales" enctype="multipart/form-data">
                     <input type="hidden" name="action" value="update_personales">
-                    <div class="form-premium-grid">
+                    
+                    <div style="display: grid; grid-template-columns: 240px 1fr; gap: 2rem; align-items: start; margin-bottom: 1.5rem;">
+                        <!-- Columna Izquierda: Perfil / Foto -->
+                        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 2rem 1.25rem; text-align: center; display: flex; flex-direction: column; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                            <div class="avatar-wrapper" style="position: relative; width: 140px; height: 140px; border-radius: 50%; overflow: hidden; border: 4px solid #1e3a8a; background: #f8fafc; cursor: pointer; box-shadow: 0 8px 24px rgba(0,0,0,0.08); transition: transform 0.3s ease;">
+                                <div id="avatar-preview" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+                                    <?php 
+                                    $foto_path = $trabajador['foto'] ?? '';
+                                    if (!empty($foto_path) && file_exists(__DIR__ . '/' . $foto_path)) {
+                                        echo '<img src="' . htmlspecialchars($foto_path) . '" alt="Foto Trabajador" style="width: 100%; height: 100%; object-fit: cover;">';
+                                    } else {
+                                        echo '<i class="fas fa-user-circle" style="font-size: 140px; color: #cbd5e1;"></i>';
+                                    }
+                                    ?>
+                                </div>
+                                <div class="avatar-upload-overlay" onclick="document.getElementById('foto').click();" style="position: absolute; inset: 0; background: rgba(0, 0, 0, 0.45); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; opacity: 0; transition: opacity 0.2s ease; font-size: 0.8rem; gap: 5px; backdrop-filter: blur(2px);">
+                                    <i class="fas fa-camera" style="font-size: 1.5rem;"></i>
+                                    <span style="font-weight: 600;">Cambiar Foto</span>
+                                </div>
+                            </div>
+                            <input type="file" name="foto" id="foto" accept="image/*" style="display: none;" onchange="previewImage(this);">
+                            
+                            <div style="margin-top: 15px; text-align: center;">
+                                <button type="button" onclick="document.getElementById('foto').click();" style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; padding: 6px 14px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; cursor: pointer;">
+                                    <i class="fas fa-upload"></i> Subir Foto
+                                </button>
+                                <span style="font-size: 0.72rem; color: #64748b; display: block; margin-top: 6px;">Formatos: JPG, PNG, WEBP</span>
+                            </div>
+                        </div>
+
+                        <!-- Columna Derecha: Formulario de Datos Personales -->
+                        <div>
+                            <div class="form-premium-grid">
                         
                         <div class="form-group" style="grid-column: span 4;">
                             <label>DNI:</label>
@@ -810,11 +908,13 @@ $tareas = $stmt_tareas->fetchAll();
                             <textarea name="observaciones_personales"><?= htmlspecialchars($prof['observaciones_personales'] ?? '') ?></textarea>
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    <div style="text-align: center;">
-                        <button type="submit" class="btn-actualizar">Actualizar</button>
-                    </div>
-                </form>
+            <div style="text-align: center; margin-top: 1rem;">
+                <button type="submit" class="btn-actualizar">Actualizar Datos</button>
+            </div>
+        </form>
             </div>
 
             <!-- TAB: Profesorado -->
@@ -2776,6 +2876,19 @@ El equipo de administración.`;
                     }
                     alert(`❌ Error de comunicación con el servidor:\n\n${err.message}`);
                 });
+        }
+
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('avatar-preview');
+                    if (preview) {
+                        preview.innerHTML = '<img src="' + e.target.result + '" alt="Foto Trabajador" style="width: 100%; height: 100%; object-fit: cover;">';
+                    }
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
         }
     </script>
 </body>

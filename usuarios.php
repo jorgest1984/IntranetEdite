@@ -930,8 +930,12 @@ try {
                     <tr class="user-row-item">
                         <td>
                             <div class="identity-flex">
-                                <div class="user-avatar-gradient <?= $avatar_class ?>">
-                                    <?= $iniciales ?>
+                                <div class="user-avatar-gradient <?= $avatar_class ?>" style="overflow: hidden; padding: 0; display: flex; align-items: center; justify-content: center;">
+                                    <?php if (!empty($u['foto']) && file_exists(__DIR__ . '/' . $u['foto'])): ?>
+                                        <img src="<?= htmlspecialchars($u['foto']) ?>" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
+                                    <?php else: ?>
+                                        <?= $iniciales ?>
+                                    <?php endif; ?>
                                 </div>
                                 <div class="user-info-text">
                                     <span class="username"><?= htmlspecialchars($u['username']) ?></span>
