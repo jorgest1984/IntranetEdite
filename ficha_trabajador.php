@@ -682,6 +682,72 @@ $tareas = $stmt_tareas->fetchAll();
             opacity: 1 !important;
         }
 
+        /* ==========================================================================
+           RESPONSIVE MOBILE STYLES (FICHA TRABAJADOR)
+           ========================================================================== */
+        @media (max-width: 900px) {
+            #tab-personales > form > div[style*="grid-template-columns"] {
+                grid-template-columns: 1fr !important;
+                gap: 1.25rem !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 1rem 0.75rem !important;
+                max-width: 100vw !important;
+                box-sizing: border-box !important;
+                overflow-x: hidden !important;
+            }
+
+            .trabajador-header {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 1rem !important;
+                margin-bottom: 1.25rem !important;
+            }
+
+            .tabs-header {
+                display: flex !important;
+                overflow-x: auto !important;
+                flex-wrap: nowrap !important;
+                -webkit-overflow-scrolling: touch !important;
+                padding-bottom: 6px !important;
+                gap: 4px !important;
+            }
+
+            .tab-btn {
+                white-space: nowrap !important;
+                padding: 8px 14px !important;
+                font-size: 0.82rem !important;
+                flex-shrink: 0 !important;
+            }
+
+            .form-premium-grid {
+                grid-template-columns: 1fr !important;
+                gap: 10px !important;
+            }
+
+            .form-group {
+                grid-column: span 1 !important;
+                width: 100% !important;
+            }
+
+            .form-group input, .form-group select, .form-group textarea {
+                width: 100% !important;
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+            }
+
+            .formacion-table-grid, .formacion-bottom-row {
+                grid-template-columns: 1fr !important;
+            }
+
+            .formacion-label {
+                justify-content: flex-start !important;
+                text-align: left !important;
+            }
+        }
     </style>
 </head>
 <body>
