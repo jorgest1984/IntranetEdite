@@ -682,19 +682,35 @@ $tareas = $stmt_tareas->fetchAll();
             opacity: 1 !important;
         }
 
+        /* Layout for profile photo and fields */
+        .worker-profile-layout {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            gap: 2rem;
+            align-items: start;
+            margin-bottom: 1.5rem;
+        }
+
+        .avatar-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 2rem 1.25rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            width: 100%;
+            box-sizing: border-box;
+        }
+
         /* ==========================================================================
            RESPONSIVE MOBILE STYLES (FICHA TRABAJADOR)
            ========================================================================== */
-        @media (max-width: 900px) {
-            #tab-personales > form > div[style*="grid-template-columns"] {
-                grid-template-columns: 1fr !important;
-                gap: 1.25rem !important;
-            }
-        }
-
-        @media (max-width: 768px) {
+        @media (max-width: 1024px) {
             .main-content {
-                padding: 1rem 0.75rem !important;
+                padding: 4.5rem 1rem 1.5rem 1rem !important;
                 max-width: 100vw !important;
                 box-sizing: border-box !important;
                 overflow-x: hidden !important;
@@ -703,8 +719,40 @@ $tareas = $stmt_tareas->fetchAll();
             .trabajador-header {
                 flex-direction: column !important;
                 align-items: stretch !important;
-                gap: 1rem !important;
+                gap: 1.25rem !important;
+                padding: 1.25rem 1rem !important;
                 margin-bottom: 1.25rem !important;
+            }
+
+            .trabajador-header > div:first-child {
+                flex-direction: row !important;
+                align-items: center !important;
+                gap: 1rem !important;
+            }
+
+            .trabajador-header h1 {
+                font-size: 1.35rem !important;
+                word-break: break-word !important;
+            }
+
+            .trabajador-header p {
+                font-size: 0.82rem !important;
+                word-break: break-all !important;
+            }
+
+            .trabajador-header > div:last-child {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                width: 100% !important;
+                gap: 8px !important;
+            }
+
+            .trabajador-header > div:last-child button,
+            .trabajador-header > div:last-child span {
+                width: 100% !important;
+                justify-content: center !important;
+                text-align: center !important;
+                box-sizing: border-box !important;
             }
 
             .tabs-header {
@@ -712,8 +760,9 @@ $tareas = $stmt_tareas->fetchAll();
                 overflow-x: auto !important;
                 flex-wrap: nowrap !important;
                 -webkit-overflow-scrolling: touch !important;
-                padding-bottom: 6px !important;
-                gap: 4px !important;
+                padding: 6px !important;
+                gap: 6px !important;
+                background: #f1f5f9 !important;
             }
 
             .tab-btn {
@@ -721,22 +770,75 @@ $tareas = $stmt_tareas->fetchAll();
                 padding: 8px 14px !important;
                 font-size: 0.82rem !important;
                 flex-shrink: 0 !important;
+                border-radius: 6px !important;
+                border: none !important;
             }
 
+            .tab-btn.active {
+                background: #1e40af !important;
+                color: white !important;
+                box-shadow: none !important;
+            }
+
+            .tab-panel {
+                padding: 1.25rem 1rem !important;
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+                overflow-x: hidden !important;
+            }
+
+            .worker-profile-layout {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 1.5rem !important;
+                width: 100% !important;
+            }
+        }
+
+        @media (max-width: 768px) {
             .form-premium-grid {
-                grid-template-columns: 1fr !important;
-                gap: 10px !important;
-            }
-
-            .form-group {
-                grid-column: span 1 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 12px !important;
                 width: 100% !important;
             }
 
-            .form-group input, .form-group select, .form-group textarea {
+            .form-premium-grid > .form-group,
+            .form-premium-grid > div,
+            .form-group {
+                grid-column: auto !important;
                 width: 100% !important;
                 max-width: 100% !important;
                 box-sizing: border-box !important;
+            }
+
+            .form-group input, 
+            .form-group select, 
+            .form-group textarea {
+                width: 100% !important;
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+            }
+
+            .email-wrapper {
+                width: 100% !important;
+                display: flex !important;
+                gap: 8px !important;
+            }
+
+            .email-wrapper input {
+                flex: 1 1 auto !important;
+                width: 0 !important;
+                min-width: 0 !important;
+            }
+
+            .email-wrapper .btn-yellow-icon {
+                flex-shrink: 0 !important;
+            }
+
+            .radio-group-premium {
+                flex-wrap: wrap !important;
+                gap: 1rem !important;
             }
 
             .formacion-table-grid, .formacion-bottom-row {
@@ -746,6 +848,67 @@ $tareas = $stmt_tareas->fetchAll();
             .formacion-label {
                 justify-content: flex-start !important;
                 text-align: left !important;
+            }
+
+            /* Responsive tables container */
+            .table-responsive-wrapper,
+            .tab-panel table {
+                display: block !important;
+                width: 100% !important;
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+            }
+
+            /* Horarios tramos profesorado */
+            #tab-profesorado div[style*="display: flex; align-items: center; gap: 1rem"] {
+                flex-wrap: wrap !important;
+                gap: 0.5rem !important;
+            }
+            #tab-profesorado div[style*="display: flex; align-items: center; gap: 1rem"] input[type="time"] {
+                flex: 1 1 110px !important;
+                width: auto !important;
+            }
+
+            /* Tab Perfil */
+            #tab-perfil div[style*="grid-template-columns: repeat(3, 1fr)"] {
+                grid-template-columns: 1fr !important;
+                gap: 1rem !important;
+                padding: 1rem !important;
+            }
+
+            /* Tab Comerciales */
+            #tab-comerciales > div {
+                padding: 1.25rem 1rem !important;
+            }
+            #tab-comerciales div[style*="display: flex; gap: 2rem; flex-wrap: wrap"] {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 1.25rem !important;
+            }
+            #tab-comerciales div[style*="display: flex; gap: 2rem; flex-wrap: wrap"] > div {
+                min-width: 0 !important;
+                width: 100% !important;
+            }
+
+            /* Tab Cuenta & Asistencia tables */
+            #tab-cuenta table, #tab-cuenta tbody, #tab-cuenta tr, #tab-cuenta td,
+            #tab-asistencia table, #tab-asistencia tbody, #tab-asistencia tr, #tab-asistencia td {
+                display: block !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+            #tab-cuenta td[style*="width:"], #tab-asistencia td[style*="width:"] {
+                width: 100% !important;
+            }
+            #tab-cuenta input, #tab-cuenta select,
+            #tab-asistencia input, #tab-asistencia textarea {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            .btn-actualizar {
+                width: 100% !important;
+                padding: 0.85rem 1rem !important;
+                box-sizing: border-box !important;
             }
         }
     </style>
@@ -815,9 +978,9 @@ $tareas = $stmt_tareas->fetchAll();
                 <form method="POST" action="ficha_trabajador.php?id=<?= $id ?>&tab=personales" enctype="multipart/form-data">
                     <input type="hidden" name="action" value="update_personales">
                     
-                    <div style="display: grid; grid-template-columns: 240px 1fr; gap: 2rem; align-items: start; margin-bottom: 1.5rem;">
+                    <div class="worker-profile-layout">
                         <!-- Columna Izquierda: Perfil / Foto -->
-                        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 2rem 1.25rem; text-align: center; display: flex; flex-direction: column; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                        <div class="avatar-card">
                             <div class="avatar-wrapper" style="position: relative; width: 140px; height: 140px; border-radius: 50%; overflow: hidden; border: 4px solid #1e3a8a; background: #f8fafc; cursor: pointer; box-shadow: 0 8px 24px rgba(0,0,0,0.08); transition: transform 0.3s ease;">
                                 <div id="avatar-preview" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
                                     <?php 

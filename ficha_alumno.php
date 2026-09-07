@@ -659,6 +659,140 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         .table-premium-dense tbody tr:hover {
             background: #f8fafc;
         }
+
+        /* Layout for profile photo and fields */
+        .student-profile-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 2rem;
+            align-items: stretch;
+            margin-bottom: 2rem;
+        }
+
+        /* ==========================================================================
+           RESPONSIVE MOBILE STYLES (FICHA ALUMNO)
+           ========================================================================== */
+        @media (max-width: 1024px) {
+            .main-content {
+                padding: 4.5rem 1rem 1.5rem 1rem !important;
+                max-width: 100vw !important;
+                box-sizing: border-box !important;
+                overflow-x: hidden !important;
+            }
+
+            .header-premium {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 1.25rem !important;
+                padding-bottom: 1rem !important;
+                margin-bottom: 1.25rem !important;
+            }
+
+            .header-premium h1 {
+                font-size: 1.35rem !important;
+                word-break: break-word !important;
+            }
+
+            .header-premium p {
+                font-size: 0.82rem !important;
+                word-break: break-all !important;
+            }
+
+            .header-premium > div:last-child {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                width: 100% !important;
+                gap: 8px !important;
+            }
+
+            .header-premium > div:last-child button,
+            .header-premium > div:last-child form {
+                width: 100% !important;
+            }
+
+            .header-premium > div:last-child button {
+                justify-content: center !important;
+                text-align: center !important;
+                box-sizing: border-box !important;
+            }
+
+            .tabs-header {
+                display: flex !important;
+                overflow-x: auto !important;
+                flex-wrap: nowrap !important;
+                -webkit-overflow-scrolling: touch !important;
+                padding: 6px !important;
+                gap: 6px !important;
+                background: #f1f5f9 !important;
+            }
+
+            .tab-btn {
+                white-space: nowrap !important;
+                padding: 8px 14px !important;
+                font-size: 0.82rem !important;
+                flex-shrink: 0 !important;
+                border-radius: 6px !important;
+                border: none !important;
+            }
+
+            .tab-btn.active {
+                background: var(--primary-color) !important;
+                color: white !important;
+                box-shadow: none !important;
+            }
+
+            .tab-panel {
+                padding: 1.25rem 1rem !important;
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+                overflow-x: hidden !important;
+            }
+
+            .student-profile-layout {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 1.5rem !important;
+                width: 100% !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 12px !important;
+                width: 100% !important;
+            }
+
+            .form-grid > div,
+            .form-group-custom,
+            .span-1, .span-2, .span-3, .span-4, .span-5, .span-6, 
+            .span-7, .span-8, .span-9, .span-10, .span-11, .span-12 {
+                grid-column: auto !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+            }
+
+            .form-control-edit {
+                width: 100% !important;
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+            }
+
+            .card-section-premium {
+                padding: 1.25rem 1rem !important;
+            }
+
+            /* Tables in tabs */
+            .table-premium-dense,
+            .tab-panel table {
+                display: block !important;
+                width: 100% !important;
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -714,7 +848,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                     <input type="hidden" name="action" value="update_personales">
                     
-                    <div style="display: grid; grid-template-columns: 280px 1fr; gap: 2rem; align-items: stretch; margin-bottom: 2rem;">
+                    <div class="student-profile-layout">
                         <!-- Columna Izquierda: Perfil / Foto -->
                         <div>
                             <!-- Foto de Perfil del Alumno -->
