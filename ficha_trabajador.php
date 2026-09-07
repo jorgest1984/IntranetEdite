@@ -822,9 +822,9 @@ $tareas = $stmt_tareas->fetchAll();
                 
                 <!-- Botones de Acción Superiores -->
                 <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap;">
-                    <button class="btn-yellow-icon" onclick="window.open('generar_certificado.php?id=<?= $id ?>', '_blank')" style="padding: 0.6rem 1.2rem; font-size: 0.8rem; font-weight: 600; color: #854d0e;">Certificado</button>
-                    <button class="btn-yellow-icon" style="padding: 0.6rem 1.2rem; font-size: 0.8rem; font-weight: 600; color: #854d0e;">Crear/actualizar profesor en Aula Virtual</button>
-                    <button class="btn-yellow-icon" onclick="openModalDocumentos()" style="padding: 0.6rem 1.2rem; font-size: 0.8rem; font-weight: 600; color: #854d0e;">Subir documento</button>
+                    <button type="button" class="btn-yellow-icon" onclick="window.open('generar_certificado.php?id=<?= $id ?>', '_blank')" style="padding: 0.6rem 1.2rem; font-size: 0.8rem; font-weight: 600; color: #854d0e; cursor: pointer;">Certificado</button>
+                    <button type="button" id="btnSyncProfesorMoodle" class="btn-yellow-icon" onclick="syncProfesorMoodle(<?= $id ?>)" style="padding: 0.6rem 1.2rem; font-size: 0.8rem; font-weight: 600; color: #854d0e; cursor: pointer;"><i class="fas fa-chalkboard-teacher"></i> Crear/actualizar profesor en Aula Virtual</button>
+                    <button type="button" class="btn-yellow-icon" onclick="openModalDocumentos()" style="padding: 0.6rem 1.2rem; font-size: 0.8rem; font-weight: 600; color: #854d0e; cursor: pointer;">Subir documento</button>
                 </div>
 
                 <!-- Listado de Documentos Subidos -->
@@ -2743,6 +2743,39 @@ El equipo de administración.`;
                 btn.disabled = false;
                 btn.innerHTML = '🚀 Enviar Correo';
             });
+        }
+
+        function syncProfesorMoodle(trabajadorId) {
+            if (!confirm('¿Deseas crear o actualizar la cuenta de este profesor en el Aula Virtual Moodle y matricularlo en sus cursos asignados?')) {
+                return;
+            }
+            const btn = document.getElementById('btnSyncProfesorMoodle');
+            const originalHtml = btn ? btn.innerHTML : 'Crear/actualizar profesor en Aula Virtual';
+            if (btn) {
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sincronizando en Moodle...';
+                btn.disabled = true;
+            }
+
+            fetch(`api/sync_profesor_moodle.php?id=${trabajadorId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (btn) {
+                        btn.innerHTML = originalHtml;
+                        btn.disabled = false;
+                    }
+                    if (data.success) {
+                        alert(`✅ ¡Éxito!\n\n${data.message}`);
+                    } else {
+                        alert(`❌ Error al sincronizar con Moodle:\n\n${data.error || 'Error desconocido'}`);
+                    }
+                })
+                .catch(err => {
+                    if (btn) {
+                        btn.innerHTML = originalHtml;
+                        btn.disabled = false;
+                    }
+                    alert(`❌ Error de comunicación con el servidor:\n\n${err.message}`);
+                });
         }
     </script>
 </body>
