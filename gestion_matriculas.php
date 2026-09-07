@@ -45,24 +45,20 @@ $stmtTutores = $pdo->query("SELECT u.id, CONCAT(u.nombre, ' ', u.apellidos) as n
                             ORDER BY u.nombre ASC");
 $tutores = $stmtTutores ? $stmtTutores->fetchAll(PDO::FETCH_ASSOC) : [];
 
-// Procesar Guardado y Matriculación de Personal (Tutores e Inspector)
+// Procesar Guardado y Matriculación de Personal (Tutor e Inspector)
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action_save_personal'])) {
     $tutor_id = $_POST['tutor_id'] !== '' ? (int)$_POST['tutor_id'] : null;
-    $tutor_id_2 = $_POST['tutor_id_2'] !== '' ? (int)$_POST['tutor_id_2'] : null;
-    $tutor_reserva_id = $_POST['tutor_reserva_id'] !== '' ? (int)$_POST['tutor_reserva_id'] : null;
     $usuario_gestor = trim($_POST['usuario_gestor'] ?? '');
     $contrasena_gestor = trim($_POST['contrasena_gestor'] ?? '');
-
-    // Guardar la contraseña exactamente como la escribió el usuario en la BD de la Intranet
 
     try {
         $pdo->beginTransaction();
         
         // 1. Guardar en la base de datos de la Intranet
         $stmtUpdate = $pdo->prepare("UPDATE grupos 
-                                     SET tutor_id = ?, tutor_id_2 = ?, tutor_reserva_id = ?, usuario_gestor = ?, contrasena_gestor = ?
+                                     SET tutor_id = ?, usuario_gestor = ?, contrasena_gestor = ?
                                      WHERE id = ?");
-        $stmtUpdate->execute([$tutor_id, $tutor_id_2, $tutor_reserva_id, $usuario_gestor, $contrasena_gestor, $grupo_id]);
+        $stmtUpdate->execute([$tutor_id, $usuario_gestor, $contrasena_gestor, $grupo_id]);
         
         $pdo->commit();
         
@@ -603,31 +599,11 @@ $alumnos = $matriculados->fetchAll();
                             <input type="hidden" name="action_save_personal" value="1">
                             
                             <div style="margin-bottom: 12px; text-align: left;">
-                                <label style="font-size: 0.78rem; font-weight: 700; color: #475569; text-transform: uppercase; display: block; margin-bottom: 6px;">Tutor Principal:</label>
+                                <label style="font-size: 0.78rem; font-weight: 700; color: #475569; text-transform: uppercase; display: block; margin-bottom: 6px;">Tutor del Curso:</label>
                                 <select name="tutor_id" class="form-control" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.85rem; font-family: inherit;">
                                     <option value="">-- Sin asignar --</option>
                                     <?php foreach ($tutores as $t): ?>
                                         <option value="<?= $t['id'] ?>" <?= ($grupo_full['tutor_id'] ?? '') == $t['id'] ? 'selected' : '' ?>><?= htmlspecialchars($t['nombre']) ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            
-                            <div style="margin-bottom: 12px; text-align: left;">
-                                <label style="font-size: 0.78rem; font-weight: 700; color: #475569; text-transform: uppercase; display: block; margin-bottom: 6px;">Tutor Auxiliar (Tutor 2):</label>
-                                <select name="tutor_id_2" class="form-control" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.85rem; font-family: inherit;">
-                                    <option value="">-- Sin asignar --</option>
-                                    <?php foreach ($tutores as $t): ?>
-                                        <option value="<?= $t['id'] ?>" <?= ($grupo_full['tutor_id_2'] ?? '') == $t['id'] ? 'selected' : '' ?>><?= htmlspecialchars($t['nombre']) ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            
-                            <div style="margin-bottom: 12px; text-align: left;">
-                                <label style="font-size: 0.78rem; font-weight: 700; color: #475569; text-transform: uppercase; display: block; margin-bottom: 6px;">Tutor de Reserva:</label>
-                                <select name="tutor_reserva_id" class="form-control" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.85rem; font-family: inherit;">
-                                    <option value="">-- Sin asignar --</option>
-                                    <?php foreach ($tutores as $t): ?>
-                                        <option value="<?= $t['id'] ?>" <?= ($grupo_full['tutor_reserva_id'] ?? '') == $t['id'] ? 'selected' : '' ?>><?= htmlspecialchars($t['nombre']) ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
