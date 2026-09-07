@@ -736,9 +736,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                     </div>
                                 </div>
                                 <input type="file" name="foto" id="foto" accept="image/*" style="display: none;" onchange="previewImage(this);">
-                                
-                                <div style="margin-top: 15px; text-align: center;">
-                                    <span style="font-size: 0.72rem; color: #64748b; display: block;">Formatos: JPG, PNG, WEBP</span>
+                                <div style="margin-top: 15px; text-align: center; width: 100%;">
+                                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                                        <button type="button" onclick="document.getElementById('foto').click();" style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; padding: 7px 14px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                                            <i class="fas fa-upload"></i> Subir Foto
+                                        </button>
+                                        <button type="button" id="btnSyncFotoMoodleAlumno" onclick="syncFotoMoodle(<?= $id ?>, 'alumno')" style="background: #0284c7; color: white; border: 1px solid #0369a1; padding: 7px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 4px rgba(2, 132, 199, 0.15);">
+                                            <i class="fas fa-sync-alt"></i> Actualizar foto de perfil en Moodle
+                                        </button>
+                                    </div>
+                                    <span style="font-size: 0.72rem; color: #64748b; display: block; margin-top: 8px;">Formatos: JPG, PNG, WEBP</span>
                                 </div>
                             </div>
                         </div>
@@ -1688,6 +1695,36 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     document.getElementById('modalEditarDoc').addEventListener('click', function(e) {
         if (e.target === this) cerrarEditarDoc();
     });
+
+    function syncFotoMoodle(id, type = 'alumno') {
+        const btn = document.getElementById('btnSyncFotoMoodleAlumno') || document.getElementById('btnSyncFotoMoodle');
+        const originalHtml = btn ? btn.innerHTML : 'Actualizar foto de perfil en Moodle';
+        if (btn) {
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sincronizando foto en Moodle...';
+            btn.disabled = true;
+        }
+
+        fetch(`api/sync_user_photo_moodle.php?id=${id}&type=${type}`)
+            .then(res => res.json())
+            .then(data => {
+                if (btn) {
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                }
+                if (data.success) {
+                    alert(`✅ ¡Éxito!\n\n${data.message}`);
+                } else {
+                    alert(`❌ Error:\n\n${data.error || 'Error desconocido al sincronizar la foto.'}`);
+                }
+            })
+            .catch(err => {
+                if (btn) {
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                }
+                alert(`❌ Error de comunicación con el servidor:\n\n${err.message}`);
+            });
+    }
 </script>
 </body>
 </html>
