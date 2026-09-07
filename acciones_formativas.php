@@ -59,7 +59,7 @@ if (!empty($_GET['plan_id'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
     $searched = true;
     $params = [];
-    $sql = "SELECT af.*, c.nombre_largo as titulo, p.nombre as nombre_plan,
+    $sql = "SELECT af.*, c.nombre_largo as titulo, c.moodle_id as curso_moodle_id, p.nombre as nombre_plan,
             (SELECT COUNT(*) FROM matriculas m 
              JOIN grupos g ON m.grupo_id = g.id 
              WHERE g.accion_id = af.id) as participantes
@@ -670,7 +670,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
                                         </td>
                                         <td data-label="Nombre del Curso">
                                             <div style="font-weight: 700; color: var(--text-color); font-size: 0.9rem; white-space: normal;"><?= htmlspecialchars($row['titulo'] ?? '') ?></div>
-                                            <small style="color: var(--text-muted); font-weight: 600;"><?= htmlspecialchars($row['nombre_plan'] ?? 'Sin Plan') ?></small>
+                                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 2px;">
+                                                <small style="color: var(--text-muted); font-weight: 600;"><?= htmlspecialchars($row['nombre_plan'] ?? 'Sin Plan') ?></small>
+                                                <?php 
+                                                $mCourseId = !empty($row['curso_moodle_id']) ? $row['curso_moodle_id'] : $row['id_plataforma'];
+                                                if (!empty($mCourseId)): ?>
+                                                    <a href="https://aulavirtual.grupoefp.es/course/view.php?id=<?= $mCourseId ?>" target="_blank" style="display: inline-flex; align-items: center; gap: 4px; background: rgba(234, 88, 12, 0.1); color: #ea580c; border: 1px solid rgba(234, 88, 12, 0.3); padding: 2px 8px; border-radius: 6px; font-size: 0.68rem; font-weight: 800; text-decoration: none;" title="Abrir curso en Aula Virtual Moodle">
+                                                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+                                                        Moodle #<?= $mCourseId ?> ↗
+                                                    </a>
+                                                <?php endif; ?>
+                                            </div>
                                         </td>
                                         <td data-label="Modalidad" style="text-align: center;">
                                             <span style="background: rgba(0, 108, 228, 0.08); color: var(--primary-color); padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 800;"><?= htmlspecialchars($row['modalidad'] ?? '') ?></span>
@@ -707,6 +717,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
                                                 <a href="gestion_matriculas.php?af_id=<?= $row['id'] ?>" class="btn-action" style="color: #16a34a;" title="Matricular Alumnos">
                                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="17" y1="11" x2="23" y2="11"></line></svg>
                                                 </a>
+                                                <?php 
+                                                $mCourseId = !empty($row['curso_moodle_id']) ? $row['curso_moodle_id'] : $row['id_plataforma'];
+                                                ?>
+                                                <button type="button" 
+                                                        class="btn-action" 
+                                                        style="color: #ea580c; border-color: rgba(234, 88, 12, 0.35); background: <?= !empty($mCourseId) ? 'rgba(234, 88, 12, 0.06)' : 'var(--input-bg)' ?>;" 
+                                                        title="<?= !empty($mCourseId) ? 'Recrear / Actualizar en Moodle (ID actual: #' . $mCourseId . ')' : 'Crear Curso en Moodle' ?>" 
+                                                        onclick="createMoodleCourse(<?= $row['id'] ?>, '<?= htmlspecialchars(addslashes($row['titulo'] ?? '')) ?>', <?= !empty($mCourseId) ? $mCourseId : 'null' ?>)">
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+                                                </button>
                                                 <?php if (has_permission([ROLE_ADMIN])): ?>
                                                 <a href="borrar_af.php?id=<?= $row['id'] ?>&csrf_token=<?= urlencode($_SESSION['csrf_token'] ?? '') ?>" class="btn-action" style="color: #ef4444;" title="Borrar Acción Formativa" onclick="return confirm('¿Seguro que deseas eliminar esta Acción Formativa? Esta acción no se puede deshacer y eliminará sus grupos y matrículas.');">
                                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
@@ -848,5 +868,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
     </main>
 </div>
 
+<script>
+function switchTab(tabId) {
+    document.querySelectorAll('.tab-af-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content-af').forEach(content => content.classList.remove('active'));
+    
+    const activeBtn = document.querySelector(`.tab-af-btn[data-tab="${tabId}"]`);
+    const activeContent = document.getElementById(tabId);
+    
+    if (activeBtn && activeContent) {
+        activeBtn.classList.add('active');
+        activeContent.classList.add('active');
+    }
+}
+
+function createMoodleCourse(afId, title, existingId) {
+    const actionText = existingId 
+        ? `Esta acción formativa ya está vinculada al curso Moodle #${existingId}.\n\n¿Deseas recrear o actualizar el curso "${title}" en Moodle?`
+        : `¿Deseas crear el curso "${title}" en Moodle?\n\nSe creará automáticamente en la categoría de su Plan/Convocatoria en el Aula Virtual y quedará vinculado a esta Acción Formativa.`;
+    
+    if (!confirm(actionText)) {
+        return;
+    }
+
+    const csrfToken = '<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>';
+    const btn = event.currentTarget;
+    const originalHtml = btn.innerHTML;
+    
+    btn.innerHTML = '<svg class="syncing" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>';
+    btn.disabled = true;
+
+    fetch(`api_create_moodle_course.php?id=${afId}&csrf_token=${encodeURIComponent(csrfToken)}`)
+        .then(res => res.json())
+        .then(data => {
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
+            if (data.success) {
+                alert(`✅ ¡Éxito!\n${data.message}`);
+                window.location.reload();
+            } else {
+                alert(`❌ Error al crear curso en Moodle:\n${data.error || 'Error desconocido'}`);
+            }
+        })
+        .catch(err => {
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
+            alert(`❌ Error de comunicación con el servidor:\n${err.message}`);
+        });
+}
+</script>
 </body>
 </html>

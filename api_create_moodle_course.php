@@ -47,9 +47,17 @@ try {
     $pdo->beginTransaction();
 
     // 3. Obtener la Acción Formativa
-    $stmt = $pdo->prepare("SELECT af.*, c.moodle_id as curso_moodle_id, c.id as local_curso_id
+    $stmt = $pdo->prepare("SELECT af.*, 
+                                  COALESCE(c.nombre_largo, af.titulo) as titulo, 
+                                  COALESCE(c.nombre_corto, af.abreviatura) as abreviatura, 
+                                  c.moodle_id as curso_moodle_id, 
+                                  c.id as local_curso_id,
+                                  p.nombre as plan_nombre,
+                                  conv.nombre as convocatoria_nombre
                            FROM acciones_formativas af 
                            LEFT JOIN cursos c ON af.curso_id = c.id 
+                           LEFT JOIN planes p ON af.plan_id = p.id
+                           LEFT JOIN convocatorias conv ON p.convocatoria_id = conv.id
                            WHERE af.id = ?");
     $stmt->execute([$af_id]);
     $af = $stmt->fetch();
@@ -59,31 +67,39 @@ try {
         exit();
     }
 
-    // Verificar si ya tiene ID de plataforma / Moodle ID
-    $existingMoodleId = !empty($af['curso_moodle_id']) ? $af['curso_moodle_id'] : $af['id_plataforma'];
-    if (!empty($existingMoodleId)) {
-        echo json_encode([
-            'success' => false,
-            'error' => "Esta acción formativa ya está vinculada a Moodle con el ID: {$existingMoodleId}."
-        ]);
-        exit();
-    }
-
     // 4. Instanciar la API de Moodle
     $moodle = new MoodleAPI($pdo);
     $moodle_id = null;
 
     if ($moodle->isConfigured()) {
+        $categoryId = 1;
+        if (!empty($af['plan_nombre'])) {
+            try {
+                $categoryId = $moodle->getOrCreateCategory($af['plan_nombre']);
+            } catch (Exception $e) {
+                $categoryId = 1;
+            }
+        } elseif (!empty($af['convocatoria_nombre'])) {
+            try {
+                $categoryId = $moodle->getOrCreateCategory($af['convocatoria_nombre']);
+            } catch (Exception $e) {
+                $categoryId = 1;
+            }
+        }
+
+        $fullname = !empty($af['titulo']) ? $af['titulo'] : (!empty($af['num_accion']) ? 'Accion ' . $af['num_accion'] : 'Curso AF-' . $af_id);
+        $shortname = !empty($af['abreviatura']) ? $af['abreviatura'] : 'CURSO-' . $af_id;
+
         // Crear curso en Moodle real
-        $moodleResult = $moodle->createCourse($af['titulo'], $af['abreviatura']);
+        $moodleResult = $moodle->createCourse($fullname, $shortname, $categoryId);
         if (!empty($moodleResult) && isset($moodleResult[0]['id'])) {
-            $moodle_id = $moodleResult[0]['id'];
+            $moodle_id = (int)$moodleResult[0]['id'];
         } else {
             throw new Exception("Moodle no devolvió un ID de curso válido tras crearlo.");
         }
     } else {
-        // Si no está configurado, simulamos la creación en Moodle (para pruebas/fallback de demostración)
-        $moodle_id = 10000 + $af_id; // ID simulado
+        // Si no está configurado, simulamos la creación en Moodle
+        $moodle_id = 10000 + $af_id;
         $simulated = true;
     }
 
