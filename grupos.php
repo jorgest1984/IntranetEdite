@@ -27,11 +27,26 @@ try {
     $planes = $pdo->query("SELECT id, nombre, codigo FROM planes ORDER BY nombre ASC")->fetchAll(PDO::FETCH_ASSOC);
     $convocatorias = $pdo->query("SELECT id, nombre, codigo_expediente FROM convocatorias ORDER BY nombre ASC")->fetchAll(PDO::FETCH_ASSOC);
     
-    // Tutores (Docentes)
-    $stmtTutores = $pdo->query("SELECT a.id, CONCAT(a.nombre, ' ', a.primer_apellido) as nombre 
-                                FROM alumnos a 
-                                JOIN profesorado_detalles p ON a.id = p.alumno_id 
-                                ORDER BY a.nombre ASC");
+    // Tutores (Docentes) - Obtener lista unificada y completa
+    $stmtTutores = $pdo->query("
+        SELECT id, nombre FROM (
+            SELECT u.id, CONCAT(u.nombre, ' ', u.apellidos) as nombre 
+            FROM usuarios u 
+            LEFT JOIN roles r ON u.rol_id = r.id 
+            WHERE (r.nombre LIKE '%Tutor%' OR r.nombre LIKE '%Formador%' OR r.nombre LIKE '%Docente%' OR u.rol_id = 4)
+            UNION
+            SELECT a.id, CONCAT(a.nombre, ' ', a.primer_apellido, ' ', COALESCE(a.segundo_apellido, '')) as nombre 
+            FROM alumnos a 
+            JOIN profesorado_detalles p ON a.id = p.alumno_id 
+            UNION
+            SELECT u2.id, CONCAT(u2.nombre, ' ', u2.apellidos) as nombre
+            FROM grupos g
+            JOIN usuarios u2 ON (g.tutor_id = u2.id OR g.tutor_id_2 = u2.id OR g.tutor_reserva_id = u2.id)
+            WHERE u2.nombre IS NOT NULL AND u2.nombre != ''
+        ) t_all
+        GROUP BY id, nombre
+        ORDER BY nombre ASC
+    ");
     if ($stmtTutores) $tutores = $stmtTutores->fetchAll(PDO::FETCH_ASSOC);
 
     // Centros (Empresas)
@@ -78,7 +93,9 @@ try {
         $params[] = $_GET['asignacion'];
     }
     if (!empty($_GET['tutor'])) {
-        $where[] = "g.tutor_id = ?";
+        $where[] = "(g.tutor_id = ? OR g.tutor_id_2 = ? OR g.tutor_reserva_id = ?)";
+        $params[] = (int)$_GET['tutor'];
+        $params[] = (int)$_GET['tutor'];
         $params[] = (int)$_GET['tutor'];
     }
     if (!empty($_GET['centro'])) {

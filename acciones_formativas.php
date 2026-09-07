@@ -41,6 +41,31 @@ $proveedores = getSafeDistinctValues($pdo, 'proveedor');
 $catalogos = getSafeDistinctValues($pdo, 'catalogo');
 $consultoras = getSafeDistinctValues($pdo, 'consultora');
 
+// Lista completa de Tutores
+$tutores = [];
+try {
+    $stmtTutores = $pdo->query("
+        SELECT id, nombre FROM (
+            SELECT u.id, CONCAT(u.nombre, ' ', u.apellidos) as nombre 
+            FROM usuarios u 
+            LEFT JOIN roles r ON u.rol_id = r.id 
+            WHERE (r.nombre LIKE '%Tutor%' OR r.nombre LIKE '%Formador%' OR r.nombre LIKE '%Docente%' OR u.rol_id = 4)
+            UNION
+            SELECT a.id, CONCAT(a.nombre, ' ', a.primer_apellido, ' ', COALESCE(a.segundo_apellido, '')) as nombre 
+            FROM alumnos a 
+            JOIN profesorado_detalles p ON a.id = p.alumno_id 
+            UNION
+            SELECT u2.id, CONCAT(u2.nombre, ' ', u2.apellidos) as nombre
+            FROM grupos g
+            JOIN usuarios u2 ON (g.tutor_id = u2.id OR g.tutor_id_2 = u2.id OR g.tutor_reserva_id = u2.id)
+            WHERE u2.nombre IS NOT NULL AND u2.nombre != ''
+        ) t_all
+        GROUP BY id, nombre
+        ORDER BY nombre ASC
+    ");
+    if ($stmtTutores) $tutores = $stmtTutores->fetchAll(PDO::FETCH_ASSOC);
+} catch (Exception $e) {}
+
 
 $modalidades = ['TELEFORMACIÓN', 'PRESENCIAL', 'MIXTA', 'AULA VIRTUAL'];
 $prioridades = ['Alta', 'Media', 'Baja'];
@@ -111,6 +136,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
     if (!empty($_GET['modalidad'])) {
         $sql .= " AND af.modalidad = ?";
         $params[] = $_GET['modalidad'];
+    }
+    if (!empty($_GET['tutor_id'])) {
+        $sql .= " AND EXISTS (
+            SELECT 1 FROM grupos g_tut 
+            WHERE g_tut.accion_id = af.id 
+            AND (g_tut.tutor_id = ? OR g_tut.tutor_id_2 = ? OR g_tut.tutor_reserva_id = ?)
+        )";
+        $params[] = (int)$_GET['tutor_id'];
+        $params[] = (int)$_GET['tutor_id'];
+        $params[] = (int)$_GET['tutor_id'];
     }
 
     $stmt = $pdo->prepare($sql);
@@ -611,9 +646,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
                     </div>
                     
                     <div class="form-group-custom span-3">
-                        <label>Reserva:</label>
-                        <select name="reserva" class="form-control" style="width: 100%;">
-                            <option value=""></option>
+                        <label>Tutor / Docente:</label>
+                        <select name="tutor_id" class="form-control" style="width: 100%;">
+                            <option value="">--- Todos los tutores ---</option>
+                            <?php foreach ($tutores as $tut): ?>
+                                <option value="<?= $tut['id'] ?>" <?= (($_GET['tutor_id'] ?? '') == $tut['id']) ? 'selected' : '' ?>><?= htmlspecialchars($tut['nombre']) ?></option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
 
