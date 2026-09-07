@@ -26,7 +26,7 @@ try {
     $stmt = $pdo->prepare("
         SELECT m.id as matricula_id, m.envio_claves, m.fecha_claves,
                af.titulo as curso_nombre, af.id_plataforma as course_moodle_id,
-               a.id as alumno_id, a.nombre, a.primer_apellido, a.segundo_apellido, a.email,
+               a.id as alumno_id, a.dni, a.nombre, a.primer_apellido, a.segundo_apellido, a.email,
                a.plat_usuario, a.plat_clave, a.moodle_user_id
         FROM matriculas m
         JOIN alumnos a ON m.alumno_id = a.id
@@ -55,17 +55,30 @@ try {
     $confRow = $stmtConf->fetch();
     $moodle_url = $confRow ? rtrim($confRow['valor'], '/') : 'https://aulavirtual.grupoefp.es';
 
-    // 4. Asegurar que tenemos usuario y contraseña. Si no, alertamos al usuario para que sincronice primero.
-    $username = $matricula['plat_usuario'] ?? '';
-    $password = $matricula['plat_clave'] ?? '';
+    // 4. Asegurar que tenemos usuario y contraseña generados y memorizados
+    $username = trim($matricula['plat_usuario'] ?? '');
+    $password = trim($matricula['plat_clave'] ?? '');
+
+    $cleanDni = !empty($matricula['dni']) ? strtolower(trim(str_replace([' ', '-', '.'], '', $matricula['dni']))) : '';
 
     if (empty($username)) {
-        // Fallback: intentar autogenerar o usar email como usuario temporalmente
-        $username = strtolower(explode('@', $to_email)[0]);
+        if (!empty($cleanDni)) {
+            $username = $cleanDni;
+        } else {
+            $username = strtolower(explode('@', $to_email)[0]);
+        }
     }
     if (empty($password)) {
-        $password = 'Efp2026!'; // Contraseña temporal genérica si no tiene una
+        if (!empty($cleanDni)) {
+            $password = 'Edite' . str_replace(['-', '.', ' '], '', $matricula['dni']) . '!';
+        } else {
+            $password = 'Efp2026!';
+        }
     }
+
+    // Memorizar en la base de datos (tabla alumnos: plat_usuario y plat_clave)
+    $stmtUpdateAlumno = $pdo->prepare("UPDATE alumnos SET plat_usuario = ?, plat_clave = ? WHERE id = ?");
+    $stmtUpdateAlumno->execute([$username, $password, $matricula['alumno_id']]);
 
     // 5. Reemplazar placeholders en el asunto y el cuerpo del mensaje
     $alumno_nombre_completo = trim($matricula['nombre'] . ' ' . ($matricula['primer_apellido'] ?? '') . ' ' . ($matricula['segundo_apellido'] ?? ''));
@@ -98,7 +111,9 @@ try {
 
     echo json_encode([
         'success' => true,
-        'message' => 'Claves enviadas correctamente por correo electrónico y registradas en la matrícula.',
+        'message' => 'Claves enviadas correctamente por correo electrónico y memorizadas en la ficha del alumno.',
+        'usuario' => $username,
+        'contrasena' => $password,
         'fecha_claves' => date('d/m/Y', strtotime($fecha_claves))
     ]);
 

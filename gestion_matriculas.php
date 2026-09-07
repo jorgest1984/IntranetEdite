@@ -520,7 +520,7 @@ $alumnos = $matriculados->fetchAll();
                                 </a>
 
                                 <!-- Enviar Claves Individual -->
-                                <button type="button" onclick="openSingleKeysModal(<?= $a['matricula_id'] ?>, <?= htmlspecialchars(json_encode($a['nombre'] . ' ' . ($a['primer_apellido'] ?? '') . ' ' . ($a['segundo_apellido'] ?? ''))) ?>, <?= htmlspecialchars(json_encode($a['email'])) ?>, <?= htmlspecialchars(json_encode($a['plat_usuario'] ?? '')) ?>, <?= htmlspecialchars(json_encode($a['plat_clave'] ?? '')) ?>)" style="background: none; border: none; cursor: pointer; color: #0284c7; padding: 6px; display: inline-flex; align-items: center; justify-content: center; hover:color: #0369a1;" title="Enviar Claves de Acceso">
+                                <button type="button" onclick="openSingleKeysModal(<?= $a['matricula_id'] ?>, <?= htmlspecialchars(json_encode($a['nombre'] . ' ' . ($a['primer_apellido'] ?? '') . ' ' . ($a['segundo_apellido'] ?? ''))) ?>, <?= htmlspecialchars(json_encode($a['email'])) ?>, <?= htmlspecialchars(json_encode($a['plat_usuario'] ?? '')) ?>, <?= htmlspecialchars(json_encode($a['plat_clave'] ?? '')) ?>, <?= htmlspecialchars(json_encode($a['dni'] ?? '')) ?>)" style="background: none; border: none; cursor: pointer; color: #0284c7; padding: 6px; display: inline-flex; align-items: center; justify-content: center; hover:color: #0369a1;" title="Enviar Claves de Acceso">
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
                                 </button>
                                 
@@ -1007,12 +1007,17 @@ Equipo de Soporte de Formación</textarea>
     const alumnosParaEnvio = <?= json_encode($alumnos) ?>;
     
     // Modal Single Claves
-    function openSingleKeysModal(matriculaId, nombre, email, usuario, clave) {
+    function openSingleKeysModal(matriculaId, nombre, email, usuario, clave, dni) {
         document.getElementById('single-matricula-id').value = matriculaId;
         document.getElementById('s-alumno-nombre').textContent = nombre;
         document.getElementById('s-alumno-email').textContent = email;
-        document.getElementById('s-alumno-usuario').textContent = usuario || '---';
-        document.getElementById('s-alumno-clave').textContent = clave || '---';
+        
+        const cleanDni = dni ? dni.toLowerCase().replace(/[\s\.-]/g, '') : '';
+        const displayUser = usuario || cleanDni || (email ? email.split('@')[0].toLowerCase() : '---');
+        const displayClave = clave || (cleanDni ? ('Edite' + dni.replace(/[\s\.-]/g, '') + '!') : 'Efp2026!');
+        
+        document.getElementById('s-alumno-usuario').textContent = displayUser;
+        document.getElementById('s-alumno-clave').textContent = displayClave;
         document.getElementById('singleKeysError').style.display = 'none';
         
         document.getElementById('modal-envio-claves-single').style.display = 'flex';

@@ -21,7 +21,7 @@ try {
     // 1. Obtener la matrícula del alumno y los datos del curso
     $stmt = $pdo->prepare("
         SELECT m.id as matricula_id, af.id_plataforma as course_moodle_id,
-               a.id as alumno_id, a.nombre, a.primer_apellido, a.segundo_apellido, a.email,
+               a.id as alumno_id, a.dni, a.nombre, a.primer_apellido, a.segundo_apellido, a.email,
                a.plat_usuario, a.plat_clave, a.moodle_user_id
         FROM matriculas m
         JOIN alumnos a ON m.alumno_id = a.id
@@ -54,6 +54,11 @@ try {
         exit();
     }
 
+    $cleanDni = !empty($matricula['dni']) ? strtolower(trim(str_replace([' ', '-', '.'], '', $matricula['dni']))) : '';
+    $username = !empty($matricula['plat_usuario']) ? $matricula['plat_usuario'] : (!empty($cleanDni) ? $cleanDni : strtolower(explode('@', $email)[0]));
+    $password = !empty($matricula['plat_clave']) ? $matricula['plat_clave'] : (!empty($cleanDni) ? ('Edite' . str_replace(['-', '.', ' '], '', $matricula['dni']) . '!') : 'Efp2026!');
+    $username = preg_replace('/[^a-z0-9_.-]/', '', strtolower($username));
+
     // 2. Buscar o crear usuario en Moodle
     $was_created = false;
     
@@ -71,12 +76,6 @@ try {
 
     // Si aún no existe, lo creamos
     if (empty($muid)) {
-        $username = !empty($matricula['plat_usuario']) ? $matricula['plat_usuario'] : strtolower(explode('@', $email)[0]);
-        $password = !empty($matricula['plat_clave']) ? $matricula['plat_clave'] : 'Efp2026!';
-
-        // Limpiar nombre de usuario (caracteres no permitidos en Moodle)
-        $username = preg_replace('/[^a-z0-9_.-]/', '', strtolower($username));
-
         $newUsers = $moodle->createUser($username, $password, $firstname, $lastname, $email);
         if (!empty($newUsers) && isset($newUsers[0]['id'])) {
             $muid = $newUsers[0]['id'];
@@ -97,11 +96,9 @@ try {
             'email' => $email
         ]);
         
-        // Guardar el id si no lo teníamos en local
-        if ($matricula['moodle_user_id'] != $muid) {
-            $pdo->prepare("UPDATE alumnos SET moodle_user_id = ? WHERE id = ?")
-                ->execute([$muid, $matricula['alumno_id']]);
-        }
+        // Guardar el id y actualizar plat_usuario y plat_clave en la ficha local
+        $pdo->prepare("UPDATE alumnos SET moodle_user_id = ?, plat_usuario = ?, plat_clave = ? WHERE id = ?")
+            ->execute([$muid, $username, $password, $matricula['alumno_id']]);
     }
 
     // 3. Matricular al alumno en el curso de Moodle si está definido

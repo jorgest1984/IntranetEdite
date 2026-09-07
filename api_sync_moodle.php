@@ -159,14 +159,16 @@ try {
         if (empty($lastname)) {
             $lastname = !empty($alumno['apellidos']) ? trim($alumno['apellidos']) : 'Sin apellidos';
         }
-        $username = strtolower(trim(str_replace([' ', '-', '.'], '', $alumno['dni'])));
+        $cleanDni = !empty($alumno['dni']) ? strtolower(trim(str_replace([' ', '-', '.'], '', $alumno['dni']))) : '';
+        $username = !empty($alumno['plat_usuario']) ? $alumno['plat_usuario'] : (!empty($cleanDni) ? $cleanDni : strtolower(explode('@', $alumno['email'])[0]));
+        $password = !empty($alumno['plat_clave']) ? $alumno['plat_clave'] : (!empty($cleanDni) ? ('Edite' . str_replace(['-', '.', ' '], '', $alumno['dni']) . '!') : 'Efp2026!');
 
         $userData = [
             'firstname' => $alumno['nombre'],
             'lastname' => $lastname,
             'email' => $alumno['email'],
             'username' => $username,
-            'password' => 'Edite' . str_replace(['-', '.', ' '], '', $alumno['dni']) . '!'
+            'password' => $password
         ];
 
         try {
@@ -174,9 +176,8 @@ try {
             $moodleUserId = $moodle->provisionStudent($courseId, $moodleGroupId, $userData, $student_status);
             
             if ($moodleUserId) {
-                if (($alumno['moodle_user_id'] ?? null) != $moodleUserId) {
-                    $pdo->prepare("UPDATE alumnos SET moodle_user_id = ? WHERE id = ?")->execute([$moodleUserId, $alumno['id']]);
-                }
+                $pdo->prepare("UPDATE alumnos SET moodle_user_id = ?, plat_usuario = ?, plat_clave = ? WHERE id = ?")
+                    ->execute([$moodleUserId, $username, $password, $alumno['id']]);
                 $syncCount++;
             } else {
                 $student_errors[] = "No se obtuvo ID para {$alumno['nombre']} {$lastname}";

@@ -2130,8 +2130,10 @@ Equipo de Soporte de Formación</textarea>
     window.openClavesModal = function() {
         const alumnoNombre = <?= json_encode(trim(($matricula['nombre'] ?? '') . ' ' . ($matricula['primer_apellido'] ?? '') . ' ' . ($matricula['segundo_apellido'] ?? ''))) ?>;
         const alumnoEmail = <?= json_encode($matricula['email'] ?? '') ?>;
-        const alumnoUsuario = <?= json_encode($matricula['plat_usuario'] ?? '') ?> || <?= json_encode(!empty($matricula['email']) ? strtolower(explode('@', $matricula['email'])[0]) : '') ?>;
-        const alumnoClave = <?= json_encode($matricula['plat_clave'] ?? '') ?> || "Efp2026!";
+        const cleanDni = <?= json_encode(!empty($matricula['dni']) ? strtolower(trim(str_replace([' ', '-', '.'], '', $matricula['dni']))) : '') ?>;
+        const rawDni = <?= json_encode(!empty($matricula['dni']) ? str_replace(['-', '.', ' '], '', $matricula['dni']) : '') ?>;
+        const alumnoUsuario = <?= json_encode($matricula['plat_usuario'] ?? '') ?> || cleanDni || <?= json_encode(!empty($matricula['email']) ? strtolower(explode('@', $matricula['email'])[0]) : '') ?>;
+        const alumnoClave = <?= json_encode($matricula['plat_clave'] ?? '') ?> || (rawDni ? ("Edite" + rawDni + "!") : "Efp2026!");
         
         document.getElementById('m-alumno-nombre').textContent = alumnoNombre;
         document.getElementById('m-alumno-email').textContent = alumnoEmail;
