@@ -337,10 +337,38 @@ if (isset($_GET['remove_id'])) {
     exit();
 }
 
-// Obtener alumnos matriculados
+// Limpieza automática de matrículas erróneas de tutores e inspectores en este grupo
+try {
+    $pdo->prepare("
+        DELETE m FROM matriculas m
+        JOIN alumnos a ON m.alumno_id = a.id
+        WHERE m.grupo_id = ?
+        AND (
+            a.email LIKE 'tutora.%' 
+            OR a.email LIKE 'tutor.%' 
+            OR a.email LIKE '%@avefp.es'
+            OR a.nombre LIKE '%Inspector%'
+            OR a.nombre LIKE '%SEPE%'
+            OR a.dni LIKE 'e25%'
+            OR a.dni LIKE 'e24%'
+            OR a.email IN (SELECT email FROM usuarios WHERE email IS NOT NULL AND email != '' AND rol_id IN (SELECT id FROM roles WHERE nombre LIKE '%Tutor%' OR nombre LIKE '%Docente%' OR nombre LIKE '%Formador%' OR nombre LIKE '%Profesor%' OR id = 4))
+            OR a.id IN (SELECT COALESCE(tutor_id, 0) FROM grupos WHERE id = ? UNION SELECT COALESCE(tutor_id_2, 0) FROM grupos WHERE id = ? UNION SELECT COALESCE(tutor_reserva_id, 0) FROM grupos WHERE id = ?)
+        )
+    ")->execute([$grupo_id, $grupo_id, $grupo_id, $grupo_id]);
+} catch (Exception $e) {}
+
+// Obtener alumnos matriculados reales (excluyendo a tutores e inspectores)
 $matriculados = $pdo->prepare("SELECT m.id as matricula_id, a.* FROM matriculas m 
                                JOIN alumnos a ON m.alumno_id = a.id 
-                               WHERE m.grupo_id = ? ORDER BY a.nombre ASC");
+                               WHERE m.grupo_id = ? 
+                               AND a.email NOT LIKE 'tutora.%'
+                               AND a.email NOT LIKE 'tutor.%'
+                               AND a.email NOT LIKE '%@avefp.es'
+                               AND a.nombre NOT LIKE '%Inspector%'
+                               AND a.nombre NOT LIKE '%SEPE%'
+                               AND a.dni NOT LIKE 'e25%'
+                               AND a.dni NOT LIKE 'e24%'
+                               ORDER BY a.nombre ASC");
 $matriculados->execute([$grupo_id]);
 $alumnos = $matriculados->fetchAll();
 ?>
@@ -482,17 +510,26 @@ $alumnos = $matriculados->fetchAll();
                     <?php foreach($alumnos as $a): ?>
                         <div class="student-card">
                             <div>
-                                <div style="font-weight: 700; color: #1e293b;"><?= htmlspecialchars($a['nombre'] . ' ' . ($a['primer_apellido'] ?? '') . ' ' . ($a['segundo_apellido'] ?? '')) ?></div>
-                                <small style="color: #64748b; font-weight: 600;"><?= $a['dni'] ?> | <?= $a['email'] ?></small>
+                                <div style="font-weight: 700; color: #1e293b; font-size: 0.95rem;">
+                                    <a href="ficha_alumno.php?id=<?= $a['id'] ?>" target="_blank" style="color: #1e293b; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#1e293b'" title="Abrir ficha del alumno para ver y modificar datos">
+                                        <?= htmlspecialchars($a['nombre'] . ' ' . ($a['primer_apellido'] ?? '') . ' ' . ($a['segundo_apellido'] ?? '')) ?>
+                                    </a>
+                                </div>
+                                <small style="color: #64748b; font-weight: 600;"><?= htmlspecialchars($a['dni']) ?> | <?= htmlspecialchars($a['email']) ?></small>
                             </div>
                             <div style="display: flex; gap: 8px; align-items: center;">
+                                <!-- Editar Ficha Alumno -->
+                                <a href="ficha_alumno.php?id=<?= $a['id'] ?>" target="_blank" style="color: #6366f1; padding: 6px; border-radius: 8px; transition: background 0.2s; display: inline-flex; align-items: center; justify-content: center; text-decoration: none;" title="Editar Ficha del Alumno">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                </a>
+
                                 <!-- Enviar Claves Individual -->
                                 <button type="button" onclick="openSingleKeysModal(<?= $a['matricula_id'] ?>, <?= htmlspecialchars(json_encode($a['nombre'] . ' ' . ($a['primer_apellido'] ?? '') . ' ' . ($a['segundo_apellido'] ?? ''))) ?>, <?= htmlspecialchars(json_encode($a['email'])) ?>, <?= htmlspecialchars(json_encode($a['plat_usuario'] ?? '')) ?>, <?= htmlspecialchars(json_encode($a['plat_clave'] ?? '')) ?>)" style="background: none; border: none; cursor: pointer; color: #0284c7; padding: 6px; display: inline-flex; align-items: center; justify-content: center; hover:color: #0369a1;" title="Enviar Claves de Acceso">
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
                                 </button>
                                 
                                 <a href="?af_id=<?= $af_id ?>&remove_id=<?= $a['matricula_id'] ?>" 
-                                   onclick="return confirm('¿Dar de baja a este alumno?')"
+                                   onclick="return confirm('¿Dar de baja a este alumno de este curso?')"
                                    style="color: #ef4444; padding: 6px; border-radius: 8px; transition: background 0.2s; display: inline-flex; align-items: center; justify-content: center;"
                                    title="Dar de baja">
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>

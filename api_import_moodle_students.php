@@ -180,6 +180,20 @@ try {
     $matriculas_columns = $matriculas_cols_stmt->fetchAll(PDO::FETCH_COLUMN);
 
     foreach ($moodleUsers as $user) {
+        $uEmail = strtolower(trim($user['email'] ?? ''));
+        $uUsername = strtolower(trim($user['username'] ?? ''));
+        $uFirstname = strtolower(trim($user['firstname'] ?? ''));
+
+        // Descartar tutores, profesores e inspectores (no son alumnos)
+        if (strpos($uEmail, 'tutora.') === 0 || 
+            strpos($uEmail, 'tutor.') === 0 || 
+            strpos($uEmail, '@avefp.es') !== false || 
+            strpos($uFirstname, 'inspector') !== false || 
+            strpos($uUsername, 'e25') === 0 || 
+            strpos($uUsername, 'e24') === 0) {
+            continue;
+        }
+
         // Filtrar solo alumnos (estudiante en Moodle) si la información de rol está disponible
         $is_student = true;
         if (isset($user['roles']) && is_array($user['roles'])) {
