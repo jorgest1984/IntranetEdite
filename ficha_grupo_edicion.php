@@ -814,25 +814,6 @@ $ccaa = [
                         </select>
                     </div>
                     <div class="form-group col-span-2">
-                        <label>Tutor 2:</label>
-                        <select name="tutor_id_2" class="form-control">
-                            <option value="">Seleccione tutor 2...</option>
-                            <?php foreach ($tutores as $t): ?>
-                                <option value="<?= $t['id'] ?>" <?= ($grupo['tutor_id_2'] ?? '') == $t['id'] ? 'selected' : '' ?>><?= htmlspecialchars($t['nombre']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-
-                    <div class="form-group col-span-2">
-                        <label>Tutor de Reserva:</label>
-                        <select name="tutor_reserva_id" class="form-control">
-                            <option value="">Seleccione tutor de reserva...</option>
-                            <?php foreach ($tutores as $t): ?>
-                                <option value="<?= $t['id'] ?>" <?= ($grupo['tutor_reserva_id'] ?? '') == $t['id'] ? 'selected' : '' ?>><?= htmlspecialchars($t['nombre']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="form-group col-span-2">
                         <div style="margin-top: 25px;">
                             <label class="checkbox-custom-label">
                                 <input type="checkbox" name="mostrar_tutor" value="1" <?= ($grupo['mostrar_tutor'] ?? 1) ? 'checked' : '' ?>>
@@ -841,24 +822,7 @@ $ccaa = [
                         </div>
                     </div>
 
-                    <div class="form-group col-span-2">
-                        <label>Teleformador / Formador Moodle:</label>
-                        <select name="teleformador_id" class="form-control">
-                            <option value="">Seleccione teleformador...</option>
-                            <?php foreach ($tutores as $t): ?>
-                                <option value="<?= $t['id'] ?>" <?= ($grupo['teleformador_id'] ?? '') == $t['id'] ? 'selected' : '' ?>><?= htmlspecialchars($t['nombre']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="form-group col-span-2">
-                        <label>Técnico de Apoyo:</label>
-                        <select name="tecnico_id" class="form-control">
-                            <option value="">Seleccione técnico...</option>
-                            <?php foreach ($tutores as $t): ?>
-                                <option value="<?= $t['id'] ?>" <?= ($grupo['tecnico_id'] ?? '') == $t['id'] ? 'selected' : '' ?>><?= htmlspecialchars($t['nombre']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
+
                 </div>
 
                 <!-- SECTION 6: MODULACIÓN Y HORARIOS -->
