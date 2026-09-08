@@ -476,6 +476,36 @@ $ccaa = [
             padding-top: 20px;
             border-top: 1px solid #e2e8f0;
         }
+
+        @keyframes autoCalcHighlight {
+            0% { background-color: #dbeafe; border-color: #2563eb; transform: scale(1.02); }
+            50% { background-color: #eff6ff; border-color: #3b82f6; }
+            100% { background-color: #ffffff; border-color: #cbd5e1; transform: scale(1); }
+        }
+
+        .auto-calculated-flash {
+            animation: autoCalcHighlight 0.9s ease-out;
+        }
+
+        .btn-calc-auto {
+            background: #eff6ff;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .btn-calc-auto:hover {
+            background: #dbeafe;
+            border-color: #93c5fd;
+            color: #1d4ed8;
+        }
     </style>
 </head>
 <body>
@@ -663,7 +693,13 @@ $ccaa = [
                 </div>
 
                 <!-- SECTION 3: GRUPOS Y SEGUIMIENTO DIARIO -->
-                <div class="form-section-title">Parámetros de Seguimiento y Fechas Hito</div>
+                <div class="form-section-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <span>Parámetros de Seguimiento y Fechas Hito</span>
+                    <button type="button" class="btn-calc-auto" onclick="recalcularFechasHito(true)" title="Calcula automáticamente 25%, 1/2 curso, 7 días fin y 3 días fin según fecha de inicio y fin">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+                        Auto-calcular Fechas Hito
+                    </button>
+                </div>
                 <div class="form-grid">
                     <div class="form-group">
                         <label>Nº ac.:</label>
@@ -674,46 +710,46 @@ $ccaa = [
                         <input type="text" name="numero_grupo" class="form-control" value="<?= htmlspecialchars($grupo['numero_grupo'] ?? '') ?>" placeholder="Ej: G1">
                     </div>
                     <div class="form-group">
-                        <label>Fecha Inicio:</label>
-                        <input type="date" name="fecha_inicio" class="form-control" value="<?= $grupo['fecha_inicio'] ?? '' ?>">
+                        <label style="color: #1e40af; font-weight: 800;">Fecha Inicio:</label>
+                        <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control" value="<?= $grupo['fecha_inicio'] ?? '' ?>" style="border-color: #93c5fd;">
                     </div>
                     <div class="form-group">
-                        <label>Fecha Fin:</label>
-                        <input type="date" name="fecha_fin" class="form-control" value="<?= $grupo['fecha_fin'] ?? '' ?>">
+                        <label style="color: #1e40af; font-weight: 800;">Fecha Fin:</label>
+                        <input type="date" name="fecha_fin" id="fecha_fin" class="form-control" value="<?= $grupo['fecha_fin'] ?? '' ?>" style="border-color: #93c5fd;">
                     </div>
 
                     <div class="form-group">
                         <label>Fecha 25%:</label>
-                        <input type="date" name="fecha_25" class="form-control" value="<?= $grupo['fecha_25'] ?? '' ?>">
+                        <input type="date" name="fecha_25" id="fecha_25" class="form-control" value="<?= $grupo['fecha_25'] ?? '' ?>">
                     </div>
                     <div class="form-group">
                         <label>Plazo S10:</label>
-                        <input type="date" name="plazo_s10" class="form-control" value="<?= $grupo['plazo_s10'] ?? '' ?>">
+                        <input type="date" name="plazo_s10" id="plazo_s10" class="form-control" value="<?= $grupo['plazo_s10'] ?? '' ?>">
                     </div>
                     <div class="form-group">
                         <label>Modificación S10:</label>
-                        <input type="date" name="modificacion_s10" class="form-control" value="<?= $grupo['modificacion_s10'] ?? '' ?>">
+                        <input type="date" name="modificacion_s10" id="modificacion_s10" class="form-control" value="<?= $grupo['modificacion_s10'] ?? '' ?>">
                     </div>
                     <div class="form-group">
                         <label>Plazo S20:</label>
-                        <input type="date" name="plazo_s20" class="form-control" value="<?= $grupo['plazo_s20'] ?? '' ?>">
+                        <input type="date" name="plazo_s20" id="plazo_s20" class="form-control" value="<?= $grupo['plazo_s20'] ?? '' ?>">
                     </div>
                     <div class="form-group">
                         <label>Modificación S20:</label>
-                        <input type="date" name="modificacion_s20" class="form-control" value="<?= $grupo['modificacion_s20'] ?? '' ?>">
+                        <input type="date" name="modificacion_s20" id="modificacion_s20" class="form-control" value="<?= $grupo['modificacion_s20'] ?? '' ?>">
                     </div>
 
                     <div class="form-group">
                         <label>Fecha 1/2 curso:</label>
-                        <input type="date" name="fecha_1_2_curso" class="form-control" value="<?= $grupo['fecha_1_2_curso'] ?? '' ?>">
+                        <input type="date" name="fecha_1_2_curso" id="fecha_1_2_curso" class="form-control" value="<?= $grupo['fecha_1_2_curso'] ?? '' ?>">
                     </div>
                     <div class="form-group">
                         <label>Fecha 7 días fin:</label>
-                        <input type="date" name="fecha_7_dias_fin" class="form-control" value="<?= $grupo['fecha_7_dias_fin'] ?? '' ?>">
+                        <input type="date" name="fecha_7_dias_fin" id="fecha_7_dias_fin" class="form-control" value="<?= $grupo['fecha_7_dias_fin'] ?? '' ?>">
                     </div>
                     <div class="form-group">
                         <label>Fecha 3 días fin:</label>
-                        <input type="date" name="fecha_3_dias_fin" class="form-control" value="<?= $grupo['fecha_3_dias_fin'] ?? '' ?>">
+                        <input type="date" name="fecha_3_dias_fin" id="fecha_3_dias_fin" class="form-control" value="<?= $grupo['fecha_3_dias_fin'] ?? '' ?>">
                     </div>
                 </div>
 
@@ -1266,5 +1302,133 @@ $ccaa = [
             </form>
         </main>
     </div>
+
+    <script>
+    (function() {
+        function parseDateParts(dateStr) {
+            if (!dateStr || typeof dateStr !== 'string') return null;
+            const parts = dateStr.trim().split('-');
+            if (parts.length !== 3) return null;
+            const year = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10);
+            const day = parseInt(parts[2], 10);
+            if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
+            return new Date(year, month - 1, day);
+        }
+
+        function formatDateISO(dateObj) {
+            if (!dateObj || isNaN(dateObj.getTime())) return '';
+            const year = dateObj.getFullYear();
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function flashElement(el) {
+            if (!el) return;
+            el.classList.remove('auto-calculated-flash');
+            void el.offsetWidth;
+            el.classList.add('auto-calculated-flash');
+        }
+
+        window.recalcularFechasHito = function(manual = false) {
+            const inputInicio = document.getElementById('fecha_inicio');
+            const inputFin = document.getElementById('fecha_fin');
+            const input25 = document.getElementById('fecha_25');
+            const inputMitad = document.getElementById('fecha_1_2_curso');
+            const input7Dias = document.getElementById('fecha_7_dias_fin');
+            const input3Dias = document.getElementById('fecha_3_dias_fin');
+
+            if (!inputInicio || !inputFin) return;
+
+            const valInicio = inputInicio.value;
+            const valFin = inputFin.value;
+
+            if (!valInicio || !valFin) {
+                if (manual) {
+                    alert('Por favor, introduzca tanto la Fecha de Inicio como la Fecha de Fin para calcular los hitos.');
+                }
+                return;
+            }
+
+            const dInicio = parseDateParts(valInicio);
+            const dFin = parseDateParts(valFin);
+
+            if (!dInicio || !dFin) return;
+
+            if (dFin.getTime() < dInicio.getTime()) {
+                if (manual) {
+                    alert('La Fecha de Fin no puede ser anterior a la Fecha de Inicio.');
+                }
+                return;
+            }
+
+            const diffMs = dFin.getTime() - dInicio.getTime();
+            const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+            // 1. Fecha 25% (25% de la duración del curso)
+            const days25 = Math.round(diffDays * 0.25);
+            const d25 = new Date(dInicio.getTime());
+            d25.setDate(d25.getDate() + days25);
+
+            // 2. Fecha 1/2 curso (mitad del curso / 50%)
+            const daysHalf = Math.round(diffDays * 0.50);
+            const dHalf = new Date(dInicio.getTime());
+            dHalf.setDate(dHalf.getDate() + daysHalf);
+
+            // 3. Fecha 7 días fin (Fecha fin - 7 días)
+            const d7 = new Date(dFin.getTime());
+            d7.setDate(d7.getDate() - 7);
+
+            // 4. Fecha 3 días fin (Fecha fin - 3 días)
+            const d3 = new Date(dFin.getTime());
+            d3.setDate(d3.getDate() - 3);
+
+            if (input25) {
+                input25.value = formatDateISO(d25);
+                flashElement(input25);
+            }
+            if (inputMitad) {
+                inputMitad.value = formatDateISO(dHalf);
+                flashElement(inputMitad);
+            }
+            if (input7Dias) {
+                input7Dias.value = formatDateISO(d7);
+                flashElement(input7Dias);
+            }
+            if (input3Dias) {
+                input3Dias.value = formatDateISO(d3);
+                flashElement(input3Dias);
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputInicio = document.getElementById('fecha_inicio');
+            const inputFin = document.getElementById('fecha_fin');
+
+            if (inputInicio) {
+                inputInicio.addEventListener('change', function() {
+                    recalcularFechasHito(false);
+                });
+                inputInicio.addEventListener('input', function() {
+                    if (this.value && this.value.length === 10) {
+                        recalcularFechasHito(false);
+                    }
+                });
+            }
+
+            if (inputFin) {
+                inputFin.addEventListener('change', function() {
+                    recalcularFechasHito(false);
+                });
+                inputFin.addEventListener('input', function() {
+                    if (this.value && this.value.length === 10) {
+                        recalcularFechasHito(false);
+                    }
+                });
+            }
+        });
+    })();
+    </script>
 </body>
 </html>

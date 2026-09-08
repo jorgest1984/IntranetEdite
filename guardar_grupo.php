@@ -125,6 +125,33 @@ function check_and_add_columns($pdo) {
 
 check_and_add_columns($pdo);
 
+// Cálculo automático de hitos temporales si están vacíos
+$fecha_inicio = !empty($_POST['fecha_inicio']) ? $_POST['fecha_inicio'] : null;
+$fecha_fin = !empty($_POST['fecha_fin']) ? $_POST['fecha_fin'] : null;
+$fecha_25 = !empty($_POST['fecha_25']) ? $_POST['fecha_25'] : null;
+$fecha_1_2_curso = !empty($_POST['fecha_1_2_curso']) ? $_POST['fecha_1_2_curso'] : (!empty($_POST['fecha_mitad']) ? $_POST['fecha_mitad'] : null);
+$fecha_7_dias_fin = !empty($_POST['fecha_7_dias_fin']) ? $_POST['fecha_7_dias_fin'] : (!empty($_POST['fecha_7_dias']) ? $_POST['fecha_7_dias'] : null);
+$fecha_3_dias_fin = !empty($_POST['fecha_3_dias_fin']) ? $_POST['fecha_3_dias_fin'] : null;
+
+if ($fecha_inicio && $fecha_fin && strtotime($fecha_fin) >= strtotime($fecha_inicio)) {
+    $ts_inicio = strtotime($fecha_inicio);
+    $ts_fin = strtotime($fecha_fin);
+    $diff_days = round(($ts_fin - $ts_inicio) / 86400);
+
+    if (empty($fecha_25)) {
+        $fecha_25 = date('Y-m-d', $ts_inicio + (round($diff_days * 0.25) * 86400));
+    }
+    if (empty($fecha_1_2_curso)) {
+        $fecha_1_2_curso = date('Y-m-d', $ts_inicio + (round($diff_days * 0.50) * 86400));
+    }
+    if (empty($fecha_7_dias_fin)) {
+        $fecha_7_dias_fin = date('Y-m-d', $ts_fin - (7 * 86400));
+    }
+    if (empty($fecha_3_dias_fin)) {
+        $fecha_3_dias_fin = date('Y-m-d', $ts_fin - (3 * 86400));
+    }
+}
+
 $data = [
     'accion_id' => $accion_id,
     'numero_grupo' => $_POST['numero_grupo'] ?? '',
@@ -132,10 +159,10 @@ $data = [
     'id_plataforma' => $_POST['id_plataforma'] ?? '',
     'sede_id' => !empty($_POST['sede_id']) ? (int)$_POST['sede_id'] : null,
     'tutor_id' => !empty($_POST['tutor_id']) ? (int)$_POST['tutor_id'] : null,
-    'fecha_inicio' => !empty($_POST['fecha_inicio']) ? $_POST['fecha_inicio'] : null,
-    'fecha_mitad' => !empty($_POST['fecha_mitad']) ? $_POST['fecha_mitad'] : (!empty($_POST['fecha_1_2_curso']) ? $_POST['fecha_1_2_curso'] : null),
-    'fecha_7_dias' => !empty($_POST['fecha_7_dias']) ? $_POST['fecha_7_dias'] : (!empty($_POST['fecha_7_dias_fin']) ? $_POST['fecha_7_dias_fin'] : null),
-    'fecha_fin' => !empty($_POST['fecha_fin']) ? $_POST['fecha_fin'] : null,
+    'fecha_inicio' => $fecha_inicio,
+    'fecha_mitad' => $fecha_1_2_curso,
+    'fecha_7_dias' => $fecha_7_dias_fin,
+    'fecha_fin' => $fecha_fin,
     'modalidad' => $_POST['modalidad'] ?? '',
     'asignacion' => $_POST['asignacion'] ?? '',
     'situacion' => $_POST['situacion'] ?? '',
@@ -163,15 +190,15 @@ $data = [
     'fecha_cuestionarios_calidad' => !empty($_POST['fecha_cuestionarios_calidad']) ? $_POST['fecha_cuestionarios_calidad'] : null,
     
     'num_ac' => !empty($_POST['num_ac']) ? (int)$_POST['num_ac'] : 1,
-    'fecha_25' => !empty($_POST['fecha_25']) ? $_POST['fecha_25'] : null,
+    'fecha_25' => $fecha_25,
     'plazo_s10' => !empty($_POST['plazo_s10']) ? $_POST['plazo_s10'] : null,
     'modificacion_s10' => !empty($_POST['modificacion_s10']) ? $_POST['modificacion_s10'] : null,
     'plazo_s20' => !empty($_POST['plazo_s20']) ? $_POST['plazo_s20'] : null,
     'modificacion_s20' => !empty($_POST['modificacion_s20']) ? $_POST['modificacion_s20'] : null,
     
-    'fecha_1_2_curso' => !empty($_POST['fecha_1_2_curso']) ? $_POST['fecha_1_2_curso'] : (!empty($_POST['fecha_mitad']) ? $_POST['fecha_mitad'] : null),
-    'fecha_7_dias_fin' => !empty($_POST['fecha_7_dias_fin']) ? $_POST['fecha_7_dias_fin'] : (!empty($_POST['fecha_7_dias']) ? $_POST['fecha_7_dias'] : null),
-    'fecha_3_dias_fin' => !empty($_POST['fecha_3_dias_fin']) ? $_POST['fecha_3_dias_fin'] : null,
+    'fecha_1_2_curso' => $fecha_1_2_curso,
+    'fecha_7_dias_fin' => $fecha_7_dias_fin,
+    'fecha_3_dias_fin' => $fecha_3_dias_fin,
     
     'total_sesiones' => !empty($_POST['total_sesiones']) ? (int)$_POST['total_sesiones'] : 0,
     'sesion_15' => $_POST['sesion_15'] ?? '',
