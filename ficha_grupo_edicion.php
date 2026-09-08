@@ -177,9 +177,32 @@ try {
     }
 
     if ($accion_id) {
-        $stmt = $pdo->prepare("SELECT id, titulo, num_accion, plan_id FROM acciones_formativas WHERE id = ?");
+        $stmt = $pdo->prepare("
+            SELECT af.*, 
+                   c.nombre_largo as curso_titulo, c.nombre_corto as curso_codigo,
+                   p.nombre as plan_nombre, p.codigo as plan_codigo, p.convocatoria_id,
+                   co.nombre as convocatoria_nombre, co.codigo_expediente as conv_codigo_expediente
+            FROM acciones_formativas af
+            LEFT JOIN cursos c ON af.curso_id = c.id
+            LEFT JOIN planes p ON af.plan_id = p.id
+            LEFT JOIN convocatorias co ON p.convocatoria_id = co.id
+            WHERE af.id = ?
+        ");
         $stmt->execute([$accion_id]);
-        $accion = $stmt->fetch();
+        $accion = $stmt->fetch() ?: [];
+    }
+
+    $expediente_af = '';
+    if (!empty($accion)) {
+        if (!empty($accion['expediente'])) {
+            $expediente_af = $accion['expediente'];
+        } elseif (!empty($accion['codigo_expediente'])) {
+            $expediente_af = $accion['codigo_expediente'];
+        } elseif (!empty($accion['conv_codigo_expediente'])) {
+            $expediente_af = $accion['conv_codigo_expediente'];
+        } elseif (!empty($accion['plan_codigo'])) {
+            $expediente_af = $accion['plan_codigo'];
+        }
     }
 
 } catch (Throwable $e) {
@@ -569,7 +592,7 @@ $ccaa = [
                         <select name="convocatoria_id" class="form-control">
                             <option value="">Todas</option>
                             <?php foreach ($convocatorias as $c): ?>
-                                <option value="<?= $c['id'] ?>" <?= ($grupo['convocatoria_id'] ?? '') == $c['id'] ? 'selected' : '' ?>><?= htmlspecialchars($c['nombre']) ?></option>
+                                <option value="<?= $c['id'] ?>" <?= (($grupo['convocatoria_id'] ?? '') == $c['id'] || (empty($grupo['convocatoria_id']) && ($accion['convocatoria_id'] ?? '') == $c['id'])) ? 'selected' : '' ?>><?= htmlspecialchars($c['nombre']) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -578,14 +601,14 @@ $ccaa = [
                         <select name="plan_id" class="form-control">
                             <option value="">Seleccione plan...</option>
                             <?php foreach ($planes as $p): ?>
-                                <option value="<?= $p['id'] ?>" <?= ($grupo['plan_id'] ?? '') == $p['id'] ? 'selected' : '' ?>><?= htmlspecialchars($p['nombre']) ?></option>
+                                <option value="<?= $p['id'] ?>" <?= (($grupo['plan_id'] ?? '') == $p['id'] || (empty($grupo['plan_id']) && ($accion['plan_id'] ?? '') == $p['id'])) ? 'selected' : '' ?>><?= htmlspecialchars($p['nombre']) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
 
                     <div class="form-group">
                         <label>Expediente:</label>
-                        <input type="text" name="expediente" class="form-control" value="<?= htmlspecialchars($grupo['expediente'] ?? '') ?>" placeholder="Ej: EXP-2024">
+                        <input type="text" name="expediente" class="form-control" value="<?= htmlspecialchars(!empty($grupo['expediente']) ? $grupo['expediente'] : $expediente_af) ?>" placeholder="Ej: EXP-2024">
                     </div>
                     <div class="form-group col-span-2">
                         <label>Consultora:</label>

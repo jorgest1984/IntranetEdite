@@ -152,6 +152,24 @@ if ($fecha_inicio && $fecha_fin && strtotime($fecha_fin) >= strtotime($fecha_ini
     }
 }
 
+$expediente = trim($_POST['expediente'] ?? '');
+if (empty($expediente) && !empty($accion_id)) {
+    try {
+        $stmtAfExp = $pdo->prepare("
+            SELECT af.*, co.codigo_expediente as conv_expediente, p.codigo as plan_cod
+            FROM acciones_formativas af 
+            LEFT JOIN planes p ON af.plan_id = p.id 
+            LEFT JOIN convocatorias co ON p.convocatoria_id = co.id 
+            WHERE af.id = ?
+        ");
+        $stmtAfExp->execute([$accion_id]);
+        $afRow = $stmtAfExp->fetch();
+        if ($afRow) {
+            $expediente = !empty($afRow['expediente']) ? $afRow['expediente'] : (!empty($afRow['codigo_expediente']) ? $afRow['codigo_expediente'] : (!empty($afRow['conv_expediente']) ? $afRow['conv_expediente'] : (!empty($afRow['plan_cod']) ? $afRow['plan_cod'] : '')));
+        }
+    } catch (Exception $e) {}
+}
+
 $data = [
     'accion_id' => $accion_id,
     'numero_grupo' => $_POST['numero_grupo'] ?? '',
@@ -170,7 +188,7 @@ $data = [
 
     'convocatoria_id' => !empty($_POST['convocatoria_id']) ? (int)$_POST['convocatoria_id'] : null,
     'plan_id' => !empty($_POST['plan_id']) ? (int)$_POST['plan_id'] : null,
-    'expediente' => $_POST['expediente'] ?? '',
+    'expediente' => $expediente,
     'consultora_id' => !empty($_POST['consultora_id']) ? (int)$_POST['consultora_id'] : null,
     'curso_id' => !empty($_POST['curso_id']) ? (int)$_POST['curso_id'] : null,
     'codigo_plat' => $_POST['codigo_plat'] ?? '',
