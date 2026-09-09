@@ -5,9 +5,9 @@ require_once 'includes/config.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
-// 1. Verificar permisos
-if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_TUTOR])) {
-    echo json_encode(['success' => false, 'error' => 'Permisos insuficientes para realizar esta operación.']);
+// 1. Verificar permisos (Solo administradores)
+if (!has_permission([ROLE_ADMIN])) {
+    echo json_encode(['success' => false, 'error' => 'Permisos insuficientes. Solo los administradores pueden desvincular cursos de Moodle.']);
     exit();
 }
 

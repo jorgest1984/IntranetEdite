@@ -2436,9 +2436,9 @@ try {
                             </a>
                         </div>
 
-                        <?php if (!$is_comercial): ?>
+                        <?php if (has_permission([ROLE_ADMIN])): ?>
                         <div>
-                            <button type="button" class="btn-sync-moodle" onclick="unlinkMoodleCourse(<?= $id ?>)" style="background-color: #dc2626; border-color: #991b1b; display: inline-flex; align-items: center; justify-content: center; gap: 6px;" title="Desvincular acción formativa de Moodle">
+                            <button type="button" class="btn-sync-moodle" onclick="unlinkMoodleCourse(<?= $id ?>)" style="background-color: #dc2626; border-color: #991b1b; display: inline-flex; align-items: center; justify-content: center; gap: 6px;" title="Desvincular acción formativa de Moodle (Solo Administradores)">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                                     <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
                                     <line x1="12" y1="2" x2="12" y2="12"></line>
