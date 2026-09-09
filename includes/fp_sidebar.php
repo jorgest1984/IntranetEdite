@@ -166,6 +166,7 @@ $current_fp_page = basename($_SERVER['PHP_SELF']);
             <ul class="fp-submenu">
                 <li><a href="llamadas_admision.php">Llamadas Admisión</a></li>
                 <li><a href="tutorias.php" class="<?= $current_fp_page == 'tutorias.php' ? 'active' : '' ?>">Tutorías <span style="color:red; font-weight:bold;">•</span></a></li>
+                <li><a href="importar_matriculas_rapido.php" class="<?= $current_fp_page == 'importar_matriculas_rapido.php' ? 'active' : '' ?>" style="color: #006ce4; font-weight: 700;">⚡ Importación Rápida</a></li>
                 <li><a href="inscripciones.php" class="<?= $current_fp_page == 'inscripciones.php' ? 'active' : '' ?>">Buscar Matrícula</a></li>
                 <li><a href="informe_estados_ins.php">Informe estados matrículas</a></li>
                 <li><a href="informe_certificacion.php" class="<?= $current_fp_page == 'informe_certificacion.php' ? 'active' : '' ?>">Informe matrículas certifican <span style="color:red; font-weight:bold;">•</span></a></li>
