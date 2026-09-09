@@ -154,6 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             'observaciones' => 'observaciones',
             'comercial_id' => 'comercial_id',
             'captado_ugt' => 'captado_ugt',
+            'exento_practicas' => 'exento_practicas',
             'prioridad' => 'prioridad',
             'fecha_abandono' => 'fecha_abandono',
             'no_preinscrito' => 'no_preinscrito',
@@ -1355,7 +1356,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 </div>
 
                 <h3 class="form-section-title" style="margin-top: 2rem;">Seguimiento y Estado</h3>
-                <div class="grid-form" style="grid-template-columns: repeat(3, 1fr);">
+                <div class="grid-form" style="grid-template-columns: repeat(2, 1fr);">
                     <div class="form-group">
                         <label>Comercial</label>
                         <select name="comercial_id" class="form-control">
@@ -1366,12 +1367,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                 </option>
                             <?php endforeach; ?>
                         </select>
-                    </div>
-                    <div class="form-group" style="display: flex; align-items: flex-end; padding-bottom: 0.6rem;">
-                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0;">
-                            <input type="checkbox" name="captado_ugt" value="1" <?= !empty($matricula['captado_ugt']) ? 'checked' : '' ?> style="width: 16px; height: 16px;">
-                            <span style="font-weight: 600; color: #475569;">Captado UGT</span>
-                        </label>
                     </div>
                     <div class="form-group">
                         <label>Estados Anteriores</label>
@@ -1423,6 +1418,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <label>Exento prácticas</label>
                         <select name="exento_practicas" class="form-control">
                             <option value=""></option>
+                            <option value="SI" <?= in_array(strtoupper(trim((string)($matricula['exento_practicas'] ?? ''))), ['SI', 'SÍ', '1']) ? 'selected' : '' ?>>SI</option>
+                            <option value="NO" <?= in_array(strtoupper(trim((string)($matricula['exento_practicas'] ?? ''))), ['NO', '0']) ? 'selected' : '' ?>>NO</option>
                         </select>
                     </div>
                 </div>
