@@ -432,7 +432,11 @@ $alumnos = $matriculados->fetchAll();
                 <h1 style="margin: 5px 0;"><?= htmlspecialchars($accion['titulo']) ?></h1>
                 <p>Grupo ID: <strong><?= $grupo_id ?></strong> | Modalidad: <strong><?= $accion['modalidad'] ?></strong></p>
             </div>
-            <div style="display: flex; gap: 10px; align-items: center;">
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <a href="importar_matriculas_rapido.php?af_id=<?= $af_id ?>&grupo_id=<?= $grupo_id ?>" class="btn" style="background: linear-gradient(135deg, #006ce4 0%, #0284c7 100%); color: white; text-decoration: none; padding: 10px 15px; border-radius: 8px; font-weight: 800; display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; box-shadow: 0 4px 12px rgba(0, 108, 228, 0.25);">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                    ⚡ Importación Rápida
+                </a>
                 <?php if (has_permission([ROLE_ADMIN])): ?>
                     <a href="papelera.php" class="btn" style="background: #ef4444; color: white; text-decoration:none; padding: 10px 15px; border-radius:8px; font-weight:700; display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem;">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>

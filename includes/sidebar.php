@@ -83,6 +83,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
             </a>
         </li>
         <li>
+            <a href="importar_matriculas_rapido.php" class="<?= $current_page == 'importar_matriculas_rapido.php' ? 'active' : '' ?>" style="color: #006ce4; font-weight: 700;">
+                <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" fill="currentColor"/></svg>
+                ⚡ Importación Rápida
+            </a>
+        </li>
+        <li>
             <a href="tutorias.php" class="<?= $current_page == 'tutorias.php' ? 'active' : '' ?>">
                 <svg viewBox="0 0 24 24"><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg>
                 Tutorías

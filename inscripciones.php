@@ -362,7 +362,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && (isset($_GET['curso']) || isset($_GET
                     <h1>Inscripciones</h1>
                     <p>Búsqueda y gestión de inscripciones de alumnos</p>
                 </div>
-                <div class="page-actions" style="display: flex; gap: 12px;">
+                <div class="page-actions" style="display: flex; gap: 12px; align-items: center;">
+                    <a href="importar_matriculas_rapido.php" class="btn" style="background: linear-gradient(135deg, #006ce4 0%, #0284c7 100%); color: white; font-weight: 800; text-decoration: none; border: none; padding: 10px 20px; border-radius: 8px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(0, 108, 228, 0.35); font-size: 0.88rem;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                        ⚡ Alta / Importación Rápida
+                    </a>
                     <a href="home.php" class="btn btn-blue" style="font-weight: 700; text-decoration: none;">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                         Inicio
