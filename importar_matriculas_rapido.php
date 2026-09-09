@@ -212,7 +212,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ejecutar_importacion'
                 $empresa_id = $stmtEmp->fetchColumn();
 
                 if (!$empresa_id) {
-                    $stmtInsEmp = $pdo->prepare("INSERT INTO empresas (nombre, cif, localidad, provincia, created_at) VALUES (?, ?, ?, ?, NOW())");
+                    $stmtInsEmp = $pdo->prepare("INSERT INTO empresas (nombre, cif, localidad, provincia) VALUES (?, ?, ?, ?)");
                     $stmtInsEmp->execute([$empresa_nombre, $cif ?: null, $localidad ?: null, $provincia ?: null]);
                     $empresa_id = $pdo->lastInsertId();
                     $total_empresas_creadas++;
@@ -237,8 +237,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ejecutar_importacion'
             }
 
             if (!$alumno_id) {
-                $stmtInsAl = $pdo->prepare("INSERT INTO alumnos (dni, nombre, primer_apellido, segundo_apellido, fecha_nacimiento, localidad, provincia, telefono, email, ultima_empresa_id, created_at) 
-                                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+                $stmtInsAl = $pdo->prepare("INSERT INTO alumnos (dni, nombre, primer_apellido, segundo_apellido, fecha_nacimiento, localidad, provincia, telefono, email, ultima_empresa_id) 
+                                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 $stmtInsAl->execute([
                     $dni ?: null,
                     $nombre,
@@ -273,7 +273,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ejecutar_importacion'
             $mat_id = $stmtMat->fetchColumn();
 
             if (!$mat_id) {
-                $stmtInsMat = $pdo->prepare("INSERT INTO matriculas (alumno_id, grupo_id, estado, created_at) VALUES (?, ?, ?, NOW())");
+                $stmtInsMat = $pdo->prepare("INSERT INTO matriculas (alumno_id, grupo_id, estado, fecha_matricula) VALUES (?, ?, ?, CURDATE())");
                 $stmtInsMat->execute([$alumno_id, $grupo_id, $estado_matricula]);
                 $mat_id = $pdo->lastInsertId();
                 $total_matriculados++;

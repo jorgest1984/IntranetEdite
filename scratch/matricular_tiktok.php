@@ -166,13 +166,13 @@ try {
         
         $curso_id = $curso['id'] ?? null;
         if (!$curso_id) {
-            $stmtInsC = $pdo->prepare("INSERT INTO cursos (nombre_corto, nombre_largo, modalidad, duracion, created_at) VALUES ('CTRD0016', 'TIK TOK PARA EMPRESAS', 'TELEFORMACIÓN', 60, NOW())");
+            $stmtInsC = $pdo->prepare("INSERT INTO cursos (nombre_corto, nombre_largo, modalidad, duracion) VALUES ('CTRD0016', 'TIK TOK PARA EMPRESAS', 'TELEFORMACIÓN', 60)");
             $stmtInsC->execute();
             $curso_id = $pdo->lastInsertId();
         }
 
         // Crear Acción Formativa
-        $stmtInsAF = $pdo->prepare("INSERT INTO acciones_formativas (curso_id, titulo, abreviatura, num_accion, modalidad, duracion, created_at) VALUES (?, 'TIK TOK PARA EMPRESAS', 'CTRD0016', 'CTRD0016', 'TELEFORMACIÓN', 60, NOW())");
+        $stmtInsAF = $pdo->prepare("INSERT INTO acciones_formativas (curso_id, titulo, abreviatura, num_accion, modalidad, duracion) VALUES (?, 'TIK TOK PARA EMPRESAS', 'CTRD0016', 'CTRD0016', 'TELEFORMACIÓN', 60)");
         $stmtInsAF->execute([$curso_id]);
         $af_id = $pdo->lastInsertId();
         
@@ -190,7 +190,7 @@ try {
     $grupo = $stmtG->fetch(PDO::FETCH_ASSOC);
 
     if (!$grupo) {
-        $stmtInsG = $pdo->prepare("INSERT INTO grupos (accion_id, numero_grupo, fecha_inicio, fecha_fin, estado, created_at) VALUES (?, 1, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'En curso', NOW())");
+        $stmtInsG = $pdo->prepare("INSERT INTO grupos (accion_id, numero_grupo, fecha_inicio, fecha_fin, estado) VALUES (?, 1, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'En curso')");
         $stmtInsG->execute([$af_id]);
         $grupo_id = $pdo->lastInsertId();
     } else {
@@ -236,7 +236,7 @@ try {
             $empresa_id = $stmtEmp->fetchColumn();
 
             if (!$empresa_id) {
-                $stmtInsEmp = $pdo->prepare("INSERT INTO empresas (nombre, cif, localidad, provincia, created_at) VALUES (?, ?, ?, ?, NOW())");
+                $stmtInsEmp = $pdo->prepare("INSERT INTO empresas (nombre, cif, localidad, provincia) VALUES (?, ?, ?, ?)");
                 $stmtInsEmp->execute([$row['empresa'], $row['cif'], $row['localidad'], $row['provincia']]);
                 $empresa_id = $pdo->lastInsertId();
             }
@@ -250,7 +250,7 @@ try {
 
         if (!$alumno) {
             $email_generado = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $dni)) . '@alumnos.grupoefp.es';
-            $stmtInsAl = $pdo->prepare("INSERT INTO alumnos (dni, nombre, primer_apellido, segundo_apellido, fecha_nacimiento, localidad, provincia, ultima_empresa_id, email, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+            $stmtInsAl = $pdo->prepare("INSERT INTO alumnos (dni, nombre, primer_apellido, segundo_apellido, fecha_nacimiento, localidad, provincia, ultima_empresa_id, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmtInsAl->execute([
                 $dni,
                 $nombre,
@@ -276,7 +276,7 @@ try {
         $mat_id = $stmtMat->fetchColumn();
 
         if (!$mat_id) {
-            $stmtInsMat = $pdo->prepare("INSERT INTO matriculas (alumno_id, grupo_id, estado, created_at) VALUES (?, ?, 'Admitido', NOW())");
+            $stmtInsMat = $pdo->prepare("INSERT INTO matriculas (alumno_id, grupo_id, estado, fecha_matricula) VALUES (?, ?, 'Admitido', CURDATE())");
             $stmtInsMat->execute([$alumno_id, $grupo_id]);
             $mat_id = $pdo->lastInsertId();
             echo "✅ Alumno matriculado: {$row['nombre_completo']} (ID: $alumno_id, Matrícula: $mat_id)\n";
