@@ -1,7 +1,7 @@
 <?php
 // matricular_alumnos_tiktok.php
-require_once 'includes/config.php';
-require_once 'includes/moodle_api.php';
+require_once __DIR__ . '/../includes/config.php';
+require_once __DIR__ . '/../includes/moodle_api.php';
 
 echo "=== MATRICULACIÓN AUTOMÁTICA DE ALUMNOS CTRD0016 ===\n";
 
