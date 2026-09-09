@@ -198,6 +198,27 @@ try {
     }
     echo "Grupo asignado ID: $grupo_id\n";
 
+    // Obtener convocatoria_id correspondiente
+    $convocatoria_id = null;
+    if (!empty($af['plan_id'])) {
+        $stmtP = $pdo->prepare("SELECT convocatoria_id FROM planes WHERE id = ?");
+        $stmtP->execute([$af['plan_id']]);
+        $convocatoria_id = $stmtP->fetchColumn();
+    }
+    if (!$convocatoria_id) {
+        $convocatoria_id = $pdo->query("SELECT id FROM convocatorias ORDER BY id DESC LIMIT 1")->fetchColumn();
+        if (!$convocatoria_id) {
+            $pdo->query("INSERT INTO convocatorias (codigo_expediente, nombre, tipo, creado_en) VALUES ('EXP-GENERAL', 'Convocatoria General', 'FUNDAE_OCUPADOS', NOW())");
+            $convocatoria_id = $pdo->lastInsertId();
+        }
+    }
+    echo "Convocatoria asignada ID: $convocatoria_id\n";
+
+    // Obtener columnas de las tablas para inserts seguros
+    $matriculas_cols = $pdo->query("SHOW COLUMNS FROM matriculas")->fetchAll(PDO::FETCH_COLUMN);
+    $alumnos_cols = $pdo->query("SHOW COLUMNS FROM alumnos")->fetchAll(PDO::FETCH_COLUMN);
+    $empresas_cols = $pdo->query("SHOW COLUMNS FROM empresas")->fetchAll(PDO::FETCH_COLUMN);
+
     // 3. Procesar cada alumno
     $moodle = new MoodleAPI($pdo);
     $moodle_configured = $moodle->isConfigured();
@@ -212,7 +233,6 @@ try {
             $nombre = $parts[0] . ' ' . $parts[1];
             $primer_apellido = $parts[2];
             $segundo_apellido = isset($parts[3]) ? implode(' ', array_slice($parts, 3)) : '';
-            // Si el nombre tiene 3 partes (ej: ANGEL ALBERTO AGUILERA JIMENEZ) -> Nombre: ANGEL ALBERTO, Apellidos: AGUILERA JIMENEZ
             if (count($parts) == 4) {
                 $nombre = $parts[0] . ' ' . $parts[1];
                 $primer_apellido = $parts[2];
@@ -236,8 +256,24 @@ try {
             $empresa_id = $stmtEmp->fetchColumn();
 
             if (!$empresa_id) {
-                $stmtInsEmp = $pdo->prepare("INSERT INTO empresas (nombre, cif, localidad, provincia) VALUES (?, ?, ?, ?)");
-                $stmtInsEmp->execute([$row['empresa'], $row['cif'], $row['localidad'], $row['provincia']]);
+                $emp_data = [
+                    'nombre' => $row['empresa'],
+                    'cif' => $row['cif'],
+                    'localidad' => $row['localidad'],
+                    'provincia' => $row['provincia']
+                ];
+                $fields = [];
+                $placeholders = [];
+                $values = [];
+                foreach ($emp_data as $col => $val) {
+                    if (in_array($col, $empresas_cols)) {
+                        $fields[] = "`$col`";
+                        $placeholders[] = "?";
+                        $values[] = $val;
+                    }
+                }
+                $stmtInsEmp = $pdo->prepare("INSERT INTO empresas (" . implode(', ', $fields) . ") VALUES (" . implode(', ', $placeholders) . ")");
+                $stmtInsEmp->execute($values);
                 $empresa_id = $pdo->lastInsertId();
             }
         }
@@ -250,34 +286,89 @@ try {
 
         if (!$alumno) {
             $email_generado = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $dni)) . '@alumnos.grupoefp.es';
-            $stmtInsAl = $pdo->prepare("INSERT INTO alumnos (dni, nombre, primer_apellido, segundo_apellido, fecha_nacimiento, localidad, provincia, ultima_empresa_id, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmtInsAl->execute([
-                $dni,
-                $nombre,
-                $primer_apellido,
-                $segundo_apellido,
-                $row['fecha_nac'],
-                $row['localidad'],
-                $row['provincia'],
-                $empresa_id,
-                $email_generado
-            ]);
+            $al_insert = [
+                'dni' => $dni,
+                'nombre' => $nombre,
+                'apellidos' => trim($primer_apellido . ' ' . $segundo_apellido),
+                'primer_apellido' => $primer_apellido,
+                'segundo_apellido' => $segundo_apellido,
+                'fecha_nacimiento' => $row['fecha_nac'],
+                'localidad' => $row['localidad'],
+                'provincia' => $row['provincia'],
+                'ultima_empresa_id' => $empresa_id,
+                'email' => $email_generado
+            ];
+            $fields = [];
+            $placeholders = [];
+            $values = [];
+            foreach ($al_insert as $col => $val) {
+                if (in_array($col, $alumnos_cols)) {
+                    $fields[] = "`$col`";
+                    $placeholders[] = "?";
+                    $values[] = $val;
+                }
+            }
+            $stmtInsAl = $pdo->prepare("INSERT INTO alumnos (" . implode(', ', $fields) . ") VALUES (" . implode(', ', $placeholders) . ")");
+            $stmtInsAl->execute($values);
             $alumno_id = $pdo->lastInsertId();
         } else {
             $alumno_id = $alumno['id'];
-            // Actualizar datos
-            $stmtUpdAl = $pdo->prepare("UPDATE alumnos SET fecha_nacimiento = ?, localidad = ?, provincia = ?, ultima_empresa_id = ? WHERE id = ?");
-            $stmtUpdAl->execute([$row['fecha_nac'], $row['localidad'], $row['provincia'], $empresa_id, $alumno_id]);
+            $al_upd = [
+                'fecha_nacimiento' => $row['fecha_nac'],
+                'localidad' => $row['localidad'],
+                'provincia' => $row['provincia'],
+                'ultima_empresa_id' => $empresa_id
+            ];
+            $set_clauses = [];
+            $upd_values = [];
+            foreach ($al_upd as $col => $val) {
+                if (in_array($col, $alumnos_cols)) {
+                    $set_clauses[] = "`$col` = ?";
+                    $upd_values[] = $val;
+                }
+            }
+            if (!empty($set_clauses)) {
+                $upd_values[] = $alumno_id;
+                $stmtUpdAl = $pdo->prepare("UPDATE alumnos SET " . implode(', ', $set_clauses) . " WHERE id = ?");
+                $stmtUpdAl->execute($upd_values);
+            }
         }
 
         // Crear o actualizar Matrícula en el Grupo
-        $stmtMat = $pdo->prepare("SELECT id FROM matriculas WHERE alumno_id = ? AND grupo_id = ? LIMIT 1");
-        $stmtMat->execute([$alumno_id, $grupo_id]);
+        $where_check = [];
+        $check_params = [$alumno_id];
+        if (in_array('grupo_id', $matriculas_cols)) {
+            $where_check[] = "grupo_id = ?";
+            $check_params[] = $grupo_id;
+        } elseif (in_array('convocatoria_id', $matriculas_cols)) {
+            $where_check[] = "convocatoria_id = ?";
+            $check_params[] = $convocatoria_id;
+        }
+
+        $stmtMat = $pdo->prepare("SELECT id FROM matriculas WHERE alumno_id = ? AND " . implode(' AND ', $where_check) . " LIMIT 1");
+        $stmtMat->execute($check_params);
         $mat_id = $stmtMat->fetchColumn();
 
         if (!$mat_id) {
-            $stmtInsMat = $pdo->prepare("INSERT INTO matriculas (alumno_id, grupo_id, estado, fecha_matricula) VALUES (?, ?, 'Admitido', CURDATE())");
-            $stmtInsMat->execute([$alumno_id, $grupo_id]);
+            $mat_insert = [
+                'alumno_id' => $alumno_id,
+                'grupo_id' => $grupo_id,
+                'convocatoria_id' => $convocatoria_id,
+                'estado' => 'Admitido',
+                'fecha_matricula' => date('Y-m-d')
+            ];
+            $fields = [];
+            $placeholders = [];
+            $values = [];
+            foreach ($mat_insert as $col => $val) {
+                if (in_array($col, $matriculas_cols)) {
+                    $fields[] = "`$col`";
+                    $placeholders[] = "?";
+                    $values[] = $val;
+                }
+            }
+            $stmtInsMat = $pdo->prepare("INSERT INTO matriculas (" . implode(', ', $fields) . ") VALUES (" . implode(', ', $placeholders) . ")");
+            $stmtInsMat->execute($values);
             $mat_id = $pdo->lastInsertId();
             echo "✅ Alumno matriculado: {$row['nombre_completo']} (ID: $alumno_id, Matrícula: $mat_id)\n";
         } else {

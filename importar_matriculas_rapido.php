@@ -67,16 +67,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ejecutar_importacion'
             $stmtG->execute([$accion_id]);
             $grupo_id = $stmtG->fetchColumn();
             if (!$grupo_id) {
-                $stmtInsG = $pdo->prepare("INSERT INTO grupos (accion_id, numero_grupo, fecha_inicio, fecha_fin, estado, created_at) VALUES (?, 1, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'En curso', NOW())");
+                $stmtInsG = $pdo->prepare("INSERT INTO grupos (accion_id, numero_grupo, fecha_inicio, fecha_fin, estado) VALUES (?, 1, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'En curso')");
                 $stmtInsG->execute([$accion_id]);
                 $grupo_id = $pdo->lastInsertId();
             }
         }
 
-        // Obtener datos de la acción formativa para Moodle
+        // Obtener datos de la acción formativa para Moodle y Convocatoria
         $stmtAF = $pdo->prepare("SELECT * FROM acciones_formativas WHERE id = ?");
         $stmtAF->execute([$accion_id]);
         $af = $stmtAF->fetch(PDO::FETCH_ASSOC);
+
+        $convocatoria_id = null;
+        if (!empty($af['plan_id'])) {
+            $stmtP = $pdo->prepare("SELECT convocatoria_id FROM planes WHERE id = ?");
+            $stmtP->execute([$af['plan_id']]);
+            $convocatoria_id = $stmtP->fetchColumn();
+        }
+        if (!$convocatoria_id) {
+            $convocatoria_id = $pdo->query("SELECT id FROM convocatorias ORDER BY id DESC LIMIT 1")->fetchColumn();
+            if (!$convocatoria_id) {
+                $pdo->query("INSERT INTO convocatorias (codigo_expediente, nombre, tipo, creado_en) VALUES ('EXP-GENERAL', 'Convocatoria General', 'FUNDAE_OCUPADOS', NOW())");
+                $convocatoria_id = $pdo->lastInsertId();
+            }
+        }
+
+        $matriculas_cols = $pdo->query("SHOW COLUMNS FROM matriculas")->fetchAll(PDO::FETCH_COLUMN);
+        $alumnos_cols = $pdo->query("SHOW COLUMNS FROM alumnos")->fetchAll(PDO::FETCH_COLUMN);
+        $empresas_cols = $pdo->query("SHOW COLUMNS FROM empresas")->fetchAll(PDO::FETCH_COLUMN);
 
         $moodle = new MoodleAPI($pdo);
         $moodle_course_id = $af['id_plataforma'] ?? null;
@@ -268,13 +286,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ejecutar_importacion'
             }
 
             // Gestionar Matrícula en el Grupo
-            $stmtMat = $pdo->prepare("SELECT id FROM matriculas WHERE alumno_id = ? AND grupo_id = ? LIMIT 1");
-            $stmtMat->execute([$alumno_id, $grupo_id]);
+            $where_check = [];
+            $check_params = [$alumno_id];
+            if (in_array('grupo_id', $matriculas_cols)) {
+                $where_check[] = "grupo_id = ?";
+                $check_params[] = $grupo_id;
+            } elseif (in_array('convocatoria_id', $matriculas_cols)) {
+                $where_check[] = "convocatoria_id = ?";
+                $check_params[] = $convocatoria_id;
+            }
+
+            $stmtMat = $pdo->prepare("SELECT id FROM matriculas WHERE alumno_id = ? AND " . implode(' AND ', $where_check) . " LIMIT 1");
+            $stmtMat->execute($check_params);
             $mat_id = $stmtMat->fetchColumn();
 
             if (!$mat_id) {
-                $stmtInsMat = $pdo->prepare("INSERT INTO matriculas (alumno_id, grupo_id, estado, fecha_matricula) VALUES (?, ?, ?, CURDATE())");
-                $stmtInsMat->execute([$alumno_id, $grupo_id, $estado_matricula]);
+                $mat_insert = [
+                    'alumno_id' => $alumno_id,
+                    'grupo_id' => $grupo_id,
+                    'convocatoria_id' => $convocatoria_id,
+                    'estado' => $estado_matricula,
+                    'fecha_matricula' => date('Y-m-d')
+                ];
+                $fields = [];
+                $placeholders = [];
+                $values = [];
+                foreach ($mat_insert as $cName => $cVal) {
+                    if (in_array($cName, $matriculas_cols)) {
+                        $fields[] = "`$cName`";
+                        $placeholders[] = "?";
+                        $values[] = $cVal;
+                    }
+                }
+                $stmtInsMat = $pdo->prepare("INSERT INTO matriculas (" . implode(', ', $fields) . ") VALUES (" . implode(', ', $placeholders) . ")");
+                $stmtInsMat->execute($values);
                 $mat_id = $pdo->lastInsertId();
                 $total_matriculados++;
             } else {
