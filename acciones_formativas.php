@@ -497,18 +497,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
             .table-premium td div[style*="justify-content: center"] {
                 justify-content: flex-end !important;
             }
-        }
     </style>
-    <script>
-
-    function switchTab(tabId) {
-        document.querySelectorAll('.tab-af-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.tab-content-af').forEach(content => content.classList.remove('active'));
-        
-        document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
-        document.getElementById(tabId).classList.add('active');
-    }
-    </script>
 </head>
 <body>
 
@@ -917,6 +906,21 @@ function switchTab(tabId) {
     if (activeBtn && activeContent) {
         activeBtn.classList.add('active');
         activeContent.classList.add('active');
+        
+        if (tabId === 'tab-nueva') {
+            setTimeout(() => {
+                activeContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                const mainContent = document.querySelector('.main-content');
+                if (mainContent) {
+                    const offset = activeContent.offsetTop - 20;
+                    mainContent.scrollTo({ top: offset, behavior: 'smooth' });
+                }
+                const firstInput = activeContent.querySelector('input[name="titulo"]');
+                if (firstInput) {
+                    firstInput.focus({ preventScroll: true });
+                }
+            }, 60);
+        }
     }
 }
 
