@@ -2181,8 +2181,7 @@ try {
                             </div>
                         </div>
                     </div>
-                <?php else: ?>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 15px;">
                         <div class="form-section-title" style="margin: 0; padding: 0; border: none;">Seguimiento de Alumnos en Moodle</div>
                         <?php
                         $last_sync_time = '---';
@@ -2194,21 +2193,21 @@ try {
                             }
                         }
                         ?>
-                        <div style="display: flex; gap: 10px; align-items: center;">
+                        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                             <?php if (!$is_comercial): ?>
-                            <button type="button" class="btn-sync-moodle" onclick="unlinkMoodleCourse(<?= $id ?>)" style="background-color: #dc2626; border-color: #991b1b; margin: 0; height: 28px; padding: 0 10px; font-size: 0.78rem; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                                    <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
-                                    <line x1="12" y1="2" x2="12" y2="12"></line>
+                            <button type="button" class="btn-sync-moodle" id="btn-sync-moodle-times-top" onclick="syncMoodleTimes(<?= $id ?>)" <?= empty($alumnos_seguimiento) ? 'disabled' : '' ?> style="background-color: #b91c1c; border-color: #991b1b; margin: 0; height: 32px; padding: 0 14px; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 8px rgba(185, 28, 28, 0.25);" title="<?= empty($alumnos_seguimiento) ? 'Primero debes importar alumnos' : 'Sincronizar tiempos Moodle' ?>">
+                                <svg class="sync-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="transition: transform 0.2s;">
+                                    <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
                                 </svg>
-                                Desvincular Moodle
+                                Sincronizar Tiempos Moodle
                             </button>
                             <?php endif; ?>
-                            <span style="font-size: 0.8rem; color: #64748b; font-weight: 600; background: #e2e8f0; padding: 4px 12px; border-radius: 4px; height: 28px; display: inline-flex; align-items: center;">
+                            <span style="font-size: 0.8rem; color: #64748b; font-weight: 600; background: #e2e8f0; padding: 4px 12px; border-radius: 4px; height: 32px; display: inline-flex; align-items: center;">
                                 Última Sincronización: <strong>&nbsp;<?= $last_sync_time ?></strong>
                             </span>
                         </div>
                     </div>
+                    <div id="sync-status-msg-top" class="sync-status-text" style="margin-bottom: 15px;"></div>
 
                     <?php if ($moodle_connected): ?>
                         <div class="moodle-status-banner success">
@@ -2414,41 +2413,48 @@ try {
                         </table>
                     </div>
 
-                    <!-- Botón de Sincronización -->
-                    <div class="seguimiento-actions" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
-                        <?php if (!$is_comercial): ?>
-                        <button type="button" class="btn-sync-moodle" id="btn-sync-moodle-times" onclick="syncMoodleTimes(<?= $id ?>)" <?= empty($alumnos_seguimiento) ? 'disabled' : '' ?> title="<?= empty($alumnos_seguimiento) ? 'Primero debes importar alumnos' : 'Sincronizar tiempos' ?>">
-                            <svg class="sync-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="transition: transform 0.2s;">
-                                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
-                            </svg>
-                            Sincronizar Tiempos Moodle
-                        </button>
-                        
-                        <button type="button" class="btn-sync-moodle" id="btn-import-moodle-students" onclick="importMoodleStudents(<?= $id ?>)" style="background-color: #1e3a8a; border-color: #172554;">
-                            <svg class="import-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="transition: transform 0.2s; margin-right: 8px;">
-                                <line x1="12" y1="5" x2="12" y2="19"></line>
-                                <line x1="5" y1="12" x2="19" y2="12"></line>
-                            </svg>
-                            Importar Alumnos de Moodle
-                        </button>
-                        <?php endif; ?>
-                        
-                        <a href="pdf_informe_seguimiento.php?id=<?= $id ?>" target="_blank" class="btn-sync-moodle" style="background-color: #0f172a; border-color: #020617; text-decoration: none; color: white; display: inline-flex; align-items: center;" <?= empty($alumnos_seguimiento) ? 'onclick="event.preventDefault();"' : '' ?>>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="margin-right: 8px;">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                <polyline points="7 10 12 15 17 10"></polyline>
-                                <line x1="12" y1="15" x2="12" y2="3"></line>
-                            </svg>
-                            Descargar Informe PDF
-                        </a>
-                        
-                        <div id="sync-status-msg" class="sync-status-text">
-                            <?php if (isset($_GET['sync_success'])): ?>
-                                <span style="color:#166534;">✓ ¡Sincronización de tiempos y calificaciones finalizada correctamente!</span>
-                            <?php elseif (isset($_GET['import_success'])): ?>
-                                <span style="color:#166534;">✓ ¡Alumnos importados y sincronizados correctamente! (<?= (int)$_GET['imported_count'] ?> alumnos)</span>
+                    <!-- Botones de Acción Inferiores -->
+                    <div class="seguimiento-actions" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-top: 20px;">
+                        <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+                            <?php if (!$is_comercial): ?>
+                            <button type="button" class="btn-sync-moodle" id="btn-import-moodle-students" onclick="importMoodleStudents(<?= $id ?>)" style="background-color: #1e3a8a; border-color: #172554;">
+                                <svg class="import-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="transition: transform 0.2s; margin-right: 8px;">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                                Importar Alumnos de Moodle
+                            </button>
                             <?php endif; ?>
+                            
+                            <a href="pdf_informe_seguimiento.php?id=<?= $id ?>" target="_blank" class="btn-sync-moodle" style="background-color: #0f172a; border-color: #020617; text-decoration: none; color: white; display: inline-flex; align-items: center;" <?= empty($alumnos_seguimiento) ? 'onclick="event.preventDefault();"' : '' ?>>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="margin-right: 8px;">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                Descargar Informe PDF
+                            </a>
                         </div>
+
+                        <?php if (!$is_comercial): ?>
+                        <div>
+                            <button type="button" class="btn-sync-moodle" onclick="unlinkMoodleCourse(<?= $id ?>)" style="background-color: #dc2626; border-color: #991b1b; display: inline-flex; align-items: center; justify-content: center; gap: 6px;" title="Desvincular acción formativa de Moodle">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+                                    <line x1="12" y1="2" x2="12" y2="12"></line>
+                                </svg>
+                                Desvincular Moodle
+                            </button>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                    
+                    <div id="sync-status-msg" class="sync-status-text" style="margin-top: 10px;">
+                        <?php if (isset($_GET['sync_success'])): ?>
+                            <span style="color:#166534; font-weight: 700;">✓ ¡Sincronización de tiempos y calificaciones finalizada correctamente!</span>
+                        <?php elseif (isset($_GET['import_success'])): ?>
+                            <span style="color:#166534; font-weight: 700;">✓ ¡Alumnos importados y sincronizados correctamente! (<?= (int)$_GET['imported_count'] ?> alumnos)</span>
+                        <?php endif; ?>
                     </div>
                 <?php endif; ?>
             </div>
@@ -2668,36 +2674,45 @@ try {
 
         // Moodle synchronization AJAX function
         function syncMoodleTimes(actionId) {
-            const btn = document.getElementById('btn-sync-moodle-times') || document.querySelector('.btn-sync-moodle');
-            const icon = btn.querySelector('.sync-icon');
+            const btns = document.querySelectorAll('.btn-sync-moodle');
+            const icons = document.querySelectorAll('.sync-icon');
             const msgDiv = document.getElementById('sync-status-msg');
+            const msgDivTop = document.getElementById('sync-status-msg-top');
             
-            btn.disabled = true;
-            icon.classList.add('spinning');
-            msgDiv.innerHTML = '<span style="color:#475569;">Conectando con Moodle y calculando tiempos...</span>';
+            btns.forEach(b => b.disabled = true);
+            icons.forEach(i => i.classList.add('spinning'));
+            const connectingMsg = '<span style="color:#475569;">Conectando con Moodle y calculando tiempos...</span>';
+            if (msgDiv) msgDiv.innerHTML = connectingMsg;
+            if (msgDivTop) msgDivTop.innerHTML = connectingMsg;
             
             const csrf = '<?= $_SESSION['csrf_token'] ?? '' ?>';
             
             fetch(`api_sync_moodle_times.php?id=${actionId}&csrf_token=${csrf}`)
                 .then(response => response.json())
                 .then(data => {
-                    icon.classList.remove('spinning');
-                    btn.disabled = false;
+                    icons.forEach(i => i.classList.remove('spinning'));
+                    btns.forEach(b => b.disabled = false);
                     
                     if (data.success) {
-                        msgDiv.innerHTML = `<span style="color:#166534;">✓ ${data.message}</span>`;
+                        const successMsg = `<span style="color:#166534; font-weight: 700;">✓ ${data.message}</span>`;
+                        if (msgDiv) msgDiv.innerHTML = successMsg;
+                        if (msgDivTop) msgDivTop.innerHTML = successMsg;
                         // Reload and redirect back to this tab
                         setTimeout(() => {
                             window.location.href = `ficha_accion_formativa.php?id=${actionId}&tab=seguimiento-moodle&sync_success=1`;
                         }, 1200);
                     } else {
-                        msgDiv.innerHTML = `<span style="color:#991b1b;">❌ Error: ${data.error}</span>`;
+                        const errorMsg = `<span style="color:#991b1b; font-weight: 700;">❌ Error: ${data.error}</span>`;
+                        if (msgDiv) msgDiv.innerHTML = errorMsg;
+                        if (msgDivTop) msgDivTop.innerHTML = errorMsg;
                     }
                 })
                 .catch(error => {
-                    icon.classList.remove('spinning');
-                    btn.disabled = false;
-                    msgDiv.innerHTML = '<span style="color:#991b1b;">❌ Error de conexión de red.</span>';
+                    icons.forEach(i => i.classList.remove('spinning'));
+                    btns.forEach(b => b.disabled = false);
+                    const netErrorMsg = '<span style="color:#991b1b; font-weight: 700;">❌ Error de conexión de red.</span>';
+                    if (msgDiv) msgDiv.innerHTML = netErrorMsg;
+                    if (msgDivTop) msgDivTop.innerHTML = netErrorMsg;
                     console.error('Error:', error);
                 });
         }
