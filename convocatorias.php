@@ -118,7 +118,7 @@ $total_alumnos = array_sum(array_column($list, 'total_alumnos'));
     <style>
         .conv-kpi-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             gap: 20px;
             margin-bottom: 30px;
         }
@@ -339,10 +339,6 @@ $total_alumnos = array_sum(array_column($list, 'total_alumnos'));
             <div class="conv-card">
                 <div style="font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase;">Total Convocatorias</div>
                 <div style="font-size: 1.5rem; font-weight: 800; color: #1e3a8a;"><?= count($list) ?></div>
-            </div>
-            <div class="conv-card" style="border-top-color: #10b981;">
-                <div style="font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase;">Presupuesto Gestionado</div>
-                <div style="font-size: 1.5rem; font-weight: 800; color: #10b981;"><?= number_format($total_presupuesto, 2) ?> €</div>
             </div>
             <div class="conv-card" style="border-top-color: #f59e0b;">
                 <div style="font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase;">Alumnos Totales</div>
