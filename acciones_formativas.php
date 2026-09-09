@@ -499,15 +499,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
         .btn-scroll-top {
             position: fixed;
             bottom: 30px;
-            right: 35px;
-            background: var(--primary-color, #006ce4);
+            right: 90px;
+            background: #dc2626;
             color: #ffffff;
             border: none;
             border-radius: 50px;
             padding: 10px 18px;
             font-size: 0.85rem;
             font-weight: 700;
-            box-shadow: 0 4px 18px rgba(0, 108, 228, 0.4);
+            box-shadow: 0 4px 18px rgba(220, 38, 38, 0.45);
             cursor: pointer;
             display: none;
             align-items: center;
@@ -516,9 +516,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
             transition: all 0.25s ease;
         }
         .btn-scroll-top:hover {
-            background: #0056b3;
+            background: #b91c1c;
             transform: translateY(-3px);
-            box-shadow: 0 6px 22px rgba(0, 108, 228, 0.55);
+            box-shadow: 0 6px 22px rgba(220, 38, 38, 0.6);
         }
         .btn-scroll-top svg {
             transition: transform 0.2s;
@@ -911,7 +911,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
                 </div>
 
                 <div style="margin-top: 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-                    <button type="button" class="btn btn-glass" onclick="scrollToTop()" style="border: 1px solid var(--border-color); font-weight: 700; display: inline-flex; align-items: center; gap: 8px; padding: 0.65rem 1.5rem; border-radius: 8px;">
+                    <button type="button" class="btn" onclick="scrollToTop()" style="background: #dc2626; color: #ffffff; border: none; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; padding: 0.65rem 1.5rem; border-radius: 8px; box-shadow: 0 4px 14px rgba(220, 38, 38, 0.3); cursor: pointer; transition: all 0.2s;">
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
                         Volver arriba
                     </button>
