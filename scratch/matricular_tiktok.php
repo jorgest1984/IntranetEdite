@@ -354,7 +354,7 @@ try {
                 'alumno_id' => $alumno_id,
                 'grupo_id' => $grupo_id,
                 'convocatoria_id' => $convocatoria_id,
-                'estado' => 'Admitido',
+                'estado' => 'Inscrito',
                 'fecha_matricula' => date('Y-m-d')
             ];
             $fields = [];
@@ -372,9 +372,9 @@ try {
             $mat_id = $pdo->lastInsertId();
             echo "✅ Alumno matriculado: {$row['nombre_completo']} (ID: $alumno_id, Matrícula: $mat_id)\n";
         } else {
-            $stmtUpdMat = $pdo->prepare("UPDATE matriculas SET estado = 'Admitido' WHERE id = ?");
+            $stmtUpdMat = $pdo->prepare("UPDATE matriculas SET estado = 'Inscrito' WHERE id = ?");
             $stmtUpdMat->execute([$mat_id]);
-            echo "ℹ️ Matrícula existente actualizada a Admitido: {$row['nombre_completo']} (ID Matrícula: $mat_id)\n";
+            echo "ℹ️ Matrícula existente actualizada a Inscrito: {$row['nombre_completo']} (ID Matrícula: $mat_id)\n";
         }
 
         $matriculados_count++;

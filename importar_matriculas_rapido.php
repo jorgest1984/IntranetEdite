@@ -36,7 +36,7 @@ $grupos = $stmtGrupos ? $stmtGrupos->fetchAll(PDO::FETCH_ASSOC) : [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ejecutar_importacion'])) {
     $accion_id = !empty($_POST['accion_id']) ? (int)$_POST['accion_id'] : null;
     $grupo_id = !empty($_POST['grupo_id']) ? (int)$_POST['grupo_id'] : null;
-    $estado_matricula = !empty($_POST['estado_matricula']) ? trim($_POST['estado_matricula']) : 'Admitido';
+    $estado_matricula = !empty($_POST['estado_matricula']) ? trim($_POST['estado_matricula']) : 'Inscrito';
     $sincronizar_moodle = isset($_POST['sincronizar_moodle']);
     $crear_empresas_auto = isset($_POST['crear_empresas_auto']);
 
@@ -555,11 +555,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ejecutar_importacion'
                 <div class="form-group-custom">
                     <label>Estado de Matrícula Inicial:</label>
                     <select name="estado_matricula" class="form-control-custom">
-                        <option value="Admitido" selected>Admitido</option>
-                        <option value="Preinscrito">Preinscrito</option>
-                        <option value="Pendiente validacion">Pendiente validación</option>
-                        <option value="Reserva">Reserva</option>
-                        <option value="Inscrito">Inscrito</option>
+                        <option value="Inscrito" selected>Inscrito</option>
+                        <option value="Activo">Activo</option>
+                        <option value="Finalizada">Finalizada</option>
+                        <option value="Baja">Baja</option>
+                        <option value="Cancelada">Cancelada</option>
                     </select>
                 </div>
             </div>
