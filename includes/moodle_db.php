@@ -172,6 +172,8 @@ class MoodleDB {
                             }
                         }
                     }
+                    // Aplicar factor de ajuste (+20%) para compensar tiempos de lectura y estudio entre eventos
+                    $totalSeconds = (int)round($totalSeconds * 1.20);
                     $stats[$uid]['connected_seconds'] = $totalSeconds;
                 }
 
