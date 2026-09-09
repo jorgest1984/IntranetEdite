@@ -383,34 +383,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ejecutar_importacion'
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <link rel="icon" type="image/png" href="/img/logo_efp.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Importación y Matriculación Rápida - <?= APP_NAME ?></title>
-    <link rel="icon" type="image/png" href="img/logo_efp.png">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/fp_global.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
     <style>
         .import-box {
-            background: #ffffff;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            padding: 24px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 26px;
+            box-shadow: var(--glass-shadow);
             margin-bottom: 25px;
+            transition: background-color 0.4s ease, border-color 0.4s ease;
         }
         .import-title {
-            font-size: 1.15rem;
+            font-size: 1.1rem;
             font-weight: 800;
-            color: #1e3a8a;
-            margin-bottom: 15px;
+            color: var(--primary-color);
+            margin-bottom: 18px;
             display: flex;
             align-items: center;
             gap: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .form-grid-3 {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
+            gap: 18px;
             margin-bottom: 20px;
         }
         .form-group-custom {
@@ -419,40 +424,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ejecutar_importacion'
             gap: 6px;
         }
         .form-group-custom label {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 700;
-            color: #475569;
+            color: var(--text-muted);
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .form-control-custom {
-            padding: 9px 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            background: var(--input-bg);
+            color: var(--text-color);
+            border-radius: 8px;
             font-size: 0.88rem;
+            font-weight: 500;
             outline: none;
             width: 100%;
             box-sizing: border-box;
+            transition: all 0.2s ease;
         }
         .form-control-custom:focus {
-            border-color: #006ce4;
+            border-color: var(--primary-color);
+            background: var(--input-focus-bg);
             box-shadow: 0 0 0 3px rgba(0, 108, 228, 0.15);
         }
         .paste-textarea {
             width: 100%;
-            height: 180px;
-            font-family: monospace;
-            font-size: 0.82rem;
-            padding: 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
+            height: 190px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.84rem;
+            line-height: 1.6;
+            padding: 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
             box-sizing: border-box;
-            background: #f8fafc;
+            background: var(--input-bg);
+            color: var(--text-color);
+            transition: all 0.2s ease;
+        }
+        .paste-textarea:focus {
+            border-color: var(--primary-color);
+            background: var(--input-focus-bg);
+            box-shadow: 0 0 0 3px rgba(0, 108, 228, 0.15);
+            outline: none;
         }
         .btn-fast {
-            background: #006ce4;
+            background: linear-gradient(135deg, #006ce4 0%, #0284c7 100%);
             color: #ffffff;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             padding: 12px 28px;
             font-size: 0.95rem;
             font-weight: 800;
@@ -460,30 +480,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ejecutar_importacion'
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            transition: all 0.2s;
-            box-shadow: 0 4px 14px rgba(0, 108, 228, 0.3);
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 14px rgba(0, 108, 228, 0.35);
         }
         .btn-fast:hover {
-            background: #0056b3;
             transform: translateY(-2px);
-            box-shadow: 0 6px 18px rgba(0, 108, 228, 0.4);
+            box-shadow: 0 6px 20px rgba(0, 108, 228, 0.45);
         }
         .btn-example {
-            background: #f1f5f9;
-            color: #334155;
-            border: 1px solid #cbd5e1;
-            padding: 6px 14px;
-            border-radius: 6px;
-            font-size: 0.78rem;
+            background: rgba(0, 108, 228, 0.08);
+            color: var(--primary-color);
+            border: 1px solid rgba(0, 108, 228, 0.2);
+            padding: 7px 16px;
+            border-radius: 8px;
+            font-size: 0.8rem;
             font-weight: 700;
             cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
         .btn-example:hover {
-            background: #e2e8f0;
+            background: var(--primary-color);
+            color: #ffffff;
+            transform: translateY(-1px);
         }
-        .badge-success { background: #dcfce7; color: #15803d; border: 1px solid #86efac; padding: 4px 8px; border-radius: 4px; font-weight: 700; font-size: 0.75rem; }
-        .badge-info { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; padding: 4px 8px; border-radius: 4px; font-weight: 700; font-size: 0.75rem; }
-        .badge-moodle { background: #ffedd5; color: #c2410c; border: 1px solid #fdba74; padding: 4px 8px; border-radius: 4px; font-weight: 700; font-size: 0.75rem; }
+        .badge-success { background: #dcfce7; color: #15803d; border: 1px solid #86efac; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 0.75rem; }
+        .badge-info { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 0.75rem; }
+        .badge-moodle { background: #ffedd5; color: #c2410c; border: 1px solid #fdba74; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 0.75rem; }
         @media (max-width: 900px) {
             .form-grid-3 { grid-template-columns: 1fr; }
         }
@@ -493,14 +519,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ejecutar_importacion'
 <div class="app-container">
     <?php include 'includes/fp_sidebar.php'; ?>
 
-    <main class="main-content" style="flex: 1; overflow-y: auto; padding: 25px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-            <div>
-                <h1 style="font-size: 1.5rem; font-weight: 800; color: #0f172a; margin: 0;">⚡ Importación y Matriculación Rápida de Alumnos</h1>
-                <p style="color: #64748b; font-size: 0.88rem; margin: 4px 0 0 0;">Copia y pega listas de alumnos desde Excel/Word/PDF o sube un CSV para crearlos y matricularlos en un solo clic.</p>
+    <main class="main-content">
+        <header class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
+            <div class="page-title">
+                <span style="color: var(--primary-color); font-weight: 800; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1px;">Gestión de Matrículas</span>
+                <h1 style="font-size: 1.6rem; font-weight: 800; margin: 4px 0;">⚡ Importación y Matriculación Rápida</h1>
+                <p style="color: var(--text-muted); font-size: 0.88rem; margin: 0;">Copia y pega listas de alumnos desde Excel/Word/PDF o sube un archivo para crearlos y matricularlos en un solo clic.</p>
             </div>
-            <a href="inscripciones.php" class="btn-example" style="text-decoration: none; padding: 8px 16px;">« Volver a Matrículas</a>
-        </div>
+            <div class="page-actions">
+                <a href="inscripciones.php" class="btn-example">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                    Volver a Matrículas
+                </a>
+            </div>
+        </header>
 
         <?php if (!empty($error)): ?>
             <div style="background: #fee2e2; border-left: 4px solid #dc2626; padding: 14px 18px; border-radius: 6px; color: #991b1b; font-weight: 700; margin-bottom: 20px;">
@@ -569,13 +601,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ejecutar_importacion'
                 2. Opciones de Automatización
             </div>
 
-            <div style="display: flex; gap: 30px; flex-wrap: wrap; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 25px;">
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.88rem; font-weight: 600; color: #1e3a8a;">
-                    <input type="checkbox" name="crear_empresas_auto" value="1" checked style="width: 17px; height: 17px; accent-color: #006ce4;">
+            <div style="display: flex; gap: 30px; flex-wrap: wrap; background: var(--card-bg); padding: 16px 20px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 25px;">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.88rem; font-weight: 700; color: var(--text-color);">
+                    <input type="checkbox" name="crear_empresas_auto" value="1" checked style="width: 18px; height: 18px; accent-color: var(--primary-color);">
                     Crear Empresas automáticamente si no existen
                 </label>
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.88rem; font-weight: 600; color: #c2410c;">
-                    <input type="checkbox" name="sincronizar_moodle" value="1" checked style="width: 17px; height: 17px; accent-color: #ea580c;">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.88rem; font-weight: 700; color: #ea580c;">
+                    <input type="checkbox" name="sincronizar_moodle" value="1" checked style="width: 18px; height: 18px; accent-color: #ea580c;">
                     Crear usuario en Moodle y Matricular en el curso automáticamente
                 </label>
             </div>
@@ -588,7 +620,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ejecutar_importacion'
                 <button type="button" class="btn-example" onclick="loadTikTokExample()">📋 Cargar Ejemplo 16 Alumnos TikTok</button>
             </div>
 
-            <p style="font-size: 0.82rem; color: #64748b; margin: -5px 0 10px 0;">
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin: -5px 0 12px 0;">
                 Puedes pegar directamente filas de Excel o texto tabulado. Detecta automáticamente <strong>Nombre, DNI, Fecha Nacimiento, Empresa, CIF, Localidad, Provincia y Email</strong>.
             </p>
 
@@ -598,8 +630,8 @@ JUAN CRISTOBAL ALVAREZ CEBRIAN	52746478A	11/07/1968	LUMER CREATIVE STUDIO S.L. [
 
             <div style="margin-top: 15px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
                 <div>
-                    <label style="font-size: 0.8rem; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">O subir archivo CSV / Excel:</label>
-                    <input type="file" name="archivo_csv" accept=".csv,.txt" style="font-size: 0.82rem;">
+                    <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">O subir archivo CSV / Excel:</label>
+                    <input type="file" name="archivo_csv" accept=".csv,.txt" style="font-size: 0.82rem; color: var(--text-color);">
                 </div>
                 <button type="submit" name="ejecutar_importacion" class="btn-fast">
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
@@ -617,24 +649,24 @@ JUAN CRISTOBAL ALVAREZ CEBRIAN	52746478A	11/07/1968	LUMER CREATIVE STUDIO S.L. [
                 <div style="overflow-x: auto;">
                     <table class="table-premium" style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
                         <thead>
-                            <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
-                                <th style="padding: 10px; text-align: left;">ALUMNO</th>
-                                <th style="padding: 10px; text-align: left;">DNI / NIF</th>
-                                <th style="padding: 10px; text-align: left;">EMPRESA</th>
-                                <th style="padding: 10px; text-align: center;">ALUMNO</th>
-                                <th style="padding: 10px; text-align: center;">MATRÍCULA</th>
-                                <th style="padding: 10px; text-align: center;">MOODLE</th>
+                            <tr style="background: rgba(0, 108, 228, 0.05); border-bottom: 2px solid var(--border-color);">
+                                <th style="padding: 12px 14px; text-align: left; color: var(--primary-color);">ALUMNO</th>
+                                <th style="padding: 12px 14px; text-align: left; color: var(--primary-color);">DNI / NIF</th>
+                                <th style="padding: 12px 14px; text-align: left; color: var(--primary-color);">EMPRESA</th>
+                                <th style="padding: 12px 14px; text-align: center; color: var(--primary-color);">ALUMNO</th>
+                                <th style="padding: 12px 14px; text-align: center; color: var(--primary-color);">MATRÍCULA</th>
+                                <th style="padding: 12px 14px; text-align: center; color: var(--primary-color);">MOODLE</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($resultados as $r): ?>
-                                <tr style="border-bottom: 1px solid #f1f5f9;">
-                                    <td style="padding: 10px; font-weight: 700; color: #0f172a;"><?= htmlspecialchars($r['nombre'] ?? '') ?></td>
-                                    <td style="padding: 10px; font-family: monospace; font-weight: 600; color: #006ce4;"><?= htmlspecialchars($r['dni'] ?? '') ?></td>
-                                    <td style="padding: 10px; color: #475569;"><?= htmlspecialchars($r['empresa'] ?? '') ?></td>
-                                    <td style="padding: 10px; text-align: center;"><span class="badge-info"><?= htmlspecialchars($r['accion'] ?? '') ?></span></td>
-                                    <td style="padding: 10px; text-align: center;"><span class="badge-success"><?= htmlspecialchars($r['matricula'] ?? '') ?></span></td>
-                                    <td style="padding: 10px; text-align: center;"><span class="badge-moodle"><?= htmlspecialchars($r['moodle'] ?? '') ?></span></td>
+                                <tr style="border-bottom: 1px solid var(--border-color);">
+                                    <td style="padding: 12px 14px; font-weight: 700; color: var(--text-color);"><?= htmlspecialchars($r['nombre'] ?? '') ?></td>
+                                    <td style="padding: 12px 14px; font-family: monospace; font-weight: 700; color: var(--primary-color);"><?= htmlspecialchars($r['dni'] ?? '') ?></td>
+                                    <td style="padding: 12px 14px; color: var(--text-muted);"><?= htmlspecialchars($r['empresa'] ?? '') ?></td>
+                                    <td style="padding: 12px 14px; text-align: center;"><span class="badge-info"><?= htmlspecialchars($r['accion'] ?? '') ?></span></td>
+                                    <td style="padding: 12px 14px; text-align: center;"><span class="badge-success"><?= htmlspecialchars($r['matricula'] ?? '') ?></span></td>
+                                    <td style="padding: 12px 14px; text-align: center;"><span class="badge-moodle"><?= htmlspecialchars($r['moodle'] ?? '') ?></span></td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
