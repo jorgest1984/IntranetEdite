@@ -494,9 +494,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
             .table-premium td div {
                 text-align: right !important;
             }
-            .table-premium td div[style*="justify-content: center"] {
-                justify-content: flex-end !important;
-            }
+        }
+
+        .btn-scroll-top {
+            position: fixed;
+            bottom: 30px;
+            right: 35px;
+            background: var(--primary-color, #006ce4);
+            color: #ffffff;
+            border: none;
+            border-radius: 50px;
+            padding: 10px 18px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            box-shadow: 0 4px 18px rgba(0, 108, 228, 0.4);
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            z-index: 999;
+            transition: all 0.25s ease;
+        }
+        .btn-scroll-top:hover {
+            background: #0056b3;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 22px rgba(0, 108, 228, 0.55);
+        }
+        .btn-scroll-top svg {
+            transition: transform 0.2s;
+        }
+        .btn-scroll-top:hover svg {
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 <body>
@@ -881,7 +910,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
                     </div>
                 </div>
 
-                <div style="margin-top: 30px; text-align: right;">
+                <div style="margin-top: 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                    <button type="button" class="btn btn-glass" onclick="scrollToTop()" style="border: 1px solid var(--border-color); font-weight: 700; display: inline-flex; align-items: center; gap: 8px; padding: 0.65rem 1.5rem; border-radius: 8px;">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+                        Volver arriba
+                    </button>
                     <button type="submit" class="btn btn-primary" style="padding: 0.65rem 2.5rem; border-radius: 8px; cursor: pointer;">Crear Acción Formativa</button>
                 </div>
             </form>
@@ -895,7 +928,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
     </main>
 </div>
 
+<!-- Botón flotante para volver arriba -->
+<button id="btnScrollTop" onclick="scrollToTop()" class="btn-scroll-top" title="Volver arriba">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+    <span>Volver arriba</span>
+</button>
+
 <script>
+function scrollToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const mainContent = document.querySelector('.main-content');
+    if (mainContent) {
+        mainContent.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+}
+
+function handleScrollBtn() {
+    const mainContent = document.querySelector('.main-content');
+    const scrollPos = (mainContent ? mainContent.scrollTop : 0) || window.scrollY || 0;
+    const btn = document.getElementById('btnScrollTop');
+    if (btn) {
+        if (scrollPos > 250) {
+            btn.style.display = 'inline-flex';
+        } else {
+            btn.style.display = 'none';
+        }
+    }
+}
+
+window.addEventListener('scroll', handleScrollBtn, { passive: true });
+document.addEventListener('DOMContentLoaded', () => {
+    const mainContentEl = document.querySelector('.main-content');
+    if (mainContentEl) {
+        mainContentEl.addEventListener('scroll', handleScrollBtn, { passive: true });
+    }
+});
+
 function switchTab(tabId) {
     document.querySelectorAll('.tab-af-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.tab-content-af').forEach(content => content.classList.remove('active'));
@@ -920,6 +988,8 @@ function switchTab(tabId) {
                     firstInput.focus({ preventScroll: true });
                 }
             }, 60);
+        } else if (tabId === 'tab-listado') {
+            scrollToTop();
         }
     }
 }
