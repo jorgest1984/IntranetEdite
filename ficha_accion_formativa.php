@@ -2181,6 +2181,7 @@ try {
                             </div>
                         </div>
                     </div>
+                <?php else: ?>
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 15px;">
                         <div class="form-section-title" style="margin: 0; padding: 0; border: none;">Seguimiento de Alumnos en Moodle</div>
                         <?php
