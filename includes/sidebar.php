@@ -85,7 +85,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
         <li>
             <a href="importar_matriculas_rapido.php" class="<?= $current_page == 'importar_matriculas_rapido.php' ? 'active' : '' ?>" style="color: #006ce4; font-weight: 700;">
                 <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" fill="currentColor"/></svg>
-                ⚡ Importación Rápida
+                Importación Rápida
             </a>
         </li>
         <li>
