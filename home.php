@@ -23,10 +23,34 @@ if ($current_user_id) {
     }
 }
 
-$user_full_name = trim(($logged_user['nombre'] ?? '') . ' ' . ($logged_user['apellidos'] ?? ''));
-if (empty($user_full_name)) {
-    $user_full_name = $_SESSION['nombre_completo'] ?? $_SESSION['username'] ?? 'Usuario';
+// Función para formatear el nombre corto (Nombre + Primer Apellido sin palabras duplicadas)
+function format_user_display_name($nombre, $apellidos, $fallback = '') {
+    $raw = trim(($nombre ?? '') . ' ' . ($apellidos ?? ''));
+    if (empty($raw)) {
+        $raw = trim($fallback);
+    }
+    $words = preg_split('/\s+/', $raw, -1, PREG_SPLIT_NO_EMPTY);
+    if (empty($words)) {
+        return 'Usuario';
+    }
+    $unique_words = [];
+    foreach ($words as $w) {
+        $clean = mb_strtolower($w, 'UTF-8');
+        if (empty($unique_words) || !in_array($clean, array_map(function($item) { return mb_strtolower($item, 'UTF-8'); }, $unique_words))) {
+            $unique_words[] = $w;
+        }
+    }
+    if (count($unique_words) >= 2) {
+        return $unique_words[0] . ' ' . $unique_words[1];
+    }
+    return $unique_words[0];
 }
+
+$nombre_raw = $logged_user['nombre'] ?? '';
+$apellidos_raw = $logged_user['apellidos'] ?? '';
+$fallback_raw = $_SESSION['nombre_completo'] ?? $_SESSION['username'] ?? 'Usuario';
+
+$user_full_name = format_user_display_name($nombre_raw, $apellidos_raw, $fallback_raw);
 $user_role_name = $logged_user['rol_nombre'] ?? $_SESSION['rol_nombre'] ?? 'Usuario';
 $user_email = $logged_user['email'] ?? '';
 $user_photo = $logged_user['foto'] ?? '';
