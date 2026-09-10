@@ -346,19 +346,19 @@ class MoodleDB {
                     }
                 }
 
-                // 5. Calcular Nota Media y Aptitud
+                // 5. Calcular Nota Media (solo E2 - Intermedia y E3 - Final; E1 no participa en la media) y Aptitud
                 foreach ($stats as $uid => &$student) {
-                    $has_any = $student['e1_completed'] || $student['e2_completed'] || $student['e3_completed'];
-                    if ($has_any) {
-                        $e1 = $student['e1_grade'] ? (float)$student['e1_grade'] : 0.0;
-                        $e2 = $student['e2_grade'] ? (float)$student['e2_grade'] : 0.0;
-                        $e3 = $student['e3_grade'] ? (float)$student['e3_grade'] : 0.0;
+                    $has_eval = $student['e2_completed'] || $student['e3_completed'];
+                    if ($has_eval) {
+                        $eval_grades = [];
+                        if ($student['e2_grade'] !== null) $eval_grades[] = (float)$student['e2_grade'];
+                        if ($student['e3_grade'] !== null) $eval_grades[] = (float)$student['e3_grade'];
                         
-                        $media = ($e1 + $e2 + $e3) / 3;
+                        $media = count($eval_grades) > 0 ? (array_sum($eval_grades) / count($eval_grades)) : 0.0;
                         $student['final_grade'] = round($media, 2);
                         
-                        // Si falta alguna evaluación por hacer, la calificación será suspenso (NO APTO)
-                        if (!$student['e1_completed'] || !$student['e2_completed'] || !$student['e3_completed']) {
+                        // Aptitud basada en completar E2 y E3 y alcanzar nota >= 5.0
+                        if (!$student['e2_completed'] || !$student['e3_completed']) {
                             $student['aptitud'] = 'NO APTO';
                         } else {
                             $student['aptitud'] = ($student['final_grade'] >= 5.0) ? 'APTO' : 'NO APTO';
@@ -424,12 +424,12 @@ class MoodleDB {
                 if ($e2_g !== null) $e2_g = min(10.0, max(1.0, round($e2_g + (($uid % 7) - 3) * 0.3, 2)));
                 if ($e3_g !== null) $e3_g = min(10.0, max(1.0, round($e3_g + (($uid % 3) - 1) * 0.4, 2)));
                 
-                if ($e1_c || $e2_c || $e3_c) {
-                    $e1_val = $e1_g ? (float)$e1_g : 0.0;
-                    $e2_val = $e2_g ? (float)$e2_g : 0.0;
-                    $e3_val = $e3_g ? (float)$e3_g : 0.0;
-                    $final = round(($e1_val + $e2_val + $e3_val) / 3, 2);
-                    if (!$e1_c || !$e2_c || !$e3_c) {
+                if ($e2_c || $e3_c) {
+                    $eval_vals = [];
+                    if ($e2_g !== null) $eval_vals[] = (float)$e2_g;
+                    if ($e3_g !== null) $eval_vals[] = (float)$e3_g;
+                    $final = count($eval_vals) > 0 ? round(array_sum($eval_vals) / count($eval_vals), 2) : 0.0;
+                    if (!$e2_c || !$e3_c) {
                         $apt = 'NO APTO';
                     } else {
                         $apt = ($final >= 5.0) ? 'APTO' : 'NO APTO';

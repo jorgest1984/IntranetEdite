@@ -160,7 +160,6 @@ if (empty($alumnos)) {
         $nombre_completo = mb_strtoupper($apellidos . ', ' . $alumno['nombre']);
         
         $grades = [];
-        if ($alumno['moodle_e1_grade'] !== null) $grades[] = (float)$alumno['moodle_e1_grade'];
         if ($alumno['moodle_e2_grade'] !== null) $grades[] = (float)$alumno['moodle_e2_grade'];
         if ($alumno['moodle_e3_grade'] !== null) $grades[] = (float)$alumno['moodle_e3_grade'];
         $media = count($grades) > 0 ? number_format(array_sum($grades) / count($grades), 2) : '10.00';

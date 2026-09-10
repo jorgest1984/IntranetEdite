@@ -145,9 +145,8 @@ if (empty($alumnos)) {
         
         $completed_all = ($alumno['moodle_e1_completed'] == 1 && $alumno['moodle_e2_completed'] == 1 && $alumno['moodle_e3_completed'] == 1) ? 'SI' : 'NO';
         
-        // Calcular media
+        // Calcular media (Solo E2 y E3; E1 no participa en la media)
         $grades = [];
-        if ($alumno['moodle_e1_grade'] !== null) $grades[] = (float)$alumno['moodle_e1_grade'];
         if ($alumno['moodle_e2_grade'] !== null) $grades[] = (float)$alumno['moodle_e2_grade'];
         if ($alumno['moodle_e3_grade'] !== null) $grades[] = (float)$alumno['moodle_e3_grade'];
         $media = count($grades) > 0 ? number_format(array_sum($grades) / count($grades), 2) : '---';

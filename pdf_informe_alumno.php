@@ -60,14 +60,24 @@ $moodle_progress = $data['moodle_progress'] !== null ? number_format((float)$dat
 $e1 = $data['moodle_e1_grade'] !== null ? number_format((float)$data['moodle_e1_grade'], 2) : '      ';
 $e2 = $data['moodle_e2_grade'] !== null ? number_format((float)$data['moodle_e2_grade'], 2) : '      ';
 $e3 = $data['moodle_e3_grade'] !== null ? number_format((float)$data['moodle_e3_grade'], 2) : '      ';
-$final = $data['moodle_final_grade'] !== null ? number_format((float)$data['moodle_final_grade'], 2) : '0.00';
+
+$eval_grades = [];
+if ($data['moodle_e2_grade'] !== null) $eval_grades[] = (float)$data['moodle_e2_grade'];
+if ($data['moodle_e3_grade'] !== null) $eval_grades[] = (float)$data['moodle_e3_grade'];
+
+if ($data['moodle_final_grade'] !== null) {
+    $final_val = (float)$data['moodle_final_grade'];
+} else {
+    $final_val = count($eval_grades) > 0 ? (array_sum($eval_grades) / count($eval_grades)) : 0.0;
+}
+$final = number_format($final_val, 2);
 
 $controles_hechos = 0;
 if ($data['moodle_e1_completed'] || $data['moodle_e1_grade'] !== null) $controles_hechos++;
 if ($data['moodle_e2_completed'] || $data['moodle_e2_grade'] !== null) $controles_hechos++;
 if ($data['moodle_e3_completed'] || $data['moodle_e3_grade'] !== null) $controles_hechos++;
 
-if ($controles_hechos < 3 || (float)$data['moodle_final_grade'] < 5) {
+if ($controles_hechos < 3 || $final_val < 5) {
     $apto = 'NO APTO';
 } else {
     $apto = 'APTO';

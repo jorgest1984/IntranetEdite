@@ -243,9 +243,8 @@ $current_page = 'grupos.php';
                                 // Calcular completado de todas
                                 $completed_all = ($alumno['moodle_e1_completed'] == 1 && $alumno['moodle_e2_completed'] == 1 && $alumno['moodle_e3_completed'] == 1);
                                 
-                                // Calcular nota media
+                                // Calcular nota media (Solo E2 - Intermedia y E3 - Final; E1 no participa en la media)
                                 $grades = [];
-                                if ($alumno['moodle_e1_grade'] !== null) $grades[] = (float)$alumno['moodle_e1_grade'];
                                 if ($alumno['moodle_e2_grade'] !== null) $grades[] = (float)$alumno['moodle_e2_grade'];
                                 if ($alumno['moodle_e3_grade'] !== null) $grades[] = (float)$alumno['moodle_e3_grade'];
                                 

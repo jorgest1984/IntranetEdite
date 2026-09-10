@@ -110,9 +110,8 @@ $alumnos = $stmtAlumnos->fetchAll(PDO::FETCH_ASSOC);
                                 $apto = true;
                             }
                         } else {
-                            // Alternativa: calcular la media de e1, e2, e3 si final_grade no está disponible
+                            // Alternativa: calcular la media de E2 y E3 si final_grade no está disponible (E1 no participa)
                             $grades = [];
-                            if (is_numeric($alumno['moodle_e1_grade'])) $grades[] = (float)$alumno['moodle_e1_grade'];
                             if (is_numeric($alumno['moodle_e2_grade'])) $grades[] = (float)$alumno['moodle_e2_grade'];
                             if (is_numeric($alumno['moodle_e3_grade'])) $grades[] = (float)$alumno['moodle_e3_grade'];
                             
