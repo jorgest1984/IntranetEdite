@@ -13,10 +13,10 @@ if (!isset($_SESSION['csrf_token']) || empty($csrf_token) || !hash_equals($_SESS
 
 $titulo = $_POST['titulo'] ?? '';
 $abreviatura = $_POST['abreviatura'] ?? '';
-$num_accion = $_POST['num_accion'] ?? '';
-$plan_id = !empty($_POST['plan_id']) ? (int)$_POST['plan_id'] : null;
+$num_accion = (isset($_POST['num_accion']) && is_numeric(trim($_POST['num_accion']))) ? (int)$_POST['num_accion'] : 0;
+$plan_id = (!empty($_POST['plan_id']) && is_numeric(trim($_POST['plan_id']))) ? (int)$_POST['plan_id'] : null;
 $modalidad = $_POST['modalidad'] ?? 'Teleformación';
-$duracion = (int)$_POST['duracion'];
+$duracion = (isset($_POST['duracion']) && is_numeric(trim($_POST['duracion']))) ? (int)$_POST['duracion'] : 0;
 $familia = $_POST['familia_profesional'] ?? '';
 $crear_moodle = isset($_POST['crear_moodle']);
 

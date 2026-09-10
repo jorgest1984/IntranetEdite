@@ -128,7 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'assign_plan') {
     $cursoId = intval($_POST['curso_id'] ?? 0);
     $planId = intval($_POST['plan_id'] ?? 0);
-    $numAccion = trim($_POST['num_accion'] ?? '');
+    $numAccion = (isset($_POST['num_accion']) && is_numeric(trim($_POST['num_accion']))) ? intval($_POST['num_accion']) : 0;
     $modalidad = $_POST['modalidad'] ?? 'Teleformación';
     $duracion = intval($_POST['duracion'] ?? 60);
     $familia = $_POST['familia_profesional'] ?? '';

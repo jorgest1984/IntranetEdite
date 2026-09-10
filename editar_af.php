@@ -64,7 +64,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sets = [];
         foreach ($fields as $f) {
             $sets[] = "$f = ?";
-            $data[] = $_POST[$f] ?? '';
+            $val = $_POST[$f] ?? '';
+            if (in_array($f, ['num_accion', 'duracion'])) {
+                $val = (isset($_POST[$f]) && is_numeric(trim($_POST[$f]))) ? (int)$_POST[$f] : 0;
+            }
+            $data[] = $val;
         }
 
         // Handle file deletion or upload
