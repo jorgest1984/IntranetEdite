@@ -204,42 +204,33 @@ class MoodleDB {
                     $uid = $row['userid'];
                     if (!isset($stats[$uid])) continue;
 
-                    $name = mb_strtolower($row['name']);
-                    $sectionName = mb_strtolower($row['section_name'] ?? '');
+                    $name = mb_strtolower($row['name'] ?? '', 'UTF-8');
+                    $sectionName = mb_strtolower($row['section_name'] ?? '', 'UTF-8');
                     $combinedName = $name . ' ' . $sectionName;
                     
-                    // Removemos espacios, guiones, puntos, comas, barras, etc.
-                    $cleanName = str_replace([' ', '-', '_', '.', ',', '/'], '', $combinedName);
+                    // Normalizar quitando acentos y caracteres especiales
+                    $normalized = strtr($combinedName, [
+                        'á'=>'a', 'é'=>'e', 'í'=>'i', 'ó'=>'o', 'ú'=>'u', 'ü'=>'u', 'ñ'=>'n',
+                        'à'=>'a', 'è'=>'e', 'ì'=>'i', 'ò'=>'o', 'ù'=>'u'
+                    ]);
+                    $cleanName = preg_replace('/[^a-z0-9]/', '', $normalized);
 
                     // Cualquier estado mayor a 0 significa que se ha completado (1=complete, 2=complete pass, 3=complete fail)
                     $completed = ((int)$row['completionstate'] > 0);
 
                     if ($completed) {
-                        // Buscar M1 o Módulo 1 o Tema 1
-                        if (strpos($cleanName, 'm1') !== false || strpos($cleanName, 'modulo1') !== false || strpos($cleanName, 'tema1') !== false) {
+                        // Buscar M1, Módulo 1, Tema 1, Unidad 1, U1
+                        if (strpos($cleanName, 'unidad1') !== false || strpos($cleanName, 'modulo1') !== false || strpos($cleanName, 'tema1') !== false || strpos($cleanName, 'm1') !== false || strpos($cleanName, 'u1') !== false) {
                             $stats[$uid]['m1_completed'] = 1;
                         }
-                        // Buscar M2 o Módulo 2 o Tema 2, y variaciones comunes de "M1 y M2" donde el M2 pierde la 'M'
-                        if (strpos($cleanName, 'm2') !== false || strpos($cleanName, 'modulo2') !== false || strpos($cleanName, 'tema2') !== false || strpos($cleanName, 'm12') !== false || strpos($cleanName, 'm1y2') !== false) {
+                        // Buscar M2, Módulo 2, Tema 2, Unidad 2, U2, M12, M1Y2
+                        if (strpos($cleanName, 'unidad2') !== false || strpos($cleanName, 'modulo2') !== false || strpos($cleanName, 'tema2') !== false || strpos($cleanName, 'm2') !== false || strpos($cleanName, 'u2') !== false || strpos($cleanName, 'm12') !== false || strpos($cleanName, 'm1y2') !== false || strpos($cleanName, 'u12') !== false || strpos($cleanName, 'u1y2') !== false) {
                             $stats[$uid]['m2_completed'] = 1;
                         }
-                        // Buscar M3 o Módulo 3 o Tema 3
-                        if (strpos($cleanName, 'm3') !== false || strpos($cleanName, 'modulo3') !== false || strpos($cleanName, 'tema3') !== false) {
+                        // Buscar M3, Módulo 3, Tema 3, Unidad 3, U3
+                        if (strpos($cleanName, 'unidad3') !== false || strpos($cleanName, 'modulo3') !== false || strpos($cleanName, 'tema3') !== false || strpos($cleanName, 'm3') !== false || strpos($cleanName, 'u3') !== false) {
                             $stats[$uid]['m3_completed'] = 1;
                         }
-                    }
-                }
-
-                // Fallback de M1-M3: si no se encuentran explícitos por nombre, asociar por número de sección Moodle (Sección 1, 2 y 3)
-                foreach ($moduleRows as $row) {
-                    $uid = $row['userid'];
-                    if (!isset($stats[$uid])) continue;
-                    
-                    $completed = ((int)$row['completionstate'] > 0);
-                    if ($completed) {
-                        if ((int)$row['section_number'] === 1) $stats[$uid]['m1_completed'] = 1;
-                        if ((int)$row['section_number'] === 2) $stats[$uid]['m2_completed'] = 1;
-                        if ((int)$row['section_number'] === 3) $stats[$uid]['m3_completed'] = 1;
                     }
                 }
 
@@ -258,20 +249,24 @@ class MoodleDB {
                     $uid = $row['userid'];
                     if (!isset($stats[$uid])) continue;
 
-                    $name = mb_strtolower($row['name']);
-                    $cleanName = str_replace([' ', '-', '_', '.', ',', '/'], '', $name);
+                    $name = mb_strtolower($row['name'] ?? '', 'UTF-8');
+                    $normalized = strtr($name, [
+                        'á'=>'a', 'é'=>'e', 'í'=>'i', 'ó'=>'o', 'ú'=>'u', 'ü'=>'u', 'ñ'=>'n',
+                        'à'=>'a', 'è'=>'e', 'ì'=>'i', 'ò'=>'o', 'ù'=>'u'
+                    ]);
+                    $cleanName = preg_replace('/[^a-z0-9]/', '', $normalized);
                     
                     $val = strtolower($row['value']);
-                    $completed = ($val === 'completed' || $val === 'passed');
+                    $completed = ($val === 'completed' || $val === 'passed' || $val === 'browsed');
 
                     if ($completed) {
-                        if (strpos($cleanName, 'm1') !== false || strpos($cleanName, 'modulo1') !== false || strpos($cleanName, 'tema1') !== false) {
+                        if (strpos($cleanName, 'unidad1') !== false || strpos($cleanName, 'modulo1') !== false || strpos($cleanName, 'tema1') !== false || strpos($cleanName, 'm1') !== false || strpos($cleanName, 'u1') !== false) {
                             $stats[$uid]['m1_completed'] = 1;
                         }
-                        if (strpos($cleanName, 'm2') !== false || strpos($cleanName, 'modulo2') !== false || strpos($cleanName, 'tema2') !== false || strpos($cleanName, 'm12') !== false || strpos($cleanName, 'm1y2') !== false) {
+                        if (strpos($cleanName, 'unidad2') !== false || strpos($cleanName, 'modulo2') !== false || strpos($cleanName, 'tema2') !== false || strpos($cleanName, 'm2') !== false || strpos($cleanName, 'u2') !== false || strpos($cleanName, 'm12') !== false || strpos($cleanName, 'm1y2') !== false || strpos($cleanName, 'u12') !== false || strpos($cleanName, 'u1y2') !== false) {
                             $stats[$uid]['m2_completed'] = 1;
                         }
-                        if (strpos($cleanName, 'm3') !== false || strpos($cleanName, 'modulo3') !== false || strpos($cleanName, 'tema3') !== false) {
+                        if (strpos($cleanName, 'unidad3') !== false || strpos($cleanName, 'modulo3') !== false || strpos($cleanName, 'tema3') !== false || strpos($cleanName, 'm3') !== false || strpos($cleanName, 'u3') !== false) {
                             $stats[$uid]['m3_completed'] = 1;
                         }
                     }

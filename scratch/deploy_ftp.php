@@ -29,7 +29,10 @@ $files = [
     "pdf_acta_evaluacion.php",
     "pdf_informe_evaluaciones.php",
     "diplomas.php",
-    "pdf_informe_alumno.php"
+    "pdf_informe_alumno.php",
+    "scratch/debug_moodle_marialuisa.php",
+    "scratch/test_marialuisa_sync.php",
+    "scratch/sync_all_matriculas.php"
 ];
 
 foreach ($files as $f) {
