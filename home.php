@@ -131,9 +131,10 @@ $sections = [
             </div>
         </header>
 
-        <!-- TARJETA DEL USUARIO LOGUEADO -->
+        <!-- TARJETA CENTRADA DEL USUARIO LOGUEADO -->
         <div class="user-hero-card">
-            <div class="user-hero-main">
+            <!-- Avatar Círculo Centrado -->
+            <div class="user-hero-avatar-container">
                 <div class="user-hero-avatar-wrapper">
                     <?php if (!empty($user_photo) && file_exists(__DIR__ . '/' . $user_photo)): ?>
                         <img src="<?= htmlspecialchars($user_photo) ?>" alt="Foto de perfil" class="user-hero-avatar-img">
@@ -142,34 +143,36 @@ $sections = [
                             <?= htmlspecialchars($initials) ?>
                         </div>
                     <?php endif; ?>
-                    <span class="user-status-dot" title="En línea"></span>
                 </div>
-                
-                <div class="user-hero-info">
-                    <div class="user-hero-greeting">
-                        <?= $greeting ?>, <span class="user-hero-name"><?= htmlspecialchars($user_full_name) ?></span> <span class="wave-emoji">👋</span>
-                    </div>
-                    <div class="user-hero-meta">
-                        <span class="user-role-badge role-<?= strtolower(preg_replace('/[^a-z0-9]/', '', strtolower($user_role_name))) ?>">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                            <?= htmlspecialchars($user_role_name) ?>
+                <span class="user-status-dot" title="En línea"></span>
+            </div>
+            
+            <!-- Información del Usuario Centrada -->
+            <div class="user-hero-info">
+                <h2 class="user-hero-greeting">
+                    <?= $greeting ?>, <span class="user-hero-name"><?= htmlspecialchars($user_full_name) ?></span> <span class="wave-emoji">👋</span>
+                </h2>
+                <div class="user-hero-meta">
+                    <span class="user-role-badge role-<?= strtolower(preg_replace('/[^a-z0-9]/', '', strtolower($user_role_name))) ?>">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                        <?= htmlspecialchars($user_role_name) ?>
+                    </span>
+                    <?php if (!empty($user_username)): ?>
+                        <span class="user-meta-item">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            @<?= htmlspecialchars($user_username) ?>
                         </span>
-                        <?php if (!empty($user_username)): ?>
-                            <span class="user-meta-item">
-                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                                @<?= htmlspecialchars($user_username) ?>
-                            </span>
-                        <?php endif; ?>
-                        <?php if (!empty($user_email)): ?>
-                            <span class="user-meta-item">
-                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-                                <?= htmlspecialchars($user_email) ?>
-                            </span>
-                        <?php endif; ?>
-                    </div>
+                    <?php endif; ?>
+                    <?php if (!empty($user_email)): ?>
+                        <span class="user-meta-item">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                            <?= htmlspecialchars($user_email) ?>
+                        </span>
+                    <?php endif; ?>
                 </div>
             </div>
 
+            <!-- Botón de Acción Centrado -->
             <div class="user-hero-actions">
                 <?php if (has_permission([ROLE_ADMIN, ROLE_TUTOR, ROLE_COMERCIAL])): ?>
                     <a href="ficha_trabajador.php?id=<?= $current_user_id ?>" class="btn-user-hero">
