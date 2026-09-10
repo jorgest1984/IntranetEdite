@@ -85,8 +85,11 @@ try {
         $params[] = "%" . $_GET['grupo_num'] . "%";
     }
     if (!empty($_GET['modalidad'])) {
-        $where[] = "g.modalidad = ?";
-        $params[] = $_GET['modalidad'];
+        $modVal = trim($_GET['modalidad']);
+        $modAlt = str_replace(['ó', 'Ó', 'á', 'Á', 'é', 'É', 'í', 'Í', 'ú', 'Ú'], ['o', 'O', 'a', 'A', 'e', 'E', 'i', 'I', 'u', 'U'], $modVal);
+        $where[] = "(COALESCE(NULLIF(g.modalidad, ''), af.modalidad) LIKE ? OR COALESCE(NULLIF(g.modalidad, ''), af.modalidad) LIKE ?)";
+        $params[] = "%" . $modVal . "%";
+        $params[] = "%" . $modAlt . "%";
     }
     if (!empty($_GET['asignacion'])) {
         $where[] = "g.asignacion = ?";
@@ -745,19 +748,11 @@ $current_page = 'grupos.php';
                     </div>
 
                     <!-- Grupo 4: Fechas de Inicio y Fin -->
-                    <div class="form-group-custom span-3">
+                    <div class="form-group-custom span-6">
                         <label>Fecha inicio desde:</label>
                         <input type="date" name="fecha_ini_desde" class="form-control" value="<?= htmlspecialchars($_GET['fecha_ini_desde'] ?? '') ?>">
                     </div>
-                    <div class="form-group-custom span-3">
-                        <label>Fecha inicio hasta:</label>
-                        <input type="date" name="fecha_ini_hasta" class="form-control" value="<?= htmlspecialchars($_GET['fecha_ini_hasta'] ?? '') ?>">
-                    </div>
-                    <div class="form-group-custom span-3">
-                        <label>Fecha fin desde:</label>
-                        <input type="date" name="fecha_fin_desde" class="form-control" value="<?= htmlspecialchars($_GET['fecha_fin_desde'] ?? '') ?>">
-                    </div>
-                    <div class="form-group-custom span-3">
+                    <div class="form-group-custom span-6">
                         <label>Fecha fin hasta:</label>
                         <input type="date" name="fecha_fin_hasta" class="form-control" value="<?= htmlspecialchars($_GET['fecha_fin_hasta'] ?? '') ?>">
                     </div>
