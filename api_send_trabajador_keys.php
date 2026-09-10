@@ -54,22 +54,36 @@ try {
     }
 
     // 3. Enviar correo electrónico usando SMTP autenticado
-    // Reemplazar saltos de línea para la vista HTML del correo
+    // Reemplazar saltos de línea y convertir URLs en enlaces clicables
     $htmlBody = nl2br(htmlspecialchars($body));
+    $htmlBody = preg_replace(
+        '/(https?:\/\/[^\s<]+)/i',
+        '<a href="$1" style="color: #2563eb; text-decoration: underline;" target="_blank">$1</a>',
+        $htmlBody
+    );
     
     // Plantilla del correo estructurado
     $emailBodyHtml = "
-        <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;'>
-            <div style='text-align: center; margin-bottom: 20px;'>
-                <img src='https://gestion.grupoefp.es/img/logo_efp.png' alt='Grupo EFP' style='max-height: 60px;'>
-            </div>
-            <div style='color: #1e293b; line-height: 1.6;'>
-                $htmlBody
-            </div>
-            <div style='margin-top: 30px; padding-top: 15px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 0.8rem; color: #64748b;'>
-                Este correo ha sido generado de forma automática. Por favor no responda directamente a este mensaje.
-            </div>
+<!DOCTYPE html>
+<html lang='es'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+</head>
+<body style='margin: 0; padding: 20px; background-color: #f8fafc; font-family: Arial, Helvetica, sans-serif; color: #1e293b;'>
+    <div style='max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);'>
+        <div style='text-align: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #f1f5f9;'>
+            <img src='https://gestion.grupoefp.es/img/logo_efp.png' alt='Grupo EFP' style='max-height: 60px; width: auto;'>
         </div>
+        <div style='font-size: 15px; line-height: 1.6; color: #1e293b;'>
+            {$htmlBody}
+        </div>
+        <div style='margin-top: 30px; padding-top: 15px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 0.8rem; color: #64748b;'>
+            Este correo ha sido generado de forma automática. Por favor no responda directamente a este mensaje.
+        </div>
+    </div>
+</body>
+</html>
     ";
 
     $sent = send_smtp_email($email, $subject, $emailBodyHtml);

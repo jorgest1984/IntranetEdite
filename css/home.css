@@ -289,3 +289,234 @@
         align-items: flex-start;
     }
 }
+
+/* ==========================================================================
+   USER PROFILE HERO CARD (PANEL PRINCIPAL / HOME)
+   ========================================================================== */
+.user-hero-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--card-bg, rgba(255, 255, 255, 0.85));
+    backdrop-filter: var(--glass-blur, blur(12px));
+    -webkit-backdrop-filter: var(--glass-blur, blur(12px));
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 16px;
+    padding: 1.25rem 1.75rem;
+    margin-bottom: 1.75rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+    position: relative;
+    overflow: hidden;
+    gap: 1.5rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.user-hero-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 5px;
+    height: 100%;
+    background: linear-gradient(180deg, var(--primary-color, #006ce4) 0%, var(--accent-blue, #0ea5e9) 100%);
+    border-radius: 4px 0 0 4px;
+}
+
+.user-hero-main {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex: 1;
+}
+
+.user-hero-avatar-wrapper {
+    position: relative;
+    width: 68px;
+    height: 68px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    padding: 3px;
+    background: linear-gradient(135deg, var(--primary-color, #006ce4), var(--accent-blue, #0ea5e9));
+    box-shadow: 0 4px 14px rgba(0, 108, 228, 0.25);
+    transition: transform 0.25s ease;
+}
+
+.user-hero-card:hover .user-hero-avatar-wrapper {
+    transform: scale(1.04);
+}
+
+.user-hero-avatar-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    background-color: #ffffff;
+    border: 2px solid var(--bg-color, #ffffff);
+    display: block;
+}
+
+.user-hero-avatar-initials {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #ffffff;
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    border: 2px solid var(--bg-color, #ffffff);
+}
+
+.user-status-dot {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 14px;
+    height: 14px;
+    background-color: #10b981;
+    border: 2.5px solid var(--bg-color, #ffffff);
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.4);
+}
+
+.user-hero-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.user-hero-greeting {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-color, #0f172a);
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.user-hero-name {
+    color: var(--text-color, #0f172a);
+    background: linear-gradient(125deg, var(--text-color, #0f172a) 30%, var(--primary-color, #006ce4) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.wave-emoji {
+    display: inline-block;
+    animation: wave-animation 2.5s infinite;
+    transform-origin: 70% 70%;
+}
+
+@keyframes wave-animation {
+    0% { transform: rotate( 0.0deg) }
+   10% { transform: rotate(14.0deg) }
+   20% { transform: rotate(-8.0deg) }
+   30% { transform: rotate(14.0deg) }
+   40% { transform: rotate(-4.0deg) }
+   50% { transform: rotate(10.0deg) }
+   60% { transform: rotate( 0.0deg) }
+  100% { transform: rotate( 0.0deg) }
+}
+
+.user-hero-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin-top: 0.15rem;
+}
+
+.user-role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+/* Specific Role Badge Colors */
+.role-administrador, .role-admin {
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.role-coordinador, .role-administrativo {
+    background: rgba(59, 130, 246, 0.12);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.role-tutor, .role-formador {
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.role-comercial, .role-jefecomercial {
+    background: rgba(245, 158, 11, 0.12);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.user-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.825rem;
+    color: var(--text-muted, #64748b);
+    font-weight: 500;
+}
+
+.user-hero-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.btn-user-hero {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 1.1rem;
+    background: var(--input-bg, rgba(255,255,255,0.9));
+    color: var(--text-color, #0f172a);
+    border: 1px solid var(--border-color, #cbd5e1);
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.btn-user-hero:hover {
+    background: var(--primary-color, #006ce4);
+    color: #ffffff;
+    border-color: var(--primary-color, #006ce4);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 108, 228, 0.25);
+}
+
+/* Responsiveness */
+@media (max-width: 768px) {
+    .user-hero-card {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 1.25rem;
+        gap: 1rem;
+    }
+    .user-hero-actions {
+        width: 100%;
+        justify-content: flex-end;
+        border-top: 1px solid var(--border-color, #e2e8f0);
+        padding-top: 0.75rem;
+    }
+}

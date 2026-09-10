@@ -2,6 +2,59 @@
 // home.php - VERSION 2.0 BRACE_SYNTAX
 require_once 'includes/auth.php'; // Verifica login y permisos
 
+// --- OBTENER DATOS DETALLADOS DEL USUARIO LOGUEADO ---
+$current_user_id = $_SESSION['user_id'] ?? 0;
+$logged_user = null;
+if ($current_user_id) {
+    try {
+        $stmtLogged = $pdo->prepare("
+            SELECT u.id, u.username, u.nombre, u.apellidos, u.email, u.foto, u.ultimo_acceso,
+                   r.nombre as rol_nombre, r.id as rol_id,
+                   c.nombre as centro_nombre
+            FROM usuarios u
+            LEFT JOIN roles r ON u.rol_id = r.id
+            LEFT JOIN centros c ON u.centro_id = c.id
+            WHERE u.id = ?
+        ");
+        $stmtLogged->execute([$current_user_id]);
+        $logged_user = $stmtLogged->fetch(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+        $logged_user = null;
+    }
+}
+
+$user_full_name = trim(($logged_user['nombre'] ?? '') . ' ' . ($logged_user['apellidos'] ?? ''));
+if (empty($user_full_name)) {
+    $user_full_name = $_SESSION['nombre_completo'] ?? $_SESSION['username'] ?? 'Usuario';
+}
+$user_role_name = $logged_user['rol_nombre'] ?? $_SESSION['rol_nombre'] ?? 'Usuario';
+$user_email = $logged_user['email'] ?? '';
+$user_photo = $logged_user['foto'] ?? '';
+$user_username = $logged_user['username'] ?? $_SESSION['username'] ?? '';
+
+// Iniciales para avatar fallback
+$words = explode(' ', $user_full_name);
+$initials = '';
+foreach ($words as $w) {
+    if (!empty($w)) {
+        $initials .= mb_strtoupper(mb_substr($w, 0, 1, 'UTF-8'), 'UTF-8');
+    }
+}
+$initials = mb_substr($initials, 0, 2, 'UTF-8');
+if (empty($initials)) {
+    $initials = 'US';
+}
+
+// Saludo dinámico según hora
+$hora = (int)date('H');
+if ($hora >= 6 && $hora < 13) {
+    $greeting = "¡Buenos días";
+} elseif ($hora >= 13 && $hora < 21) {
+    $greeting = "¡Buenas tardes";
+} else {
+    $greeting = "¡Buenas noches";
+}
+
 // --- LÓGICA DASHBOARD (NUEVO) ---
 // Obtener estadísticas rápidas
 $stats = [
@@ -77,6 +130,55 @@ $sections = [
                 </form>
             </div>
         </header>
+
+        <!-- TARJETA DEL USUARIO LOGUEADO -->
+        <div class="user-hero-card">
+            <div class="user-hero-main">
+                <div class="user-hero-avatar-wrapper">
+                    <?php if (!empty($user_photo) && file_exists(__DIR__ . '/' . $user_photo)): ?>
+                        <img src="<?= htmlspecialchars($user_photo) ?>" alt="Foto de perfil" class="user-hero-avatar-img">
+                    <?php else: ?>
+                        <div class="user-hero-avatar-initials">
+                            <?= htmlspecialchars($initials) ?>
+                        </div>
+                    <?php endif; ?>
+                    <span class="user-status-dot" title="En línea"></span>
+                </div>
+                
+                <div class="user-hero-info">
+                    <div class="user-hero-greeting">
+                        <?= $greeting ?>, <span class="user-hero-name"><?= htmlspecialchars($user_full_name) ?></span> <span class="wave-emoji">👋</span>
+                    </div>
+                    <div class="user-hero-meta">
+                        <span class="user-role-badge role-<?= strtolower(preg_replace('/[^a-z0-9]/', '', strtolower($user_role_name))) ?>">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                            <?= htmlspecialchars($user_role_name) ?>
+                        </span>
+                        <?php if (!empty($user_username)): ?>
+                            <span class="user-meta-item">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                @<?= htmlspecialchars($user_username) ?>
+                            </span>
+                        <?php endif; ?>
+                        <?php if (!empty($user_email)): ?>
+                            <span class="user-meta-item">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                                <?= htmlspecialchars($user_email) ?>
+                            </span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+
+            <div class="user-hero-actions">
+                <?php if (has_permission([ROLE_ADMIN, ROLE_TUTOR, ROLE_COMERCIAL])): ?>
+                    <a href="ficha_trabajador.php?id=<?= $current_user_id ?>" class="btn-user-hero">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        Mi Perfil / Foto
+                    </a>
+                <?php endif; ?>
+            </div>
+        </div>
 
         <!-- TABS NAVIGATION -->
         <nav class="tabs-header">
