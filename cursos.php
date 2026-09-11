@@ -153,29 +153,36 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             throw new Exception("Este curso ya está asignado a una acción formativa.");
         }
         
-        // Obtener expediente heredado del Plan si está asignado
+        // Obtener datos heredados del Plan si está asignado
         $expediente = null;
+        $solicitante = null;
+        $sector = null;
         if ($planId) {
-            $stmtPlanExp = $pdo->prepare("
-                SELECT COALESCE(NULLIF(p.expediente, ''), c.codigo_expediente) as plan_expediente
+            $stmtPlanData = $pdo->prepare("
+                SELECT 
+                    COALESCE(NULLIF(p.expediente, ''), c.codigo_expediente) as plan_expediente,
+                    COALESCE(NULLIF(p.solicitante, ''), c.solicitante) as plan_solicitante,
+                    p.sector as plan_sector
                 FROM planes p
                 LEFT JOIN convocatorias c ON p.convocatoria_id = c.id
                 WHERE p.id = ?
             ");
-            $stmtPlanExp->execute([$planId]);
-            $pRow = $stmtPlanExp->fetch();
-            if ($pRow && !empty($pRow['plan_expediente'])) {
-                $expediente = $pRow['plan_expediente'];
+            $stmtPlanData->execute([$planId]);
+            $pRow = $stmtPlanData->fetch();
+            if ($pRow) {
+                if (!empty($pRow['plan_expediente'])) $expediente = $pRow['plan_expediente'];
+                if (!empty($pRow['plan_solicitante'])) $solicitante = $pRow['plan_solicitante'];
+                if (!empty($pRow['plan_sector'])) $sector = $pRow['plan_sector'];
             }
         }
 
         // Insertar en acciones_formativas
         $sql = "INSERT INTO acciones_formativas (
             titulo, abreviatura, num_accion, plan_id, modalidad, 
-            duracion, familia_profesional, id_plataforma, curso_id, estado, expediente
+            duracion, familia_profesional, id_plataforma, curso_id, estado, expediente, solicitante, sector
         ) VALUES (
             :titulo, :abreviatura, :num_accion, :plan_id, :modalidad, 
-            :duracion, :familia, :id_plataforma, :curso_id, 'Programable', :expediente
+            :duracion, :familia, :id_plataforma, :curso_id, 'Programable', :expediente, :solicitante, :sector
         )";
         
         $stmtInsert = $pdo->prepare($sql);
@@ -189,7 +196,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             'familia' => $familia,
             'id_plataforma' => $curso['moodle_id'],
             'curso_id' => $cursoId,
-            'expediente' => $expediente
+            'expediente' => $expediente,
+            'solicitante' => $solicitante,
+            'sector' => $sector
         ]);
         
         $newAfId = $pdo->lastInsertId();

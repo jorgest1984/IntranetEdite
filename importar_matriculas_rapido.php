@@ -301,6 +301,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ejecutar_importacion'
             $mat_id = $stmtMat->fetchColumn();
 
             if (!$mat_id) {
+                // Validar tope de horas del plan
+                $checkHours = validate_plan_hours_limit($pdo, $alumno_id, $grupo_id);
+                if (!$checkHours['allowed']) {
+                    $resultados[] = [
+                        'status' => 'error',
+                        'nombre' => "$nombre $primer_apellido $segundo_apellido",
+                        'dni' => $dni ?: '---',
+                        'empresa' => $empresa_nombre ?: '---',
+                        'accion' => "$al_action (ID: $alumno_id)",
+                        'matricula' => "NO MATRICULADO (Tope Horas Excedido)",
+                        'moodle' => $checkHours['message']
+                    ];
+                    continue;
+                }
+
                 $mat_insert = [
                     'alumno_id' => $alumno_id,
                     'grupo_id' => $grupo_id,

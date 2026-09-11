@@ -29,6 +29,7 @@ $success = '';
 // Procesar Matriculación (Añadir alumno al expediente)
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'matricular' && has_permission([ROLE_ADMIN, ROLE_TUTOR])) {
     $alumnoId = intval($_POST['alumno_id']);
+    $grupoId = !empty($_POST['grupo_id']) ? intval($_POST['grupo_id']) : null;
     $estadoInicial = trim($_POST['estado']);
     $fecha = trim($_POST['fecha']);
     
@@ -36,8 +37,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         $error = "Debe seleccionar un alumno y una fecha de alta.";
     } else {
         try {
-            $stmt = $pdo->prepare("INSERT INTO matriculas (convocatoria_id, alumno_id, estado, fecha_matricula) VALUES (?, ?, ?, ?)");
-            $stmt->execute([$convocatoria_id, $alumnoId, $estadoInicial, $fecha]);
+            if ($grupoId) {
+                $checkHours = validate_plan_hours_limit($pdo, $alumnoId, $grupoId);
+                if (!$checkHours['allowed']) {
+                    throw new Exception($checkHours['message']);
+                }
+            }
+
+            if ($grupoId) {
+                $stmt = $pdo->prepare("INSERT INTO matriculas (convocatoria_id, alumno_id, grupo_id, estado, fecha_matricula) VALUES (?, ?, ?, ?, ?)");
+                $stmt->execute([$convocatoria_id, $alumnoId, $grupoId, $estadoInicial, $fecha]);
+            } else {
+                $stmt = $pdo->prepare("INSERT INTO matriculas (convocatoria_id, alumno_id, estado, fecha_matricula) VALUES (?, ?, ?, ?)");
+                $stmt->execute([$convocatoria_id, $alumnoId, $estadoInicial, $fecha]);
+            }
             
             audit_log($pdo, 'NUEVA_MATRICULA', 'matriculas', $pdo->lastInsertId(), null, [
                 'convocatoria_id' => $convocatoria_id,

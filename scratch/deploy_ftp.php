@@ -16,29 +16,16 @@ if (!ftp_login($conn, $user, $pass)) {
 ftp_pasv($conn, true);
 
 $files = [
-    "includes/smtp_mailer.php",
-    "includes/sidebar.php",
-    "api_send_trabajador_keys.php",
-    "home.php",
-    "css/home.css",
+    "includes/auth.php",
     "procesar_nueva_af.php",
-    "editar_af.php",
     "cursos.php",
-    "includes/moodle_db.php",
-    "informe_evaluaciones_grupo.php",
-    "pdf_acta_evaluacion.php",
-    "pdf_informe_evaluaciones.php",
-    "diplomas.php",
-    "pdf_informe_alumno.php",
-    "scratch/debug_moodle_marialuisa.php",
-    "scratch/test_marialuisa_sync.php",
-    "scratch/sync_all_matriculas.php",
-    "scratch/debug_grupos_dates.php",
-    "grupos.php",
-    "editar_convocatoria.php",
-    "convocatorias.php",
     "guardar_accion.php",
-    "planes.php"
+    "importar_matriculas_rapido.php",
+    "gestion_matriculas.php",
+    "ficha_alumno.php",
+    "ficha_matricula.php",
+    "api_import_moodle_students.php",
+    "matriculas.php"
 ];
 
 foreach ($files as $f) {

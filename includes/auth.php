@@ -78,4 +78,81 @@ if (!isset($_SESSION['jefe_comercial_migrated_3']) && isset($pdo)) {
         // Ignore silently
     }
 }
+
+/**
+ * Validates if enrolling a student in a group exceeds the maximum hours cap of the Plan.
+ * 
+ * @param PDO $pdo
+ * @param int $alumno_id
+ * @param int $grupo_id
+ * @param int|null $current_matricula_id Optional, to exclude current matricula if updating
+ * @return array ['allowed' => bool, 'message' => string, 'max_hours' => int, 'current_hours' => int, 'new_hours' => int, 'total_hours' => int]
+ */
+function validate_plan_hours_limit($pdo, $alumno_id, $grupo_id, $current_matricula_id = null) {
+    if (!$alumno_id || !$grupo_id) {
+        return ['allowed' => true];
+    }
+
+    $stmtG = $pdo->prepare("
+        SELECT g.id as grupo_id, g.accion_id, af.plan_id,
+               COALESCE(NULLIF(af.duracion, 0), af.horas_teoricas + af.horas_practicas, 0) as duracion_accion,
+               p.nombre as plan_nombre, p.tope_horas_alumno
+        FROM grupos g
+        JOIN acciones_formativas af ON g.accion_id = af.id
+        JOIN planes p ON af.plan_id = p.id
+        WHERE g.id = ?
+    ");
+    $stmtG->execute([(int)$grupo_id]);
+    $groupData = $stmtG->fetch(PDO::FETCH_ASSOC);
+
+    if (!$groupData || empty($groupData['plan_id'])) {
+        return ['allowed' => true];
+    }
+
+    $tope_horas = (int)($groupData['tope_horas_alumno'] ?? 0);
+    if ($tope_horas <= 0) {
+        return ['allowed' => true];
+    }
+
+    $duracion_nueva = (int)$groupData['duracion_accion'];
+    $plan_id = (int)$groupData['plan_id'];
+
+    $sqlSum = "
+        SELECT SUM(COALESCE(NULLIF(af.duracion, 0), af.horas_teoricas + af.horas_practicas, 0)) as total_horas
+        FROM matriculas m
+        JOIN grupos g ON m.grupo_id = g.id
+        JOIN acciones_formativas af ON g.accion_id = af.id
+        WHERE m.alumno_id = :alumno_id
+          AND af.plan_id = :plan_id
+          AND (m.estado IS NULL OR UPPER(m.estado) NOT IN ('BAJA', 'CANCELADA', 'ANULADA'))
+    ";
+    $paramsSum = [
+        'alumno_id' => (int)$alumno_id,
+        'plan_id' => $plan_id
+    ];
+    if (!empty($current_matricula_id)) {
+        $sqlSum .= " AND m.id != :current_matricula_id";
+        $paramsSum['current_matricula_id'] = (int)$current_matricula_id;
+    }
+
+    $stmtSum = $pdo->prepare($sqlSum);
+    $stmtSum->execute($paramsSum);
+    $current_horas = (int)($stmtSum->fetchColumn() ?: 0);
+
+    $total_final = $current_horas + $duracion_nueva;
+
+    if ($total_final > $tope_horas) {
+        $plan_nombre = $groupData['plan_nombre'];
+        return [
+            'allowed' => false,
+            'message' => "No se puede matricular al alumno en el grupo: supera el límite de {$tope_horas} horas permitido para el plan '{$plan_nombre}'. (Horas acumuladas en el plan: {$current_horas}h, Horas de este grupo: {$duracion_nueva}h, Total: {$total_final}h / Máximo: {$tope_horas}h).",
+            'max_hours' => $tope_horas,
+            'current_hours' => $current_horas,
+            'new_hours' => $duracion_nueva,
+            'total_hours' => $total_final
+        ];
+    }
+
+    return ['allowed' => true];
+}
 ?>

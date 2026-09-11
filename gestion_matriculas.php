@@ -194,6 +194,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action_quick_create_en
         }
 
         if ($alumno_id > 0) {
+            $checkHours = validate_plan_hours_limit($pdo, $alumno_id, $grupo_id);
+            if (!$checkHours['allowed']) {
+                throw new Exception($checkHours['message']);
+            }
             $stmtMat = $pdo->prepare("INSERT IGNORE INTO matriculas (alumno_id, grupo_id, convocatoria_id, estado, fecha_matricula) VALUES (?, ?, ?, 'Inscrito', CURDATE())");
             $stmtMat->execute([$alumno_id, $grupo_id, $accion['plan_id']]);
             header("Location: gestion_matriculas.php?af_id=$af_id&success=1");
@@ -225,6 +229,10 @@ if (isset($_POST['add_alumno_id']) || !empty($_POST['student_search_text'])) {
         }
 
         if ($alumno_id) {
+            $checkHours = validate_plan_hours_limit($pdo, $alumno_id, $grupo_id);
+            if (!$checkHours['allowed']) {
+                throw new Exception($checkHours['message']);
+            }
             $stmt = $pdo->prepare("INSERT IGNORE INTO matriculas (alumno_id, grupo_id, convocatoria_id, estado, fecha_matricula) 
                                    VALUES (?, ?, ?, 'Inscrito', CURDATE())");
             $stmt->execute([$alumno_id, $grupo_id, $accion['plan_id']]);

@@ -295,6 +295,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
         
         // 5. Ejecutar actualizaciones
+        $estado_post = $_POST['estado'] ?? ($matricula['estado'] ?? 'Inscrito');
+        if ($target_grupo_id && !in_array(strtoupper(trim($estado_post)), ['BAJA', 'CANCELADA', 'ANULADA'])) {
+            $checkHours = validate_plan_hours_limit($pdo, $matricula['alumno_id'], $target_grupo_id, $id);
+            if (!$checkHours['allowed']) {
+                throw new Exception($checkHours['message']);
+            }
+        }
+
         $pdo->beginTransaction();
         
         if (!empty($update_matriculas)) {

@@ -348,23 +348,36 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'add_inscripcion') {
     try {
         $convocatoria_id = $_POST['convocatoria_id'] ?? null;
+        $grupo_id = !empty($_POST['grupo_id']) ? (int)$_POST['grupo_id'] : null;
         $estado = $_POST['estado'] ?? 'Inscrito';
         $fecha_matricula = !empty($_POST['fecha_matricula']) ? $_POST['fecha_matricula'] : date('Y-m-d');
         
-        if (empty($convocatoria_id)) {
-            throw new Exception("Debes seleccionar una convocatoria.");
+        if (empty($convocatoria_id) && empty($grupo_id)) {
+            throw new Exception("Debes seleccionar una convocatoria o un grupo.");
+        }
+
+        if ($grupo_id) {
+            $checkHours = validate_plan_hours_limit($pdo, $id, $grupo_id);
+            if (!$checkHours['allowed']) {
+                throw new Exception($checkHours['message']);
+            }
         }
         
         // Comprobar si ya está inscrito
-        $stmtCheckMat = $pdo->prepare("SELECT id FROM matriculas WHERE alumno_id = ? AND convocatoria_id = ?");
-        $stmtCheckMat->execute([$id, $convocatoria_id]);
+        $stmtCheckMat = $pdo->prepare("SELECT id FROM matriculas WHERE alumno_id = ? AND " . ($grupo_id ? "grupo_id = ?" : "convocatoria_id = ?"));
+        $stmtCheckMat->execute([$id, $grupo_id ?: $convocatoria_id]);
         if ($stmtCheckMat->rowCount() > 0) {
-            throw new Exception("El alumno ya está inscrito en esta convocatoria.");
+            throw new Exception("El alumno ya está inscrito en esta " . ($grupo_id ? "matrícula / grupo." : "convocatoria."));
         }
         
         // Insertar
-        $stmtInsert = $pdo->prepare("INSERT INTO matriculas (alumno_id, convocatoria_id, estado, fecha_matricula, creado_en) VALUES (?, ?, ?, ?, ?)");
-        $stmtInsert->execute([$id, $convocatoria_id, $estado, $fecha_matricula, date('Y-m-d H:i:s')]);
+        if ($grupo_id) {
+            $stmtInsert = $pdo->prepare("INSERT INTO matriculas (alumno_id, convocatoria_id, grupo_id, estado, fecha_matricula, creado_en) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmtInsert->execute([$id, $convocatoria_id, $grupo_id, $estado, $fecha_matricula, date('Y-m-d H:i:s')]);
+        } else {
+            $stmtInsert = $pdo->prepare("INSERT INTO matriculas (alumno_id, convocatoria_id, estado, fecha_matricula, creado_en) VALUES (?, ?, ?, ?, ?)");
+            $stmtInsert->execute([$id, $convocatoria_id, $estado, $fecha_matricula, date('Y-m-d H:i:s')]);
+        }
         $nuevaMatriculaId = $pdo->lastInsertId();
         
         audit_log($pdo, 'MATRICULA_CREADA', 'matriculas', $nuevaMatriculaId, null, [

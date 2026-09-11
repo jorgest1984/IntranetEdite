@@ -91,7 +91,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'edite_gestion_check' => isset($_POST['edite_gestion_check']) ? 1 : 0,
         'nivel_gestion' => !empty($_POST['nivel_gestion']) ? (int)$_POST['nivel_gestion'] : 1,
         'paquete_gestion' => $_POST['paquete_gestion'] ?? null,
-        'observaciones_gestion' => $_POST['observaciones_gestion'] ?? null
+        'observaciones_gestion' => $_POST['observaciones_gestion'] ?? null,
+        'solicitante' => $_POST['solicitante'] ?? null,
+        'sector' => $_POST['sector'] ?? null
     ];
 
     if (!empty($_POST['borrar_programa_formativo']) && $id) {
@@ -120,19 +122,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $pdo->exec("ALTER TABLE acciones_formativas ADD COLUMN expediente VARCHAR(100) DEFAULT NULL");
     } catch (PDOException $e) {}
+    try {
+        $pdo->exec("ALTER TABLE acciones_formativas ADD COLUMN solicitante VARCHAR(255) DEFAULT NULL");
+    } catch (PDOException $e) {}
+    try {
+        $pdo->exec("ALTER TABLE acciones_formativas ADD COLUMN sector VARCHAR(255) DEFAULT NULL");
+    } catch (PDOException $e) {}
 
-    // Heredar expediente del Plan si está asignado
+    // Heredar expediente, solicitante y sector del Plan si está asignado
     if (!empty($data['plan_id'])) {
         $stmtP = $pdo->prepare("
-            SELECT COALESCE(NULLIF(p.expediente, ''), c.codigo_expediente) as plan_expediente
+            SELECT 
+                COALESCE(NULLIF(p.expediente, ''), c.codigo_expediente) as plan_expediente,
+                COALESCE(NULLIF(p.solicitante, ''), c.solicitante) as plan_solicitante,
+                p.sector as plan_sector
             FROM planes p
             LEFT JOIN convocatorias c ON p.convocatoria_id = c.id
             WHERE p.id = ?
         ");
         $stmtP->execute([(int)$data['plan_id']]);
         $pRow = $stmtP->fetch();
-        if ($pRow && !empty($pRow['plan_expediente'])) {
-            $data['expediente'] = $pRow['plan_expediente'];
+        if ($pRow) {
+            if (!empty($pRow['plan_expediente'])) $data['expediente'] = $pRow['plan_expediente'];
+            if (empty($data['solicitante']) && !empty($pRow['plan_solicitante'])) $data['solicitante'] = $pRow['plan_solicitante'];
+            if (empty($data['sector']) && !empty($pRow['plan_sector'])) $data['sector'] = $pRow['plan_sector'];
         }
     }
 
@@ -178,6 +191,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (isset($data['expediente'])) {
                 $sql .= ", expediente = :expediente";
             }
+            if (isset($data['solicitante'])) {
+                $sql .= ", solicitante = :solicitante";
+            }
+            if (isset($data['sector'])) {
+                $sql .= ", sector = :sector";
+            }
             if (array_key_exists('programa_formativo', $data)) {
                 $sql .= ", programa_formativo = :programa_formativo";
             }
@@ -206,6 +225,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 eval4_check, eval4_titulo, supuesto_practico, conexia_check,
                 cae_check, edite_gestion_check, nivel_gestion, paquete_gestion,
                 observaciones_gestion";
+            if (isset($data['expediente'])) {
+                $sql .= ", expediente";
+            }
+            if (isset($data['solicitante'])) {
+                $sql .= ", solicitante";
+            }
+            if (isset($data['sector'])) {
+                $sql .= ", sector";
+            }
             if (array_key_exists('programa_formativo', $data)) {
                 $sql .= ", programa_formativo";
             }
@@ -230,6 +258,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 :eval4_check, :eval4_titulo, :supuesto_practico, :conexia_check,
                 :cae_check, :edite_gestion_check, :nivel_gestion, :paquete_gestion,
                 :observaciones_gestion";
+            if (isset($data['expediente'])) {
+                $sql .= ", :expediente";
+            }
+            if (isset($data['solicitante'])) {
+                $sql .= ", :solicitante";
+            }
+            if (isset($data['sector'])) {
+                $sql .= ", :sector";
+            }
             if (array_key_exists('programa_formativo', $data)) {
                 $sql .= ", :programa_formativo";
             }

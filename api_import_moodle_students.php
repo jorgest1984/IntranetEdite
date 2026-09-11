@@ -279,6 +279,14 @@ try {
         if ($matRow) {
             $matricula_id = (int)$matRow['id'];
         } else {
+            // Validar tope de horas del plan
+            $checkHours = validate_plan_hours_limit($pdo, $alumno_id, $grupo_id);
+            if (!$checkHours['allowed']) {
+                $errorCount++;
+                $errors[] = "Usuario " . ($user['email'] ?? "ID {$alumno_id}") . ": " . $checkHours['message'];
+                continue;
+            }
+
             $insert_fields = [];
             $insert_placeholders = [];
             $insert_params = [];

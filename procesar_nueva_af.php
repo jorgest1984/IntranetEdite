@@ -26,20 +26,33 @@ try {
 try {
     $pdo->exec("ALTER TABLE acciones_formativas ADD COLUMN expediente VARCHAR(100) DEFAULT NULL");
 } catch (PDOException $e) {}
+try {
+    $pdo->exec("ALTER TABLE acciones_formativas ADD COLUMN solicitante VARCHAR(255) DEFAULT NULL");
+} catch (PDOException $e) {}
+try {
+    $pdo->exec("ALTER TABLE acciones_formativas ADD COLUMN sector VARCHAR(255) DEFAULT NULL");
+} catch (PDOException $e) {}
 
-// Obtener expediente heredado del Plan si está asignado
+// Obtener datos heredados del Plan si está asignado
 $expediente = null;
+$solicitante = null;
+$sector = null;
 if ($plan_id) {
-    $stmtPlanExp = $pdo->prepare("
-        SELECT COALESCE(NULLIF(p.expediente, ''), c.codigo_expediente) as plan_expediente
+    $stmtPlanData = $pdo->prepare("
+        SELECT 
+            COALESCE(NULLIF(p.expediente, ''), c.codigo_expediente) as plan_expediente,
+            COALESCE(NULLIF(p.solicitante, ''), c.solicitante) as plan_solicitante,
+            p.sector as plan_sector
         FROM planes p
         LEFT JOIN convocatorias c ON p.convocatoria_id = c.id
         WHERE p.id = ?
     ");
-    $stmtPlanExp->execute([$plan_id]);
-    $pRow = $stmtPlanExp->fetch();
-    if ($pRow && !empty($pRow['plan_expediente'])) {
-        $expediente = $pRow['plan_expediente'];
+    $stmtPlanData->execute([$plan_id]);
+    $pRow = $stmtPlanData->fetch();
+    if ($pRow) {
+        if (!empty($pRow['plan_expediente'])) $expediente = $pRow['plan_expediente'];
+        if (!empty($pRow['plan_solicitante'])) $solicitante = $pRow['plan_solicitante'];
+        if (!empty($pRow['plan_sector'])) $sector = $pRow['plan_sector'];
     }
 }
 
@@ -89,10 +102,10 @@ try {
     // 3. Insertar en DB local (acciones_formativas)
     $sql = "INSERT INTO acciones_formativas (
         titulo, abreviatura, num_accion, plan_id, modalidad, 
-        duracion, familia_profesional, id_plataforma, curso_id, estado, programa_formativo, expediente
+        duracion, familia_profesional, id_plataforma, curso_id, estado, programa_formativo, expediente, solicitante, sector
     ) VALUES (
         :titulo, :abreviatura, :num_accion, :plan_id, :modalidad, 
-        :duracion, :familia, :id_plataforma, :curso_id, 'Programable', :programa_formativo, :expediente
+        :duracion, :familia, :id_plataforma, :curso_id, 'Programable', :programa_formativo, :expediente, :solicitante, :sector
     )";
 
     $stmt = $pdo->prepare($sql);
@@ -107,7 +120,9 @@ try {
         'id_plataforma' => $id_plataforma,
         'curso_id' => $curso_id,
         'programa_formativo' => $programa_path,
-        'expediente' => $expediente
+        'expediente' => $expediente,
+        'solicitante' => $solicitante,
+        'sector' => $sector
     ]);
 
     $new_id = $pdo->lastInsertId();
