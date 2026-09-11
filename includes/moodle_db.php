@@ -281,25 +281,71 @@ class MoodleDB {
 
                 $quizMap = ['e1' => null, 'e2' => null, 'e3' => null];
                 $allQuizzes = [];
+                $mappedQuizIds = [];
 
                 foreach ($quizzes as $q) {
-                    $qName = mb_strtolower($q['name']);
-                    $qInfo = ['id' => (int)$q['id'], 'max_grade' => (float)$q['grade']];
+                    $qInfo = ['id' => (int)$q['id'], 'max_grade' => (float)$q['grade'], 'name' => $q['name']];
                     $allQuizzes[] = $qInfo;
 
-                    if (strpos($qName, 'ev0') !== false || strpos($qName, 'e1') !== false || strpos($qName, 'inicial') !== false || strpos($qName, 'evaluación 1') !== false) {
+                    $qName = mb_strtolower($q['name'], 'UTF-8');
+                    // Corregir erratas comunes en Moodle (ej. "evalución" -> "evaluacion")
+                    $qName = str_replace('evalución', 'evaluacion', $qName);
+                    $normalized = strtr($qName, [
+                        'á'=>'a', 'é'=>'e', 'í'=>'i', 'ó'=>'o', 'ú'=>'u', 'ü'=>'u', 'ñ'=>'n',
+                        'à'=>'a', 'è'=>'e', 'ì'=>'i', 'ò'=>'o', 'ù'=>'u'
+                    ]);
+
+                    if (!$quizMap['e1'] && (
+                        strpos($normalized, 'ev0') !== false || 
+                        strpos($normalized, 'e1') !== false || 
+                        strpos($normalized, 'inicial') !== false || 
+                        strpos($normalized, 'evaluacion 1') !== false || 
+                        strpos($normalized, 'evaluacion1') !== false || 
+                        strpos($normalized, 'nivel') !== false || 
+                        strpos($normalized, 'diagnost') !== false || 
+                        strpos($normalized, 'previa') !== false || 
+                        strpos($normalized, 'previo') !== false || 
+                        strpos($normalized, 'conocimiento') !== false
+                    )) {
                         $quizMap['e1'] = $qInfo;
-                    } elseif (strpos($qName, 'ev1') !== false || strpos($qName, 'e2') !== false || strpos($qName, 'intermedia') !== false || strpos($qName, 'evaluación 2') !== false) {
+                        $mappedQuizIds[] = $qInfo['id'];
+                    } elseif (!$quizMap['e2'] && (
+                        strpos($normalized, 'ev1') !== false || 
+                        strpos($normalized, 'e2') !== false || 
+                        strpos($normalized, 'intermedia') !== false || 
+                        strpos($normalized, 'evaluacion 2') !== false || 
+                        strpos($normalized, 'evaluacion2') !== false || 
+                        strpos($normalized, 'parcial') !== false
+                    )) {
                         $quizMap['e2'] = $qInfo;
-                    } elseif (strpos($qName, 'ev2') !== false || strpos($qName, 'e3') !== false || strpos($qName, 'final') !== false || strpos($qName, 'evaluación 3') !== false) {
+                        $mappedQuizIds[] = $qInfo['id'];
+                    } elseif (!$quizMap['e3'] && (
+                        strpos($normalized, 'ev2') !== false || 
+                        strpos($normalized, 'e3') !== false || 
+                        strpos($normalized, 'final') !== false || 
+                        strpos($normalized, 'evaluacion 3') !== false || 
+                        strpos($normalized, 'evaluacion3') !== false || 
+                        strpos($normalized, 'global') !== false || 
+                        strpos($normalized, 'examen') !== false
+                    )) {
                         $quizMap['e3'] = $qInfo;
+                        $mappedQuizIds[] = $qInfo['id'];
                     }
                 }
 
-                // Fallback de evaluaciones por orden de aparición si no se mapearon explícitamente
-                if (!$quizMap['e1'] && isset($allQuizzes[0])) $quizMap['e1'] = $allQuizzes[0];
-                if (!$quizMap['e2'] && isset($allQuizzes[1])) $quizMap['e2'] = $allQuizzes[1];
-                if (!$quizMap['e3'] && isset($allQuizzes[2])) $quizMap['e3'] = $allQuizzes[2];
+                // Fallback inteligente para cuestionarios no mapeados expresamente:
+                // Asignar los cuestionarios sobrantes no utilizados a los huecos vacíos por orden de aparición
+                $unmappedQuizzes = array_values(array_filter($allQuizzes, function($q) use ($mappedQuizIds) {
+                    return !in_array($q['id'], $mappedQuizIds);
+                }));
+
+                $unmappedIdx = 0;
+                foreach (['e1', 'e2', 'e3'] as $slot) {
+                    if (!$quizMap[$slot] && isset($unmappedQuizzes[$unmappedIdx])) {
+                        $quizMap[$slot] = $unmappedQuizzes[$unmappedIdx];
+                        $unmappedIdx++;
+                    }
+                }
 
                 // Consultar calificaciones en los cuestionarios mapeados
                 $targetQuizIds = [];
@@ -341,19 +387,27 @@ class MoodleDB {
                     }
                 }
 
-                // 5. Calcular Nota Media (solo E2 - Intermedia y E3 - Final; E1 no participa en la media) y Aptitud
+                // 5. Calcular Nota Media (solo E2 - Intermedia y E3 - Final; E1 no participa en la media salvo que sea la única evaluación del curso) y Aptitud
                 foreach ($stats as $uid => &$student) {
-                    $has_eval = $student['e2_completed'] || $student['e3_completed'];
-                    if ($has_eval) {
-                        $eval_grades = [];
-                        if ($student['e2_grade'] !== null) $eval_grades[] = (float)$student['e2_grade'];
-                        if ($student['e3_grade'] !== null) $eval_grades[] = (float)$student['e3_grade'];
-                        
-                        $media = count($eval_grades) > 0 ? (array_sum($eval_grades) / count($eval_grades)) : 0.0;
+                    $eval_grades = [];
+                    if ($student['e2_grade'] !== null) $eval_grades[] = (float)$student['e2_grade'];
+                    if ($student['e3_grade'] !== null) $eval_grades[] = (float)$student['e3_grade'];
+
+                    // Si no existen ni E2 ni E3 en la estructura del curso, pero sí se ha completado E1 (ej. cursos de evaluación única)
+                    if (empty($eval_grades) && $quizMap['e2'] === null && $quizMap['e3'] === null && $student['e1_grade'] !== null) {
+                        $eval_grades[] = (float)$student['e1_grade'];
+                    }
+
+                    if (!empty($eval_grades)) {
+                        $media = array_sum($eval_grades) / count($eval_grades);
                         $student['final_grade'] = round($media, 2);
-                        
-                        // Aptitud basada en completar E2 y E3 y alcanzar nota >= 5.0
-                        if (!$student['e2_completed'] || !$student['e3_completed']) {
+
+                        // Determinar la aptitud
+                        $required_completed = true;
+                        if ($quizMap['e2'] !== null && !$student['e2_completed']) $required_completed = false;
+                        if ($quizMap['e3'] !== null && !$student['e3_completed']) $required_completed = false;
+
+                        if (!$required_completed) {
                             $student['aptitud'] = 'NO APTO';
                         } else {
                             $student['aptitud'] = ($student['final_grade'] >= 5.0) ? 'APTO' : 'NO APTO';

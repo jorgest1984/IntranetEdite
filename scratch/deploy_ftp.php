@@ -27,6 +27,10 @@ $files = [
     "api_import_moodle_students.php",
     "matriculas.php",
     "editar_plan.php",
+    "includes/moodle_db.php",
+    "scratch/sync_tiktok_now.php",
+    "scratch/check_matriculas_cols.php",
+    "scratch/remote_check_tiktok.php",
     "ficha_grupo_edicion.php"
 ];
 
