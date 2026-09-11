@@ -18,8 +18,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $convocatoria_id = (int)$_POST['convocatoria_id'];
         $codigo = trim($_POST['codigo'] ?? '');
 
+        $expediente = trim($_POST['expediente'] ?? '');
+
         if ($nombre && $convocatoria_id) {
             try {
+                // Obtener el código_expediente de la convocatoria si no se ha especificado
+                if (empty($expediente)) {
+                    $stmtConv = $pdo->prepare("SELECT codigo_expediente FROM convocatorias WHERE id = ?");
+                    $stmtConv->execute([$convocatoria_id]);
+                    $cObj = $stmtConv->fetch();
+                    if ($cObj && !empty($cObj['codigo_expediente'])) {
+                        $expediente = $cObj['codigo_expediente'];
+                    }
+                }
+
                 // Validar duplicados de Nombre o Código en la misma convocatoria
                 $checkSql = "SELECT id FROM planes WHERE (nombre = ? OR (codigo != '' AND codigo = ?)) AND convocatoria_id = ?";
                 $stmtCheck = $pdo->prepare($checkSql);
@@ -28,8 +40,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     throw new Exception("Ya existe un plan con el mismo nombre o código en esta convocatoria.");
                 }
 
-                $stmt = $pdo->prepare("INSERT INTO planes (nombre, convocatoria_id, codigo) VALUES (?, ?, ?)");
-                $stmt->execute([$nombre, $convocatoria_id, $codigo]);
+                $stmt = $pdo->prepare("INSERT INTO planes (nombre, convocatoria_id, codigo, expediente) VALUES (?, ?, ?, ?)");
+                $stmt->execute([$nombre, $convocatoria_id, $codigo, $expediente]);
                 $success = "Plan estratégico creado con éxito.";
             } catch (Exception $e) { $error = "Error: " . $e->getMessage(); }
         }
@@ -38,9 +50,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $nombre = trim($_POST['nombre'] ?? '');
         $convocatoria_id = (int)$_POST['convocatoria_id'];
         $codigo = trim($_POST['codigo'] ?? '');
+        $expediente = trim($_POST['expediente'] ?? '');
 
         if ($plan_id && $nombre && $convocatoria_id) {
             try {
+                if (empty($expediente)) {
+                    $stmtConv = $pdo->prepare("SELECT codigo_expediente FROM convocatorias WHERE id = ?");
+                    $stmtConv->execute([$convocatoria_id]);
+                    $cObj = $stmtConv->fetch();
+                    if ($cObj && !empty($cObj['codigo_expediente'])) {
+                        $expediente = $cObj['codigo_expediente'];
+                    }
+                }
+
                 $checkSql = "SELECT id FROM planes WHERE (nombre = ? OR (codigo != '' AND codigo = ?)) AND convocatoria_id = ? AND id != ?";
                 $stmtCheck = $pdo->prepare($checkSql);
                 $stmtCheck->execute([$nombre, $codigo, $convocatoria_id, $plan_id]);
@@ -48,8 +70,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     throw new Exception("Ya existe otro plan con el mismo nombre o código en esta convocatoria.");
                 }
 
-                $stmt = $pdo->prepare("UPDATE planes SET nombre = ?, convocatoria_id = ?, codigo = ? WHERE id = ?");
-                $stmt->execute([$nombre, $convocatoria_id, $codigo, $plan_id]);
+                $stmt = $pdo->prepare("UPDATE planes SET nombre = ?, convocatoria_id = ?, codigo = ?, expediente = ? WHERE id = ?");
+                $stmt->execute([$nombre, $convocatoria_id, $codigo, $expediente, $plan_id]);
                 $success = "Plan estratégico actualizado con éxito.";
             } catch (Exception $e) { $error = "Error al actualizar: " . $e->getMessage(); }
         }

@@ -116,8 +116,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         $pdo->exec("ALTER TABLE acciones_formativas ADD COLUMN programa_formativo VARCHAR(255) DEFAULT NULL");
-    } catch (PDOException $e) {
-        // Ignorar si la columna ya existe
+    } catch (PDOException $e) {}
+    try {
+        $pdo->exec("ALTER TABLE acciones_formativas ADD COLUMN expediente VARCHAR(100) DEFAULT NULL");
+    } catch (PDOException $e) {}
+
+    // Heredar expediente del Plan si está asignado
+    if (!empty($data['plan_id'])) {
+        $stmtP = $pdo->prepare("
+            SELECT COALESCE(NULLIF(p.expediente, ''), c.codigo_expediente) as plan_expediente
+            FROM planes p
+            LEFT JOIN convocatorias c ON p.convocatoria_id = c.id
+            WHERE p.id = ?
+        ");
+        $stmtP->execute([(int)$data['plan_id']]);
+        $pRow = $stmtP->fetch();
+        if ($pRow && !empty($pRow['plan_expediente'])) {
+            $data['expediente'] = $pRow['plan_expediente'];
+        }
     }
 
     try {
@@ -159,6 +175,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 cae_check = :cae_check, edite_gestion_check = :edite_gestion_check,
                 nivel_gestion = :nivel_gestion, paquete_gestion = :paquete_gestion,
                 observaciones_gestion = :observaciones_gestion";
+            if (isset($data['expediente'])) {
+                $sql .= ", expediente = :expediente";
+            }
             if (array_key_exists('programa_formativo', $data)) {
                 $sql .= ", programa_formativo = :programa_formativo";
             }

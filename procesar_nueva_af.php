@@ -22,8 +22,25 @@ $crear_moodle = isset($_POST['crear_moodle']);
 
 try {
     $pdo->exec("ALTER TABLE acciones_formativas ADD COLUMN programa_formativo VARCHAR(255) DEFAULT NULL");
-} catch (PDOException $e) {
-    // Column might already exist
+} catch (PDOException $e) {}
+try {
+    $pdo->exec("ALTER TABLE acciones_formativas ADD COLUMN expediente VARCHAR(100) DEFAULT NULL");
+} catch (PDOException $e) {}
+
+// Obtener expediente heredado del Plan si está asignado
+$expediente = null;
+if ($plan_id) {
+    $stmtPlanExp = $pdo->prepare("
+        SELECT COALESCE(NULLIF(p.expediente, ''), c.codigo_expediente) as plan_expediente
+        FROM planes p
+        LEFT JOIN convocatorias c ON p.convocatoria_id = c.id
+        WHERE p.id = ?
+    ");
+    $stmtPlanExp->execute([$plan_id]);
+    $pRow = $stmtPlanExp->fetch();
+    if ($pRow && !empty($pRow['plan_expediente'])) {
+        $expediente = $pRow['plan_expediente'];
+    }
 }
 
 $programa_path = null;
@@ -72,10 +89,10 @@ try {
     // 3. Insertar en DB local (acciones_formativas)
     $sql = "INSERT INTO acciones_formativas (
         titulo, abreviatura, num_accion, plan_id, modalidad, 
-        duracion, familia_profesional, id_plataforma, curso_id, estado, programa_formativo
+        duracion, familia_profesional, id_plataforma, curso_id, estado, programa_formativo, expediente
     ) VALUES (
         :titulo, :abreviatura, :num_accion, :plan_id, :modalidad, 
-        :duracion, :familia, :id_plataforma, :curso_id, 'Programable', :programa_formativo
+        :duracion, :familia, :id_plataforma, :curso_id, 'Programable', :programa_formativo, :expediente
     )";
 
     $stmt = $pdo->prepare($sql);
@@ -89,7 +106,8 @@ try {
         'familia' => $familia,
         'id_plataforma' => $id_plataforma,
         'curso_id' => $curso_id,
-        'programa_formativo' => $programa_path
+        'programa_formativo' => $programa_path,
+        'expediente' => $expediente
     ]);
 
     $new_id = $pdo->lastInsertId();

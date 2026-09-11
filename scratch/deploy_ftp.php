@@ -34,7 +34,11 @@ $files = [
     "scratch/test_marialuisa_sync.php",
     "scratch/sync_all_matriculas.php",
     "scratch/debug_grupos_dates.php",
-    "grupos.php"
+    "grupos.php",
+    "editar_convocatoria.php",
+    "convocatorias.php",
+    "guardar_accion.php",
+    "planes.php"
 ];
 
 foreach ($files as $f) {

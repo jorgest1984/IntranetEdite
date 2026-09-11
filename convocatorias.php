@@ -41,8 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             $error = "El código y el nombre son obligatorios.";
         } else {
             try {
-                $stmt = $pdo->prepare("INSERT INTO convocatorias (codigo_expediente, nombre, tipo, organismo, presupuesto, estado, abreviatura, anio, fecha_inicio_prevista, fecha_fin_prevista, ambito, solicitante, url, url_aula_virtual, activa, descripcion, requisitos, texto_resolucion) VALUES (?, ?, ?, ?, ?, 'Borrador', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                $stmt->execute([$codigo, $nombre, $tipo, $organismo, $presupuesto, $abreviatura, $anio, $fecha_inicio, $fecha_fin, $ambito, $solicitante, $url, $url_aula_virtual, $activa, $descripcion, $requisitos, $texto_resolucion]);
+                $stmt = $pdo->prepare("INSERT INTO convocatorias (codigo_expediente, nombre, tipo, organismo, presupuesto, estado, abreviatura, anio, fecha_inicio_prevista, fecha_fin_prevista, ambito, solicitante, url, url_aula_virtual, activa, descripcion, requisitos) VALUES (?, ?, ?, ?, ?, 'Borrador', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt->execute([$codigo, $nombre, $tipo, $organismo, $presupuesto, $abreviatura, $anio, $fecha_inicio, $fecha_fin, $ambito, $solicitante, $url, $url_aula_virtual, $activa, $descripcion, $requisitos]);
                 $success = "Convocatoria creada correctamente.";
             } catch (Exception $e) {
                 $error = "Error: " . $e->getMessage();
@@ -442,13 +442,6 @@ $total_alumnos = array_sum(array_column($list, 'total_alumnos'));
                         </div>
                         <textarea name="requisitos" class="rte-textarea" placeholder="Escribe aquí los requisitos de participación..."></textarea>
                     </div>
-                </div>
-
-                <!-- Texto de Resolución -->
-                <div class="form-group" style="grid-column: span 2; display: flex; flex-direction: column; gap: 8px;">
-                    <label style="font-size: 0.75rem; font-weight: 700; color: #1e3a8a; text-transform: uppercase;">Texto de Resolución</label>
-                    <textarea name="texto_resolucion" class="form-control" rows="3" placeholder="Ej: perteneciente a la aprobación de subvenciones..."></textarea>
-                    <span style="font-size: 0.75rem; color: #94a3b8; font-style: italic; display: block; margin-top: 4px;">Texto que aparecerá en la Hoja de Bienvenida de los alumnos.</span>
                 </div>
 
 
