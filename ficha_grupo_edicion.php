@@ -642,47 +642,6 @@ $ccaa = [
                             <?php endforeach; ?>
                         </select>
                     </div>
-
-                    <div class="form-group col-span-2">
-                        <label>Denominación del Grupo:</label>
-                        <input type="text" name="denominacion_grupo" class="form-control" value="<?= htmlspecialchars($grupo['denominacion_grupo'] ?? '') ?>" placeholder="Ej: ARGG031PO - ADOBE ILLUSTRATOR AVANZADO CC">
-                    </div>
-                    <div class="form-group">
-                        <label>Fecha solicitud desempleados:</label>
-                        <input type="date" name="fecha_solicitud_desempleados" class="form-control" value="<?= $grupo['fecha_solicitud_desempleados'] ?? '' ?>">
-                    </div>
-                    <div class="form-group">
-                        <label>Hay desempleados:</label>
-                        <select name="hay_desempleados" class="form-control">
-                            <option value="NO" <?= ($grupo['hay_desempleados'] ?? 'NO') === 'NO' ? 'selected' : '' ?>>NO</option>
-                            <option value="SI" <?= ($grupo['hay_desempleados'] ?? 'NO') === 'SI' ? 'selected' : '' ?>>SÍ</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Contestación por CA:</label>
-                        <select name="contestacion_ca" class="form-control">
-                            <option value="NO" <?= ($grupo['contestacion_ca'] ?? 'NO') === 'NO' ? 'selected' : '' ?>>NO</option>
-                            <option value="SI" <?= ($grupo['contestacion_ca'] ?? 'NO') === 'SI' ? 'selected' : '' ?>>SÍ</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Comunidad Autónoma:</label>
-                        <select name="comunidad_autonoma" class="form-control">
-                            <option value=""></option>
-                            <?php foreach ($ccaa as $com): ?>
-                                <option value="<?= $com ?>" <?= ($grupo['comunidad_autonoma'] ?? '') == $com ? 'selected' : '' ?>><?= $com ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Usuario Gestor:</label>
-                        <input type="text" name="usuario_gestor" class="form-control" value="<?= htmlspecialchars($grupo['usuario_gestor'] ?? '') ?>" placeholder="Ej: u24041g1">
-                    </div>
-                    <div class="form-group">
-                        <label>Contraseña Gestor:</label>
-                        <input type="text" name="contrasena_gestor" class="form-control" value="<?= htmlspecialchars($grupo['contrasena_gestor'] ?? '') ?>">
-                    </div>
                 </div>
 
                 <!-- SECTION 2: PLAZOS Y TRÁMITES ADMINISTRATIVOS -->
@@ -821,8 +780,6 @@ $ccaa = [
                             </label>
                         </div>
                     </div>
-
-
                 </div>
 
                 <!-- SECTION 6: MODULACIÓN Y HORARIOS -->
