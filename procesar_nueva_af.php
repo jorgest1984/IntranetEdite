@@ -16,6 +16,15 @@ $abreviatura = $_POST['abreviatura'] ?? '';
 $num_accion = (isset($_POST['num_accion']) && is_numeric(trim($_POST['num_accion']))) ? (int)$_POST['num_accion'] : 0;
 $plan_id = (!empty($_POST['plan_id']) && is_numeric(trim($_POST['plan_id']))) ? (int)$_POST['plan_id'] : null;
 $modalidad = $_POST['modalidad'] ?? 'Teleformación';
+$sede_id = (!empty($_POST['sede_id']) && is_numeric(trim($_POST['sede_id']))) ? (int)$_POST['sede_id'] : null;
+
+// Si la modalidad es Teleformación y no se especificó sede_id, asignar por defecto Granada (ID 1)
+if (($modalidad === 'Teleformación' || $modalidad === 'Teleformacion') && !$sede_id) {
+    $stmtGra = $pdo->query("SELECT id FROM centros WHERE UPPER(nombre) LIKE '%GRANADA%' LIMIT 1");
+    $graRow = $stmtGra->fetch();
+    $sede_id = $graRow ? (int)$graRow['id'] : 1;
+}
+
 $duracion = (isset($_POST['duracion']) && is_numeric(trim($_POST['duracion']))) ? (int)$_POST['duracion'] : 0;
 $familia = $_POST['familia_profesional'] ?? '';
 $crear_moodle = isset($_POST['crear_moodle']);
@@ -101,10 +110,10 @@ try {
 
     // 3. Insertar en DB local (acciones_formativas)
     $sql = "INSERT INTO acciones_formativas (
-        titulo, abreviatura, num_accion, plan_id, modalidad, 
+        titulo, abreviatura, num_accion, plan_id, modalidad, sede_id,
         duracion, familia_profesional, id_plataforma, curso_id, estado, programa_formativo, expediente, solicitante, sector
     ) VALUES (
-        :titulo, :abreviatura, :num_accion, :plan_id, :modalidad, 
+        :titulo, :abreviatura, :num_accion, :plan_id, :modalidad, :sede_id,
         :duracion, :familia, :id_plataforma, :curso_id, 'Programable', :programa_formativo, :expediente, :solicitante, :sector
     )";
 
@@ -115,6 +124,7 @@ try {
         'num_accion' => $num_accion,
         'plan_id' => $plan_id,
         'modalidad' => $modalidad,
+        'sede_id' => $sede_id,
         'duracion' => $duracion,
         'familia' => $familia,
         'id_plataforma' => $id_plataforma,

@@ -175,7 +175,7 @@ $data = [
     'numero_grupo' => $_POST['numero_grupo'] ?? '',
     'codigo_plataforma' => $_POST['codigo_plataforma'] ?? '',
     'id_plataforma' => $_POST['id_plataforma'] ?? '',
-    'sede_id' => !empty($_POST['sede_id']) ? (int)$_POST['sede_id'] : null,
+    'sede_id' => !empty($_POST['sede_id']) ? (int)$_POST['sede_id'] : (((($_POST['modalidad'] ?? '') === 'Teleformación' || ($_POST['modalidad'] ?? '') === 'Teleformacion')) ? 1 : null),
     'tutor_id' => !empty($_POST['tutor_id']) ? (int)$_POST['tutor_id'] : null,
     'fecha_inicio' => $fecha_inicio,
     'fecha_mitad' => $fecha_1_2_curso,

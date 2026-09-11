@@ -3,8 +3,9 @@
 require_once 'includes/auth.php';
 require_once 'includes/config.php';
 
-// Obtener planes y convocatorias para los selectores
+// Obtener planes, convocatorias y centros para los selectores
 $planes = $pdo->query("SELECT id, nombre, codigo FROM planes ORDER BY nombre ASC")->fetchAll();
+$centros = $pdo->query("SELECT id, nombre FROM centros ORDER BY id ASC")->fetchAll();
 $familias = [
     'Actividades Físicas y Deportivas',
     'Actividades y Competencias Transversales',
@@ -184,6 +185,17 @@ $familias = [
                     </select>
                 </div>
                 <div class="form-group">
+                    <label>Centro de Impartición:</label>
+                    <select name="sede_id" id="sede_id_select" class="form-control">
+                        <option value="">Seleccione centro...</option>
+                        <?php foreach($centros as $c): ?>
+                            <option value="<?= $c['id'] ?>" <?= (strtoupper($c['nombre']) === 'GRANADA') ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($c['nombre']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label>Duración (Horas Totales):</label>
                     <input type="number" name="duracion" class="form-control" value="60">
                 </div>
@@ -220,6 +232,30 @@ $familias = [
         </form>
     </main>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modalidadSelect = document.querySelector('select[name="modalidad"]');
+    const centroSelect = document.getElementById('sede_id_select');
+
+    if (modalidadSelect && centroSelect) {
+        function updateCentroState() {
+            const val = modalidadSelect.value;
+            if (val === 'Teleformación' || val === 'Teleformacion') {
+                for (let opt of centroSelect.options) {
+                    if (opt.text.trim().toUpperCase() === 'GRANADA') {
+                        opt.selected = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        modalidadSelect.addEventListener('change', updateCentroState);
+        updateCentroState();
+    }
+});
+</script>
 
 </body>
 </html>

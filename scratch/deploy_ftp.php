@@ -30,10 +30,14 @@ $files = [
     "includes/moodle_db.php",
     "scratch/debug_tiktok_modules.php",
     "scratch/sync_tiktok_now.php",
+    "scratch/migration_sedes.php",
     "scratch/check_schema.php",
     "scratch/check_centros_data.php",
     "scratch/check_matriculas_cols.php",
     "scratch/remote_check_tiktok.php",
+    "nueva_af.php",
+    "ficha_accion_formativa.php",
+    "guardar_grupo.php",
     "ficha_grupo_edicion.php"
 ];
 

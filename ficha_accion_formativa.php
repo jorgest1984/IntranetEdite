@@ -33,6 +33,12 @@ try {
     if ($stmt) { $planes = $stmt->fetchAll(); }
 } catch (Throwable $e) { }
 
+$centros = [];
+try {
+    $stmtC = $pdo->query("SELECT id, nombre FROM centros ORDER BY id ASC");
+    if ($stmtC) { $centros = $stmtC->fetchAll(); }
+} catch (Throwable $e) { }
+
 $modalidades = ['Teleformacion', 'Presencial', 'Mixta', 'Aula Virtual'];
 $niveles = ['Básico', 'Medio', 'Medio-superior', 'Superior'];
 $prioridades = ['Alta', 'Media', 'Baja'];
@@ -1218,11 +1224,20 @@ try {
                             <label>T.:</label>
                             <input type="number" name="t" value="<?= htmlspecialchars($accion['t'] ?? '60') ?>">
                         </div>
-                        <div class="form-group form-col" style="width: 30%;">
+                        <div class="form-group form-col" style="width: 25%;">
                             <label>Modalidad:</label>
                             <select name="modalidad">
                                 <?php foreach ($modalidades as $m): ?>
                                     <option value="<?= $m ?>" <?= ($accion['modalidad'] ?? 'Teleformacion') == $m ? 'selected' : '' ?>><?= $m ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="form-group form-col" style="width: 25%;">
+                            <label>Centro Impartición:</label>
+                            <select name="sede_id" id="af_sede_id_select">
+                                <option value="">Seleccione centro...</option>
+                                <?php foreach ($centros as $c): ?>
+                                    <option value="<?= $c['id'] ?>" <?= ($accion['sede_id'] ?? 1) == $c['id'] ? 'selected' : '' ?>><?= htmlspecialchars($c['nombre']) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -2992,7 +3007,18 @@ try {
                         }
                     }
                 };
-                modalitySelect.addEventListener('change', updateMaterialTab);
+                modalitySelect.addEventListener('change', function() {
+                    updateMaterialTab();
+                    const afCentroSelect = document.getElementById('af_sede_id_select');
+                    if (afCentroSelect && (this.value === 'Teleformación' || this.value === 'Teleformacion')) {
+                        for (let opt of afCentroSelect.options) {
+                            if (opt.text.trim().toUpperCase() === 'GRANADA') {
+                                opt.selected = true;
+                                break;
+                            }
+                        }
+                    }
+                });
                 updateMaterialTab(); // Run once initially
             }
         });

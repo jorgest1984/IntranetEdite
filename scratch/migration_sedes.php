@@ -1,47 +1,63 @@
 <?php
-require __DIR__ . '/../includes/config.php';
+// scratch/migration_sedes.php
+require_once __DIR__ . '/../includes/config.php';
 
-try {
-    // 1. Create centros table
-    $pdo->exec("CREATE TABLE IF NOT EXISTS centros (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        nombre VARCHAR(255) NOT NULL,
-        direccion VARCHAR(255) NULL,
-        provincia VARCHAR(100) NULL,
-        cp VARCHAR(10) NULL,
-        telefono VARCHAR(50) NULL,
-        email_contacto VARCHAR(150) NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )");
-    echo "Tabla centros creada.\n";
+header('Content-Type: text/plain; charset=utf-8');
 
-    // 2. Alter usuarios
-    try {
-        $pdo->exec("ALTER TABLE usuarios ADD COLUMN centro_id INT NULL");
-        $pdo->exec("ALTER TABLE usuarios ADD CONSTRAINT fk_usuarios_centro FOREIGN KEY (centro_id) REFERENCES centros(id) ON DELETE SET NULL");
-        echo "Columna centro_id añadida a usuarios.\n";
-    } catch (Exception $e) {
-        echo "Aviso usuarios: " . $e->getMessage() . "\n";
+echo "=== MIGRACIÓN DE CENTROS DE IMPARTICIÓN ===\n";
+
+$centros_oficiales = [
+    [
+        'nombre' => 'GRANADA',
+        'direccion' => 'Calle Benjamin Franklin 1',
+        'provincia' => 'Granada',
+        'cp' => '18100',
+        'telefono' => '958089725',
+        'email_contacto' => 'granada@grupoefp.es'
+    ],
+    [
+        'nombre' => 'MADRID',
+        'direccion' => 'Paseo de la Castellana 100',
+        'provincia' => 'Madrid',
+        'cp' => '28046',
+        'telefono' => '910000000',
+        'email_contacto' => 'madrid@grupoefp.es'
+    ],
+    [
+        'nombre' => 'VALLADOLID',
+        'direccion' => 'Calle Santiago 15',
+        'provincia' => 'Valladolid',
+        'cp' => '47001',
+        'telefono' => '983000000',
+        'email_contacto' => 'valladolid@grupoefp.es'
+    ],
+    [
+        'nombre' => 'ALMERÍA',
+        'direccion' => 'Paseo de Almería 25',
+        'provincia' => 'Almería',
+        'cp' => '04001',
+        'telefono' => '950000000',
+        'email_contacto' => 'almeria@grupoefp.es'
+    ]
+];
+
+foreach ($centros_oficiales as $c) {
+    $stmt = $pdo->prepare("SELECT id FROM centros WHERE UPPER(nombre) = ? OR UPPER(nombre) LIKE ?");
+    $stmt->execute([mb_strtoupper($c['nombre'], 'UTF-8'), '%' . mb_strtoupper($c['nombre'], 'UTF-8') . '%']);
+    $existing = $stmt->fetch();
+
+    if ($existing) {
+        echo "Centro existente: {$c['nombre']} (ID {$existing['id']})\n";
+        // Actualizar nombre estandarizado si hace falta
+        $pdo->prepare("UPDATE centros SET nombre = ? WHERE id = ?")->execute([$c['nombre'], $existing['id']]);
+    } else {
+        $stmtIns = $pdo->prepare("INSERT INTO centros (nombre, direccion, provincia, cp, telefono, email_contacto, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())");
+        $stmtIns->execute([$c['nombre'], $c['direccion'], $c['provincia'], $c['cp'], $c['telefono'], $c['email_contacto']]);
+        $newId = $pdo->lastInsertId();
+        echo "Centro insertado: {$c['nombre']} (ID {$newId})\n";
     }
-
-    // 3. Alter grupos
-    try {
-        $pdo->exec("ALTER TABLE grupos ADD COLUMN centro_id INT NULL");
-        $pdo->exec("ALTER TABLE grupos ADD CONSTRAINT fk_grupos_centro FOREIGN KEY (centro_id) REFERENCES centros(id) ON DELETE SET NULL");
-        echo "Columna centro_id añadida a grupos.\n";
-    } catch (Exception $e) {
-        echo "Aviso grupos: " . $e->getMessage() . "\n";
-    }
-
-    // 4. Alter acciones_formativas para modalidad
-    try {
-        $pdo->exec("ALTER TABLE acciones_formativas ADD COLUMN modalidad VARCHAR(50) NOT NULL DEFAULT 'Teleformación'");
-        echo "Columna modalidad añadida a acciones_formativas.\n";
-    } catch (Exception $e) {
-        echo "Aviso acciones: " . $e->getMessage() . "\n";
-    }
-
-    echo "Migración completada exitosamente.\n";
-} catch (PDOException $e) {
-    echo "Error fatal: " . $e->getMessage() . "\n";
 }
+
+echo "\n--- LISTADO DE CENTROS FINAL ---\n";
+$stmtList = $pdo->query("SELECT id, nombre, provincia FROM centros ORDER BY id ASC");
+print_r($stmtList->fetchAll(PDO::FETCH_ASSOC));

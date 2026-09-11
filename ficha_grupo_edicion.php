@@ -618,13 +618,20 @@ $ccaa = [
                                 <option value="<?= $con['id'] ?>" <?= ($grupo['consultora_id'] ?? '') == $con['id'] ? 'selected' : '' ?>><?= htmlspecialchars($con['nombre']) ?></option>
                             <?php endforeach; ?>
                         </select>
+                    <div class="form-group col-span-2">
+                        <label>Modalidad:</label>
+                        <select name="modalidad" id="grupo_modalidad_select" class="form-control">
+                            <?php foreach ($modalidades as $m): ?>
+                                <option value="<?= $m ?>" <?= (($grupo['modalidad'] ?? $accion['modalidad'] ?? 'Teleformación') == $m) ? 'selected' : '' ?>><?= $m ?></option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
                     <div class="form-group col-span-2">
                         <label style="color: #0369a1; font-weight: 800;">Sede / Centro Físico:</label>
-                        <select name="sede_id" class="form-control" style="border: 2px solid #bae6fd;">
-                            <option value="">-- Sin Asignar (Global) --</option>
+                        <select name="sede_id" id="grupo_sede_id_select" class="form-control" style="border: 2px solid #bae6fd;">
+                            <option value="">-- Seleccione Centro --</option>
                             <?php foreach ($sedes_fisicas as $sede): ?>
-                                <option value="<?= $sede['id'] ?>" <?= ($grupo['sede_id'] ?? '') == $sede['id'] ? 'selected' : '' ?>><?= htmlspecialchars($sede['nombre']) ?></option>
+                                <option value="<?= $sede['id'] ?>" <?= (($grupo['sede_id'] ?? '') == $sede['id'] || (empty($grupo['sede_id']) && (strtoupper($sede['nombre']) === 'GRANADA'))) ? 'selected' : '' ?>><?= htmlspecialchars($sede['nombre']) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -1370,6 +1377,23 @@ $ccaa = [
                         recalcularFechasHito(false);
                     }
                 });
+            }
+
+            const modSelect = document.getElementById('grupo_modalidad_select');
+            const sedeSelect = document.getElementById('grupo_sede_id_select');
+            if (modSelect && sedeSelect) {
+                function checkModality() {
+                    const val = modSelect.value;
+                    if (val === 'Teleformación' || val === 'Teleformacion') {
+                        for (let opt of sedeSelect.options) {
+                            if (opt.text.trim().toUpperCase() === 'GRANADA') {
+                                opt.selected = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                modSelect.addEventListener('change', checkModality);
             }
         });
     })();
