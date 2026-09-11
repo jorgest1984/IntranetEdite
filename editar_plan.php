@@ -26,12 +26,11 @@ function check_and_add_columns_planes($pdo) {
         'fecha_fin_convocatoria' => "DATE NULL",
         'expediente' => "VARCHAR(150) NULL",
         'ambito' => "VARCHAR(150) NULL",
-        'cod_acceso' => "VARCHAR(100) NULL",
         'entidad' => "VARCHAR(150) NULL",
         'solicitante' => "VARCHAR(150) NULL",
         'sector' => "VARCHAR(150) NULL",
         'grupo_sector' => "VARCHAR(150) NULL",
-        'coordinador' => "VARCHAR(150) NULL",
+        'documento_sectores' => "VARCHAR(255) NULL",
         'porc_frar' => "DECIMAL(10,2) DEFAULT 0.00",
         'porc_calidad' => "DECIMAL(10,2) DEFAULT 0.00",
         'porc_costes_indirectos' => "DECIMAL(10,2) DEFAULT 0.00",
@@ -47,7 +46,6 @@ function check_and_add_columns_planes($pdo) {
         'transversal_colchon' => "DECIMAL(10,2) DEFAULT 0.00",
         'minima' => "DECIMAL(10,2) DEFAULT 0.00",
         'minima_colchon' => "DECIMAL(10,2) DEFAULT 0.00",
-        'reconfiguracion' => "DECIMAL(10,2) DEFAULT 0.00",
         'porc_au' => "DECIMAL(10,2) DEFAULT 0.00",
         'porc_mujeres' => "DECIMAL(10,2) DEFAULT 0.00",
         'porc_colectivos_prioritarios' => "DECIMAL(10,2) DEFAULT 0.00",
@@ -106,12 +104,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         $fields = [
             'nombre', 'codigo', 'fecha_inicio_oficial', 'anio_convocatoria', 
             'tope_horas_alumno', 'fecha_fin_convocatoria', 'expediente', 'ambito', 
-            'cod_acceso', 'entidad', 'solicitante', 'sector', 'grupo_sector', 
-            'coordinador', 'porc_frar', 'porc_calidad', 'porc_costes_indirectos', 
+            'entidad', 'solicitante', 'sector', 'grupo_sector', 
+            'porc_frar', 'porc_calidad', 'porc_costes_indirectos', 
             'subvencion', 'cofin_fse', 'grupo_zona_1', 'grupo_zona_2', 
             'ejecutar_edite', 'cofinanciado_edite', 'prioridad_sectorial', 
             'prioridad_sectorial_colchon', 'transversal', 'transversal_colchon', 
-            'minima', 'minima_colchon', 'reconfiguracion', 'porc_au', 
+            'minima', 'minima_colchon', 'porc_au', 
             'porc_mujeres', 'porc_colectivos_prioritarios', 'porc_max_desempleados', 
             'cant_ref_cofinanciada', 'cant_ref_no_cofinanciada', 'fecha_convenio', 'observaciones'
         ];
@@ -123,7 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             'anio_convocatoria', 'tope_horas_alumno', 'porc_frar', 'porc_calidad', 
             'porc_costes_indirectos', 'subvencion', 'cofin_fse', 'prioridad_sectorial', 
             'prioridad_sectorial_colchon', 'transversal', 'transversal_colchon', 
-            'minima', 'minima_colchon', 'reconfiguracion', 'porc_au', 
+            'minima', 'minima_colchon', 'porc_au', 
             'porc_mujeres', 'porc_colectivos_prioritarios', 'porc_max_desempleados', 
             'cant_ref_cofinanciada', 'cant_ref_no_cofinanciada'
         ];
@@ -143,6 +141,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                 $params[$f] = (strpos($val, '.') !== false) ? (float)$val : (int)$val;
             } else {
                 $params[$f] = $val;
+            }
+        }
+
+        // Manejo de la subida de documento de sectores
+        if (!empty($_POST['borrar_documento_sectores']) && $plan_id) {
+            if (!empty($plan['documento_sectores']) && file_exists($plan['documento_sectores'])) {
+                @unlink($plan['documento_sectores']);
+            }
+            $params['documento_sectores'] = null;
+        } elseif (isset($_FILES['documento_sectores']) && $_FILES['documento_sectores']['error'] == UPLOAD_ERR_OK) {
+            $upload_dir = 'uploads/sectores/';
+            if (!is_dir($upload_dir)) {
+                mkdir($upload_dir, 0777, true);
+            }
+            $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9_\.-]/', '', basename($_FILES['documento_sectores']['name']));
+            $target_file = $upload_dir . $filename;
+            if (move_uploaded_file($_FILES['documento_sectores']['tmp_name'], $target_file)) {
+                if (!empty($plan['documento_sectores']) && file_exists($plan['documento_sectores'])) {
+                    @unlink($plan['documento_sectores']);
+                }
+                $params['documento_sectores'] = $target_file;
             }
         }
         
@@ -318,7 +337,7 @@ if (isset($_GET['success'])) $success = "Plan guardado correctamente.";
         <?php if ($error) echo "<div class='alert alert-error'>$error</div>"; ?>
 
         <div class="plan-form-card">
-            <form method="POST">
+            <form method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="save">
                 
                 <div class="form-grid">
@@ -378,11 +397,6 @@ if (isset($_GET['success'])) $success = "Plan guardado correctamente.";
                         <input type="text" name="entidad" class="form-control" value="<?= htmlspecialchars($plan['entidad'] ?? '') ?>">
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Cod. Acceso:</label>
-                        <input type="text" name="cod_acceso" class="form-control" value="<?= htmlspecialchars($plan['cod_acceso'] ?? '') ?>">
-                    </div>
-
                     <div class="form-group three-quarter">
                         <div class="checkbox-row" style="background: none; border: none; padding: 0; margin-top: 1.8rem;">
                             <label class="checkbox-group"><input type="checkbox" name="programacion_automatica" <?= ($plan['programacion_automatica'] ?? 0) ? 'checked' : '' ?>> Programación automática</label>
@@ -393,7 +407,7 @@ if (isset($_GET['success'])) $success = "Plan guardado correctamente.";
                         </div>
                     </div>
 
-                    <div class="section-separator"><span>Sectorización y Coordinación</span></div>
+                    <div class="section-separator"><span>Sectorización</span></div>
 
                     <div class="form-group half-width">
                         <label class="form-label">Sector:</label>
@@ -405,9 +419,20 @@ if (isset($_GET['success'])) $success = "Plan guardado correctamente.";
                         <input type="text" name="grupo_sector" class="form-control" value="<?= htmlspecialchars($plan['grupo_sector'] ?? '') ?>">
                     </div>
 
-                    <div class="form-group half-width">
-                        <label class="form-label">Coordinador:</label>
-                        <input type="text" name="coordinador" class="form-control" value="<?= htmlspecialchars($plan['coordinador'] ?? '') ?>">
+                    <div class="form-group full-width" style="margin-top: 0.5rem; background: #f8fafc; padding: 1.25rem; border-radius: 8px; border: 1px dashed #cbd5e1;">
+                        <label class="form-label" style="color: #1e3a8a; font-weight: 700;">Documento Información de Sectores (Excel o PDF):</label>
+                        <?php if (!empty($plan['documento_sectores'])): ?>
+                            <div style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                                <a href="<?= htmlspecialchars($plan['documento_sectores']) ?>" target="_blank" class="btn-back" style="background: #e0f2fe; color: #0369a1; border-color: #bae6fd; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                                    <span>📄</span> Ver / Descargar Documento de Sectores (<?= htmlspecialchars(basename($plan['documento_sectores'])) ?>)
+                                </a>
+                                <label class="checkbox-group" style="color: #ef4444; font-weight: 600;">
+                                    <input type="checkbox" name="borrar_documento_sectores" value="1"> Eliminar documento
+                                </label>
+                            </div>
+                        <?php endif; ?>
+                        <input type="file" name="documento_sectores" class="form-control" accept=".pdf,.xls,.xlsx,.doc,.docx">
+                        <small style="color: #64748b; margin-top: 4px;">Puedes subir un archivo PDF o Excel con la información detallada de los sectores.</small>
                     </div>
 
                     <div class="section-separator"><span>Porcentajes y Presupuesto</span></div>
@@ -472,11 +497,6 @@ if (isset($_GET['success'])) $success = "Plan guardado correctamente.";
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">% Reconfiguración:</label>
-                        <input type="number" step="0.01" name="reconfiguracion" class="form-control" value="<?= htmlspecialchars($plan['reconfiguracion'] ?? '0.00') ?>">
-                    </div>
-
-                    <div class="form-group">
                         <label class="form-label">% AU:</label>
                         <input type="number" step="0.01" name="porc_au" class="form-control" value="<?= htmlspecialchars($plan['porc_au'] ?? '0.00') ?>">
                     </div>
@@ -511,34 +531,6 @@ if (isset($_GET['success'])) $success = "Plan guardado correctamente.";
                     <div class="form-group">
                         <label class="form-label">Fecha Convenio:</label>
                         <input type="date" name="fecha_convenio" class="form-control" value="<?= htmlspecialchars($plan['fecha_convenio'] ?? '') ?>">
-                    </div>
-
-                    <div class="form-separator" style="grid-column: 1 / -1; margin-top: 2rem; overflow-x: auto;">
-                        <h3 style="font-size: 0.9rem; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; text-transform: uppercase;">Datos Reconfiguración 2009-2010</h3>
-                        <table class="reconfig-table">
-                            <thead>
-                                <tr>
-                                    <th>Porcentajes \ Prioridades</th>
-                                    <th>Mínima</th>
-                                    <th>Media / Transversal</th>
-                                    <th>Máxima / Sectorial</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><strong>Mínimo</strong></td>
-                                    <td><input type="text" class="reconfig-input" placeholder="-"></td>
-                                    <td><input type="text" class="reconfig-input" placeholder="-"></td>
-                                    <td><input type="text" class="reconfig-input" placeholder="-"></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Máximo</strong></td>
-                                    <td><input type="text" class="reconfig-input" placeholder="-"></td>
-                                    <td><input type="text" class="reconfig-input" placeholder="-"></td>
-                                    <td><input type="text" class="reconfig-input" placeholder="-"></td>
-                                </tr>
-                            </tbody>
-                        </table>
                     </div>
 
                     <div class="form-group full-width" style="margin-top: 2rem;">

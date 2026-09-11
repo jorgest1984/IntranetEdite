@@ -25,7 +25,8 @@ $files = [
     "ficha_alumno.php",
     "ficha_matricula.php",
     "api_import_moodle_students.php",
-    "matriculas.php"
+    "matriculas.php",
+    "editar_plan.php"
 ];
 
 foreach ($files as $f) {
