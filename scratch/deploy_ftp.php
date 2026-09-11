@@ -28,7 +28,10 @@ $files = [
     "matriculas.php",
     "editar_plan.php",
     "includes/moodle_db.php",
+    "scratch/debug_tiktok_modules.php",
     "scratch/sync_tiktok_now.php",
+    "scratch/check_schema.php",
+    "scratch/check_centros_data.php",
     "scratch/check_matriculas_cols.php",
     "scratch/remote_check_tiktok.php",
     "ficha_grupo_edicion.php"
@@ -53,11 +56,9 @@ foreach ($files as $f) {
 ftp_close($conn);
 echo "Envío FTP finalizado.\n";
 
-// Limpiar la caché de PHP (OPCache) en el servidor de producción
-$ctx = stream_context_create([
-    'ssl' => ['verify_peer' => false, 'verify_peer_name' => false],
-    'http' => ['timeout' => 10]
-]);
-$opcache_res = @file_get_contents('http://gestion.grupoefp.es/clear_opcache.php', false, $ctx);
-echo "Resultado limpieza OPCache: " . trim($opcache_res) . "\n";
-?>
+// Limpiar OPCache invocando el endpoint de limpieza
+$ch = curl_init("https://gestion.grupoefp.es/upload_and_clear.php?clean_opcache=1");
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+$res = curl_exec($ch);
+curl_close($ch);
+echo "Resultado limpieza OPCache: " . strip_tags($res) . "\n";

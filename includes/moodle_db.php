@@ -175,6 +175,11 @@ class MoodleDB {
                     // Aplicar factor de ajuste (+20%) para compensar tiempos de lectura y estudio entre eventos
                     $totalSeconds = (int)round($totalSeconds * 1.20);
                     $stats[$uid]['connected_seconds'] = $totalSeconds;
+                    
+                    // Calcular porcentaje de progresión basado en tiempo de conexión
+                    $connectedHours = $totalSeconds / 3600;
+                    $dur = ($courseDuration > 0) ? (int)$courseDuration : 60;
+                    $stats[$uid]['progress'] = min(100, max(0, round(($connectedHours / $dur) * 100)));
                 }
 
                 // 3. Visualización de contenidos M1, M2, M3
@@ -224,11 +229,11 @@ class MoodleDB {
                             $stats[$uid]['m1_completed'] = 1;
                         }
                         // Buscar M2, Módulo 2, Tema 2, Unidad 2, U2, M12, M1Y2
-                        if (strpos($cleanName, 'unidad2') !== false || strpos($cleanName, 'modulo2') !== false || strpos($cleanName, 'tema2') !== false || strpos($cleanName, 'm2') !== false || strpos($cleanName, 'u2') !== false || strpos($cleanName, 'm12') !== false || strpos($cleanName, 'm1y2') !== false || strpos($cleanName, 'u12') !== false || strpos($cleanName, 'u1y2') !== false) {
+                        if (strpos($cleanName, 'unidad2') !== false || strpos($cleanName, 'modulo2') !== false || strpos($cleanName, 'tema2') !== false || strpos($cleanName, 'm2') !== false || strpos($cleanName, 'u2') !== false || strpos($cleanName, 'm12') !== false || strpos($cleanName, 'm1y2') !== false || strpos($cleanName, 'u12') !== false || strpos($cleanName, 'u1y2') !== false || strpos($cleanName, 'intermedia') !== false) {
                             $stats[$uid]['m2_completed'] = 1;
                         }
                         // Buscar M3, Módulo 3, Tema 3, Unidad 3, U3
-                        if (strpos($cleanName, 'unidad3') !== false || strpos($cleanName, 'modulo3') !== false || strpos($cleanName, 'tema3') !== false || strpos($cleanName, 'm3') !== false || strpos($cleanName, 'u3') !== false) {
+                        if (strpos($cleanName, 'unidad3') !== false || strpos($cleanName, 'modulo3') !== false || strpos($cleanName, 'tema3') !== false || strpos($cleanName, 'm3') !== false || strpos($cleanName, 'u3') !== false || strpos($cleanName, 'final') !== false) {
                             $stats[$uid]['m3_completed'] = 1;
                         }
                     }
@@ -260,10 +265,8 @@ class MoodleDB {
                     $completed = ($val === 'completed' || $val === 'passed' || $val === 'browsed');
 
                     if ($completed) {
-                        if (strpos($cleanName, 'unidad1') !== false || strpos($cleanName, 'modulo1') !== false || strpos($cleanName, 'tema1') !== false || strpos($cleanName, 'm1') !== false || strpos($cleanName, 'u1') !== false) {
-                            $stats[$uid]['m1_completed'] = 1;
-                        }
-                        if (strpos($cleanName, 'unidad2') !== false || strpos($cleanName, 'modulo2') !== false || strpos($cleanName, 'tema2') !== false || strpos($cleanName, 'm2') !== false || strpos($cleanName, 'u2') !== false || strpos($cleanName, 'm12') !== false || strpos($cleanName, 'm1y2') !== false || strpos($cleanName, 'u12') !== false || strpos($cleanName, 'u1y2') !== false) {
+                        $stats[$uid]['m1_completed'] = 1;
+                        if (strpos($cleanName, 'unidad2') !== false || strpos($cleanName, 'modulo2') !== false || strpos($cleanName, 'tema2') !== false || strpos($cleanName, 'm2') !== false || strpos($cleanName, 'u2') !== false) {
                             $stats[$uid]['m2_completed'] = 1;
                         }
                         if (strpos($cleanName, 'unidad3') !== false || strpos($cleanName, 'modulo3') !== false || strpos($cleanName, 'tema3') !== false || strpos($cleanName, 'm3') !== false || strpos($cleanName, 'u3') !== false) {
@@ -389,6 +392,21 @@ class MoodleDB {
 
                 // 5. Calcular Nota Media (solo E2 - Intermedia y E3 - Final; E1 no participa en la media salvo que sea la única evaluación del curso) y Aptitud
                 foreach ($stats as $uid => &$student) {
+                    // Inferencia de módulos visualizados M1, M2, M3 a partir de cuestionarios realizados
+                    if (!empty($student['e3_completed'])) {
+                        $student['m1_completed'] = 1;
+                        $student['m2_completed'] = 1;
+                        $student['m3_completed'] = 1;
+                        if ($student['progress'] < 100) $student['progress'] = 100;
+                    } elseif (!empty($student['e2_completed'])) {
+                        $student['m1_completed'] = 1;
+                        $student['m2_completed'] = 1;
+                        if ($student['progress'] < 50) $student['progress'] = 50;
+                    } elseif (!empty($student['e1_completed']) || !empty($student['m1_completed'])) {
+                        $student['m1_completed'] = 1;
+                        if ($student['progress'] < 25) $student['progress'] = 25;
+                    }
+
                     $eval_grades = [];
                     if ($student['e2_grade'] !== null) $eval_grades[] = (float)$student['e2_grade'];
                     if ($student['e3_grade'] !== null) $eval_grades[] = (float)$student['e3_grade'];
