@@ -229,7 +229,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             'bloqueado' => 'bloqueado'
         ];
         
-        // 2. Resolver convocatoria_id a partir de plan_id si aplica
+        // 2. Preparar consulta de matrículas
+        $update_matriculas = [];
+        $update_matriculas_params = [];
+        
+        // Resolver convocatoria_id a partir de plan_id si se envía
         if (isset($_POST['plan_id'])) {
             $convocatoria_id = null;
             if (!empty($_POST['plan_id'])) {
@@ -241,6 +245,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 $update_matriculas[] = "`convocatoria_id` = ?";
                 $update_matriculas_params[] = $convocatoria_id;
             }
+            if (in_array('plan_id', $matriculas_columns)) {
+                $update_matriculas[] = "`plan_id` = ?";
+                $update_matriculas_params[] = !empty($_POST['plan_id']) ? (int)$_POST['plan_id'] : null;
+            }
         }
         
         // Resolver grupo_id de destino (para actualizar fechas y num_accion de grupo/accion)
@@ -250,10 +258,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         } else {
             $target_grupo_id = !empty($matricula['grupo_id']) ? (int)$matricula['grupo_id'] : null;
         }
-        
-        // 3. Preparar consulta de matrículas
-        $update_matriculas = [];
-        $update_matriculas_params = [];
         
         foreach ($matriculas_mapping as $post_key => $col_name) {
             if (in_array($col_name, $matriculas_columns)) {

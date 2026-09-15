@@ -52,7 +52,8 @@ $files = [
     "usuarios.php",
     "api_relink_moodle.php",
     "acciones_formativas.php",
-    "editar_af.php"
+    "editar_af.php",
+    "scratch/fix_matriculas_estado_column.php"
 ];
 
 foreach ($files as $f) {
