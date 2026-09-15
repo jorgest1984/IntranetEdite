@@ -18,6 +18,7 @@ ftp_pasv($conn, true);
 $files = [
     "includes/auth.php",
     "includes/moodle_api.php",
+    "api_sync_moodle.php",
     "procesar_nueva_af.php",
     "cursos.php",
     "guardar_accion.php",
@@ -44,6 +45,8 @@ $files = [
     "ficha_grupo_edicion.php",
     "ficha_trabajador.php",
     "scratch/check_patricia.php",
+    "scratch/check_course_66.php",
+    "scratch/fix_group15_course.php",
     "usuarios.php"
 ];
 

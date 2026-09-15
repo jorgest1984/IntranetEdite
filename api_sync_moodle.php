@@ -48,26 +48,62 @@ try {
 
     if (!$af) throw new Exception("Acción Formativa no encontrada.");
 
-    // Priorizar el ID de Moodle definido en el curso (cursos.moodle_id) o en la AF (af.id_plataforma)
-    $courseId = !empty($af['curso_moodle_id']) ? (int)$af['curso_moodle_id'] : (!empty($af['id_plataforma']) ? (int)$af['id_plataforma'] : null);
+    // 2. Obtener el Grupo local (o crearlo)
+    $stmtG = $pdo->prepare("SELECT id, id_plataforma, codigo_plat, codigo_plataforma, usuario_gestor, contrasena_gestor, tutor_id, tutor_id_2, tutor_reserva_id, fecha_inicio, fecha_fin FROM grupos WHERE accion_id = ? ORDER BY id ASC LIMIT 1");
+    $stmtG->execute([$af_id]);
+    $grupo = $stmtG->fetch();
     
-    // Si tenemos curso_moodle_id pero no id_plataforma, actualizar id_plataforma para consistencia
-    if ($courseId && $af['id_plataforma'] != $courseId) {
-        $pdo->prepare("UPDATE acciones_formativas SET id_plataforma = ? WHERE id = ?")->execute([$courseId, $af_id]);
+    if (!$grupo) {
+        $stmtInsGroup = $pdo->prepare("INSERT INTO grupos (accion_id, numero_grupo, estado) VALUES (?, '1', 'En proceso')");
+        $stmtInsGroup->execute([$af_id]);
+        $grupo_id_local = $pdo->lastInsertId();
+        $grupo = [
+            'id' => $grupo_id_local,
+            'id_plataforma' => null,
+            'codigo_plat' => null,
+            'codigo_plataforma' => null,
+            'usuario_gestor' => null,
+            'contrasena_gestor' => null,
+            'tutor_id' => null,
+            'tutor_id_2' => null,
+            'tutor_reserva_id' => null,
+            'fecha_inicio' => null,
+            'fecha_fin' => null
+        ];
+    } else {
+        $grupo_id_local = $grupo['id'];
     }
-    
-    // Validar si el curso guardado realmente existe en Moodle
-    if ($courseId) {
-        if (!$moodle->courseExists($courseId)) {
-            $courseId = null;
-            // Limpiar localmente para forzar su recreación
-            $pdo->prepare("UPDATE acciones_formativas SET id_plataforma = NULL WHERE id = ?")->execute([$af_id]);
+
+    // 3. Resolver el ID del curso de Moodle priorizando codigo_plat, id_plataforma y curso_moodle_id
+    $candidates = [
+        $grupo['codigo_plat'] ?? null,
+        $grupo['codigo_plataforma'] ?? null,
+        $af['id_plataforma'] ?? null,
+        $af['curso_moodle_id'] ?? null,
+        $af['nombre_corto'] ?? null,
+        $af['abreviatura'] ?? null
+    ];
+
+    $courseId = null;
+    foreach ($candidates as $cand) {
+        if (!empty($cand)) {
+            $foundId = $moodle->findCourseId($cand);
+            if ($foundId) {
+                $courseId = $foundId;
+                break;
+            }
         }
     }
-    
-    // 2. Si la AF no tiene ID de Moodle, crear el curso
-    if (!$courseId) {
-        $categoryId = 1; // Por defecto, Miscellaneous
+
+    if ($courseId) {
+        // Actualizar localmente para mantener consistencia
+        $pdo->prepare("UPDATE acciones_formativas SET id_plataforma = ? WHERE id = ?")->execute([$courseId, $af_id]);
+        if ($grupo_id_local) {
+            $pdo->prepare("UPDATE grupos SET codigo_plat = ? WHERE id = ?")->execute([$courseId, $grupo_id_local]);
+        }
+    } else {
+        // Crear curso en Moodle si no existía ningún curso previo
+        $categoryId = 1;
         if (!empty($af['convocatoria_nombre'])) {
             try {
                 $categoryId = $moodle->getOrCreateCategory($af['convocatoria_nombre']);
@@ -82,36 +118,13 @@ try {
         $moodleResult = $moodle->createCourse($fullname, $shortname, $categoryId);
         if (isset($moodleResult[0]['id'])) {
             $courseId = $moodleResult[0]['id'];
-            // Guardar el nuevo ID en acciones_formativas.id_plataforma
             $pdo->prepare("UPDATE acciones_formativas SET id_plataforma = ? WHERE id = ?")->execute([$courseId, $af_id]);
+            if ($grupo_id_local) {
+                $pdo->prepare("UPDATE grupos SET codigo_plat = ? WHERE id = ?")->execute([$courseId, $grupo_id_local]);
+            }
         } else {
             throw new Exception("No se pudo crear el curso en Moodle.");
         }
-    }
-
-    // 3. Obtener el Grupo local (o crearlo)
-    $stmt = $pdo->prepare("SELECT id, id_plataforma, usuario_gestor, contrasena_gestor, tutor_id, tutor_id_2, tutor_reserva_id, fecha_inicio, fecha_fin FROM grupos WHERE accion_id = ? LIMIT 1");
-    $stmt->execute([$af_id]);
-    $grupo = $stmt->fetch();
-    
-    if (!$grupo) {
-        // Crear automáticamente el grupo si no existía aún en la base de datos local
-        $stmtInsGroup = $pdo->prepare("INSERT INTO grupos (accion_id, numero_grupo, estado) VALUES (?, '1', 'En proceso')");
-        $stmtInsGroup->execute([$af_id]);
-        $grupo_id_local = $pdo->lastInsertId();
-        $grupo = [
-            'id' => $grupo_id_local,
-            'id_plataforma' => null,
-            'usuario_gestor' => null,
-            'contrasena_gestor' => null,
-            'tutor_id' => null,
-            'tutor_id_2' => null,
-            'tutor_reserva_id' => null,
-            'fecha_inicio' => null,
-            'fecha_fin' => null
-        ];
-    } else {
-        $grupo_id_local = $grupo['id'];
     }
     
     $moodleGroupId = $grupo['id_plataforma'];

@@ -112,30 +112,69 @@ class MoodleAPI {
     }
 
     /**
-     * Verificar si un curso existe por su ID de Moodle (comprueba BD de Moodle primero)
+     * Busca un curso por ID real, por idnumber o por shortname en Moodle y devuelve su ID real de Moodle
      */
-    public function courseExists($courseId) {
+    public function findCourseId($targetId) {
+        if (empty($targetId)) return null;
+        
         require_once __DIR__ . '/moodle_db.php';
         $moodleDb = new MoodleDB();
         if ($moodleDb->isConnected()) {
             try {
                 $mpdo = $moodleDb->getPDO();
-                $prefix = defined('MOODLE_DB_PREFIX') ? MOODLE_DB_PREFIX : 'avefp_';
+                $prefix = $moodleDb->getTablePrefix();
+                
+                // 1. Probar por id exacto
                 $stmt = $mpdo->prepare("SELECT id FROM {$prefix}course WHERE id = ? LIMIT 1");
-                $stmt->execute([(int)$courseId]);
-                return (bool)$stmt->fetchColumn();
-            } catch (Exception $e) {
-                // Fallback
-            }
+                $stmt->execute([(int)$targetId]);
+                $realId = $stmt->fetchColumn();
+                if ($realId) return (int)$realId;
+                
+                // 2. Probar por idnumber
+                $stmt2 = $mpdo->prepare("SELECT id FROM {$prefix}course WHERE idnumber = ? OR idnumber = ? LIMIT 1");
+                $stmt2->execute([(string)$targetId, (int)$targetId]);
+                $realId2 = $stmt2->fetchColumn();
+                if ($realId2) return (int)$realId2;
+                
+                // 3. Probar por shortname
+                $stmt3 = $mpdo->prepare("SELECT id FROM {$prefix}course WHERE shortname = ? LIMIT 1");
+                $stmt3->execute([(string)$targetId]);
+                $realId3 = $stmt3->fetchColumn();
+                if ($realId3) return (int)$realId3;
+                
+            } catch (Exception $e) {}
         }
 
+        // Fallback por API
         try {
-            $res = $this->call('core_course_get_courses_by_field', ['field' => 'id', 'value' => (int)$courseId]);
-            return !empty($res['courses']);
-        } catch (Exception $e) {
-            // Si la API falla pero no pudimos conectar a la BD, asumimos true para no borrarlo localmente
-            return true;
-        }
+            $res = $this->call('core_course_get_courses_by_field', ['field' => 'id', 'value' => (int)$targetId]);
+            if (!empty($res['courses'][0]['id'])) {
+                return (int)$res['courses'][0]['id'];
+            }
+        } catch (Exception $e) {}
+
+        try {
+            $res2 = $this->call('core_course_get_courses_by_field', ['field' => 'idnumber', 'value' => (string)$targetId]);
+            if (!empty($res2['courses'][0]['id'])) {
+                return (int)$res2['courses'][0]['id'];
+            }
+        } catch (Exception $e) {}
+
+        try {
+            $res3 = $this->call('core_course_get_courses_by_field', ['field' => 'shortname', 'value' => (string)$targetId]);
+            if (!empty($res3['courses'][0]['id'])) {
+                return (int)$res3['courses'][0]['id'];
+            }
+        } catch (Exception $e) {}
+
+        return null;
+    }
+
+    /**
+     * Verificar si un curso existe por su ID de Moodle (comprueba BD de Moodle primero)
+     */
+    public function courseExists($courseId) {
+        return (bool)$this->findCourseId($courseId);
     }
 
     /**
