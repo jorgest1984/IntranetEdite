@@ -102,11 +102,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $pdo->prepare($sql);
             $stmt->execute($data);
             
-            // Actualizar id_plataforma (ID Moodle) directamente en acciones_formativas
-            $id_plataforma = isset($_POST['moodle_id']) ? trim($_POST['moodle_id']) : '';
+            // Actualizar id_plataforma (ID Moodle) en acciones_formativas, cursos y grupos
+            $id_plataforma = (isset($_POST['moodle_id']) && trim($_POST['moodle_id']) !== '') ? (int)trim($_POST['moodle_id']) : null;
             
             $stmtC = $pdo->prepare("UPDATE acciones_formativas SET id_plataforma = ? WHERE id = ?");
-            $stmtC->execute([$id_plataforma ?: null, $id]);
+            $stmtC->execute([$id_plataforma, $id]);
+
+            // Obtener el curso_id si no lo teníamos
+            $curso_id = $pdo->query("SELECT curso_id FROM acciones_formativas WHERE id = " . (int)$id)->fetchColumn();
+            if ($curso_id) {
+                $stmtCurso = $pdo->prepare("UPDATE cursos SET moodle_id = ? WHERE id = ?");
+                $stmtCurso->execute([$id_plataforma, $curso_id]);
+            }
+
+            // Actualizar grupos (codigo_plat = id_plataforma, e id_plataforma = NULL para resetear referencias Moodle viejas)
+            $stmtG = $pdo->prepare("UPDATE grupos SET codigo_plat = ?, id_plataforma = NULL WHERE accion_id = ?");
+            $stmtG->execute([$id_plataforma, $id]);
             
             $pdo->commit();
             

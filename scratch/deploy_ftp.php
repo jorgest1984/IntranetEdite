@@ -47,7 +47,12 @@ $files = [
     "scratch/check_patricia.php",
     "scratch/check_course_66.php",
     "scratch/fix_group15_course.php",
-    "usuarios.php"
+    "scratch/check_ofimatica.php",
+    "scratch/fix_ofimatica_68.php",
+    "usuarios.php",
+    "api_relink_moodle.php",
+    "acciones_formativas.php",
+    "editar_af.php"
 ];
 
 foreach ($files as $f) {

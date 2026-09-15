@@ -700,10 +700,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET)) {
                                                 <?php 
                                                 $mCourseId = !empty($row['curso_moodle_id']) ? $row['curso_moodle_id'] : $row['id_plataforma'];
                                                 if (!empty($mCourseId)): ?>
-                                                    <a href="https://aulavirtual.grupoefp.es/course/view.php?id=<?= $mCourseId ?>" target="_blank" style="display: inline-flex; align-items: center; gap: 4px; background: rgba(234, 88, 12, 0.1); color: #ea580c; border: 1px solid rgba(234, 88, 12, 0.3); padding: 2px 8px; border-radius: 6px; font-size: 0.68rem; font-weight: 800; text-decoration: none;" title="Abrir curso en Aula Virtual Moodle">
-                                                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
-                                                        Moodle #<?= $mCourseId ?> ↗
-                                                    </a>
+                                                    <div style="display: inline-flex; align-items: center; gap: 4px;">
+                                                        <a href="https://aulavirtual.grupoefp.es/course/view.php?id=<?= $mCourseId ?>" target="_blank" style="display: inline-flex; align-items: center; gap: 4px; background: rgba(234, 88, 12, 0.1); color: #ea580c; border: 1px solid rgba(234, 88, 12, 0.3); padding: 2px 8px; border-radius: 6px; font-size: 0.68rem; font-weight: 800; text-decoration: none;" title="Abrir curso en Aula Virtual Moodle">
+                                                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+                                                            Moodle #<?= $mCourseId ?> ↗
+                                                        </a>
+                                                        <?php if (has_permission([ROLE_ADMIN])): ?>
+                                                            <button type="button" onclick="openMoodleLinkModal(<?= $row['id'] ?>, '<?= htmlspecialchars(addslashes($row['titulo'] ?? ''), ENT_QUOTES) ?>', <?= $mCourseId ?>)" style="background: none; border: none; cursor: pointer; color: #ea580c; padding: 2px 4px; font-size: 0.85rem;" title="Cambiar / Desvincular Moodle ID">
+                                                                ✏️
+                                                            </button>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                <?php else: ?>
+                                                    <?php if (has_permission([ROLE_ADMIN])): ?>
+                                                        <button type="button" onclick="openMoodleLinkModal(<?= $row['id'] ?>, '<?= htmlspecialchars(addslashes($row['titulo'] ?? ''), ENT_QUOTES) ?>', 0)" style="display: inline-flex; align-items: center; gap: 4px; background: rgba(148, 163, 184, 0.1); color: var(--text-muted); border: 1px dashed rgba(148, 163, 184, 0.5); padding: 2px 8px; border-radius: 6px; font-size: 0.68rem; font-weight: 600; cursor: pointer;" title="Vincular a ID de Moodle existente">
+                                                            + Vincular Moodle
+                                                        </button>
+                                                    <?php endif; ?>
                                                 <?php endif; ?>
                                             </div>
                                         </td>
@@ -970,6 +983,140 @@ function createMoodleCourse(afId, title, existingId) {
             alert(`❌ Error de comunicación con el servidor:\n${err.message}`);
         });
 }
+
+function openMoodleLinkModal(afId, afTitle, currentMoodleId) {
+    document.getElementById('modalAfId').value = afId;
+    document.getElementById('modalAfTitle').textContent = `[#${afId}] ${afTitle}`;
+    document.getElementById('modalMoodleId').value = (currentMoodleId && currentMoodleId > 0) ? currentMoodleId : '';
+    document.getElementById('btnUnlinkMoodle').style.display = (currentMoodleId && currentMoodleId > 0) ? 'inline-block' : 'none';
+    
+    const modal = document.getElementById('moodleLinkModal');
+    modal.style.display = 'flex';
+}
+
+function closeMoodleLinkModal() {
+    document.getElementById('moodleLinkModal').style.display = 'none';
+}
+
+function submitMoodleLink(e) {
+    e.preventDefault();
+    const afId = document.getElementById('modalAfId').value;
+    const moodleId = document.getElementById('modalMoodleId').value;
+    
+    if (!moodleId || parseInt(moodleId) <= 0) {
+        alert('Por favor introduce un ID numérico válido de Moodle o pulsa "Desvincular".');
+        return;
+    }
+    
+    const btn = document.getElementById('btnSaveMoodleLink');
+    btn.disabled = true;
+    btn.innerHTML = 'Guardando...';
+    
+    const formData = new FormData();
+    formData.append('action', 'link');
+    formData.append('af_id', afId);
+    formData.append('moodle_id', moodleId);
+    
+    fetch('api_relink_moodle.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = '💾 Guardar Vinculación';
+        if (data.success) {
+            alert('✅ ' + data.message);
+            closeMoodleLinkModal();
+            window.location.reload();
+        } else {
+            alert('❌ Error: ' + (data.error || 'No se pudo guardar la vinculación'));
+        }
+    })
+    .catch(err => {
+        btn.disabled = false;
+        btn.innerHTML = '💾 Guardar Vinculación';
+        alert('❌ Error de comunicación: ' + err.message);
+    });
+}
+
+function submitMoodleUnlink() {
+    const afId = document.getElementById('modalAfId').value;
+    if (!confirm('¿Seguro que deseas desvincular este curso de Moodle? Los alumnos permanecerán en Moodle pero la Intranet dejará de asociarlo a este curso.')) {
+        return;
+    }
+    
+    const btn = document.getElementById('btnUnlinkMoodle');
+    btn.disabled = true;
+    btn.innerHTML = 'Desvinculando...';
+    
+    const formData = new FormData();
+    formData.append('action', 'unlink');
+    formData.append('af_id', afId);
+    
+    fetch('api_relink_moodle.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = '🗑️ Desvincular';
+        if (data.success) {
+            alert('✅ ' + data.message);
+            closeMoodleLinkModal();
+            window.location.reload();
+        } else {
+            alert('❌ Error: ' + (data.error || 'No se pudo desvincular'));
+        }
+    })
+    .catch(err => {
+        btn.disabled = false;
+        btn.innerHTML = '🗑️ Desvincular';
+        alert('❌ Error de comunicación: ' + err.message);
+    });
+}
 </script>
+
+<!-- Modal Vinculación Moodle -->
+<div id="moodleLinkModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center;">
+    <div style="background: #ffffff; width: 90%; max-width: 480px; border-radius: 16px; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); border: 1px solid var(--border-color);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
+                <span style="color: #ea580c;">🧡</span> Vincular / Desvincular Moodle
+            </h3>
+            <button type="button" onclick="closeMoodleLinkModal()" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+        </div>
+        
+        <p id="modalAfTitle" style="font-size: 0.85rem; font-weight: 600; color: var(--primary-color); margin-bottom: 12px;"></p>
+        
+        <div style="background: #fff7ed; border: 1px solid #ffedd5; border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 0.8rem; color: #9a3412;">
+            💡 <strong>Gestión de Copias de Seguridad:</strong> Si restauraste un curso en Moodle y tiene un ID nuevo (ej: 68), escribe aquí el nuevo número. Se desvinculará la versión vieja y se reajustarán los grupos sin errores de duplicidad.
+        </div>
+        
+        <form id="moodleLinkForm" onsubmit="submitMoodleLink(event)">
+            <input type="hidden" id="modalAfId" name="af_id">
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">ID del Curso Moodle</label>
+                <input type="number" id="modalMoodleId" name="moodle_id" placeholder="Ej: 68" style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.95rem; font-weight: 600;">
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: center;">
+                <button type="button" id="btnUnlinkMoodle" onclick="submitMoodleUnlink()" style="background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; padding: 10px 14px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; cursor: pointer;" title="Desvincular Moodle completamente">
+                    🗑️ Desvincular
+                </button>
+                <div style="display: flex; gap: 8px; margin-left: auto;">
+                    <button type="button" onclick="closeMoodleLinkModal()" style="background: var(--bg-hover); color: var(--text-color); border: 1px solid var(--border-color); padding: 10px 14px; border-radius: 8px; font-weight: 600; font-size: 0.8rem; cursor: pointer;">
+                        Cancelar
+                    </button>
+                    <button type="submit" id="btnSaveMoodleLink" style="background: #ea580c; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; cursor: pointer;">
+                        💾 Guardar Vinculación
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
 </body>
 </html>
