@@ -35,10 +35,13 @@ $files = [
     "scratch/check_centros_data.php",
     "scratch/check_matriculas_cols.php",
     "scratch/remote_check_tiktok.php",
+    "scratch/register_adgd073po.php",
+    "scratch/register_adgg057po.php",
     "nueva_af.php",
     "ficha_accion_formativa.php",
     "guardar_grupo.php",
-    "ficha_grupo_edicion.php"
+    "ficha_grupo_edicion.php",
+    "usuarios.php"
 ];
 
 foreach ($files as $f) {

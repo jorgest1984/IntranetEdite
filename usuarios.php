@@ -3,9 +3,12 @@
 require_once 'includes/auth.php';
 require_once 'includes/config.php';
 
-// Auto-crear columna DNI si no existe (evita errores si el usuario no ejecutó el script)
+// Auto-crear columnas DNI y moodle_user_id si no existen
 try {
     $pdo->exec("ALTER TABLE usuarios ADD COLUMN dni VARCHAR(20) DEFAULT NULL AFTER apellidos");
+} catch (PDOException $e) {}
+try {
+    $pdo->exec("ALTER TABLE usuarios ADD COLUMN moodle_user_id INT DEFAULT NULL");
 } catch (PDOException $e) {}
 
 // Solo administradores pueden gestionar usuarios (ISO 27001 - A.9)
@@ -123,33 +126,39 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         }
         }
         
-        // Alta en Moodle para Tutores
+        // Alta o Sincronización en Moodle
         if ($_POST['action'] == 'sync_moodle') {
             $id = intval($_POST['user_id']);
             $stmtUser = $pdo->prepare("SELECT * FROM usuarios WHERE id = ?");
             $stmtUser->execute([$id]);
             $user_data = $stmtUser->fetch(PDO::FETCH_ASSOC);
 
-            if ($user_data && $user_data['rol_id'] == ROLE_TUTOR) {
+            if ($user_data) {
                 require_once 'includes/moodle_api.php';
                 try {
                     $moodle = new MoodleAPI($pdo);
                     if ($moodle->isConfigured()) {
-                        // 1. Check if user already exists in Moodle by email
+                        // 1. Comprobar si ya existe en Moodle por email o por username
                         $existingUser = null;
                         try {
-                            $check = $moodle->getUsersByField('email', [$user_data['email']]);
-                            if (!empty($check['users'])) {
-                                $existingUser = $check['users'][0];
+                            $checkByEmail = $moodle->getUsersByField('email', [$user_data['email']]);
+                            if (!empty($checkByEmail['users'])) {
+                                $existingUser = $checkByEmail['users'][0];
+                            } else {
+                                $checkByUsername = $moodle->getUsersByField('username', [strtolower($user_data['username'])]);
+                                if (!empty($checkByUsername['users'])) {
+                                    $existingUser = $checkByUsername['users'][0];
+                                }
                             }
-                        } catch (Exception $ex) {
-                            // ignore check error, might just be empty
-                        }
+                        } catch (Exception $ex) {}
 
                         if ($existingUser) {
-                            $error = "El usuario ya existe en Moodle con ese email (Username: " . $existingUser['username'] . ").";
+                            $mUserId = $existingUser['id'];
+                            $pdo->prepare("UPDATE usuarios SET moodle_user_id = ? WHERE id = ?")->execute([$mUserId, $id]);
+                            audit_log($pdo, 'USUARIO_MOODLE_ALTA', 'usuarios', $id, null, ['moodle_user_id' => $mUserId, 'modo' => 'vinculado_existente']);
+                            $success = "El usuario '{$user_data['username']}' ya estaba dado de alta en Moodle (ID #{$mUserId}, Email: {$user_data['email']}) y se ha sincronizado correctamente con la intranet.";
                         } else {
-                            // 2. Create user
+                            // 2. Crear usuario nuevo en Moodle
                             $newUsers = $moodle->createUser(
                                 strtolower($user_data['username']),
                                 'MoodleTemp123!', // Contraseña genérica temporal
@@ -159,8 +168,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                             );
                             
                             if (!empty($newUsers) && isset($newUsers[0]['id'])) {
-                                audit_log($pdo, 'USUARIO_MOODLE_ALTA', 'usuarios', $id, null, ['moodle_user_id' => $newUsers[0]['id']]);
-                                $success = "El tutor ha sido dado de alta correctamente en Moodle (Contraseña temporal: MoodleTemp123!).";
+                                $mUserId = $newUsers[0]['id'];
+                                $pdo->prepare("UPDATE usuarios SET moodle_user_id = ? WHERE id = ?")->execute([$mUserId, $id]);
+                                audit_log($pdo, 'USUARIO_MOODLE_ALTA', 'usuarios', $id, null, ['moodle_user_id' => $mUserId, 'modo' => 'creado_nuevo']);
+                                $success = "El usuario '{$user_data['username']}' ha sido dado de alta correctamente en Moodle (ID #{$mUserId}, Contraseña temporal: MoodleTemp123!).";
                             } else {
                                 $error = "No se ha podido crear el usuario en Moodle (Respuesta inesperada).";
                             }
@@ -172,7 +183,48 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                     $error = "Error al comunicar con Moodle: " . $e->getMessage();
                 }
             } else {
-                $error = "Usuario no válido o no tiene rol de Tutor.";
+                $error = "Usuario no encontrado.";
+            }
+        }
+
+        // Sincronizar Todos los Usuarios con Moodle
+        if ($_POST['action'] == 'sync_all_moodle') {
+            require_once 'includes/moodle_api.php';
+            try {
+                $moodle = new MoodleAPI($pdo);
+                if ($moodle->isConfigured()) {
+                    $stmtAll = $pdo->query("SELECT * FROM usuarios WHERE activo = 1");
+                    $allUsers = $stmtAll->fetchAll(PDO::FETCH_ASSOC);
+                    $linked_count = 0;
+
+                    foreach ($allUsers as $uData) {
+                        $existingUser = null;
+                        try {
+                            $checkByEmail = $moodle->getUsersByField('email', [$uData['email']]);
+                            if (!empty($checkByEmail['users'])) {
+                                $existingUser = $checkByEmail['users'][0];
+                            } else {
+                                $checkByUsername = $moodle->getUsersByField('username', [strtolower($uData['username'])]);
+                                if (!empty($checkByUsername['users'])) {
+                                    $existingUser = $checkByUsername['users'][0];
+                                }
+                            }
+                        } catch (Exception $ex) {}
+
+                        if ($existingUser) {
+                            $mUserId = $existingUser['id'];
+                            $pdo->prepare("UPDATE usuarios SET moodle_user_id = ? WHERE id = ?")->execute([$mUserId, $uData['id']]);
+                            audit_log($pdo, 'USUARIO_MOODLE_ALTA', 'usuarios', $uData['id'], null, ['moodle_user_id' => $mUserId, 'modo' => 'vinculado_existente']);
+                            $linked_count++;
+                        }
+                    }
+
+                    $success = "Sincronización masiva con Moodle completada. Se han detectado y vinculado $linked_count usuario(s) existentes en Moodle.";
+                } else {
+                    $error = "Moodle no está configurado correctamente en el sistema.";
+                }
+            } catch (Exception $e) {
+                $error = "Error al sincronizar con Moodle: " . $e->getMessage();
             }
         }
 
@@ -1104,10 +1156,20 @@ try {
                 <h1>Usuarios y Permisos</h1>
                 <p>Administración del acceso y control de seguridad corporativo (ISO 27001)</p>
             </div>
-            <button class="btn btn-primary" onclick="openModal()" style="border-radius: 10px; padding: 11px 20px;">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-                Nuevo Usuario
-            </button>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <form method="POST" style="margin: 0;" onsubmit="return confirm('¿Escanear y vincular todos los usuarios de la intranet que ya existen en Moodle?');">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
+                    <input type="hidden" name="action" value="sync_all_moodle">
+                    <button type="submit" class="btn" style="border-radius: 10px; padding: 11px 18px; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
+                        Sincronizar Todo con Moodle
+                    </button>
+                </form>
+                <button class="btn btn-primary" onclick="openModal()" style="border-radius: 10px; padding: 11px 20px;">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                    Nuevo Usuario
+                </button>
+            </div>
         </header>
 
         <?php if ($success): ?>
@@ -1288,20 +1350,20 @@ try {
                                     <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                                     Perfil
                                 </a>
-                                <?php if ($u['rol_id'] == ROLE_TUTOR && $u['activo']): ?>
-                                    <?php if (in_array($u['id'], $syncedUserIds)): ?>
-                                        <button type="button" class="btn-action-premium" style="background: #ecfdf5; color: #059669; border-color: #a7f3d0; cursor: default;" title="Ya dado de alta en Moodle">
+                                <?php if ($u['activo']): ?>
+                                    <?php if (in_array($u['id'], $syncedUserIds) || !empty($u['moodle_user_id'])): ?>
+                                        <button type="button" class="btn-action-premium" style="background: #ecfdf5; color: #059669; border-color: #a7f3d0; cursor: default;" title="Usuario dado de alta o sincronizado con Moodle (ID #<?= htmlspecialchars($u['moodle_user_id'] ?? '') ?>)">
                                             <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
-                                            Alta en Moodle
+                                            Sincronizado Moodle
                                         </button>
                                     <?php else: ?>
-                                        <form method="POST" style="margin: 0;" onsubmit="return confirm('¿Dar de alta a este tutor en Moodle? Se le asignará una contraseña temporal genérica.');">
+                                        <form method="POST" style="margin: 0;" onsubmit="return confirm('¿Sincronizar este usuario con Moodle? Se comprobará si ya existe en Moodle para vincularlo o darlo de alta.');">
                                             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                                             <input type="hidden" name="action" value="sync_moodle">
                                             <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
-                                            <button type="submit" class="btn-action-premium" style="background: #fff8e1; color: #d97706; border-color: #fde68a;">
+                                            <button type="submit" class="btn-action-premium" style="background: #fff8e1; color: #d97706; border-color: #fde68a;" title="Sincronizar o dar de alta en Moodle">
                                                 <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2.12-1.15V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/></svg>
-                                                Alta en Moodle
+                                                Sincronizar Moodle
                                             </button>
                                         </form>
                                     <?php endif; ?>
