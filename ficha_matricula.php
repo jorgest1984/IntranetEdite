@@ -151,6 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $matriculas_mapping = [
             'grupo_id' => 'grupo_id',
             'estado_nuevo' => 'estado',
+            'estado' => 'estado',
             'observaciones' => 'observaciones',
             'comercial_id' => 'comercial_id',
             'captado_ugt' => 'captado_ugt',
@@ -299,8 +300,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
         
         // 5. Ejecutar actualizaciones
-        $estado_post = $_POST['estado'] ?? ($matricula['estado'] ?? 'Inscrito');
-        if ($target_grupo_id && !in_array(strtoupper(trim($estado_post)), ['BAJA', 'CANCELADA', 'ANULADA'])) {
+        $estado_post = $_POST['estado_nuevo'] ?? $_POST['estado'] ?? ($matricula['estado'] ?? 'Inscrito');
+        
+        // Si el estado es Baja/Cancelada/Abandono y no hay fecha_abandono, asignamos la fecha de hoy automáticamente
+        if (in_array(strtoupper(trim((string)$estado_post)), ['BAJA', 'CANCELADA', 'ABANDONO', 'ANULADA'])) {
+            if (in_array('fecha_abandono', $matriculas_columns) && empty($_POST['fecha_abandono']) && empty($matricula['fecha_abandono'])) {
+                $update_matriculas[] = "`fecha_abandono` = ?";
+                $update_matriculas_params[] = date('Y-m-d');
+            }
+        }
+        
+        if ($target_grupo_id && !in_array(strtoupper(trim((string)$estado_post)), ['BAJA', 'CANCELADA', 'ANULADA', 'ABANDONO'])) {
             $checkHours = validate_plan_hours_limit($pdo, $matricula['alumno_id'], $target_grupo_id, $id);
             if (!$checkHours['allowed']) {
                 throw new Exception($checkHours['message']);
@@ -1484,8 +1494,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 </div>
 
                 <div style="margin-bottom: 1.5rem;">
-                    <button type="button" class="btn-modern btn-outline" style="color: #b91c1c; border-color: #fca5a5;">
-                        Baja Plataforma
+                    <button type="button" onclick="marcarBajaPlataforma()" class="btn-modern btn-outline" style="color: #b91c1c; border-color: #fca5a5; font-weight: 700; cursor: pointer;">
+                        🔻 Marcar Estado Baja
                     </button>
                 </div>
 
@@ -1587,6 +1597,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                             <?php endforeach; ?>
                         </select>
                     </div>
+                </div>
+
+                <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
+                    <button type="submit" class="btn-modern btn-primary-modern">
+                        💾 Guardar Registro
+                    </button>
                 </div>
             </form>
         </div>
@@ -2200,18 +2216,41 @@ Equipo de Soporte de Formación</textarea>
 
     // Ir a la sección de Bajas y resaltar
     window.goToBajasSection = function() {
-        // Cambiar a Datos Personales si no está activo
-        document.querySelector('.tab-btn[data-target="tab-personales"]').click();
-        // Scroll hasta el selector de motivo_baja
-        const selectBaja = document.querySelector('select[name="motivo_baja"]');
-        if (selectBaja) {
-            selectBaja.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            selectBaja.focus();
-            selectBaja.style.outline = '3px solid #ef4444';
-            setTimeout(() => {
-                selectBaja.style.outline = '';
-            }, 2000);
+        // Cambiar a Datos Curso (donde se gestiona el estado y motivo de baja)
+        const tabCursoBtn = document.querySelector('.tab-btn[data-target="tab-curso"]');
+        if (tabCursoBtn) tabCursoBtn.click();
+        
+        setTimeout(() => {
+            const selectEstado = document.querySelector('select[name="estado_nuevo"]');
+            const selectBaja = document.querySelector('select[name="motivo_baja"]');
+            if (selectEstado) {
+                selectEstado.focus();
+                selectEstado.style.outline = '3px solid #ef4444';
+                setTimeout(() => { selectEstado.style.outline = ''; }, 3000);
+            }
+            if (selectBaja) {
+                selectBaja.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }, 100);
+    };
+
+    // Marcar alumno en Baja
+    window.marcarBajaPlataforma = function() {
+        const selectEstado = document.querySelector('select[name="estado_nuevo"]');
+        if (selectEstado) {
+            selectEstado.value = 'Baja';
+            selectEstado.style.outline = '3px solid #ef4444';
+            setTimeout(() => { selectEstado.style.outline = ''; }, 3000);
         }
+        const inputFecha = document.querySelector('input[name="fecha_abandono"]');
+        if (inputFecha && !inputFecha.value) {
+            inputFecha.value = new Date().toISOString().split('T')[0];
+        }
+        const selectMotivo = document.querySelector('select[name="motivo_baja"]');
+        if (selectMotivo && !selectMotivo.value) {
+            selectMotivo.focus();
+        }
+        alert('Se ha seleccionado el estado "BAJA". Selecciona el motivo si lo deseas y haz clic en "💾 Guardar Registro" para confirmar.');
     };
 
     // Sincronizar usuario y matrícula con Moodle
