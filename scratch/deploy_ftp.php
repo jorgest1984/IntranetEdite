@@ -41,6 +41,7 @@ $files = [
     "ficha_accion_formativa.php",
     "guardar_grupo.php",
     "ficha_grupo_edicion.php",
+    "ficha_trabajador.php",
     "usuarios.php"
 ];
 

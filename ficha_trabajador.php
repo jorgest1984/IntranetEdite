@@ -79,7 +79,7 @@ try {
 } catch (Exception $colEx) {}
 
 $active_tab = $_GET['tab'] ?? 'personales';
-$error = null;
+$error = $_GET['error'] ?? null;
 
 // Acciones CV: Definición
 $cv_actions = [
@@ -196,10 +196,46 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                 }
             }
 
-            // Actualizar tabla usuarios (datos básicos)
-            $stmt = $pdo->prepare("UPDATE usuarios SET nombre = ?, apellidos = ?, centro_id = ? WHERE id = ?");
-            $apellidos_full = trim(($_POST['apellido1'] ?? '') . ' ' . ($_POST['apellido2'] ?? ''));
-            $stmt->execute([$_POST['nombre'] ?? '', $apellidos_full, $centro_id, $id]);
+            // Actualizar tabla usuarios (datos básicos y email)
+            $new_email = trim($_POST['email'] ?? '');
+            if (!empty($new_email)) {
+                if (!filter_var($new_email, FILTER_VALIDATE_EMAIL)) {
+                    header("Location: ficha_trabajador.php?id=$id&tab=personales&error=" . urlencode("El formato del e-mail no es válido."));
+                    exit();
+                }
+
+                // Verificar si el email pertenece a otro usuario
+                $stmtCheckEmail = $pdo->prepare("SELECT id FROM usuarios WHERE email = ? AND id != ?");
+                $stmtCheckEmail->execute([$new_email, $id]);
+                if ($stmtCheckEmail->fetch()) {
+                    header("Location: ficha_trabajador.php?id=$id&tab=personales&error=" . urlencode("El e-mail '$new_email' ya pertenece a otro usuario."));
+                    exit();
+                }
+
+                $old_email = $trabajador['email'] ?? '';
+
+                $stmt = $pdo->prepare("UPDATE usuarios SET nombre = ?, apellidos = ?, centro_id = ?, email = ? WHERE id = ?");
+                $apellidos_full = trim(($_POST['apellido1'] ?? '') . ' ' . ($_POST['apellido2'] ?? ''));
+                $stmt->execute([$_POST['nombre'] ?? '', $apellidos_full, $centro_id, $new_email, $id]);
+
+                // Actualizar en Moodle si aplica y el email cambió
+                if (!empty($trabajador['moodle_user_id']) && $old_email !== $new_email) {
+                    try {
+                        require_once 'includes/moodle_api.php';
+                        $moodle = new MoodleAPI($pdo);
+                        if ($moodle->isConfigured()) {
+                            $moodle->updateUser($trabajador['moodle_user_id'], ['email' => $new_email]);
+                            audit_log($pdo, 'USUARIO_EMAIL_MOODLE_UPDATED', 'usuarios', $id, null, ['old_email' => $old_email, 'new_email' => $new_email, 'moodle_user_id' => $trabajador['moodle_user_id']]);
+                        }
+                    } catch (Exception $mEx) {
+                        error_log("Error al actualizar email en Moodle: " . $mEx->getMessage());
+                    }
+                }
+            } else {
+                $stmt = $pdo->prepare("UPDATE usuarios SET nombre = ?, apellidos = ?, centro_id = ? WHERE id = ?");
+                $apellidos_full = trim(($_POST['apellido1'] ?? '') . ' ' . ($_POST['apellido2'] ?? ''));
+                $stmt->execute([$_POST['nombre'] ?? '', $apellidos_full, $centro_id, $id]);
+            }
 
             // Actualizar tabla profesorado_detalles (datos extendidos)
             $obs = $_POST['observaciones_personales'] ?? '';
@@ -1083,12 +1119,14 @@ $tareas = $stmt_tareas->fetchAll();
                         </div>
 
                         <div class="form-group" style="grid-column: span 5;">
-                            <label>E-mail:</label>
+                            <label>E-mail (Acceso/Notificaciones):</label>
                             <div class="email-wrapper">
-                                <input type="email" value="<?= htmlspecialchars($trabajador['email'] ?? '') ?>" readonly style="color: #64748b; background:#f1f5f9;">
-                                <button type="button" class="btn-yellow-icon" title="Enviar email">
-                                    <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
-                                </button>
+                                <input type="email" name="email" value="<?= htmlspecialchars($trabajador['email'] ?? '') ?>" required style="background:#ffffff; color:#1e293b;">
+                                <?php if (!empty($trabajador['email'])): ?>
+                                    <a href="mailto:<?= htmlspecialchars($trabajador['email']) ?>" class="btn-yellow-icon" title="Enviar email" style="display: inline-flex; align-items: center; justify-content: center;">
+                                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                                    </a>
+                                <?php endif; ?>
                             </div>
                         </div>
                         <div class="form-group" style="grid-column: span 4;">

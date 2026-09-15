@@ -260,6 +260,51 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             }
         }
 
+        // Modificar Email de Usuario
+        if ($_POST['action'] == 'update_email') {
+            $user_id = intval($_POST['user_id']);
+            $new_email = trim($_POST['email']);
+            
+            if (empty($new_email) || !filter_var($new_email, FILTER_VALIDATE_EMAIL)) {
+                $error = "Por favor, introduce una dirección de e-mail válida.";
+            } else {
+                $stmtUser = $pdo->prepare("SELECT * FROM usuarios WHERE id = ?");
+                $stmtUser->execute([$user_id]);
+                $uTarget = $stmtUser->fetch(PDO::FETCH_ASSOC);
+                
+                if (!$uTarget) {
+                    $error = "Usuario no encontrado.";
+                } else {
+                    $stmtCheck = $pdo->prepare("SELECT id FROM usuarios WHERE email = ? AND id != ?");
+                    $stmtCheck->execute([$new_email, $user_id]);
+                    if ($stmtCheck->fetch()) {
+                        $error = "El e-mail '$new_email' ya está registrado por otro usuario.";
+                    } else {
+                        $old_email = $uTarget['email'];
+                        $stmtUpd = $pdo->prepare("UPDATE usuarios SET email = ? WHERE id = ?");
+                        $stmtUpd->execute([$new_email, $user_id]);
+                        
+                        $moodle_info = '';
+                        if (!empty($uTarget['moodle_user_id'])) {
+                            try {
+                                require_once 'includes/moodle_api.php';
+                                $moodle = new MoodleAPI($pdo);
+                                if ($moodle->isConfigured()) {
+                                    $moodle->updateUser($uTarget['moodle_user_id'], ['email' => $new_email]);
+                                    $moodle_info = " y se ha sincronizado la modificación con Moodle (ID #{$uTarget['moodle_user_id']})";
+                                }
+                            } catch (Exception $mEx) {
+                                $moodle_info = " (Atención: no se pudo actualizar en Moodle: " . $mEx->getMessage() . ")";
+                            }
+                        }
+                        
+                        audit_log($pdo, 'USUARIO_EMAIL_CAMBIADO', 'usuarios', $user_id, null, ['old_email' => $old_email, 'new_email' => $new_email]);
+                        $success = "El e-mail del usuario '{$uTarget['username']}' se ha actualizado de '$old_email' a '$new_email'$moodle_info.";
+                    }
+                }
+            }
+        }
+
     }
 }
 
@@ -1323,7 +1368,12 @@ try {
                                 </div>
                                 <div class="user-info-text">
                                     <span class="username"><?= htmlspecialchars($u['username']) ?></span>
-                                    <span class="email"><?= htmlspecialchars($u['email']) ?></span>
+                                    <span class="email" style="display: inline-flex; align-items: center; gap: 4px;">
+                                        <?= htmlspecialchars($u['email']) ?>
+                                        <button type="button" onclick="openEditEmailModal(<?= $u['id'] ?>, '<?= htmlspecialchars($u['username'], ENT_QUOTES) ?>', '<?= htmlspecialchars($u['email'], ENT_QUOTES) ?>')" style="background: none; border: none; padding: 2px 4px; cursor: pointer; color: #64748b; border-radius: 4px;" title="Editar Email de <?= htmlspecialchars($u['username'], ENT_QUOTES) ?>">
+                                            <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                                        </button>
+                                    </span>
                                 </div>
                             </div>
                         </td>
@@ -1613,6 +1663,53 @@ try {
             icon.classList.remove('fa-eye');
             icon.classList.add('fa-eye-slash');
         }
+    }
+</script>
+
+<!-- MODAL EDITAR EMAIL -->
+<div class="modal-overlay" id="modalEditEmailOverlay">
+    <div class="modal-container" style="max-width: 480px;">
+        <div class="modal-header" style="background: var(--admin-gradient); color: white; border-radius: 12px 12px 0 0; padding: 1.25rem 1.5rem;">
+            <h2 style="color: white; font-size: 1.15rem; margin: 0;">Modificar E-mail de Usuario</h2>
+            <button class="modal-close" onclick="closeEditEmailModal()" style="color: white; opacity: 0.8;">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            </button>
+        </div>
+        <div class="modal-body" style="padding: 1.5rem;">
+            <form method="POST" autocomplete="off">
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
+                <input type="hidden" name="action" value="update_email">
+                <input type="hidden" name="user_id" id="editEmailUserId">
+                
+                <p style="color: #475569; font-size: 0.9rem; margin-bottom: 1.25rem; line-height: 1.4;">
+                    Estás cambiando el e-mail del usuario <strong id="editEmailUsername" style="color: #1e293b;"></strong>.<br>
+                    <small style="color: #64748b;">Si el usuario está sincronizado con Moodle, la dirección se actualizará en la plataforma también.</small>
+                </p>
+
+                <div class="premium-field" style="margin-bottom: 1.25rem;">
+                    <label style="display: block; font-weight: 600; color: #1e3a8a; margin-bottom: 0.5rem; font-size: 0.88rem;">Nuevo E-mail</label>
+                    <input type="email" name="email" id="editEmailInput" placeholder="correo@ejemplo.com" required style="width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 12px; font-size: 0.95rem; box-sizing: border-box;">
+                </div>
+
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 1.5rem;">
+                    <button type="button" onclick="closeEditEmailModal()" class="btn-action-premium" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 6px; font-weight: 500; cursor: pointer;">Cancelar</button>
+                    <button type="submit" class="btn-action-premium" style="background: var(--admin-gradient); color: white; border: none; padding: 8px 20px; border-radius: 6px; font-weight: 600; cursor: pointer;">Guardar E-mail</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openEditEmailModal(userId, username, email) {
+        document.getElementById('editEmailUserId').value = userId;
+        document.getElementById('editEmailUsername').textContent = username;
+        document.getElementById('editEmailInput').value = email;
+        document.getElementById('modalEditEmailOverlay').classList.add('open');
+    }
+
+    function closeEditEmailModal() {
+        document.getElementById('modalEditEmailOverlay').classList.remove('open');
     }
 </script>
 
