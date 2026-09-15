@@ -144,6 +144,37 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             exit();
         }
 
+        if ($action == 'import_moodle_photo') {
+            require_once 'includes/moodle_api.php';
+            try {
+                $moodle = new MoodleAPI($pdo);
+                $muid = $trabajador['moodle_user_id'] ?? null;
+                if (!$muid && !empty($trabajador['email'])) {
+                    $mResult = $moodle->getUsersByField('email', [$trabajador['email']]);
+                    if (!empty($mResult['users'][0]['id'])) {
+                        $muid = $mResult['users'][0]['id'];
+                        $pdo->prepare("UPDATE usuarios SET moodle_user_id = ? WHERE id = ?")->execute([$muid, $id]);
+                    }
+                }
+                if ($muid) {
+                    $newFoto = $moodle->syncUserPictureFromMoodle($id, $muid);
+                    if ($newFoto) {
+                        header("Location: ficha_trabajador.php?id=$id&tab=" . ($active_tab ?? 'personales') . "&success=" . urlencode("Foto de perfil descargada e importada correctamente desde Moodle."));
+                        exit();
+                    } else {
+                        header("Location: ficha_trabajador.php?id=$id&tab=" . ($active_tab ?? 'personales') . "&error=" . urlencode("No se encontró una foto de perfil personalizada en Moodle para este usuario."));
+                        exit();
+                    }
+                } else {
+                    header("Location: ficha_trabajador.php?id=$id&tab=" . ($active_tab ?? 'personales') . "&error=" . urlencode("El usuario no está vinculado a Moodle. Sincroniza primero la cuenta con Moodle."));
+                    exit();
+                }
+            } catch (Exception $e) {
+                header("Location: ficha_trabajador.php?id=$id&tab=" . ($active_tab ?? 'personales') . "&error=" . urlencode("Error al importar foto de Moodle: " . $e->getMessage()));
+                exit();
+            }
+        }
+
         if ($action == 'update_personales') {
             $centro_id = !empty($_POST['centro_id']) ? intval($_POST['centro_id']) : null;
             $centro_nombre = null;
@@ -1000,6 +1031,7 @@ $tareas = $stmt_tareas->fetchAll();
                     <?php 
                         if($_GET['success'] == 'upload') echo "Documento subido y registrado correctamente.";
                         elseif($_GET['success'] == 'deleted') echo "Documento eliminado correctamente.";
+                        elseif(strlen($_GET['success']) > 2) echo htmlspecialchars($_GET['success']);
                         else echo "Cambios guardados con éxito.";
                     ?>
                 </div>
@@ -1038,10 +1070,13 @@ $tareas = $stmt_tareas->fetchAll();
                             <div style="margin-top: 15px; text-align: center; width: 100%;">
                                 <div style="display: flex; flex-direction: column; gap: 8px;">
                                     <button type="button" onclick="document.getElementById('foto').click();" style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; padding: 7px 14px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                                        <i class="fas fa-upload"></i> Subir Foto
+                                        <i class="fas fa-upload"></i> Subir Foto Local
                                     </button>
-                                    <button type="button" id="btnSyncFotoMoodle" onclick="syncFotoMoodle(<?= $id ?>, 'usuario')" style="background: #0284c7; color: white; border: 1px solid #0369a1; padding: 7px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 4px rgba(2, 132, 199, 0.15);">
-                                        <i class="fas fa-sync-alt"></i> Actualizar foto de perfil en Moodle
+                                    <button type="submit" name="action" value="import_moodle_photo" style="background: #059669; color: white; border: 1px solid #047857; padding: 7px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 4px rgba(5, 150, 105, 0.15);" title="Descargar e importar foto de perfil desde Moodle">
+                                        <i class="fas fa-download"></i> Cargar foto desde Moodle
+                                    </button>
+                                    <button type="button" id="btnSyncFotoMoodle" onclick="syncFotoMoodle(<?= $id ?>, 'usuario')" style="background: #0284c7; color: white; border: 1px solid #0369a1; padding: 7px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 4px rgba(2, 132, 199, 0.15);" title="Enviar foto actual a Moodle">
+                                        <i class="fas fa-upload"></i> Enviar foto a Moodle
                                     </button>
                                 </div>
                                 <span style="font-size: 0.72rem; color: #64748b; display: block; margin-top: 8px;">Formatos: JPG, PNG, WEBP</span>

@@ -4,8 +4,10 @@
 class MoodleAPI {
     private $url;
     private $token;
+    private $pdo;
     
     public function __construct($pdo) {
+        $this->pdo = $pdo;
         // Cargar configuración de DB
         $stmt = $pdo->query("SELECT clave, valor FROM configuracion WHERE clave IN ('moodle_url', 'moodle_token')");
         $config = [];
@@ -409,6 +411,61 @@ class MoodleAPI {
         if ($itemId > 0) {
             return $this->updateUser($moodleUserId, ['userpicture' => $itemId]);
         }
+        return false;
+    }
+
+    /**
+     * Descarga la foto de perfil desde Moodle y la establece en la Intranet
+     */
+    public function syncUserPictureFromMoodle($userId, $moodleUserId) {
+        if (empty($userId) || empty($moodleUserId)) return false;
+        
+        $moodleUrl = rtrim($this->url, '/');
+        $moodleUrl = str_replace('/webservice/rest/server.php', '', $moodleUrl);
+        
+        // f3 (alta resolución), f1 (estándar)
+        $urls = [
+            "$moodleUrl/user/pix.php/$moodleUserId/f3.jpg",
+            "$moodleUrl/user/pix.php/$moodleUserId/f1.jpg"
+        ];
+        
+        $imageData = null;
+        foreach ($urls as $url) {
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+            curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)');
+            $res = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+            curl_close($ch);
+            
+            if ($httpCode == 200 && strpos($contentType, 'image') !== false && strlen($res) > 500) {
+                $imageData = $res;
+                break;
+            }
+        }
+        
+        if ($imageData) {
+            $uploadDir = __DIR__ . '/../uploads/usuarios/' . $userId;
+            if (!file_exists($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+            $fileName = 'avatar_moodle_' . time() . '.jpg';
+            $targetFile = $uploadDir . '/' . $fileName;
+            $relPath = 'uploads/usuarios/' . $userId . '/' . $fileName;
+            
+            if (file_put_contents($targetFile, $imageData)) {
+                if ($this->pdo) {
+                    $this->pdo->prepare("UPDATE usuarios SET foto = ? WHERE id = ?")->execute([$relPath, $userId]);
+                }
+                return $relPath;
+            }
+        }
+        
         return false;
     }
 

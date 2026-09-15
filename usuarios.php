@@ -155,6 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                         if ($existingUser) {
                             $mUserId = $existingUser['id'];
                             $pdo->prepare("UPDATE usuarios SET moodle_user_id = ? WHERE id = ?")->execute([$mUserId, $id]);
+                            $moodle->syncUserPictureFromMoodle($id, $mUserId);
                             audit_log($pdo, 'USUARIO_MOODLE_ALTA', 'usuarios', $id, null, ['moodle_user_id' => $mUserId, 'modo' => 'vinculado_existente']);
                             $success = "El usuario '{$user_data['username']}' ya estaba dado de alta en Moodle (ID #{$mUserId}, Email: {$user_data['email']}) y se ha sincronizado correctamente con la intranet.";
                         } else {
@@ -170,6 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                             if (!empty($newUsers) && isset($newUsers[0]['id'])) {
                                 $mUserId = $newUsers[0]['id'];
                                 $pdo->prepare("UPDATE usuarios SET moodle_user_id = ? WHERE id = ?")->execute([$mUserId, $id]);
+                                $moodle->syncUserPictureFromMoodle($id, $mUserId);
                                 audit_log($pdo, 'USUARIO_MOODLE_ALTA', 'usuarios', $id, null, ['moodle_user_id' => $mUserId, 'modo' => 'creado_nuevo']);
                                 $success = "El usuario '{$user_data['username']}' ha sido dado de alta correctamente en Moodle (ID #{$mUserId}, Contraseña temporal: MoodleTemp123!).";
                             } else {
@@ -214,6 +216,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                         if ($existingUser) {
                             $mUserId = $existingUser['id'];
                             $pdo->prepare("UPDATE usuarios SET moodle_user_id = ? WHERE id = ?")->execute([$mUserId, $uData['id']]);
+                            $moodle->syncUserPictureFromMoodle($uData['id'], $mUserId);
                             audit_log($pdo, 'USUARIO_MOODLE_ALTA', 'usuarios', $uData['id'], null, ['moodle_user_id' => $mUserId, 'modo' => 'vinculado_existente']);
                             $linked_count++;
                         }
