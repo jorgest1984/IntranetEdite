@@ -259,13 +259,56 @@ if (isset($_POST['add_alumno_id']) || !empty($_POST['student_search_text'])) {
     } catch (Exception $e) { $error = $e->getMessage(); }
 }
 
-// Procesar Baja de Alumno
-if (isset($_GET['remove_id'])) {
-    $matricula_id = (int)$_GET['remove_id'];
+// Procesar Reactivación de Alumno (Re-matricular en Moodle e Intranet)
+if (isset($_GET['reactivar_id'])) {
+    $matricula_id = (int)$_GET['reactivar_id'];
     $moodle_error = null;
     $moodle_status = 'skipped';
     
-    // Obtener los IDs de Moodle y datos del alumno/curso antes de borrar la matrícula
+    try {
+        $stmtMat = $pdo->prepare("SELECT m.alumno_id, a.moodle_user_id, a.email, a.nombre, a.primer_apellido, a.segundo_apellido, c.nombre_largo as curso_titulo, COALESCE(c.moodle_id, af.id_plataforma) as curso_moodle_id
+                                  FROM matriculas m 
+                                  JOIN alumnos a ON m.alumno_id = a.id
+                                  JOIN grupos g ON m.grupo_id = g.id
+                                  JOIN acciones_formativas af ON g.accion_id = af.id
+                                  JOIN cursos c ON af.curso_id = c.id
+                                  WHERE m.id = ? AND m.grupo_id = ?");
+        $stmtMat->execute([$matricula_id, $grupo_id]);
+        $mat_info = $stmtMat->fetch(PDO::FETCH_ASSOC);
+
+        if ($mat_info) {
+            $moodleUserId = $mat_info['moodle_user_id'];
+            $courseMoodleId = $mat_info['curso_moodle_id'];
+
+            require_once 'includes/moodle_api.php';
+            $moodle = new MoodleAPI($pdo);
+            if ($moodle->isConfigured() && !empty($moodleUserId) && !empty($courseMoodleId)) {
+                try {
+                    $moodle->enrolUser($moodleUserId, $courseMoodleId, 5); // Rol student (5)
+                    $moodle_status = 'success';
+                } catch (Exception $moodleEx) {
+                    $moodle_error = $moodleEx->getMessage();
+                }
+            }
+            
+            $pdo->prepare("UPDATE matriculas SET estado = 'Inscrito' WHERE id = ? AND grupo_id = ?")->execute([$matricula_id, $grupo_id]);
+        }
+    } catch (Exception $e) {
+        $moodle_error = $e->getMessage();
+    }
+    
+    header("Location: gestion_matriculas.php?af_id=$af_id&grupo_id=$grupo_id&success_sync=1&sync_msg=" . urlencode("Alumno reactivado correctamente e inscrito de nuevo en Moodle."));
+    exit();
+}
+
+// Procesar Baja de Alumno (Desmatricular de Moodle + Marcar con Franja Roja en Intranet)
+if (isset($_GET['remove_id'])) {
+    $matricula_id = (int)$_GET['remove_id'];
+    $permanent = isset($_GET['permanent']) && $_GET['permanent'] == 1;
+    $moodle_error = null;
+    $moodle_status = 'skipped';
+    
+    // Obtener los IDs de Moodle y datos del alumno/curso antes de procesar
     try {
         $stmtMat = $pdo->prepare("SELECT m.alumno_id, a.moodle_user_id, a.email, a.nombre, a.primer_apellido, a.segundo_apellido, c.nombre_largo as curso_titulo, COALESCE(c.moodle_id, af.id_plataforma) as curso_moodle_id
                                   FROM matriculas m 
@@ -291,7 +334,6 @@ if (isset($_GET['remove_id'])) {
                         $existingUsers = $moodle->getUsersByField('email', [$email]);
                         if (!empty($existingUsers) && isset($existingUsers['users'][0])) {
                             $moodleUserId = $existingUsers['users'][0]['id'];
-                            // Actualizar localmente para no repetir la búsqueda
                             $pdo->prepare("UPDATE alumnos SET moodle_user_id = ? WHERE id = ?")->execute([$moodleUserId, $mat_info['alumno_id']]);
                         }
                     } catch (Exception $lookupEx) {
@@ -317,42 +359,45 @@ if (isset($_GET['remove_id'])) {
         $moodle_status = 'error';
     }
 
-    // Iniciar transacción de BD para archivar en Papelera y eliminar localmente
-    try {
-        // Asegurar que la tabla Papelera existe ANTES de iniciar la transacción.
-        // Esto evita que el DDL implícito (CREATE TABLE) de Papelera rompa la transacción PDO activa.
-        require_once 'includes/Papelera.php';
-        Papelera::checkTable($pdo);
-
-        $pdo->beginTransaction();
-
-        // Obtener el registro limpio de la matrícula para archivar en Papelera
-        $stmtMatClean = $pdo->prepare("SELECT * FROM matriculas WHERE id = ?");
-        $stmtMatClean->execute([$matricula_id]);
-        $matricula_clean = $stmtMatClean->fetch(PDO::FETCH_ASSOC);
-
-        if ($matricula_clean && $mat_info) {
+    if ($permanent) {
+        // Borrado definitivo: Archivar en Papelera y eliminar fila local de matriculas
+        try {
             require_once 'includes/Papelera.php';
-            $alumno_nombre = trim($mat_info['nombre'] . ' ' . ($mat_info['primer_apellido'] ?? '') . ' ' . ($mat_info['segundo_apellido'] ?? ''));
-            $titulo_papelera = $alumno_nombre . " - " . $mat_info['curso_titulo'];
-            
-            // Archivar en papelera
-            Papelera::archivar($pdo, 'matriculas', $matricula_id, $titulo_papelera, ['matriculas' => $matricula_clean]);
-        }
+            Papelera::checkTable($pdo);
+            $pdo->beginTransaction();
+            $stmtMatClean = $pdo->prepare("SELECT * FROM matriculas WHERE id = ?");
+            $stmtMatClean->execute([$matricula_id]);
+            $matricula_clean = $stmtMatClean->fetch(PDO::FETCH_ASSOC);
 
-        $pdo->prepare("DELETE FROM matriculas WHERE id = ? AND grupo_id = ?")->execute([$matricula_id, $grupo_id]);
-        $pdo->commit();
-    } catch (Exception $e) {
-        if ($pdo->inTransaction()) {
-            $pdo->rollBack();
+            if ($matricula_clean && $mat_info) {
+                $alumno_nombre = trim($mat_info['nombre'] . ' ' . ($mat_info['primer_apellido'] ?? '') . ' ' . ($mat_info['segundo_apellido'] ?? ''));
+                $titulo_papelera = $alumno_nombre . " - " . $mat_info['curso_titulo'];
+                Papelera::archivar($pdo, 'matriculas', $matricula_id, $titulo_papelera, ['matriculas' => $matricula_clean]);
+            }
+
+            $pdo->prepare("DELETE FROM matriculas WHERE id = ? AND grupo_id = ?")->execute([$matricula_id, $grupo_id]);
+            $pdo->commit();
+        } catch (Exception $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            $moodle_error = ($moodle_error ? $moodle_error . " | " : "") . "Error al eliminar matrícula local: " . $e->getMessage();
+            $moodle_status = 'error';
         }
-        $moodle_error = ($moodle_error ? $moodle_error . " | " : "") . "Error al eliminar matrícula local: " . $e->getMessage();
-        $moodle_status = 'error';
+        $redirectParam = "removed=1";
+    } else {
+        // Dar de baja: Marcar estado = 'BAJA' y guardar fecha_comunicacion (Se mantiene en la Intranet con la franja roja)
+        try {
+            $pdo->prepare("UPDATE matriculas SET estado = 'BAJA', fecha_comunicacion = COALESCE(fecha_comunicacion, CURRENT_DATE) WHERE id = ? AND grupo_id = ?")->execute([$matricula_id, $grupo_id]);
+        } catch (Exception $e) {
+            $moodle_error = ($moodle_error ? $moodle_error . " | " : "") . "Error al marcar baja local: " . $e->getMessage();
+        }
+        $redirectParam = "baja_marked=1";
     }
     
-    $redirectUrl = "gestion_matriculas.php?af_id=$af_id&grupo_id=$grupo_id&removed=1&moodle_status=$moodle_status";
+    $redirectUrl = "gestion_matriculas.php?af_id=$af_id&grupo_id=$grupo_id&$redirectParam&moodle_status=$moodle_status";
     if ($moodle_error) {
-        $redirectUrl .= "&error=" . urlencode("La matrícula se eliminó de la Intranet, pero ocurrió un problema: " . $moodle_error);
+        $redirectUrl .= "&error=" . urlencode("Operación procesada con advertencia: " . $moodle_error);
     }
     header("Location: $redirectUrl");
     exit();
@@ -379,7 +424,8 @@ try {
 } catch (Exception $e) {}
 
 // Obtener alumnos matriculados reales (excluyendo a tutores e inspectores)
-$matriculados = $pdo->prepare("SELECT m.id as matricula_id, a.* FROM matriculas m 
+$matriculados = $pdo->prepare("SELECT m.id as matricula_id, m.estado as matricula_estado, m.fecha_comunicacion, a.* 
+                               FROM matriculas m 
                                JOIN alumnos a ON m.alumno_id = a.id 
                                WHERE m.grupo_id = ? 
                                AND a.email NOT LIKE 'tutora.%'
@@ -389,9 +435,19 @@ $matriculados = $pdo->prepare("SELECT m.id as matricula_id, a.* FROM matriculas 
                                AND a.nombre NOT LIKE '%SEPE%'
                                AND a.dni NOT LIKE 'e25%'
                                AND a.dni NOT LIKE 'e24%'
-                               ORDER BY a.nombre ASC");
+                               ORDER BY (CASE WHEN UPPER(m.estado) = 'BAJA' THEN 1 ELSE 0 END) ASC, a.nombre ASC");
 $matriculados->execute([$grupo_id]);
 $alumnos = $matriculados->fetchAll();
+
+$cntInscritos = 0;
+$cntBajas = 0;
+foreach ($alumnos as $al_c) {
+    if (strtoupper($al_c['matricula_estado'] ?? '') === 'BAJA') {
+        $cntBajas++;
+    } else {
+        $cntInscritos++;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -548,12 +604,30 @@ $alumnos = $matriculados->fetchAll();
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                 <span><?= htmlspecialchars($removed_msg) ?></span>
             </div>
+        <?php elseif (isset($_GET['baja_marked'])): ?>
+            <?php
+            $moodle_status = $_GET['moodle_status'] ?? '';
+            $baja_msg = 'El alumno ha sido dado de baja del curso en Moodle y queda marcado en la Intranet con la franja roja (comunicado al principio del curso).';
+            if ($moodle_status === 'success') {
+                $baja_msg .= ' Se ha desmatriculado correctamente del curso en Moodle.';
+            } elseif ($moodle_status === 'missing_ids') {
+                $baja_msg .= ' ⚠️ Nota: No tenía cuenta de Moodle vinculada.';
+            }
+            ?>
+            <div class="alert alert-success" style="background: #fef2f2; color: #991b1b; border-left: 4px solid #ef4444; border: 1px solid #fca5a5; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; font-weight: 500; display: flex; align-items: center; gap: 8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                <span><?= htmlspecialchars($baja_msg) ?></span>
+            </div>
         <?php endif; ?>
 
         <div class="gestion-container">
             <div class="enrolled-section">
                 <h2 style="font-size: 1.1rem; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
-                    Alumnos Matriculados <span class="badge-count"><?= count($alumnos) ?></span>
+                    Alumnos Matriculados 
+                    <span class="badge-count"><?= $cntInscritos ?> Inscritos</span>
+                    <?php if ($cntBajas > 0): ?>
+                        <span class="badge-count" style="background: #dc2626;"><?= $cntBajas ?> Bajas</span>
+                    <?php endif; ?>
                 </h2>
                 
                 <?php if (empty($alumnos)): ?>
@@ -561,33 +635,65 @@ $alumnos = $matriculados->fetchAll();
                         No hay alumnos matriculados en este curso todavía.
                     </div>
                 <?php else: ?>
-                    <?php foreach($alumnos as $a): ?>
-                        <div class="student-card">
-                            <div>
-                                <div style="font-weight: 700; color: #1e293b; font-size: 0.95rem;">
-                                    <a href="ficha_alumno.php?id=<?= $a['id'] ?>" target="_blank" style="color: #1e293b; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#1e293b'" title="Abrir ficha del alumno para ver y modificar datos">
-                                        <?= htmlspecialchars($a['nombre'] . ' ' . ($a['primer_apellido'] ?? '') . ' ' . ($a['segundo_apellido'] ?? '')) ?>
-                                    </a>
+                    <?php foreach($alumnos as $a): 
+                        $isBaja = (strtoupper($a['matricula_estado'] ?? '') === 'BAJA');
+                    ?>
+                        <div class="student-card" style="<?= $isBaja ? 'background: #fef2f2; border: 2px solid #ef4444; flex-direction: column; align-items: stretch; gap: 10px; padding: 12px 16px; position: relative;' : '' ?>">
+                            <?php if ($isBaja): ?>
+                                <div style="background: #dc2626; color: white; font-weight: 800; font-size: 0.78rem; padding: 6px 12px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 2px 5px rgba(220,38,38,0.2);">
+                                    <span style="display: flex; align-items: center; gap: 6px;">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                                        DADO DE BAJA EN EL CURSO (Comunicado al principio del curso)
+                                    </span>
+                                    <span style="font-size: 0.7rem; font-weight: 600; opacity: 0.95; background: rgba(0,0,0,0.2); padding: 2px 8px; border-radius: 4px;">Desmatriculado de Moodle</span>
                                 </div>
-                                <small style="color: #64748b; font-weight: 600;"><?= htmlspecialchars($a['dni']) ?> | <?= htmlspecialchars($a['email']) ?></small>
-                            </div>
-                            <div style="display: flex; gap: 8px; align-items: center;">
-                                <!-- Editar Ficha Alumno -->
-                                <a href="ficha_alumno.php?id=<?= $a['id'] ?>" target="_blank" style="color: #6366f1; padding: 6px; border-radius: 8px; transition: background 0.2s; display: inline-flex; align-items: center; justify-content: center; text-decoration: none;" title="Editar Ficha del Alumno">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                                </a>
+                            <?php endif; ?>
 
-                                <!-- Enviar Claves Individual -->
-                                <button type="button" onclick="openSingleKeysModal(<?= $a['matricula_id'] ?>, <?= htmlspecialchars(json_encode($a['nombre'] . ' ' . ($a['primer_apellido'] ?? '') . ' ' . ($a['segundo_apellido'] ?? ''))) ?>, <?= htmlspecialchars(json_encode($a['email'])) ?>, <?= htmlspecialchars(json_encode($a['plat_usuario'] ?? '')) ?>, <?= htmlspecialchars(json_encode($a['plat_clave'] ?? '')) ?>, <?= htmlspecialchars(json_encode($a['dni'] ?? '')) ?>)" style="background: none; border: none; cursor: pointer; color: #0284c7; padding: 6px; display: inline-flex; align-items: center; justify-content: center; hover:color: #0369a1;" title="Enviar Claves de Acceso">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-                                </button>
-                                
-                                <a href="?af_id=<?= $af_id ?>&remove_id=<?= $a['matricula_id'] ?>" 
-                                   onclick="return confirm('¿Dar de baja a este alumno de este curso? (Nota: El alumno NO se borrará de la Intranet, solo se elimina su matrícula de este curso).')"
-                                   style="color: #ef4444; padding: 6px; border-radius: 8px; transition: background 0.2s; display: inline-flex; align-items: center; justify-content: center;"
-                                   title="Dar de baja de esta matrícula">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                                </a>
+                            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                                <div>
+                                    <div style="font-weight: 700; color: <?= $isBaja ? '#991b1b' : '#1e293b' ?>; font-size: 0.95rem;">
+                                        <a href="ficha_alumno.php?id=<?= $a['id'] ?>" target="_blank" style="color: <?= $isBaja ? '#991b1b' : '#1e293b' ?>; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='<?= $isBaja ? '#991b1b' : '#1e293b' ?>'" title="Abrir ficha del alumno para ver y modificar datos">
+                                            <?= htmlspecialchars($a['nombre'] . ' ' . ($a['primer_apellido'] ?? '') . ' ' . ($a['segundo_apellido'] ?? '')) ?>
+                                        </a>
+                                    </div>
+                                    <small style="color: <?= $isBaja ? '#b91c1c' : '#64748b' ?>; font-weight: 600;"><?= htmlspecialchars($a['dni']) ?> | <?= htmlspecialchars($a['email']) ?></small>
+                                </div>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <?php if ($isBaja): ?>
+                                        <a href="?af_id=<?= $af_id ?>&grupo_id=<?= $grupo_id ?>&reactivar_id=<?= $a['matricula_id'] ?>" 
+                                           onclick="return confirm('¿Reactivar alumno y volver a matricularlo en el curso de Moodle?')"
+                                           style="background: #10b981; color: white; padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 0.78rem; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;"
+                                           title="Reactivar y matricular de nuevo en Moodle">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                                            Reactivar
+                                        </a>
+                                        
+                                        <a href="?af_id=<?= $af_id ?>&grupo_id=<?= $grupo_id ?>&remove_id=<?= $a['matricula_id'] ?>&permanent=1" 
+                                           onclick="return confirm('¿Enviar esta matrícula a la Papelera y eliminarla del listado definitivo de la Intranet?')"
+                                           style="color: #991b1b; padding: 6px; border-radius: 8px; transition: background 0.2s; display: inline-flex; align-items: center; justify-content: center;"
+                                           title="Eliminar definitivamente (Papelera)">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                        </a>
+                                    <?php else: ?>
+                                        <!-- Editar Ficha Alumno -->
+                                        <a href="ficha_alumno.php?id=<?= $a['id'] ?>" target="_blank" style="color: #6366f1; padding: 6px; border-radius: 8px; transition: background 0.2s; display: inline-flex; align-items: center; justify-content: center; text-decoration: none;" title="Editar Ficha del Alumno">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                        </a>
+
+                                        <!-- Enviar Claves Individual -->
+                                        <button type="button" onclick="openSingleKeysModal(<?= $a['matricula_id'] ?>, <?= htmlspecialchars(json_encode($a['nombre'] . ' ' . ($a['primer_apellido'] ?? '') . ' ' . ($a['segundo_apellido'] ?? ''))) ?>, <?= htmlspecialchars(json_encode($a['email'])) ?>, <?= htmlspecialchars(json_encode($a['plat_usuario'] ?? '')) ?>, <?= htmlspecialchars(json_encode($a['plat_clave'] ?? '')) ?>, <?= htmlspecialchars(json_encode($a['dni'] ?? '')) ?>)" style="background: none; border: none; cursor: pointer; color: #0284c7; padding: 6px; display: inline-flex; align-items: center; justify-content: center;" title="Enviar Claves de Acceso">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                                        </button>
+                                        
+                                        <!-- Dar de Baja de Moodle y Marcar con Franja Roja -->
+                                        <a href="?af_id=<?= $af_id ?>&grupo_id=<?= $grupo_id ?>&remove_id=<?= $a['matricula_id'] ?>" 
+                                           onclick="return confirm('¿Dar de baja a este alumno del curso en Moodle? El alumno se desmatriculará de Moodle y se mostrará marcado con la franja roja en el listado.')"
+                                           style="color: #ef4444; padding: 6px; border-radius: 8px; transition: background 0.2s; display: inline-flex; align-items: center; justify-content: center;"
+                                           title="Dar de baja de este curso">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                        </a>
+                                    <?php endif; ?>
+                                </div>
                             </div>
                         </div>
                     <?php endforeach; ?>
