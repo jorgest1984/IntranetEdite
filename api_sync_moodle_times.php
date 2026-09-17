@@ -29,7 +29,7 @@ try {
     // 3. Obtener la Acción Formativa, su correspondiente id_plataforma (ID del curso en Moodle) y la duración en horas
     $stmt = $pdo->prepare("SELECT af.*, c.moodle_id as curso_moodle_id 
                            FROM acciones_formativas af 
-                           JOIN cursos c ON af.curso_id = c.id 
+                           LEFT JOIN cursos c ON af.curso_id = c.id 
                            WHERE af.id = ?");
     $stmt->execute([$af_id]);
     $af = $stmt->fetch();
@@ -39,9 +39,28 @@ try {
         exit();
     }
 
-    $courseMoodleId = (int)$af['curso_moodle_id'];
-    if (!$courseMoodleId) {
+    $courseMoodleId = !empty($af['curso_moodle_id']) ? (int)$af['curso_moodle_id'] : 0;
+    if (!$courseMoodleId && !empty($af['id_plataforma'])) {
         $courseMoodleId = (int)$af['id_plataforma'];
+    }
+
+    if (!$courseMoodleId) {
+        // Buscar en los grupos vinculados por id_plataforma o codigo_plat
+        $stmtG = $pdo->prepare("SELECT id_plataforma, codigo_plat FROM grupos WHERE accion_id = ? AND ((id_plataforma IS NOT NULL AND id_plataforma > 0) OR (codigo_plat IS NOT NULL AND codigo_plat != '')) ORDER BY id ASC LIMIT 1");
+        $stmtG->execute([$af_id]);
+        $gRow = $stmtG->fetch();
+        if ($gRow) {
+            $courseMoodleId = (int)($gRow['id_plataforma'] ?: $gRow['codigo_plat']);
+        }
+    }
+
+    if (!$courseMoodleId && !empty($af['abreviatura'])) {
+        require_once 'includes/moodle_db.php';
+        $moodleDbTmp = new MoodleDB();
+        $foundId = $moodleDbTmp->findCourseId($af['abreviatura']);
+        if ($foundId) {
+            $courseMoodleId = (int)$foundId;
+        }
     }
 
     if (!$courseMoodleId) {
@@ -50,6 +69,12 @@ try {
             'error' => 'Esta acción formativa no está vinculada a ningún curso de Moodle (id_plataforma vacío).'
         ]);
         exit();
+    }
+
+    // Auto-corregir id_plataforma en la Intranet para que no vuelva a fallar
+    $pdo->prepare("UPDATE acciones_formativas SET id_plataforma = ? WHERE id = ?")->execute([$courseMoodleId, $af_id]);
+    if (!empty($af['curso_id'])) {
+        $pdo->prepare("UPDATE cursos SET moodle_id = ? WHERE id = ?")->execute([$courseMoodleId, (int)$af['curso_id']]);
     }
 
     // 4. Obtener todos los alumnos matriculados en cualquier grupo de esta Acción Formativa

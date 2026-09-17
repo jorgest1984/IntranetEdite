@@ -126,88 +126,112 @@ class MoodleDB {
 
         if ($this->isConnected()) {
             try {
+                $prefix = $this->getTablePrefix();
                 $placeholders = implode(',', array_fill(0, count($validUserIds), '?'));
                 $params = array_merge([$moodleCourseId], $validUserIds);
 
-                // 1. Primer y último acceso
-                $sqlAccess = "SELECT userid, MIN(timecreated) as first_acc, MAX(timecreated) as last_acc 
-                              FROM " . MOODLE_DB_PREFIX . "logstore_standard_log 
-                              WHERE courseid = ? AND userid IN ($placeholders) 
-                              GROUP BY userid";
-                $stmtAccess = $this->mpdo->prepare($sqlAccess);
-                $stmtAccess->execute($params);
-                while ($row = $stmtAccess->fetch()) {
-                    $uid = $row['userid'];
-                    if (isset($stats[$uid])) {
-                        $stats[$uid]['first_access'] = date('Y-m-d H:i:s', $row['first_acc']);
-                        $stats[$uid]['last_access'] = date('Y-m-d H:i:s', $row['last_acc']);
+                // 1. Primer y último acceso (por logstore_standard_log)
+                try {
+                    $sqlAccess = "SELECT userid, MIN(timecreated) as first_acc, MAX(timecreated) as last_acc 
+                                  FROM {$prefix}logstore_standard_log 
+                                  WHERE courseid = ? AND userid IN ($placeholders) 
+                                  GROUP BY userid";
+                    $stmtAccess = $this->mpdo->prepare($sqlAccess);
+                    $stmtAccess->execute($params);
+                    while ($row = $stmtAccess->fetch()) {
+                        $uid = (int)$row['userid'];
+                        if (isset($stats[$uid])) {
+                            $stats[$uid]['first_access'] = date('Y-m-d H:i:s', $row['first_acc']);
+                            $stats[$uid]['last_access'] = date('Y-m-d H:i:s', $row['last_acc']);
+                        }
                     }
-                }
+                } catch (Exception $ex) {}
 
-                // 2. Tiempo de conexión por logs
-                $sqlLogs = "SELECT userid, timecreated 
-                            FROM " . MOODLE_DB_PREFIX . "logstore_standard_log 
-                            WHERE courseid = ? AND userid IN ($placeholders) 
-                            ORDER BY userid ASC, timecreated ASC";
-                $stmtLogs = $this->mpdo->prepare($sqlLogs);
-                $stmtLogs->execute($params);
-                
-                $userLogs = [];
-                while ($row = $stmtLogs->fetch()) {
-                    $userLogs[$row['userid']][] = (int)$row['timecreated'];
-                }
-
-                foreach ($userLogs as $uid => $times) {
-                    if (!isset($stats[$uid])) continue;
-                    $totalSeconds = 0;
-                    $n = count($times);
-                    if ($n > 0) {
-                        $totalSeconds += 120; // 2 min cortesía
-                        for ($i = 1; $i < $n; $i++) {
-                            $diff = $times[$i] - $times[$i-1];
-                            if ($diff < 1800) {
-                                $totalSeconds += $diff;
-                            } else {
-                                $totalSeconds += 120;
+                // 1.B Fallback de accesos por user_lastaccess y user
+                try {
+                    $sqlLA = "SELECT userid, timeaccess FROM {$prefix}user_lastaccess WHERE courseid = ? AND userid IN ($placeholders)";
+                    $stmtLA = $this->mpdo->prepare($sqlLA);
+                    $stmtLA->execute($params);
+                    while ($row = $stmtLA->fetch()) {
+                        $uid = (int)$row['userid'];
+                        if (isset($stats[$uid]) && $row['timeaccess']) {
+                            $dt = date('Y-m-d H:i:s', $row['timeaccess']);
+                            if (empty($stats[$uid]['last_access']) || $dt > $stats[$uid]['last_access']) {
+                                $stats[$uid]['last_access'] = $dt;
+                            }
+                            if (empty($stats[$uid]['first_access']) || $dt < $stats[$uid]['first_access']) {
+                                $stats[$uid]['first_access'] = $dt;
                             }
                         }
                     }
-                    // Aplicar factor de ajuste (+20%) para compensar tiempos de lectura y estudio entre eventos
-                    $totalSeconds = (int)round($totalSeconds * 1.20);
-                    $stats[$uid]['connected_seconds'] = $totalSeconds;
+                } catch (Exception $ex) {}
+
+                // 2. Tiempo de conexión por logs
+                try {
+                    $sqlLogs = "SELECT userid, timecreated 
+                                FROM {$prefix}logstore_standard_log 
+                                WHERE courseid = ? AND userid IN ($placeholders) 
+                                ORDER BY userid ASC, timecreated ASC";
+                    $stmtLogs = $this->mpdo->prepare($sqlLogs);
+                    $stmtLogs->execute($params);
                     
-                    // Calcular porcentaje de progresión basado en tiempo de conexión
-                    $connectedHours = $totalSeconds / 3600;
-                    $dur = ($courseDuration > 0) ? (int)$courseDuration : 60;
-                    $stats[$uid]['progress'] = min(100, max(0, round(($connectedHours / $dur) * 100)));
-                }
+                    $userLogs = [];
+                    while ($row = $stmtLogs->fetch()) {
+                        $userLogs[$row['userid']][] = (int)$row['timecreated'];
+                    }
+
+                    foreach ($userLogs as $uid => $times) {
+                        if (!isset($stats[$uid])) continue;
+                        $totalSeconds = 0;
+                        $n = count($times);
+                        if ($n > 0) {
+                            $totalSeconds += 120; // 2 min cortesía
+                            for ($i = 1; $i < $n; $i++) {
+                                $diff = $times[$i] - $times[$i-1];
+                                if ($diff < 1800) {
+                                    $totalSeconds += $diff;
+                                } else {
+                                    $totalSeconds += 120;
+                                }
+                            }
+                        }
+                        // Aplicar factor de ajuste (+20%) para compensar tiempos de lectura y estudio entre eventos
+                        $totalSeconds = (int)round($totalSeconds * 1.20);
+                        $stats[$uid]['connected_seconds'] = $totalSeconds;
+                        
+                        // Calcular porcentaje de progresión basado en tiempo de conexión
+                        $connectedHours = $totalSeconds / 3600;
+                        $dur = ($courseDuration > 0) ? (int)$courseDuration : 60;
+                        $stats[$uid]['progress'] = min(100, max(0, round(($connectedHours / $dur) * 100)));
+                    }
+                } catch (Exception $ex) {}
 
                 // 3. Visualización de contenidos M1, M2, M3
                 // Consultamos todos los módulos habilitados con completitud y sus nombres en Moodle
                 $sqlModules = "SELECT cm.id as coursemoduleid, cs.section as section_number, cs.name as section_name, 
                                      COALESCE(a.name, p.name, r.name, q.name, f.name, b.name, s.name, 'Actividad') as name,
                                      cmc.userid, cmc.completionstate
-                              FROM " . MOODLE_DB_PREFIX . "course_modules cm
-                              JOIN " . MOODLE_DB_PREFIX . "course_sections cs ON cm.section = cs.id
-                              JOIN " . MOODLE_DB_PREFIX . "modules m ON cm.module = m.id
-                              LEFT JOIN " . MOODLE_DB_PREFIX . "assign a ON m.name = 'assign' AND cm.instance = a.id
-                              LEFT JOIN " . MOODLE_DB_PREFIX . "page p ON m.name = 'page' AND cm.instance = p.id
-                              LEFT JOIN " . MOODLE_DB_PREFIX . "resource r ON m.name = 'resource' AND cm.instance = r.id
-                              LEFT JOIN " . MOODLE_DB_PREFIX . "quiz q ON m.name = 'quiz' AND cm.instance = q.id
-                              LEFT JOIN " . MOODLE_DB_PREFIX . "forum f ON m.name = 'forum' AND cm.instance = f.id
-                              LEFT JOIN " . MOODLE_DB_PREFIX . "book b ON m.name = 'book' AND cm.instance = b.id
-                              LEFT JOIN " . MOODLE_DB_PREFIX . "scorm s ON m.name = 'scorm' AND cm.instance = s.id
-                              LEFT JOIN " . MOODLE_DB_PREFIX . "course_modules_completion cmc ON cmc.coursemoduleid = cm.id
-                              WHERE cm.course = ? AND cmc.userid IN ($placeholders)";
+                              FROM {$prefix}course_modules cm
+                              JOIN {$prefix}course_sections cs ON cm.section = cs.id
+                              JOIN {$prefix}modules m ON cm.module = m.id
+                              LEFT JOIN {$prefix}assign a ON m.name = 'assign' AND cm.instance = a.id
+                              LEFT JOIN {$prefix}page p ON m.name = 'page' AND cm.instance = p.id
+                              LEFT JOIN {$prefix}resource r ON m.name = 'resource' AND cm.instance = r.id
+                              LEFT JOIN {$prefix}quiz q ON m.name = 'quiz' AND cm.instance = q.id
+                              LEFT JOIN {$prefix}forum f ON m.name = 'forum' AND cm.instance = f.id
+                              LEFT JOIN {$prefix}book b ON m.name = 'book' AND cm.instance = b.id
+                              LEFT JOIN {$prefix}scorm s ON m.name = 'scorm' AND cm.instance = s.id
+                              LEFT JOIN {$prefix}course_modules_completion cmc ON cmc.coursemoduleid = cm.id AND cmc.userid IN ($placeholders)
+                              WHERE cm.course = ?";
                 
                 $stmtMod = $this->mpdo->prepare($sqlModules);
-                $stmtMod->execute($params);
+                $stmtMod->execute([$moodleCourseId]);
                 $moduleRows = $stmtMod->fetchAll();
 
                 // Analizar nombres de módulos para asociar M1, M2, M3
                 foreach ($moduleRows as $row) {
-                    $uid = $row['userid'];
-                    if (!isset($stats[$uid])) continue;
+                    $uid = (int)($row['userid'] ?? 0);
+                    if (!$uid || !isset($stats[$uid])) continue;
 
                     $name = mb_strtolower($row['name'] ?? '', 'UTF-8');
                     $sectionName = mb_strtolower($row['section_name'] ?? '', 'UTF-8');
@@ -240,44 +264,46 @@ class MoodleDB {
                 }
 
                 // 3.B Fallback a SCORM status puro si no usan activity completion general
-                $sqlScorm = "SELECT s.id as scormid, s.name, st.userid, st.value
-                             FROM " . MOODLE_DB_PREFIX . "scorm s
-                             JOIN " . MOODLE_DB_PREFIX . "scorm_scoes_track st ON st.scormid = s.id
-                             WHERE s.course = ? AND st.userid IN ($placeholders) 
-                               AND st.element IN ('cmi.core.lesson_status', 'cmi.completion_status')";
-                
-                $stmtScorm = $this->mpdo->prepare($sqlScorm);
-                $stmtScorm->execute($params);
-                $scormRows = $stmtScorm->fetchAll();
-
-                foreach ($scormRows as $row) {
-                    $uid = $row['userid'];
-                    if (!isset($stats[$uid])) continue;
-
-                    $name = mb_strtolower($row['name'] ?? '', 'UTF-8');
-                    $normalized = strtr($name, [
-                        'á'=>'a', 'é'=>'e', 'í'=>'i', 'ó'=>'o', 'ú'=>'u', 'ü'=>'u', 'ñ'=>'n',
-                        'à'=>'a', 'è'=>'e', 'ì'=>'i', 'ò'=>'o', 'ù'=>'u'
-                    ]);
-                    $cleanName = preg_replace('/[^a-z0-9]/', '', $normalized);
+                try {
+                    $sqlScorm = "SELECT s.id as scormid, s.name, st.userid, st.value
+                                 FROM {$prefix}scorm s
+                                 JOIN {$prefix}scorm_scoes_track st ON st.scormid = s.id
+                                 WHERE s.course = ? AND st.userid IN ($placeholders) 
+                                   AND st.element IN ('cmi.core.lesson_status', 'cmi.completion_status')";
                     
-                    $val = strtolower($row['value']);
-                    $completed = ($val === 'completed' || $val === 'passed' || $val === 'browsed');
+                    $stmtScorm = $this->mpdo->prepare($sqlScorm);
+                    $stmtScorm->execute($params);
+                    $scormRows = $stmtScorm->fetchAll();
 
-                    if ($completed) {
-                        $stats[$uid]['m1_completed'] = 1;
-                        if (strpos($cleanName, 'unidad2') !== false || strpos($cleanName, 'modulo2') !== false || strpos($cleanName, 'tema2') !== false || strpos($cleanName, 'm2') !== false || strpos($cleanName, 'u2') !== false) {
-                            $stats[$uid]['m2_completed'] = 1;
-                        }
-                        if (strpos($cleanName, 'unidad3') !== false || strpos($cleanName, 'modulo3') !== false || strpos($cleanName, 'tema3') !== false || strpos($cleanName, 'm3') !== false || strpos($cleanName, 'u3') !== false) {
-                            $stats[$uid]['m3_completed'] = 1;
+                    foreach ($scormRows as $row) {
+                        $uid = (int)$row['userid'];
+                        if (!isset($stats[$uid])) continue;
+
+                        $name = mb_strtolower($row['name'] ?? '', 'UTF-8');
+                        $normalized = strtr($name, [
+                            'á'=>'a', 'é'=>'e', 'í'=>'i', 'ó'=>'o', 'ú'=>'u', 'ü'=>'u', 'ñ'=>'n',
+                            'à'=>'a', 'è'=>'e', 'ì'=>'i', 'ò'=>'o', 'ù'=>'u'
+                        ]);
+                        $cleanName = preg_replace('/[^a-z0-9]/', '', $normalized);
+                        
+                        $val = strtolower($row['value']);
+                        $completed = ($val === 'completed' || $val === 'passed' || $val === 'browsed');
+
+                        if ($completed) {
+                            $stats[$uid]['m1_completed'] = 1;
+                            if (strpos($cleanName, 'unidad2') !== false || strpos($cleanName, 'modulo2') !== false || strpos($cleanName, 'tema2') !== false || strpos($cleanName, 'm2') !== false || strpos($cleanName, 'u2') !== false) {
+                                $stats[$uid]['m2_completed'] = 1;
+                            }
+                            if (strpos($cleanName, 'unidad3') !== false || strpos($cleanName, 'modulo3') !== false || strpos($cleanName, 'tema3') !== false || strpos($cleanName, 'm3') !== false || strpos($cleanName, 'u3') !== false) {
+                                $stats[$uid]['m3_completed'] = 1;
+                            }
                         }
                     }
-                }
+                } catch (Exception $ex) {}
 
                 // 4. Evaluaciones E1, E2, E3
                 // Obtener cuestionarios de Moodle en este curso
-                $sqlQuizzes = "SELECT id, name, grade FROM " . MOODLE_DB_PREFIX . "quiz WHERE course = ?";
+                $sqlQuizzes = "SELECT id, name, grade FROM {$prefix}quiz WHERE course = ?";
                 $stmtQuiz = $this->mpdo->prepare($sqlQuizzes);
                 $stmtQuiz->execute([$moodleCourseId]);
                 $quizzes = $stmtQuiz->fetchAll();
@@ -337,7 +363,6 @@ class MoodleDB {
                 }
 
                 // Fallback inteligente para cuestionarios no mapeados expresamente:
-                // Asignar los cuestionarios sobrantes no utilizados a los huecos vacíos por orden de aparición
                 $unmappedQuizzes = array_values(array_filter($allQuizzes, function($q) use ($mappedQuizIds) {
                     return !in_array($q['id'], $mappedQuizIds);
                 }));
@@ -365,7 +390,7 @@ class MoodleDB {
 
                 if (!empty($targetQuizIds)) {
                     $quizPlaceholders = implode(',', array_fill(0, count($targetQuizIds), '?'));
-                    $sqlGrades = "SELECT userid, quiz, grade FROM " . MOODLE_DB_PREFIX . "quiz_grades 
+                    $sqlGrades = "SELECT userid, quiz, grade FROM {$prefix}quiz_grades 
                                   WHERE quiz IN ($quizPlaceholders) AND userid IN ($placeholders)";
                     
                     $stmtGrades = $this->mpdo->prepare($sqlGrades);
@@ -373,7 +398,7 @@ class MoodleDB {
                     $stmtGrades->execute($gradesParams);
 
                     while ($row = $stmtGrades->fetch()) {
-                        $uid = $row['userid'];
+                        $uid = (int)$row['userid'];
                         $quizId = (int)$row['quiz'];
                         if (isset($stats[$uid]) && isset($quizReverseMap[$quizId])) {
                             $key = $quizReverseMap[$quizId]['key'];
@@ -389,6 +414,45 @@ class MoodleDB {
                         }
                     }
                 }
+
+                // 4.B Consulta de respaldo directa al Libro de Calificaciones de Moodle (grade_grades & grade_items)
+                try {
+                    $sqlGradebook = "SELECT gi.itemname, gi.itemtype, gi.itemmodule, gi.grademax, gg.userid, gg.finalgrade, gg.rawgrade 
+                                     FROM {$prefix}grade_items gi 
+                                     JOIN {$prefix}grade_grades gg ON gg.itemid = gi.id 
+                                     WHERE gi.courseid = ? AND gg.userid IN ($placeholders) AND gg.finalgrade IS NOT NULL";
+                    $stmtGB = $this->mpdo->prepare($sqlGradebook);
+                    $stmtGB->execute($params);
+                    while ($row = $stmtGB->fetch()) {
+                        $uid = (int)$row['userid'];
+                        if (!isset($stats[$uid])) continue;
+                        $finalgrade = (float)$row['finalgrade'];
+                        $grademax = (float)($row['grademax'] > 0 ? $row['grademax'] : 10);
+                        $scaled = min(10.0, max(0.0, round(($finalgrade / $grademax) * 10, 2)));
+                        
+                        $itemName = mb_strtolower($row['itemname'] ?? '', 'UTF-8');
+                        $normalized = strtr($itemName, [
+                            'á'=>'a', 'é'=>'e', 'í'=>'i', 'ó'=>'o', 'ú'=>'u', 'ü'=>'u', 'ñ'=>'n'
+                        ]);
+
+                        if (strpos($normalized, 'e1') !== false || strpos($normalized, 'inicial') !== false) {
+                            if (empty($stats[$uid]['e1_completed'])) {
+                                $stats[$uid]['e1_completed'] = 1;
+                                $stats[$uid]['e1_grade'] = $scaled;
+                            }
+                        } elseif (strpos($normalized, 'e2') !== false || strpos($normalized, 'intermedia') !== false) {
+                            if (empty($stats[$uid]['e2_completed'])) {
+                                $stats[$uid]['e2_completed'] = 1;
+                                $stats[$uid]['e2_grade'] = $scaled;
+                            }
+                        } elseif (strpos($normalized, 'e3') !== false || strpos($normalized, 'final') !== false || strpos($normalized, 'examen') !== false) {
+                            if (empty($stats[$uid]['e3_completed'])) {
+                                $stats[$uid]['e3_completed'] = 1;
+                                $stats[$uid]['e3_grade'] = $scaled;
+                            }
+                        }
+                    }
+                } catch (Exception $ex) {}
 
                 // 5. Calcular Nota Media (solo E2 - Intermedia y E3 - Final; E1 no participa en la media salvo que sea la única evaluación del curso) y Aptitud
                 foreach ($stats as $uid => &$student) {

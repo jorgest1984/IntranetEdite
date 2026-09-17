@@ -128,7 +128,7 @@ if ($id) {
                                           FROM matriculas m
                                           JOIN alumnos a ON m.alumno_id = a.id
                                           JOIN grupos g ON m.grupo_id = g.id
-                                          WHERE g.accion_id = ? AND m.estado != 'Baja'
+                                          WHERE g.accion_id = ? AND (m.estado IS NULL OR m.estado != 'Baja')
                                           ORDER BY a.nombre ASC, a.primer_apellido ASC");
         $stmtSeguimiento->execute([$id]);
         $alumnos_seguimiento = $stmtSeguimiento->fetchAll();
@@ -138,6 +138,65 @@ if ($id) {
         $moodleDb = new MoodleDB();
         $moodle_connected = $moodleDb->isConnected();
         $moodle_error = $moodleDb->getError();
+
+        // Auto-sincronización inicial si hay alumnos y nunca se han traído datos de Moodle
+        $needs_sync = isset($_GET['sync_moodle']);
+        if (!$needs_sync && !empty($alumnos_seguimiento)) {
+            $has_sync = false;
+            foreach ($alumnos_seguimiento as $al_check) {
+                if (!empty($al_check['moodle_last_sync'])) {
+                    $has_sync = true;
+                    break;
+                }
+            }
+            if (!$has_sync) $needs_sync = true;
+        }
+
+        if ($needs_sync && $moodle_connected) {
+            $courseMoodleId = !empty($af['moodle_id']) ? (int)$af['moodle_id'] : (int)($af['id_plataforma'] ?? 0);
+            if (!$courseMoodleId && !empty($af['abreviatura'])) {
+                $courseMoodleId = (int)$moodleDb->findCourseId($af['abreviatura']);
+            }
+            if ($courseMoodleId) {
+                $mUserIds = [];
+                foreach ($alumnos_seguimiento as $al_s) {
+                    if (!empty($al_s['moodle_user_id'])) {
+                        $mUserIds[] = (int)$al_s['moodle_user_id'];
+                    }
+                }
+                if (!empty($mUserIds)) {
+                    $statsData = $moodleDb->fetchStudentStats($courseMoodleId, $mUserIds);
+                    if (!empty($statsData)) {
+                        $updM = $pdo->prepare("UPDATE matriculas m
+                            JOIN alumnos a ON m.alumno_id = a.id
+                            JOIN grupos g ON m.grupo_id = g.id
+                            SET m.moodle_first_access = ?, m.moodle_last_access = ?, m.moodle_connected_time = ?, 
+                                m.moodle_progress = ?, m.moodle_m1_completed = ?, m.moodle_m2_completed = ?, m.moodle_m3_completed = ?, 
+                                m.moodle_e1_completed = ?, m.moodle_e2_completed = ?, m.moodle_e3_completed = ?, 
+                                m.moodle_e1_grade = ?, m.moodle_e2_grade = ?, m.moodle_e3_grade = ?, 
+                                m.moodle_final_grade = ?, m.moodle_aptitud = ?, m.moodle_last_sync = NOW() 
+                            WHERE a.moodle_user_id = ? AND g.accion_id = ?");
+                        $courseDuration = (int)($af['duracion'] ?? 60);
+                        foreach ($statsData as $mUid => $st) {
+                            $cSec = (int)$st['connected_seconds'];
+                            $cHrs = $cSec / 3600;
+                            $prog = min(100, max(0, round(($cHrs / ($courseDuration > 0 ? $courseDuration : 60)) * 100)));
+                            $updM->execute([
+                                $st['first_access'], $st['last_access'], $cSec, $prog,
+                                (int)$st['m1_completed'], (int)$st['m2_completed'], (int)$st['m3_completed'],
+                                (int)$st['e1_completed'], (int)$st['e2_completed'], (int)$st['e3_completed'],
+                                $st['e1_grade'], $st['e2_grade'], $st['e3_grade'],
+                                $st['final_grade'], $st['aptitud'],
+                                (int)$mUid, (int)$id
+                            ]);
+                        }
+                        // Recargar el array $alumnos_seguimiento ya actualizado
+                        $stmtSeguimiento->execute([$id]);
+                        $alumnos_seguimiento = $stmtSeguimiento->fetchAll();
+                    }
+                }
+            }
+        }
         }
 
         // Fetch all survey completions for this action formativa
