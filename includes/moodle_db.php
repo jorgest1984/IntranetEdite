@@ -405,8 +405,8 @@ class MoodleDB {
                             $maxGrad = $quizReverseMap[$quizId]['max_grade'];
                             $rawGrade = (float)$row['grade'];
 
-                            // Escalar la nota a base 10 de forma segura
-                            $scaledGrade = ($maxGrad > 0) ? round(($rawGrade / $maxGrad) * 10, 2) : $rawGrade;
+                            // Escalar la nota a base 10 de forma segura (entero)
+                            $scaledGrade = ($maxGrad > 0) ? round(($rawGrade / $maxGrad) * 10) : round($rawGrade);
                             $scaledGrade = min(10.0, max(0.0, $scaledGrade));
 
                             $stats[$uid][$key . '_completed'] = 1;
@@ -428,7 +428,7 @@ class MoodleDB {
                         if (!isset($stats[$uid])) continue;
                         $finalgrade = (float)$row['finalgrade'];
                         $grademax = (float)($row['grademax'] > 0 ? $row['grademax'] : 10);
-                        $scaled = min(10.0, max(0.0, round(($finalgrade / $grademax) * 10, 2)));
+                        $scaled = min(10.0, max(0.0, round(($finalgrade / $grademax) * 10)));
                         
                         $itemName = mb_strtolower($row['itemname'] ?? '', 'UTF-8');
                         $normalized = strtr($itemName, [
@@ -482,7 +482,7 @@ class MoodleDB {
 
                     if (!empty($eval_grades)) {
                         $media = array_sum($eval_grades) / count($eval_grades);
-                        $student['final_grade'] = round($media, 2);
+                        $student['final_grade'] = round($media);
 
                         // Determinar la aptitud
                         $required_completed = true;

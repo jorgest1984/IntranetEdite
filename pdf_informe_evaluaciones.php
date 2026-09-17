@@ -149,11 +149,11 @@ if (empty($alumnos)) {
         $grades = [];
         if ($alumno['moodle_e2_grade'] !== null) $grades[] = (float)$alumno['moodle_e2_grade'];
         if ($alumno['moodle_e3_grade'] !== null) $grades[] = (float)$alumno['moodle_e3_grade'];
-        $media = count($grades) > 0 ? number_format(array_sum($grades) / count($grades), 2) : '---';
+        $media = count($grades) > 0 ? number_format(round(array_sum($grades) / count($grades)), 0) : '---';
         
-        $initial = $alumno['moodle_e1_grade'] !== null ? number_format($alumno['moodle_e1_grade'], 2) : '---';
-        $intermediate = $alumno['moodle_e2_grade'] !== null ? number_format($alumno['moodle_e2_grade'], 2) : '---';
-        $final = $alumno['moodle_e3_grade'] !== null ? number_format($alumno['moodle_e3_grade'], 2) : '---';
+        $initial = $alumno['moodle_e1_grade'] !== null ? number_format(round((float)$alumno['moodle_e1_grade']), 0) : '---';
+        $intermediate = $alumno['moodle_e2_grade'] !== null ? number_format(round((float)$alumno['moodle_e2_grade']), 0) : '---';
+        $final = $alumno['moodle_e3_grade'] !== null ? number_format(round((float)$alumno['moodle_e3_grade']), 0) : '---';
         $aptitud = mb_strtoupper(trim($alumno['moodle_aptitud'] ?: 'PENDIENTE'));
         
         $pdf->Cell(55, 7, pdf_utf8_to_iso($nombre_completo), 1, 0, 'L');

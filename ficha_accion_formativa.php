@@ -2466,9 +2466,9 @@ try {
                                                 </div>
                                             </td>
                                             <td style="font-size: 0.75rem; white-space: nowrap; line-height: 1.4; color: #475569;">
-                                                E1: <strong><?= $al['moodle_e1_completed'] && $al['moodle_e1_grade'] !== null ? number_format($al['moodle_e1_grade'], 1) : '---' ?></strong><br>
-                                                E2: <strong><?= $al['moodle_e2_completed'] && $al['moodle_e2_grade'] !== null ? number_format($al['moodle_e2_grade'], 1) : '---' ?></strong><br>
-                                                E3: <strong><?= $al['moodle_e3_completed'] && $al['moodle_e3_grade'] !== null ? number_format($al['moodle_e3_grade'], 1) : '---' ?></strong>
+                                                E1: <strong><?= $al['moodle_e1_completed'] && $al['moodle_e1_grade'] !== null ? number_format(round((float)$al['moodle_e1_grade']), 0) : '---' ?></strong><br>
+                                                E2: <strong><?= $al['moodle_e2_completed'] && $al['moodle_e2_grade'] !== null ? number_format(round((float)$al['moodle_e2_grade']), 0) : '---' ?></strong><br>
+                                                E3: <strong><?= $al['moodle_e3_completed'] && $al['moodle_e3_grade'] !== null ? number_format(round((float)$al['moodle_e3_grade']), 0) : '---' ?></strong>
                                             </td>
                                             <td>
                                                 <div class="progress-container">
@@ -2479,7 +2479,7 @@ try {
                                                 </div>
                                             </td>
                                             <td style="text-align: center; font-size: 0.95rem; font-weight: 800; color: #1e293b;">
-                                                <?= ($al['moodle_final_grade'] !== null) ? number_format($al['moodle_final_grade'], 2) : '---' ?>
+                                                <?= ($al['moodle_final_grade'] !== null) ? number_format(round((float)$al['moodle_final_grade']), 0) : '---' ?>
                                             </td>
                                             <td style="text-align: center; white-space: nowrap;">
                                                 <?php 

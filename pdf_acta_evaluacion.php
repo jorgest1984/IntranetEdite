@@ -162,11 +162,11 @@ if (empty($alumnos)) {
         $grades = [];
         if ($alumno['moodle_e2_grade'] !== null) $grades[] = (float)$alumno['moodle_e2_grade'];
         if ($alumno['moodle_e3_grade'] !== null) $grades[] = (float)$alumno['moodle_e3_grade'];
-        $media = count($grades) > 0 ? number_format(array_sum($grades) / count($grades), 2) : '10.00';
+        $media = count($grades) > 0 ? number_format(round(array_sum($grades) / count($grades)), 0) : '10';
         
-        $e1 = $alumno['moodle_e1_grade'] !== null ? number_format($alumno['moodle_e1_grade'], 2) : '10.00';
-        $e2 = $alumno['moodle_e2_grade'] !== null ? number_format($alumno['moodle_e2_grade'], 2) : '10.00';
-        $e3 = $alumno['moodle_e3_grade'] !== null ? number_format($alumno['moodle_e3_grade'], 2) : '10.00';
+        $e1 = $alumno['moodle_e1_grade'] !== null ? number_format(round((float)$alumno['moodle_e1_grade']), 0) : '10';
+        $e2 = $alumno['moodle_e2_grade'] !== null ? number_format(round((float)$alumno['moodle_e2_grade']), 0) : '10';
+        $e3 = $alumno['moodle_e3_grade'] !== null ? number_format(round((float)$alumno['moodle_e3_grade']), 0) : '10';
         
         $pdf->Cell(90, 7, pdf_utf8_to_iso($nombre_completo), 1, 0, 'L');
         $pdf->Cell(12, 7, $e1, 1, 0, 'C');
