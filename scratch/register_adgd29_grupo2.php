@@ -1,5 +1,9 @@
 <?php
 // scratch/register_adgd29_grupo2.php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/moodle_db.php';
 require_once __DIR__ . '/../includes/moodle_api.php';
@@ -27,14 +31,6 @@ echo "Grupo Intranet ID: {$g2['id']} (Número de grupo: {$g2['numero_grupo']})\n
 echo "AF moodle_id: " . ($g2['af_moodle_id'] ?? 'null') . "\n";
 echo "AF id_plataforma: " . ($g2['id_plataforma'] ?? 'null') . "\n";
 echo "Curso master moodle_id: " . ($g2['curso_moodle_id'] ?? 'null') . "\n";
-
-// Obtener Grupo 1 de la misma acción formativa
-$stmtG1 = $pdo->prepare("SELECT * FROM grupos WHERE accion_id = ? AND id != 16 ORDER BY id ASC LIMIT 1");
-$stmtG1->execute([$g2['accion_id']]);
-$g1 = $stmtG1->fetch(PDO::FETCH_ASSOC);
-if ($g1) {
-    echo "Grupo 1 Intranet ID: {$g1['id']} (Número de grupo: {$g1['numero_grupo']})\n";
-}
 
 // Resolver course_moodle_id
 $moodleDb = new MoodleDB();
@@ -105,4 +101,3 @@ echo "\nTotal alumnos matriculados en Grupo 2 (Intranet): " . count($alumnosG2) 
 foreach ($alumnosG2 as $al) {
     echo "- Alumno: {$al['nombre']} {$al['primer_apellido']} | DNI: {$al['dni']} | Email: {$al['email']} | Moodle User ID: " . ($al['moodle_user_id'] ?: 'FALTA') . "\n";
 }
-
