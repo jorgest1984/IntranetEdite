@@ -17,7 +17,7 @@ try {
         SET af.id_plataforma = c.moodle_id
         WHERE c.moodle_id IS NOT NULL 
           AND c.moodle_id > 0 
-          AND (af.id_plataforma IS NULL OR af.id_plataforma = '' OR af.id_plataforma = '0')
+          AND (af.id_plataforma IS NULL OR TRIM(af.id_plataforma) = '' OR af.id_plataforma = '0')
     ");
     $stmtSyncAF->execute();
     echo "1. Sincronizadas " . $stmtSyncAF->rowCount() . " acciones formativas con el moodle_id de su curso maestro.\n";
@@ -28,7 +28,8 @@ try {
         JOIN acciones_formativas af ON af.curso_id = c.id
         SET c.moodle_id = af.id_plataforma
         WHERE af.id_plataforma IS NOT NULL 
-          AND af.id_plataforma > 0 
+          AND TRIM(af.id_plataforma) != ''
+          AND TRIM(af.id_plataforma) REGEXP '^[0-9]+$'
           AND (c.moodle_id IS NULL OR c.moodle_id = 0)
     ");
     $stmtSyncCurso->execute();
