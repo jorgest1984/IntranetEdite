@@ -201,8 +201,7 @@ class MoodleDB {
                         
                         // Calcular porcentaje de progresión basado en tiempo de conexión
                         $connectedHours = $totalSeconds / 3600;
-                        $dur = ($courseDuration > 0) ? (int)$courseDuration : 60;
-                        $stats[$uid]['progress'] = min(100, max(0, round(($connectedHours / $dur) * 100)));
+                        $stats[$uid]['progress'] = min(100, max(0, round(($connectedHours / 60) * 100)));
                     }
                 } catch (Exception $ex) {}
 
