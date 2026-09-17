@@ -224,7 +224,7 @@ class MoodleDB {
                               WHERE cm.course = ?";
                 
                 $stmtMod = $this->mpdo->prepare($sqlModules);
-                $stmtMod->execute([$moodleCourseId]);
+                $stmtMod->execute(array_merge($validUserIds, [$moodleCourseId]));
                 $moduleRows = $stmtMod->fetchAll();
 
                 // Analizar nombres de módulos para asociar M1, M2, M3
@@ -500,7 +500,6 @@ class MoodleDB {
                 }
 
             } catch (Exception $e) {
-                $this->connected = false;
                 $this->error = "Fallo al ejecutar consultas en DB Moodle: " . $e->getMessage();
             }
         }
