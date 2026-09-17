@@ -11,29 +11,26 @@ try {
     $pdo->beginTransaction();
 
     // 1. Sincronizar id_plataforma en acciones_formativas desde cursos.moodle_id cuando falte
-    $stmtSyncAF = $pdo->prepare("
-        UPDATE acciones_formativas af
-        JOIN cursos c ON af.curso_id = c.id
-        SET af.id_plataforma = c.moodle_id
-        WHERE c.moodle_id IS NOT NULL 
-          AND c.moodle_id > 0 
-          AND (af.id_plataforma IS NULL OR TRIM(af.id_plataforma) = '' OR af.id_plataforma = '0')
-    ");
-    $stmtSyncAF->execute();
-    echo "1. Sincronizadas " . $stmtSyncAF->rowCount() . " acciones formativas con el moodle_id de su curso maestro.\n";
+    $stmt1 = $pdo->query("SELECT af.id as af_id, c.moodle_id FROM acciones_formativas af JOIN cursos c ON af.curso_id = c.id WHERE c.moodle_id IS NOT NULL AND c.moodle_id != '' AND (af.id_plataforma IS NULL OR TRIM(af.id_plataforma) = '' OR af.id_plataforma = '0')");
+    $toUpdateAF = $stmt1->fetchAll(PDO::FETCH_ASSOC);
+    $updAF = $pdo->prepare("UPDATE acciones_formativas SET id_plataforma = ? WHERE id = ?");
+    $countAF = 0;
+    foreach ($toUpdateAF as $r) {
+        $updAF->execute([$r['moodle_id'], $r['af_id']]);
+        $countAF++;
+    }
+    echo "1. Sincronizadas $countAF acciones formativas con el moodle_id de su curso maestro.\n";
 
     // 2. Sincronizar cursos.moodle_id desde acciones_formativas.id_plataforma cuando falte
-    $stmtSyncCurso = $pdo->prepare("
-        UPDATE cursos c
-        JOIN acciones_formativas af ON af.curso_id = c.id
-        SET c.moodle_id = af.id_plataforma
-        WHERE af.id_plataforma IS NOT NULL 
-          AND TRIM(af.id_plataforma) != ''
-          AND TRIM(af.id_plataforma) REGEXP '^[0-9]+$'
-          AND (c.moodle_id IS NULL OR c.moodle_id = 0)
-    ");
-    $stmtSyncCurso->execute();
-    echo "2. Sincronizados " . $stmtSyncCurso->rowCount() . " cursos maestros con id_plataforma de sus acciones formativas.\n";
+    $stmt2 = $pdo->query("SELECT c.id as curso_id, af.id_plataforma FROM cursos c JOIN acciones_formativas af ON af.curso_id = c.id WHERE (c.moodle_id IS NULL OR c.moodle_id = '' OR c.moodle_id = 0) AND af.id_plataforma IS NOT NULL AND TRIM(af.id_plataforma) != '' AND TRIM(af.id_plataforma) != '0'");
+    $toUpdateCurso = $stmt2->fetchAll(PDO::FETCH_ASSOC);
+    $updCurso = $pdo->prepare("UPDATE cursos SET moodle_id = ? WHERE id = ?");
+    $countCurso = 0;
+    foreach ($toUpdateCurso as $r) {
+        $updCurso->execute([$r['id_plataforma'], $r['curso_id']]);
+        $countCurso++;
+    }
+    echo "2. Sincronizados $countCurso cursos maestros con id_plataforma de sus acciones formativas.\n";
 
     // 3. Buscar grupos de cursos duplicados en la tabla 'cursos' por nombre_corto (código)
     $duplicates = $pdo->query("
@@ -49,13 +46,21 @@ try {
     foreach ($duplicates as $dup) {
         $code = $dup['code'];
         // Obtener todos los IDs de esta colección
-        $stmtC = $pdo->prepare("SELECT id, moodle_id FROM cursos WHERE LOWER(TRIM(nombre_corto)) = ? ORDER BY (moodle_id IS NOT NULL AND moodle_id > 0) DESC, id ASC");
+        $stmtC = $pdo->prepare("SELECT id, moodle_id FROM cursos WHERE LOWER(TRIM(nombre_corto)) = ? ORDER BY id ASC");
         $stmtC->execute([$code]);
         $rows = $stmtC->fetchAll(PDO::FETCH_ASSOC);
 
         if (count($rows) <= 1) continue;
 
-        // El primero es nuestro canónico (priorizando el que ya tiene moodle_id)
+        // Ordenar en PHP priorizando filas que tengan moodle_id válido
+        usort($rows, function($a, $b) {
+            $hasA = (!empty($a['moodle_id']) && $a['moodle_id'] !== '0') ? 1 : 0;
+            $hasB = (!empty($b['moodle_id']) && $b['moodle_id'] !== '0') ? 1 : 0;
+            if ($hasA !== $hasB) return $hasB <=> $hasA;
+            return (int)$a['id'] <=> (int)$b['id'];
+        });
+
+        // El primero es nuestro canónico
         $canonical = $rows[0];
         $canonical_id = (int)$canonical['id'];
         $canonical_moodle = $canonical['moodle_id'];
@@ -63,8 +68,7 @@ try {
         $duplicate_ids = [];
         for ($i = 1; $i < count($rows); $i++) {
             $duplicate_ids[] = (int)$rows[$i]['id'];
-            // Si el canónico no tenía moodle_id pero uno duplicado sí, adoptarlo
-            if (empty($canonical_moodle) && !empty($rows[$i]['moodle_id'])) {
+            if ((empty($canonical_moodle) || $canonical_moodle === '0') && !empty($rows[$i]['moodle_id'])) {
                 $canonical_moodle = $rows[$i]['moodle_id'];
                 $pdo->prepare("UPDATE cursos SET moodle_id = ? WHERE id = ?")->execute([$canonical_moodle, $canonical_id]);
             }
@@ -84,12 +88,12 @@ try {
     }
 
     // 4. Asegurar de nuevo coherencia final en id_plataforma
-    $pdo->exec("
-        UPDATE acciones_formativas af
-        JOIN cursos c ON af.curso_id = c.id
-        SET af.id_plataforma = c.moodle_id
-        WHERE c.moodle_id IS NOT NULL AND c.moodle_id > 0
-    ");
+    $stmtFinal = $pdo->query("SELECT af.id as af_id, c.moodle_id FROM acciones_formativas af JOIN cursos c ON af.curso_id = c.id WHERE c.moodle_id IS NOT NULL AND c.moodle_id != '' AND c.moodle_id != '0'");
+    $finalRows = $stmtFinal->fetchAll(PDO::FETCH_ASSOC);
+    $updFinal = $pdo->prepare("UPDATE acciones_formativas SET id_plataforma = ? WHERE id = ?");
+    foreach ($finalRows as $r) {
+        $updFinal->execute([$r['moodle_id'], $r['af_id']]);
+    }
 
     $pdo->commit();
     echo "\n=== PROCESO FINALIZADO CON ÉXITO ===\n";
