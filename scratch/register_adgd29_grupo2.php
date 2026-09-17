@@ -34,8 +34,8 @@ if ($moodleGroup) {
 } else {
     // Crear el grupo en Moodle
     $now = time();
-    $stmtInsG = $mpdo->prepare("INSERT INTO {$prefix}groups (courseid, idnumber, name, description, descriptionformat, enrolmentkey, picture, hidepicture, timecreated, timemodified) 
-                                VALUES (?, '', ?, '', 1, '', 0, 0, ?, ?)");
+    $stmtInsG = $mpdo->prepare("INSERT INTO {$prefix}groups (courseid, name, description, descriptionformat, timecreated, timemodified) 
+                                VALUES (?, ?, '', 1, ?, ?)");
     $stmtInsG->execute([$courseId, $groupName, $now, $now]);
     $moodleGroupId = (int)$mpdo->lastInsertId();
     echo "¡GRUPO CREADO EN MOODLE CON ÉXITO! ID Moodle: {$moodleGroupId} - '{$groupName}'\n";
