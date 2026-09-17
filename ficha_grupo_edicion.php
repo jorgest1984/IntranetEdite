@@ -559,7 +559,7 @@ $ccaa = [
             <!-- Tabs Navigation -->
             <?php if ($id): ?>
                 <div class="tabs-container">
-                    <a href="gestion_matriculas.php?af_id=<?= $accion_id ?>" class="tab-item">Listado de alumnos</a>
+                    <a href="gestion_matriculas.php?af_id=<?= $accion_id ?>&grupo_id=<?= $id ?>" class="tab-item">Listado de alumnos</a>
                     <a href="relacion_alumnos.php?grupo_id=<?= $id ?>" class="tab-item active">Listado de alumnos nuevo</a>
                 </div>
             <?php endif; ?>

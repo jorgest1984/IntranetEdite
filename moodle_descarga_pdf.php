@@ -27,25 +27,41 @@ require_login();
 
 $tipo = required_param('tipo', PARAM_ALPHA); // 'recibi' o 'bienvenida'
 $courseid = optional_param('courseid', 0, PARAM_INT);
+if (!$courseid) {
+    $courseid = optional_param('id', 0, PARAM_INT);
+}
 
-// Si no viene courseid por URL, intentamos sacarlo de la sesión o del referer
+// Si no viene courseid por URL, intentamos sacarlo de la sesión, DB de Moodle o Referer
 if (!$courseid) {
     if (isset($_SERVER['HTTP_REFERER'])) {
         $referer = $_SERVER['HTTP_REFERER'];
-        if (preg_match('/id=(\d+)/', $referer, $matches)) {
+        // Si proviene de un módulo de recurso URL en Moodle (/mod/url/view.php?id=XXX)
+        if (strpos($referer, '/mod/') !== false && preg_match('/id=(\d+)/', $referer, $matches)) {
+            $cmid = (int)$matches[1];
+            if (isset($DB)) {
+                $cm = $DB->get_record('course_modules', array('id' => $cmid), 'course');
+                if ($cm && !empty($cm->course)) {
+                    $courseid = (int)$cm->course;
+                }
+            }
+        }
+        
+        if (!$courseid && preg_match('/id=(\d+)/', $referer, $matches)) {
             $courseid = (int)$matches[1];
         }
     }
     
     if (!$courseid) {
         global $COURSE;
-        $courseid = $COURSE->id;
+        if (isset($COURSE) && !empty($COURSE->id)) {
+            $courseid = (int)$COURSE->id;
+        }
     }
-    
-    // Si sigue siendo 1 (curso portada de Moodle) o 0, es inválido
-    if ($courseid <= 1) {
-        die("Error: No se ha especificado un curso válido.");
-    }
+}
+
+// Si $courseid es la portada de Moodle (1) o 0, lo fijamos a 0 para que la Intranet busque por las matrículas del alumno
+if ($courseid <= 1) {
+    $courseid = 0;
 }
 
 // Configuración de la Intranet

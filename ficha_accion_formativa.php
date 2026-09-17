@@ -93,6 +93,20 @@ if ($id) {
             $id = null;
         } else {
 
+        // Auto-asociación de plan si no tiene uno o viene por GET
+        if (empty($accion['plan_id'])) {
+            if (!empty($_GET['plan_id'])) {
+                $accion['plan_id'] = (int)$_GET['plan_id'];
+            } elseif (!empty($accion['familia_profesional'])) {
+                foreach ($planes as $p) {
+                    if (mb_stripos($p['nombre'], $accion['familia_profesional']) !== false || mb_stripos($accion['familia_profesional'], $p['nombre']) !== false) {
+                        $accion['plan_id'] = $p['id'];
+                        break;
+                    }
+                }
+            }
+        }
+
         // Fetch groups
         $stmtGrupos = $pdo->prepare("SELECT g.*, e.nombre as centro_nombre, CONCAT(u.nombre, ' ', u.apellidos) as tutor_nombre 
                                     FROM grupos g 

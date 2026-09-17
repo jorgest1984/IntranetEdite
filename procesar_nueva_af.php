@@ -84,21 +84,51 @@ try {
     $id_plataforma = null;
     $curso_id = 0;
 
-    // 1. Crear registro en la tabla 'cursos' (Necesario para consistencia con el resto de la app)
-    $stmtCurso = $pdo->prepare("INSERT INTO cursos (nombre_largo, nombre_corto, visible, moodle_id) VALUES (?, ?, 1, NULL)");
-    $stmtCurso->execute([$titulo, $abreviatura]);
-    $curso_id = $pdo->lastInsertId();
+    // 1. Garantizar la unicidad del curso maestro: buscar en 'cursos' si ya existe por abreviatura o título
+    $stmtCheckCurso = $pdo->prepare("
+        SELECT id, moodle_id 
+        FROM cursos 
+        WHERE (LOWER(TRIM(nombre_corto)) = LOWER(TRIM(?)) AND nombre_corto != '')
+           OR (LOWER(TRIM(nombre_largo)) = LOWER(TRIM(?)) AND nombre_largo != '')
+        LIMIT 1
+    ");
+    $stmtCheckCurso->execute([$abreviatura, $titulo]);
+    $existingCurso = $stmtCheckCurso->fetch();
 
-    // 2. Crear en Moodle si se solicita
+    if ($existingCurso) {
+        $curso_id = (int)$existingCurso['id'];
+        $id_plataforma = !empty($existingCurso['moodle_id']) ? (int)$existingCurso['moodle_id'] : null;
+    } else {
+        // Si no existe, crear el registro único en la tabla 'cursos'
+        $stmtCurso = $pdo->prepare("INSERT INTO cursos (nombre_largo, nombre_corto, visible, moodle_id) VALUES (?, ?, 1, NULL)");
+        $stmtCurso->execute([$titulo, $abreviatura]);
+        $curso_id = (int)$pdo->lastInsertId();
+    }
+
+    // 2. Gestionar Moodle (vincular a curso existente o crear si no existe)
     $moodleError = null;
-    if ($crear_moodle) {
+    if ($crear_moodle || empty($id_plataforma)) {
         try {
             $moodle = new MoodleAPI($pdo);
             if ($moodle->isConfigured()) {
-                $moodleResult = $moodle->createCourse($titulo, $abreviatura);
-                if (!empty($moodleResult) && isset($moodleResult[0]['id'])) {
-                    $id_plataforma = $moodleResult[0]['id'];
-                    // Actualizar el curso con el ID de Moodle
+                // Verificar si ya existe en Moodle por abreviatura/código para no duplicar
+                if (!empty($abreviatura)) {
+                    $existingMoodleId = $moodle->findCourseId($abreviatura);
+                    if ($existingMoodleId) {
+                        $id_plataforma = (int)$existingMoodleId;
+                    }
+                }
+                
+                // Si se solicitó crear en Moodle y sigue sin existir en Moodle, crearlo
+                if ($crear_moodle && !$id_plataforma) {
+                    $moodleResult = $moodle->createCourse($titulo, $abreviatura);
+                    if (!empty($moodleResult) && isset($moodleResult[0]['id'])) {
+                        $id_plataforma = (int)$moodleResult[0]['id'];
+                    }
+                }
+
+                // Sincronizar el moodle_id en el curso maestro local
+                if ($id_plataforma && $curso_id) {
                     $pdo->prepare("UPDATE cursos SET moodle_id = ? WHERE id = ?")->execute([$id_plataforma, $curso_id]);
                 }
             }

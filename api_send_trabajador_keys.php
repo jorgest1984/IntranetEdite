@@ -37,21 +37,35 @@ try {
         exit();
     }
 
-    // 2. Si se especificó una contraseña nueva, actualizarla en la base de datos
-    if (!empty($password)) {
-        $complexity = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#]).{12,}$/';
-        if (!preg_match($complexity, $password)) {
-            echo json_encode([
-                'success' => false,
-                'error' => 'La contraseña debe tener al menos 12 caracteres e incluir mayúscula, minúscula, número y algún carácter especial del grupo (@, $, !, %, *, ?, &, #).'
-            ]);
-            exit();
-        }
-
-        $password_hash = password_hash($password, PASSWORD_BCRYPT);
-        $stmtUpdate = $pdo->prepare("UPDATE usuarios SET password_hash = ? WHERE id = ?");
-        $stmtUpdate->execute([$password_hash, $id]);
+    // 2. Si se especificó una contraseña nueva, validar y actualizar en la base de datos
+    if (empty($password)) {
+        echo json_encode(['success' => false, 'error' => 'Debe especificar o generar una contraseña para el usuario.']);
+        exit();
     }
+
+    $complexity = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/';
+    if (!preg_match($complexity, $password)) {
+        echo json_encode([
+            'success' => false,
+            'error' => 'La contraseña debe tener al menos 8 caracteres e incluir mayúscula, minúscula y número.'
+        ]);
+        exit();
+    }
+
+    $password_hash = password_hash($password, PASSWORD_BCRYPT);
+    $stmtUpdate = $pdo->prepare("UPDATE usuarios SET password_hash = ? WHERE id = ?");
+    $stmtUpdate->execute([$password_hash, $id]);
+
+    // Limpiar posibles bloqueos en login_attempts para el usuario y su email
+    try {
+        $pdo->prepare("DELETE FROM login_attempts WHERE username = ? OR username = ?")
+            ->execute([strtolower($trabajador['username']), strtolower($trabajador['email'])]);
+    } catch (Exception $e) {}
+
+    audit_log($pdo, 'USUARIO_CLAVES_ENVIADAS', 'usuarios', $id, null, [
+        'username' => $trabajador['username'],
+        'email' => $email
+    ]);
 
     // 3. Enviar correo electrónico usando SMTP autenticado
     // Reemplazar saltos de línea y convertir URLs en enlaces clicables

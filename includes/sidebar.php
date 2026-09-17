@@ -48,6 +48,65 @@ $current_page = basename($_SERVER['PHP_SELF']);
     </div>
     
     <ul class="sidebar-menu">
+        <?php if (has_permission([ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL]) && !has_permission([ROLE_ADMIN])) { ?>
+        <!-- Menú exclusivo para el Rol Comercial / Jefe Comercial -->
+        <li class="menu-divider">Gestión Comercial</li>
+        <li>
+            <a href="comerciales.php" class="<?= ($current_page == 'comerciales.php') ? 'active' : '' ?>">
+                <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                Dashboard Comercial
+            </a>
+        </li>
+        <li>
+            <a href="comerciales_empresas.php" class="<?= ($current_page == 'comerciales_empresas.php') ? 'active' : '' ?>">
+                <svg viewBox="0 0 24 24"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg>
+                Empresas
+            </a>
+        </li>
+        <li>
+            <a href="comerciales_trabajadores.php" class="<?= ($current_page == 'comerciales_trabajadores.php') ? 'active' : '' ?>">
+                <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                Trabajadores
+            </a>
+        </li>
+        <li>
+            <a href="comerciales_acciones.php" class="<?= ($current_page == 'comerciales_acciones.php') ? 'active' : '' ?>">
+                <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/></svg>
+                Acciones Formativas
+            </a>
+        </li>
+        <li>
+            <a href="comerciales_llamadas.php" class="<?= ($current_page == 'comerciales_llamadas.php') ? 'active' : '' ?>">
+                <svg viewBox="0 0 24 24"><path d="M20 15.5c-1.25 0-2.45-.2-3.57-.57a1.02 1.02 0 00-1.02.24l-2.2 2.2a15.045 15.045 0 01-6.59-6.59l2.2-2.21a.96.96 0 00.25-1.01A11.36 11.36 0 018.5 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.5c0-.55-.45-1-1-1zM19 12h2a9 9 0 00-9-9v2c3.87 0 7 3.13 7 7zm-4 0h2c0-2.76-2.24-5-5-5v2c1.66 0 3 1.34 3 3z"/></svg>
+                Llamadas
+            </a>
+        </li>
+        <li>
+            <a href="comerciales_contactos.php" class="<?= ($current_page == 'comerciales_contactos.php') ? 'active' : '' ?>">
+                <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                Contactos
+            </a>
+        </li>
+
+        <li class="menu-divider">Inscripciones</li>
+        <li>
+            <a href="inscripciones.php" class="<?= ($current_page == 'inscripciones.php') ? 'active' : '' ?>">
+                <svg viewBox="0 0 24 24"><path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6h-5.6z"/></svg>
+                Inscripciones
+            </a>
+        </li>
+
+        <li class="menu-divider">Mi Cuenta</li>
+        <li>
+            <a href="usuarios.php" class="<?= ($current_page == 'usuarios.php') ? 'active' : '' ?>">
+                <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                Mi Perfil
+            </a>
+        </li>
+
+        <?php } else { ?>
+
+        <!-- Menú estándar (Administradores, Coordinadores, Tutores, etc.) -->
         <li class="menu-divider">Inicio</li>
         <li>
             <a href="home.php" class="<?= $current_page == 'home.php' ? 'active' : '' ?>">
@@ -61,6 +120,16 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 Buscador Global
             </a>
         </li>
+
+        <?php if (has_permission([ROLE_ADMIN])) { ?>
+        <li class="menu-divider">Área Comercial</li>
+        <li>
+            <a href="comerciales.php" class="<?= in_array($current_page, ['comerciales.php', 'comerciales_empresas.php', 'comerciales_trabajadores.php', 'comerciales_acciones.php', 'comerciales_llamadas.php', 'comerciales_contactos.php']) ? 'active' : '' ?>">
+                <svg viewBox="0 0 24 24"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg>
+                Gestión Comercial
+            </a>
+        </li>
+        <?php } ?>
 
         <?php if (has_permission([ROLE_ADMIN, ROLE_TUTOR])) { ?>
         <li class="menu-divider">Área Académica</li>
@@ -167,6 +236,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 Manual de Seguridad
             </a>
         </li>
+        <li>
+            <a href="usuarios.php" class="<?= $current_page == 'usuarios.php' ? 'active' : '' ?>">
+                <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                <?= has_permission([ROLE_ADMIN]) ? 'Usuarios y Roles' : 'Mi Perfil' ?>
+            </a>
+        </li>
         
         <?php if (has_permission([ROLE_ADMIN, ROLE_COORD])) { ?>
         <li class="menu-divider">Mantenimiento</li>
@@ -174,12 +249,6 @@ $current_page = basename($_SERVER['PHP_SELF']);
             <a href="centros.php" class="<?= $current_page == 'centros.php' ? 'active' : '' ?>">
                 <svg viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2zm0 3.8L18.2 18H5.8L12 5.8z"/></svg>
                 Sedes y Centros
-            </a>
-        </li>
-        <li>
-            <a href="usuarios.php" class="<?= $current_page == 'usuarios.php' ? 'active' : '' ?>">
-                <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                Usuarios y Roles
             </a>
         </li>
         <li>
@@ -200,6 +269,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 Configuración
             </a>
         </li>
+        <?php } ?>
         <?php } ?>
     </ul>
     

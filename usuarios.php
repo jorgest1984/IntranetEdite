@@ -11,11 +11,8 @@ try {
     $pdo->exec("ALTER TABLE usuarios ADD COLUMN moodle_user_id INT DEFAULT NULL");
 } catch (PDOException $e) {}
 
-// Solo administradores pueden gestionar usuarios (ISO 27001 - A.9)
-if (!has_permission([ROLE_ADMIN])) {
-    header("Location: home.php");
-    exit();
-}
+$is_admin = has_permission([ROLE_ADMIN]);
+$current_user_id = (int)($_SESSION['user_id'] ?? 0);
 
 $success = '';
 $error = '';
@@ -28,33 +25,37 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
     } else {
         // Crear Usuario
         if ($_POST['action'] == 'create') {
-            $username = trim($_POST['username']);
-            $password = $_POST['password'];
-            $nombre = trim($_POST['nombre']);
-            $apellidos = trim($_POST['apellidos']);
-            $dni = trim($_POST['dni']);
-            $email = trim($_POST['email']);
-            $rol_id = intval($_POST['rol_id']);
-            
-            if (empty($username) || empty($password) || empty($nombre) || empty($email)) {
-                $error = "Faltan campos obligatorios.";
+            if (!$is_admin) {
+                $error = "Acceso denegado. Solo los administradores pueden crear usuarios.";
             } else {
-                // Validar complejidad de contraseña (ISO 27001)
-                $complexity = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{12,}$/';
-                if (!preg_match($complexity, $password)) {
-                    $error = "La contraseña provisional debe tener al menos 12 caracteres e incluir al menos una letra mayúscula, una letra minúscula, un número y un carácter especial (@, $, !, %, *, ?, &, #).";
+                $username = trim($_POST['username']);
+                $password = $_POST['password'];
+                $nombre = trim($_POST['nombre']);
+                $apellidos = trim($_POST['apellidos']);
+                $dni = trim($_POST['dni']);
+                $email = trim($_POST['email']);
+                $rol_id = intval($_POST['rol_id']);
+                
+                if (empty($username) || empty($password) || empty($nombre) || empty($email)) {
+                    $error = "Faltan campos obligatorios.";
                 } else {
-                    try {
-                        $password_hash = password_hash($password, PASSWORD_BCRYPT);
-                        $centro_id = !empty($_POST['centro_id']) ? intval($_POST['centro_id']) : null;
-                        
-                        $stmt = $pdo->prepare("INSERT INTO usuarios (username, password_hash, nombre, apellidos, dni, email, rol_id, centro_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-                        $stmt->execute([$username, $password_hash, $nombre, $apellidos, $dni, $email, $rol_id, $centro_id]);
-                        
-                        audit_log($pdo, 'USUARIO_CREADO', 'usuarios', $pdo->lastInsertId(), null, ['username' => $username, 'rol' => $rol_id]);
-                        $success = "Usuario '$username' creado correctamente.";
-                    } catch (PDOException $e) {
-                        $error = "Error: El nombre de usuario o email ya existe.";
+                    // Validar complejidad de contraseña (mínimo 8 caracteres, mayúscula, minúscula, número)
+                    $complexity = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/';
+                    if (!preg_match($complexity, $password)) {
+                        $error = "La contraseña debe tener al menos 8 caracteres e incluir al menos una letra mayúscula, una letra minúscula y un número.";
+                    } else {
+                        try {
+                            $password_hash = password_hash($password, PASSWORD_BCRYPT);
+                            $centro_id = !empty($_POST['centro_id']) ? intval($_POST['centro_id']) : null;
+                            
+                            $stmt = $pdo->prepare("INSERT INTO usuarios (username, password_hash, nombre, apellidos, dni, email, rol_id, centro_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+                            $stmt->execute([$username, $password_hash, $nombre, $apellidos, $dni, $email, $rol_id, $centro_id]);
+                            
+                            audit_log($pdo, 'USUARIO_CREADO', 'usuarios', $pdo->lastInsertId(), null, ['username' => $username, 'rol' => $rol_id]);
+                            $success = "Usuario '$username' creado correctamente.";
+                        } catch (PDOException $e) {
+                            $error = "Error: El nombre de usuario o email ya existe.";
+                        }
                     }
                 }
             }
@@ -62,247 +63,342 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
     
     // Cambiar Estado (Activo/Inactivo)
     if ($_POST['action'] == 'toggle_status') {
-        $id = intval($_POST['user_id']);
-        $status = intval($_POST['status']);
-        
-        // Evitar desactivarse a sí mismo
-        if ($id == $_SESSION['user_id']) {
-            $error = "No puedes desactivar tu propia cuenta de administrador.";
+        if (!$is_admin) {
+            $error = "Acceso denegado. Solo los administradores pueden cambiar el estado de usuarios.";
         } else {
-            $stmt = $pdo->prepare("UPDATE usuarios SET activo = ? WHERE id = ?");
-            $stmt->execute([$status, $id]);
-            audit_log($pdo, 'USUARIO_STATUS_TOGGLE', 'usuarios', $id, null, ['nuevo_estado' => $status]);
-            $success = "Estado de usuario actualizado.";
+            $id = intval($_POST['user_id']);
+            $status = intval($_POST['status']);
+            
+            // Evitar desactivarse a sí mismo
+            if ($id == $_SESSION['user_id']) {
+                $error = "No puedes desactivar tu propia cuenta de administrador.";
+            } else {
+                $stmt = $pdo->prepare("UPDATE usuarios SET activo = ? WHERE id = ?");
+                $stmt->execute([$status, $id]);
+                audit_log($pdo, 'USUARIO_STATUS_TOGGLE', 'usuarios', $id, null, ['nuevo_estado' => $status]);
+                $success = "Estado de usuario actualizado.";
+            }
         }
     }
     
     // Eliminar Usuario
     if ($_POST['action'] == 'delete') {
-        $id = intval($_POST['user_id']);
-        
-        // Evitar borrarse a sí mismo
-        if ($id == $_SESSION['user_id']) {
-            $error = "No puedes borrar tu propia cuenta de administrador.";
+        if (!$is_admin) {
+            $error = "Acceso denegado. Solo los administradores pueden eliminar usuarios.";
         } else {
-            try {
-                $pdo->beginTransaction();
+            $id = intval($_POST['user_id']);
+            
+            // Evitar borrarse a sí mismo
+            if ($id == $_SESSION['user_id']) {
+                $error = "No puedes borrar tu propia cuenta de administrador.";
+            } else {
+                try {
+                    $pdo->beginTransaction();
 
-                // Obtener datos del usuario antes de borrar
+                    // Obtener datos del usuario antes de borrar
+                    $stmtUser = $pdo->prepare("SELECT * FROM usuarios WHERE id = ?");
+                    $stmtUser->execute([$id]);
+                    $user_data = $stmtUser->fetch(PDO::FETCH_ASSOC);
+
+                    if (!$user_data) {
+                        throw new Exception("El usuario no existe.");
+                    }
+
+                    // Archivar en la papelera
+                    require_once 'includes/Papelera.php';
+                    $datos = ['usuarios' => $user_data];
+                    $titulo_papelera = $user_data['nombre'] . ' ' . $user_data['apellidos'] . ' (' . $user_data['username'] . ')';
+                    Papelera::archivar($pdo, 'usuarios', $id, $titulo_papelera, $datos);
+
+                    // Intentar eliminación física en BD
+                    $stmt = $pdo->prepare("DELETE FROM usuarios WHERE id = ?");
+                    $stmt->execute([$id]);
+                    
+                    $pdo->commit();
+                    
+                    audit_log($pdo, 'USUARIO_ELIMINADO', 'usuarios', $id, null, ['id_eliminado' => $id]);
+                    $success = "Usuario enviado a la papelera correctamente.";
+                } catch (Exception $e) {
+                    if ($pdo->inTransaction()) {
+                        $pdo->rollBack();
+                    }
+                    if (method_exists($e, 'getCode') && $e->getCode() == '23000') {
+                        $error = "No se puede eliminar este usuario porque tiene registros de actividad asociados. En su lugar, puedes suspender su cuenta.";
+                    } elseif (isset($e->errorInfo) && $e->errorInfo[0] == '23000') {
+                        $error = "No se puede eliminar este usuario porque tiene registros de actividad asociados. En su lugar, puedes suspender su cuenta.";
+                    } else {
+                        $error = "Error al eliminar el usuario: " . $e->getMessage();
+                    }
+                }
+            }
+        }
+    }
+        
+        // Alta o Sincronización en Moodle
+        if ($_POST['action'] == 'sync_moodle') {
+            if (!$is_admin) {
+                $error = "Acceso denegado. Solo los administradores pueden sincronizar usuarios con Moodle.";
+            } else {
+                $id = intval($_POST['user_id']);
                 $stmtUser = $pdo->prepare("SELECT * FROM usuarios WHERE id = ?");
                 $stmtUser->execute([$id]);
                 $user_data = $stmtUser->fetch(PDO::FETCH_ASSOC);
 
-                if (!$user_data) {
-                    throw new Exception("El usuario no existe.");
-                }
-
-                // Archivar en la papelera
-                require_once 'includes/Papelera.php';
-                $datos = ['usuarios' => $user_data];
-                $titulo_papelera = $user_data['nombre'] . ' ' . $user_data['apellidos'] . ' (' . $user_data['username'] . ')';
-                Papelera::archivar($pdo, 'usuarios', $id, $titulo_papelera, $datos);
-
-                // Intentar eliminación física en BD
-                $stmt = $pdo->prepare("DELETE FROM usuarios WHERE id = ?");
-                $stmt->execute([$id]);
-                
-                $pdo->commit();
-                
-                audit_log($pdo, 'USUARIO_ELIMINADO', 'usuarios', $id, null, ['id_eliminado' => $id]);
-                $success = "Usuario enviado a la papelera correctamente.";
-            } catch (Exception $e) {
-                if ($pdo->inTransaction()) {
-                    $pdo->rollBack();
-                }
-                // Si falla por clave foránea (SQLSTATE 23000) - común por logs de auditoría o documentos
-                if (method_exists($e, 'getCode') && $e->getCode() == '23000') {
-                    $error = "No se puede eliminar este usuario porque tiene registros de actividad asociados (logs de auditoría, incidencias, etc.) para cumplir con la normativa ISO 27001. En su lugar, puedes suspender su cuenta para deshabilitar su acceso por completo.";
-                } elseif (isset($e->errorInfo) && $e->errorInfo[0] == '23000') {
-                    $error = "No se puede eliminar este usuario porque tiene registros de actividad asociados (logs de auditoría, incidencias, etc.) para cumplir con la normativa ISO 27001. En su lugar, puedes suspender su cuenta para deshabilitar su acceso por completo.";
-                } else {
-                    $error = "Error al eliminar el usuario: " . $e->getMessage();
-                }
-            }
-        }
-        }
-        
-        // Alta o Sincronización en Moodle
-        if ($_POST['action'] == 'sync_moodle') {
-            $id = intval($_POST['user_id']);
-            $stmtUser = $pdo->prepare("SELECT * FROM usuarios WHERE id = ?");
-            $stmtUser->execute([$id]);
-            $user_data = $stmtUser->fetch(PDO::FETCH_ASSOC);
-
-            if ($user_data) {
-                require_once 'includes/moodle_api.php';
-                try {
-                    $moodle = new MoodleAPI($pdo);
-                    if ($moodle->isConfigured()) {
-                        // 1. Comprobar si ya existe en Moodle por email o por username
-                        $existingUser = null;
-                        try {
-                            $checkByEmail = $moodle->getUsersByField('email', [$user_data['email']]);
-                            if (!empty($checkByEmail['users'])) {
-                                $existingUser = $checkByEmail['users'][0];
-                            } else {
-                                $checkByUsername = $moodle->getUsersByField('username', [strtolower($user_data['username'])]);
-                                if (!empty($checkByUsername['users'])) {
-                                    $existingUser = $checkByUsername['users'][0];
+                if ($user_data) {
+                    require_once 'includes/moodle_api.php';
+                    try {
+                        $moodle = new MoodleAPI($pdo);
+                        if ($moodle->isConfigured()) {
+                            $existingUser = null;
+                            try {
+                                $checkByEmail = $moodle->getUsersByField('email', [$user_data['email']]);
+                                if (!empty($checkByEmail['users'])) {
+                                    $existingUser = $checkByEmail['users'][0];
+                                } else {
+                                    $checkByUsername = $moodle->getUsersByField('username', [strtolower($user_data['username'])]);
+                                    if (!empty($checkByUsername['users'])) {
+                                        $existingUser = $checkByUsername['users'][0];
+                                    }
                                 }
-                            }
-                        } catch (Exception $ex) {}
+                            } catch (Exception $ex) {}
 
-                        if ($existingUser) {
-                            $mUserId = $existingUser['id'];
-                            $pdo->prepare("UPDATE usuarios SET moodle_user_id = ? WHERE id = ?")->execute([$mUserId, $id]);
-                            $moodle->syncUserPictureFromMoodle($id, $mUserId);
-                            audit_log($pdo, 'USUARIO_MOODLE_ALTA', 'usuarios', $id, null, ['moodle_user_id' => $mUserId, 'modo' => 'vinculado_existente']);
-                            $success = "El usuario '{$user_data['username']}' ya estaba dado de alta en Moodle (ID #{$mUserId}, Email: {$user_data['email']}) y se ha sincronizado correctamente con la intranet.";
-                        } else {
-                            // 2. Crear usuario nuevo en Moodle
-                            $newUsers = $moodle->createUser(
-                                strtolower($user_data['username']),
-                                'MoodleTemp123!', // Contraseña genérica temporal
-                                $user_data['nombre'],
-                                $user_data['apellidos'],
-                                $user_data['email']
-                            );
-                            
-                            if (!empty($newUsers) && isset($newUsers[0]['id'])) {
-                                $mUserId = $newUsers[0]['id'];
+                            if ($existingUser) {
+                                $mUserId = $existingUser['id'];
                                 $pdo->prepare("UPDATE usuarios SET moodle_user_id = ? WHERE id = ?")->execute([$mUserId, $id]);
                                 $moodle->syncUserPictureFromMoodle($id, $mUserId);
-                                audit_log($pdo, 'USUARIO_MOODLE_ALTA', 'usuarios', $id, null, ['moodle_user_id' => $mUserId, 'modo' => 'creado_nuevo']);
-                                $success = "El usuario '{$user_data['username']}' ha sido dado de alta correctamente en Moodle (ID #{$mUserId}, Contraseña temporal: MoodleTemp123!).";
+                                audit_log($pdo, 'USUARIO_MOODLE_ALTA', 'usuarios', $id, null, ['moodle_user_id' => $mUserId, 'modo' => 'vinculado_existente']);
+                                $success = "El usuario '{$user_data['username']}' ya estaba dado de alta en Moodle (ID #{$mUserId}, Email: {$user_data['email']}) y se ha sincronizado correctamente con la intranet.";
                             } else {
-                                $error = "No se ha podido crear el usuario en Moodle (Respuesta inesperada).";
+                                $newUsers = $moodle->createUser(
+                                    strtolower($user_data['username']),
+                                    'MoodleTemp123!',
+                                    $user_data['nombre'],
+                                    $user_data['apellidos'],
+                                    $user_data['email']
+                                );
+                                
+                                if (!empty($newUsers) && isset($newUsers[0]['id'])) {
+                                    $mUserId = $newUsers[0]['id'];
+                                    $pdo->prepare("UPDATE usuarios SET moodle_user_id = ? WHERE id = ?")->execute([$mUserId, $id]);
+                                    $moodle->syncUserPictureFromMoodle($id, $mUserId);
+                                    audit_log($pdo, 'USUARIO_MOODLE_ALTA', 'usuarios', $id, null, ['moodle_user_id' => $mUserId, 'modo' => 'creado_nuevo']);
+                                    $success = "El usuario '{$user_data['username']}' ha sido dado de alta correctamente en Moodle (ID #{$mUserId}, Contraseña temporal: MoodleTemp123!).";
+                                } else {
+                                    $error = "No se ha podido crear el usuario en Moodle (Respuesta inesperada).";
+                                }
                             }
+                        } else {
+                            $error = "Moodle no está configurado correctamente en el sistema.";
                         }
-                    } else {
-                        $error = "Moodle no está configurado correctamente en el sistema.";
+                    } catch (Exception $e) {
+                        $error = "Error al comunicar con Moodle: " . $e->getMessage();
                     }
-                } catch (Exception $e) {
-                    $error = "Error al comunicar con Moodle: " . $e->getMessage();
+                } else {
+                    $error = "Usuario no encontrado.";
                 }
-            } else {
-                $error = "Usuario no encontrado.";
             }
         }
 
         // Sincronizar Todos los Usuarios con Moodle
         if ($_POST['action'] == 'sync_all_moodle') {
-            require_once 'includes/moodle_api.php';
-            try {
-                $moodle = new MoodleAPI($pdo);
-                if ($moodle->isConfigured()) {
-                    $stmtAll = $pdo->query("SELECT * FROM usuarios WHERE activo = 1");
-                    $allUsers = $stmtAll->fetchAll(PDO::FETCH_ASSOC);
-                    $linked_count = 0;
+            if (!$is_admin) {
+                $error = "Acceso denegado. Solo los administradores pueden ejecutar la sincronización masiva.";
+            } else {
+                require_once 'includes/moodle_api.php';
+                try {
+                    $moodle = new MoodleAPI($pdo);
+                    if ($moodle->isConfigured()) {
+                        $stmtAll = $pdo->query("SELECT * FROM usuarios WHERE activo = 1");
+                        $allUsers = $stmtAll->fetchAll(PDO::FETCH_ASSOC);
+                        $linked_count = 0;
 
-                    foreach ($allUsers as $uData) {
-                        $existingUser = null;
-                        try {
-                            $checkByEmail = $moodle->getUsersByField('email', [$uData['email']]);
-                            if (!empty($checkByEmail['users'])) {
-                                $existingUser = $checkByEmail['users'][0];
-                            } else {
-                                $checkByUsername = $moodle->getUsersByField('username', [strtolower($uData['username'])]);
-                                if (!empty($checkByUsername['users'])) {
-                                    $existingUser = $checkByUsername['users'][0];
+                        foreach ($allUsers as $uData) {
+                            $existingUser = null;
+                            try {
+                                $checkByEmail = $moodle->getUsersByField('email', [$uData['email']]);
+                                if (!empty($checkByEmail['users'])) {
+                                    $existingUser = $checkByEmail['users'][0];
+                                } else {
+                                    $checkByUsername = $moodle->getUsersByField('username', [strtolower($uData['username'])]);
+                                    if (!empty($checkByUsername['users'])) {
+                                        $existingUser = $checkByUsername['users'][0];
+                                    }
                                 }
+                            } catch (Exception $ex) {}
+
+                            if ($existingUser) {
+                                $mUserId = $existingUser['id'];
+                                $pdo->prepare("UPDATE usuarios SET moodle_user_id = ? WHERE id = ?")->execute([$mUserId, $uData['id']]);
+                                $moodle->syncUserPictureFromMoodle($uData['id'], $mUserId);
+                                audit_log($pdo, 'USUARIO_MOODLE_ALTA', 'usuarios', $uData['id'], null, ['moodle_user_id' => $mUserId, 'modo' => 'vinculado_existente']);
+                                $linked_count++;
                             }
-                        } catch (Exception $ex) {}
-
-                        if ($existingUser) {
-                            $mUserId = $existingUser['id'];
-                            $pdo->prepare("UPDATE usuarios SET moodle_user_id = ? WHERE id = ?")->execute([$mUserId, $uData['id']]);
-                            $moodle->syncUserPictureFromMoodle($uData['id'], $mUserId);
-                            audit_log($pdo, 'USUARIO_MOODLE_ALTA', 'usuarios', $uData['id'], null, ['moodle_user_id' => $mUserId, 'modo' => 'vinculado_existente']);
-                            $linked_count++;
                         }
-                    }
 
-                    $success = "Sincronización masiva con Moodle completada. Se han detectado y vinculado $linked_count usuario(s) existentes en Moodle.";
-                } else {
-                    $error = "Moodle no está configurado correctamente en el sistema.";
+                        $success = "Sincronización masiva con Moodle completada. Se han detectado y vinculado $linked_count usuario(s) existentes en Moodle.";
+                    } else {
+                        $error = "Moodle no está configurado correctamente en el sistema.";
+                    }
+                } catch (Exception $e) {
+                    $error = "Error al sincronizar con Moodle: " . $e->getMessage();
                 }
-            } catch (Exception $e) {
-                $error = "Error al sincronizar con Moodle: " . $e->getMessage();
             }
         }
 
         // Suplantar Usuario (Impersonate)
         if ($_POST['action'] == 'impersonate') {
-            $id = intval($_POST['user_id']);
-            if ($id != $_SESSION['user_id']) {
-                // Guardar el ID del administrador actual
-                $_SESSION['impersonator_id'] = $_SESSION['user_id'];
-                
-                // Cargar datos del usuario a suplantar
-                $stmt = $pdo->prepare("SELECT u.*, r.nombre as rol_nombre FROM usuarios u JOIN roles r ON u.rol_id = r.id WHERE u.id = ? AND u.activo = 1");
-                $stmt->execute([$id]);
-                $user = $stmt->fetch();
-                
-                if ($user) {
-                    $_SESSION['user_id'] = $user['id'];
-                    $_SESSION['username'] = $user['username'];
-                    $_SESSION['nombre_completo'] = trim($user['nombre'] . ' ' . $user['apellidos']);
-                    $_SESSION['rol_id'] = $user['rol_id'];
-                    $_SESSION['rol_nombre'] = $user['rol_nombre'];
-                    $_SESSION['centro_id'] = $user['centro_id'] ?? null;
-                    
-                    audit_log($pdo, 'USUARIO_IMPERSONATE', 'usuarios', $id, null, ['impersonator' => $_SESSION['impersonator_id']]);
-                    header("Location: dashboard.php");
-                    exit();
-                } else {
-                    $error = "No se puede entrar a la cuenta de este usuario (no existe o está inactiva).";
-                    unset($_SESSION['impersonator_id']);
-                }
+            if (!$is_admin) {
+                $error = "Acceso denegado. Solo los administradores pueden suplantar usuarios.";
             } else {
-                $error = "Ya estás usando esta cuenta.";
+                $id = intval($_POST['user_id']);
+                if ($id != $_SESSION['user_id']) {
+                    $_SESSION['impersonator_id'] = $_SESSION['user_id'];
+                    $stmt = $pdo->prepare("SELECT u.*, r.nombre as rol_nombre FROM usuarios u JOIN roles r ON u.rol_id = r.id WHERE u.id = ? AND u.activo = 1");
+                    $stmt->execute([$id]);
+                    $user = $stmt->fetch();
+                    
+                    if ($user) {
+                        $_SESSION['user_id'] = $user['id'];
+                        $_SESSION['username'] = $user['username'];
+                        $_SESSION['nombre_completo'] = trim($user['nombre'] . ' ' . $user['apellidos']);
+                        $_SESSION['rol_id'] = $user['rol_id'];
+                        $_SESSION['rol_nombre'] = $user['rol_nombre'];
+                        $_SESSION['centro_id'] = $user['centro_id'] ?? null;
+                        
+                        audit_log($pdo, 'USUARIO_IMPERSONATE', 'usuarios', $id, null, ['impersonator' => $_SESSION['impersonator_id']]);
+                        header("Location: dashboard.php");
+                        exit();
+                    } else {
+                        $error = "No se puede entrar a la cuenta de este usuario (no existe o está inactiva).";
+                        unset($_SESSION['impersonator_id']);
+                    }
+                } else {
+                    $error = "Ya estás usando esta cuenta.";
+                }
             }
         }
 
         // Modificar Email de Usuario
         if ($_POST['action'] == 'update_email') {
             $user_id = intval($_POST['user_id']);
-            $new_email = trim($_POST['email']);
-            
-            if (empty($new_email) || !filter_var($new_email, FILTER_VALIDATE_EMAIL)) {
-                $error = "Por favor, introduce una dirección de e-mail válida.";
+            if (!$is_admin && $user_id !== $current_user_id) {
+                $error = "Solo puedes modificar tus propios datos personales.";
             } else {
-                $stmtUser = $pdo->prepare("SELECT * FROM usuarios WHERE id = ?");
-                $stmtUser->execute([$user_id]);
-                $uTarget = $stmtUser->fetch(PDO::FETCH_ASSOC);
-                
-                if (!$uTarget) {
-                    $error = "Usuario no encontrado.";
+                $new_email = trim($_POST['email']);
+                if (empty($new_email) || !filter_var($new_email, FILTER_VALIDATE_EMAIL)) {
+                    $error = "Por favor, introduce una dirección de e-mail válida.";
+                } else {
+                    $stmtUser = $pdo->prepare("SELECT * FROM usuarios WHERE id = ?");
+                    $stmtUser->execute([$user_id]);
+                    $uTarget = $stmtUser->fetch(PDO::FETCH_ASSOC);
+                    
+                    if (!$uTarget) {
+                        $error = "Usuario no encontrado.";
+                    } else {
+                        $stmtCheck = $pdo->prepare("SELECT id FROM usuarios WHERE email = ? AND id != ?");
+                        $stmtCheck->execute([$new_email, $user_id]);
+                        if ($stmtCheck->fetch()) {
+                            $error = "El e-mail '$new_email' ya está registrado por otro usuario.";
+                        } else {
+                            $old_email = $uTarget['email'];
+                            $stmtUpd = $pdo->prepare("UPDATE usuarios SET email = ? WHERE id = ?");
+                            $stmtUpd->execute([$new_email, $user_id]);
+                            
+                            $moodle_info = '';
+                            if (!empty($uTarget['moodle_user_id'])) {
+                                try {
+                                    require_once 'includes/moodle_api.php';
+                                    $moodle = new MoodleAPI($pdo);
+                                    if ($moodle->isConfigured()) {
+                                        $moodle->updateUser($uTarget['moodle_user_id'], ['email' => $new_email]);
+                                        $moodle_info = " y se ha sincronizado la modificación con Moodle (ID #{$uTarget['moodle_user_id']})";
+                                    }
+                                } catch (Exception $mEx) {
+                                    $moodle_info = " (Atención: no se pudo actualizar en Moodle: " . $mEx->getMessage() . ")";
+                                }
+                            }
+                            
+                            audit_log($pdo, 'USUARIO_EMAIL_CAMBIADO', 'usuarios', $user_id, null, ['old_email' => $old_email, 'new_email' => $new_email]);
+                            $success = "El e-mail del usuario '{$uTarget['username']}' se ha actualizado de '$old_email' a '$new_email'$moodle_info.";
+                        }
+                    }
+                }
+            }
+        }
+
+        // Modificar Datos Personales Completo (Perfil)
+        if ($_POST['action'] == 'update_profile') {
+            $target_user_id = intval($_POST['user_id'] ?? 0);
+            if (!$is_admin && $target_user_id !== $current_user_id) {
+                $error = "Acceso denegado. Solo puedes modificar tus propios datos personales.";
+            } else {
+                $nombre = trim($_POST['nombre'] ?? '');
+                $apellidos = trim($_POST['apellidos'] ?? '');
+                $dni = trim($_POST['dni'] ?? '');
+                $email = trim($_POST['email'] ?? '');
+                $new_password = $_POST['password'] ?? '';
+
+                if (empty($nombre) || empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    $error = "Por favor, introduce un nombre y un e-mail válidos.";
                 } else {
                     $stmtCheck = $pdo->prepare("SELECT id FROM usuarios WHERE email = ? AND id != ?");
-                    $stmtCheck->execute([$new_email, $user_id]);
+                    $stmtCheck->execute([$email, $target_user_id]);
                     if ($stmtCheck->fetch()) {
-                        $error = "El e-mail '$new_email' ya está registrado por otro usuario.";
+                        $error = "El e-mail '$email' ya está registrado por otro usuario.";
                     } else {
-                        $old_email = $uTarget['email'];
-                        $stmtUpd = $pdo->prepare("UPDATE usuarios SET email = ? WHERE id = ?");
-                        $stmtUpd->execute([$new_email, $user_id]);
-                        
-                        $moodle_info = '';
-                        if (!empty($uTarget['moodle_user_id'])) {
-                            try {
-                                require_once 'includes/moodle_api.php';
-                                $moodle = new MoodleAPI($pdo);
-                                if ($moodle->isConfigured()) {
-                                    $moodle->updateUser($uTarget['moodle_user_id'], ['email' => $new_email]);
-                                    $moodle_info = " y se ha sincronizado la modificación con Moodle (ID #{$uTarget['moodle_user_id']})";
+                        $stmtUser = $pdo->prepare("SELECT * FROM usuarios WHERE id = ?");
+                        $stmtUser->execute([$target_user_id]);
+                        $uTarget = $stmtUser->fetch(PDO::FETCH_ASSOC);
+
+                        if (!$uTarget) {
+                            $error = "Usuario no encontrado.";
+                        } else {
+                            $pass_updated = false;
+                            $pass_hash = $uTarget['password_hash'];
+                            if (!empty($new_password)) {
+                                $complexity = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/';
+                                if (!preg_match($complexity, $new_password)) {
+                                    $error = "La contraseña debe tener al menos 8 caracteres e incluir al menos una letra mayúscula, una letra minúscula y un número.";
+                                } else {
+                                    $pass_hash = password_hash($new_password, PASSWORD_BCRYPT);
+                                    $pass_updated = true;
                                 }
-                            } catch (Exception $mEx) {
-                                $moodle_info = " (Atención: no se pudo actualizar en Moodle: " . $mEx->getMessage() . ")";
+                            }
+
+                            if (empty($error)) {
+                                if ($is_admin && isset($_POST['rol_id'])) {
+                                    $rol_id = intval($_POST['rol_id']);
+                                    $centro_id = !empty($_POST['centro_id']) ? intval($_POST['centro_id']) : null;
+                                    $stmtUpd = $pdo->prepare("UPDATE usuarios SET nombre = ?, apellidos = ?, dni = ?, email = ?, password_hash = ?, rol_id = ?, centro_id = ? WHERE id = ?");
+                                    $stmtUpd->execute([$nombre, $apellidos, $dni, $email, $pass_hash, $rol_id, $centro_id, $target_user_id]);
+                                } else {
+                                    $stmtUpd = $pdo->prepare("UPDATE usuarios SET nombre = ?, apellidos = ?, dni = ?, email = ?, password_hash = ? WHERE id = ?");
+                                    $stmtUpd->execute([$nombre, $apellidos, $dni, $email, $pass_hash, $target_user_id]);
+                                }
+
+                                if ($target_user_id === $current_user_id) {
+                                    $_SESSION['nombre_completo'] = trim($nombre . ' ' . $apellidos);
+                                    if (isset($_SESSION['email'])) $_SESSION['email'] = $email;
+                                }
+
+                                if (!empty($uTarget['moodle_user_id'])) {
+                                    try {
+                                        require_once 'includes/moodle_api.php';
+                                        $moodle = new MoodleAPI($pdo);
+                                        if ($moodle->isConfigured()) {
+                                            $mData = ['email' => $email, 'firstname' => $nombre, 'lastname' => $apellidos];
+                                            if ($pass_updated) {
+                                                $mData['password'] = $new_password;
+                                            }
+                                            $moodle->updateUser($uTarget['moodle_user_id'], $mData);
+                                        }
+                                    } catch (Exception $mEx) {}
+                                }
+
+                                audit_log($pdo, 'USUARIO_DATOS_ACTUALIZADOS', 'usuarios', $target_user_id, null, ['user_id' => $target_user_id]);
+                                $success = "Datos personales actualizados correctamente.";
                             }
                         }
-                        
-                        audit_log($pdo, 'USUARIO_EMAIL_CAMBIADO', 'usuarios', $user_id, null, ['old_email' => $old_email, 'new_email' => $new_email]);
-                        $success = "El e-mail del usuario '{$uTarget['username']}' se ha actualizado de '$old_email' a '$new_email'$moodle_info.";
                     }
                 }
             }
@@ -312,12 +408,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
 }
 
 // Listado de usuarios
-$stmt = $pdo->query("SELECT u.*, r.nombre as rol_nombre, c.nombre as centro_nombre 
-                     FROM usuarios u 
-                     JOIN roles r ON u.rol_id = r.id 
-                     LEFT JOIN centros c ON u.centro_id = c.id
-                     ORDER BY u.activo DESC, u.username ASC");
-$usuarios = $stmt->fetchAll();
+if ($is_admin) {
+    $stmt = $pdo->query("SELECT u.*, r.nombre as rol_nombre, c.nombre as centro_nombre 
+                         FROM usuarios u 
+                         JOIN roles r ON u.rol_id = r.id 
+                         LEFT JOIN centros c ON u.centro_id = c.id
+                         ORDER BY u.activo DESC, u.username ASC");
+    $usuarios = $stmt->fetchAll();
+} else {
+    $stmt = $pdo->prepare("SELECT u.*, r.nombre as rol_nombre, c.nombre as centro_nombre 
+                          FROM usuarios u 
+                          JOIN roles r ON u.rol_id = r.id 
+                          LEFT JOIN centros c ON u.centro_id = c.id
+                          WHERE u.id = ?");
+    $stmt->execute([$current_user_id]);
+    $usuarios = $stmt->fetchAll();
+}
 
 // Listado de roles para el combo (excluyendo Solo Lectura)
 $roles = $pdo->query("SELECT * FROM roles WHERE id != " . ROLE_LECTURA . " ORDER BY id ASC")->fetchAll();
@@ -1201,9 +1307,10 @@ try {
     <main class="main-content">
         <header class="page-header">
             <div class="page-title">
-                <h1>Usuarios y Permisos</h1>
-                <p>Administración del acceso y control de seguridad corporativo (ISO 27001)</p>
+                <h1><?= $is_admin ? 'Usuarios y Permisos' : 'Mis Datos Personales' ?></h1>
+                <p><?= $is_admin ? 'Administración del acceso y control de seguridad corporativo (ISO 27001)' : 'Gestión de tu perfil y credenciales de acceso a la Intranet' ?></p>
             </div>
+            <?php if ($is_admin): ?>
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                 <form method="POST" style="margin: 0;" onsubmit="return confirm('¿Escanear y vincular todos los usuarios de la intranet que ya existen en Moodle?');">
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
@@ -1218,6 +1325,7 @@ try {
                     Nuevo Usuario
                 </button>
             </div>
+            <?php endif; ?>
         </header>
 
         <?php if ($success): ?>
@@ -1233,6 +1341,82 @@ try {
                 <span><?= $error ?></span>
             </div>
         <?php endif; ?>
+
+        <?php if (!$is_admin): ?>
+            <?php $my_u = $usuarios[0] ?? null; ?>
+            <?php if ($my_u): ?>
+            <section style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 2rem; box-shadow: var(--shadow-md); max-width: 800px; margin: 0 auto;">
+                <div style="display: flex; align-items: center; gap: 1.5rem; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid #e2e8f0;">
+                    <div class="user-avatar-gradient avatar-adm" style="width: 64px; height: 64px; font-size: 1.5rem; border-radius: 16px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                        <?php if (!empty($my_u['foto']) && file_exists(__DIR__ . '/' . $my_u['foto'])): ?>
+                            <img src="<?= htmlspecialchars($my_u['foto']) ?>" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
+                        <?php else: ?>
+                            <?= strtoupper(substr($my_u['nombre'], 0, 1) . substr($my_u['apellidos'] ?: $my_u['username'], 0, 1)) ?>
+                        <?php endif; ?>
+                    </div>
+                    <div>
+                        <h2 style="margin: 0 0 0.25rem 0; color: #1e3a8a; font-size: 1.35rem; font-weight: 700;">
+                            <?= htmlspecialchars($my_u['nombre'] . ' ' . $my_u['apellidos']) ?>
+                        </h2>
+                        <p style="margin: 0; color: #64748b; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <span>Usuario: <strong><?= htmlspecialchars($my_u['username']) ?></strong></span>
+                            <span>•</span>
+                            <span>Rol: <span class="badge-premium-pill badge-adm"><?= htmlspecialchars($my_u['rol_nombre']) ?></span></span>
+                            <?php if (!empty($my_u['centro_nombre'])): ?>
+                                <span>•</span>
+                                <span>Sede: <strong><?= htmlspecialchars($my_u['centro_nombre']) ?></strong></span>
+                            <?php endif; ?>
+                        </p>
+                    </div>
+                </div>
+
+                <form method="POST" autocomplete="off">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
+                    <input type="hidden" name="action" value="update_profile">
+                    <input type="hidden" name="user_id" value="<?= $my_u['id'] ?>">
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+                        <div class="premium-field">
+                            <label>Nombre</label>
+                            <input type="text" name="nombre" value="<?= htmlspecialchars($my_u['nombre']) ?>" required>
+                        </div>
+                        <div class="premium-field">
+                            <label>Apellidos</label>
+                            <input type="text" name="apellidos" value="<?= htmlspecialchars($my_u['apellidos']) ?>">
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+                        <div class="premium-field">
+                            <label>DNI / NIF</label>
+                            <input type="text" name="dni" value="<?= htmlspecialchars($my_u['dni'] ?? '') ?>" placeholder="12345678Z">
+                        </div>
+                        <div class="premium-field">
+                            <label>E-mail Corporativo</label>
+                            <input type="email" name="email" value="<?= htmlspecialchars($my_u['email']) ?>" required>
+                        </div>
+                    </div>
+
+                    <div class="premium-field" style="margin-top: 0.5rem;">
+                        <label>Cambiar Contraseña (dejar en blanco para mantener la actual)</label>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="password" name="password" id="profile_password" placeholder="Nueva contraseña de acceso" style="flex: 1;">
+                            <button type="button" class="btn-outline" onclick="toggleProfilePassword()" style="padding: 0.65rem 0.8rem; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; cursor: pointer;" title="Mostrar/Ocultar contraseña">👁️</button>
+                            <button type="button" class="btn-outline" onclick="generateProfilePassword()" style="padding: 0.65rem 1rem; border-radius: 8px; border: 1px solid #2563eb; background: #2563eb; color: white; font-weight: 600; cursor: pointer;" title="Generar contraseña segura">🔑 Generar</button>
+                        </div>
+                        <small style="color: #64748b; font-size: 0.775rem; margin-top: 4px; display: block;">Mínimo 12 caracteres con mayúsculas, minúsculas, números y caracteres especiales (@, $, !, %, *, ?, &, #).</small>
+                    </div>
+
+                    <div style="margin-top: 2rem; text-align: right;">
+                        <button type="submit" class="btn-create-premium" style="width: auto; padding: 12px 28px; display: inline-flex; align-items: center; gap: 8px; border-radius: 10px;">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
+                            Guardar Mis Datos Personales
+                        </button>
+                    </div>
+                </form>
+            </section>
+            <?php endif; ?>
+        <?php else: ?>
 
         <!-- CALCULATE DASHBOARD COUNTS -->
         <?php
@@ -1403,6 +1587,10 @@ try {
                                     <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                                     Perfil
                                 </a>
+                                <button type="button" class="btn-action-premium" style="background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe;" onclick="openSendUserKeysModal(<?= $u['id'] ?>, '<?= htmlspecialchars($u['username'], ENT_QUOTES) ?>', '<?= htmlspecialchars($u['nombre'], ENT_QUOTES) ?>', '<?= htmlspecialchars($u['email'], ENT_QUOTES) ?>')" title="Enviar o restablecer claves de acceso por email">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>
+                                    Enviar Claves
+                                </button>
                                 <?php if ($u['activo']): ?>
                                     <?php if (in_array($u['id'], $syncedUserIds) || !empty($u['moodle_user_id'])): ?>
                                         <button type="button" class="btn-action-premium" style="background: #ecfdf5; color: #059669; border-color: #a7f3d0; cursor: default;" title="Usuario dado de alta o sincronizado con Moodle (ID #<?= htmlspecialchars($u['moodle_user_id'] ?? '') ?>)">
@@ -1472,6 +1660,7 @@ try {
                 No se encontraron usuarios que coincidan con la búsqueda.
             </div>
         </section>
+        <?php endif; ?>
     </main>
 </div>
 
@@ -1714,7 +1903,188 @@ try {
     function closeEditEmailModal() {
         document.getElementById('modalEditEmailOverlay').classList.remove('open');
     }
+
+    function toggleProfilePassword() {
+        const input = document.getElementById('profile_password');
+        if (input) {
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+    }
+
+    function generateProfilePassword() {
+        const uppers = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const lowers = "abcdefghijklmnopqrstuvwxyz";
+        const numbers = "0123456789";
+        const specials = "@$!%*?&#";
+        const all = uppers + lowers + numbers + specials;
+        
+        let password = "";
+        password += uppers.charAt(Math.floor(Math.random() * uppers.length));
+        password += lowers.charAt(Math.floor(Math.random() * lowers.length));
+        password += numbers.charAt(Math.floor(Math.random() * numbers.length));
+        password += specials.charAt(Math.floor(Math.random() * specials.length));
+        
+        for (let i = 0; i < 8; i++) {
+            password += all.charAt(Math.floor(Math.random() * all.length));
+        }
+        
+        password = password.split('').sort(() => 0.5 - Math.random()).join('');
+        
+        const input = document.getElementById('profile_password');
+        if (input) {
+            input.value = password;
+            input.type = 'text';
+        }
+    }
+
+    // Modal Enviar Claves de Usuario
+    let currentSendKeysUser = { id: 0, username: '', nombre: '', email: '' };
+
+    function openSendUserKeysModal(id, username, nombre, email) {
+        currentSendKeysUser = { id, username, nombre, email };
+        document.getElementById('sendUserKeysId').value = id;
+        document.getElementById('sendUserKeysEmail').value = email;
+        document.getElementById('sendUserKeysUsername').value = username;
+        document.getElementById('sendUserKeysError').style.display = 'none';
+
+        generateSendUserKeysPassword();
+
+        const overlay = document.getElementById('modalSendUserKeysOverlay');
+        overlay.style.display = 'flex';
+        overlay.offsetHeight;
+        overlay.style.opacity = '1';
+    }
+
+    function closeSendUserKeysModal() {
+        const overlay = document.getElementById('modalSendUserKeysOverlay');
+        overlay.style.opacity = '0';
+        setTimeout(() => {
+            overlay.style.display = 'none';
+        }, 250);
+    }
+
+    function generateSendUserKeysPassword() {
+        const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+        let randomPart = "";
+        for (let i = 0; i < 6; i++) {
+            randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        const pass = "Efp" + (Math.floor(100 + Math.random() * 900)) + randomPart + "!";
+        document.getElementById('sendUserKeysPassword').value = pass;
+        updateSendUserKeysEmailBody();
+    }
+
+    function updateSendUserKeysEmailBody() {
+        const passVal = document.getElementById('sendUserKeysPassword').value.trim();
+        const passwordText = passVal ? passVal : '[Pendiente de indicar]';
+        const bodyText = `Hola ${currentSendKeysUser.nombre || currentSendKeysUser.username},
+
+Te facilitamos tus credenciales para acceder a la Intranet de Grupo EFP:
+
+Dirección de acceso: https://gestion.grupoefp.es/
+Usuario: ${currentSendKeysUser.username}  (o con su email: ${currentSendKeysUser.email})
+Contraseña: ${passwordText}
+
+Por favor, guarde estos datos en un lugar seguro. Puede acceder tanto con su nombre de usuario como con su dirección de correo electrónico.
+
+Un saludo,
+El equipo de administración.`;
+
+        document.getElementById('sendUserKeysBody').value = bodyText;
+    }
+
+    function submitSendUserKeys(e) {
+        e.preventDefault();
+        const btn = document.getElementById('btnSendUserKeysSubmit');
+        const errDiv = document.getElementById('sendUserKeysError');
+
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Enviando...';
+        errDiv.style.display = 'none';
+
+        const formData = new FormData(document.getElementById('formSendUserKeys'));
+
+        fetch('api_send_trabajador_keys.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert('¡Claves actualizadas y enviadas correctamente por correo electrónico!');
+                closeSendUserKeysModal();
+            } else {
+                errDiv.textContent = data.error || 'Ocurrió un error al enviar.';
+                errDiv.style.display = 'block';
+                btn.disabled = false;
+                btn.innerHTML = '🚀 Enviar Claves por Correo';
+            }
+        })
+        .catch(error => {
+            errDiv.textContent = 'Error de conexión con el servidor.';
+            errDiv.style.display = 'block';
+            btn.disabled = false;
+            btn.innerHTML = '🚀 Enviar Claves por Correo';
+        });
+    }
 </script>
+
+<!-- MODAL ENVIAR CLAVES USUARIO -->
+<div class="modal-overlay" id="modalSendUserKeysOverlay" style="display: none; opacity: 0; transition: opacity 0.25s ease; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 99999; align-items: center; justify-content: center;">
+    <div class="modal-container" style="background: white; border-radius: 16px; width: 100%; max-width: 620px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); overflow: hidden;">
+        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid #e2e8f0; background: #f8fafc;">
+            <h2 style="margin: 0; font-size: 1.2rem; color: #1e3a8a; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                🔑 Enviar Claves de Acceso por Correo
+            </h2>
+            <button type="button" onclick="closeSendUserKeysModal()" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #64748b;">✕</button>
+        </div>
+        <div class="modal-body" style="padding: 1.5rem;">
+            <div id="sendUserKeysError" style="display: none; padding: 12px; background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem;"></div>
+
+            <form id="formSendUserKeys" onsubmit="submitSendUserKeys(event)">
+                <input type="hidden" name="trabajador_id" id="sendUserKeysId">
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                    <div>
+                        <label style="display: block; font-weight: 600; color: #475569; margin-bottom: 4px; font-size: 0.85rem;">Destinatario (Email)</label>
+                        <input type="email" name="email" id="sendUserKeysEmail" required style="width: 100%; border: 1px solid #cbd5e1; padding: 8px 12px; border-radius: 6px; font-size: 0.9rem; box-sizing: border-box;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-weight: 600; color: #475569; margin-bottom: 4px; font-size: 0.85rem;">Usuario (Log-in)</label>
+                        <input type="text" id="sendUserKeysUsername" disabled style="width: 100%; border: 1px solid #cbd5e1; padding: 8px 12px; border-radius: 6px; font-size: 0.9rem; background: #f1f5f9; color: #64748b; box-sizing: border-box;">
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; font-weight: 700; color: #1e3a8a; margin-bottom: 4px; font-size: 0.85rem;">Contraseña de Acceso (se guardará en BD y se enviará)</label>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <input type="text" name="password" id="sendUserKeysPassword" required style="flex: 1; border: 1px solid #cbd5e1; padding: 8px 12px; border-radius: 6px; font-size: 0.95rem; font-weight: 600; color: #1e293b; box-sizing: border-box;" oninput="updateSendUserKeysEmailBody()">
+                        <button type="button" onclick="generateSendUserKeysPassword()" style="padding: 8px 14px; border-radius: 6px; background: #2563eb; color: white; border: 1px solid #2563eb; cursor: pointer; font-weight: 700; font-size: 0.85rem; white-space: nowrap;">
+                            🔑 Generar
+                        </button>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; font-weight: 600; color: #475569; margin-bottom: 4px; font-size: 0.85rem;">Asunto</label>
+                    <input type="text" name="subject" value="Claves de acceso a la Intranet - Grupo EFP" required style="width: 100%; border: 1px solid #cbd5e1; padding: 8px 12px; border-radius: 6px; font-size: 0.9rem; box-sizing: border-box;">
+                </div>
+
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; font-weight: 600; color: #475569; margin-bottom: 4px; font-size: 0.85rem;">Contenido del Correo</label>
+                    <textarea name="body" id="sendUserKeysBody" rows="7" required style="width: 100%; border: 1px solid #cbd5e1; padding: 10px 12px; border-radius: 6px; font-size: 0.875rem; font-family: monospace; resize: vertical; box-sizing: border-box;"></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #e2e8f0; padding-top: 1rem; margin-top: 1rem;">
+                    <button type="button" onclick="closeSendUserKeysModal()" style="padding: 8px 16px; border-radius: 6px; background: white; border: 1px solid #cbd5e1; color: #475569; cursor: pointer; font-weight: 600;">Cancelar</button>
+                    <button type="submit" id="btnSendUserKeysSubmit" style="padding: 8px 24px; border-radius: 6px; background: #0284c7; border: 1px solid #0284c7; color: white; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                        🚀 Enviar Claves por Correo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 </body>
 </html>

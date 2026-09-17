@@ -247,14 +247,14 @@ $current_fp_page = basename($_SERVER['PHP_SELF']);
                 Tareas
             </a>
         </li>
-        <?php if (has_permission([ROLE_ADMIN])) { ?>
-        <li class="menu-divider">Mantenimiento</li>
         <li>
             <a href="usuarios.php" class="<?= $current_fp_page == 'usuarios.php' ? 'active' : '' ?>">
                 <svg class="fp-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                Usuarios y Roles
+                <?= has_permission([ROLE_ADMIN]) ? 'Usuarios y Roles' : 'Mi Perfil' ?>
             </a>
         </li>
+        <?php if (has_permission([ROLE_ADMIN])) { ?>
+        <li class="menu-divider">Mantenimiento</li>
         <li>
             <a href="auditoria.php" class="<?= $current_fp_page == 'auditoria.php' ? 'active' : '' ?>">
                 <svg class="fp-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>

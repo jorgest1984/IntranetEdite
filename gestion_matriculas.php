@@ -18,22 +18,39 @@ $accion = $af->fetch();
 
 if (!$accion) die("Acción Formativa no encontrada.");
 
-// Buscar el grupo asociado (o crear uno por defecto si no existe)
-$stmt = $pdo->prepare("SELECT * FROM grupos WHERE accion_id = ? LIMIT 1");
-$stmt->execute([$af_id]);
-$grupo_full = $stmt->fetch();
+// Obtener todos los grupos asociados a esta Acción Formativa
+$stmtGrupos = $pdo->prepare("SELECT * FROM grupos WHERE accion_id = ? ORDER BY CAST(numero_grupo AS UNSIGNED) ASC, id ASC");
+$stmtGrupos->execute([$af_id]);
+$todos_grupos = $stmtGrupos->fetchAll(PDO::FETCH_ASSOC);
+
+$req_grupo_id = (int)($_GET['grupo_id'] ?? ($_POST['grupo_id'] ?? 0));
+$grupo_full = null;
+
+if ($req_grupo_id > 0) {
+    foreach ($todos_grupos as $g) {
+        if ((int)$g['id'] === $req_grupo_id) {
+            $grupo_full = $g;
+            break;
+        }
+    }
+}
+
+if (!$grupo_full && !empty($todos_grupos)) {
+    $grupo_full = $todos_grupos[0];
+}
 
 if (!$grupo_full) {
-    // Crear grupo automático para esta acción
+    // Crear grupo automático para esta acción si no existía ninguno
     $stmt = $pdo->prepare("INSERT INTO grupos (accion_id, numero_grupo, modalidad, horas) VALUES (?, ?, ?, ?)");
-    $stmt->execute([$af_id, 'G1', $accion['modalidad'], $accion['duracion']]);
+    $stmt->execute([$af_id, '1', $accion['modalidad'], $accion['duracion']]);
     $grupo_id = $pdo->lastInsertId();
     
     $stmt = $pdo->prepare("SELECT * FROM grupos WHERE id = ?");
     $stmt->execute([$grupo_id]);
     $grupo_full = $stmt->fetch();
+    $todos_grupos = [$grupo_full];
 } else {
-    $grupo_id = $grupo_full['id'];
+    $grupo_id = (int)$grupo_full['id'];
 }
 
 // Obtener listado de tutores activos
@@ -155,7 +172,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action_save_personal']
         }
         
         $msg = "Personal del grupo actualizado con éxito." . ($sync_msg ? " " . $sync_msg : "");
-        header("Location: gestion_matriculas.php?af_id=$af_id&success_sync=1&sync_msg=" . urlencode($msg));
+        header("Location: gestion_matriculas.php?af_id=$af_id&grupo_id=$grupo_id&success_sync=1&sync_msg=" . urlencode($msg));
         exit();
     } catch (Exception $e) {
         if ($pdo->inTransaction()) {
@@ -200,7 +217,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action_quick_create_en
             }
             $stmtMat = $pdo->prepare("INSERT IGNORE INTO matriculas (alumno_id, grupo_id, convocatoria_id, estado, fecha_matricula) VALUES (?, ?, ?, 'Inscrito', CURDATE())");
             $stmtMat->execute([$alumno_id, $grupo_id, $accion['plan_id']]);
-            header("Location: gestion_matriculas.php?af_id=$af_id&success=1");
+            header("Location: gestion_matriculas.php?af_id=$af_id&grupo_id=$grupo_id&success=1");
             exit();
         } else {
             throw new Exception("No se pudo registrar el alumno.");
@@ -236,7 +253,7 @@ if (isset($_POST['add_alumno_id']) || !empty($_POST['student_search_text'])) {
             $stmt = $pdo->prepare("INSERT IGNORE INTO matriculas (alumno_id, grupo_id, convocatoria_id, estado, fecha_matricula) 
                                    VALUES (?, ?, ?, 'Inscrito', CURDATE())");
             $stmt->execute([$alumno_id, $grupo_id, $accion['plan_id']]);
-            header("Location: gestion_matriculas.php?af_id=$af_id&success=1");
+            header("Location: gestion_matriculas.php?af_id=$af_id&grupo_id=$grupo_id&success=1");
             exit();
         }
     } catch (Exception $e) { $error = $e->getMessage(); }
@@ -333,7 +350,7 @@ if (isset($_GET['remove_id'])) {
         $moodle_status = 'error';
     }
     
-    $redirectUrl = "gestion_matriculas.php?af_id=$af_id&removed=1&moodle_status=$moodle_status";
+    $redirectUrl = "gestion_matriculas.php?af_id=$af_id&grupo_id=$grupo_id&removed=1&moodle_status=$moodle_status";
     if ($moodle_error) {
         $redirectUrl .= "&error=" . urlencode("La matrícula se eliminó de la Intranet, pero ocurrió un problema: " . $moodle_error);
     }
@@ -438,7 +455,36 @@ $alumnos = $matriculados->fetchAll();
             <div class="page-title">
                 <span style="color: #64748b; font-weight: 700; font-size: 0.75rem; text-transform: uppercase;">Gestión de Matrículas</span>
                 <h1 style="margin: 5px 0;"><?= htmlspecialchars($accion['titulo']) ?></h1>
-                <p>Grupo ID: <strong><?= $grupo_id ?></strong> | Modalidad: <strong><?= $accion['modalidad'] ?></strong></p>
+                <p>
+                    Grupo: <strong style="color: #0284c7; font-size: 1.05rem;"><?= htmlspecialchars($grupo_full['numero_grupo'] ? 'Grupo ' . $grupo_full['numero_grupo'] : 'Grupo ID ' . $grupo_id) ?></strong> (ID: <strong><?= $grupo_id ?></strong>) 
+                    | Modalidad: <strong><?= $accion['modalidad'] ?></strong>
+                    <?php if (!empty($grupo_full['fecha_inicio'])): ?>
+                        | Fechas: <strong><?= date('d/m/Y', strtotime($grupo_full['fecha_inicio'])) ?> - <?= date('d/m/Y', strtotime($grupo_full['fecha_fin'])) ?></strong>
+                    <?php endif; ?>
+                </p>
+                <?php if (count($todos_grupos) > 1): ?>
+                    <div style="display: flex; gap: 8px; margin-top: 10px; align-items: center; flex-wrap: wrap;">
+                        <span style="font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Grupos:</span>
+                        <?php foreach ($todos_grupos as $tg): ?>
+                            <?php 
+                                $isActiveG = ((int)$tg['id'] === (int)$grupo_id);
+                                $stmtCountM = $pdo->prepare("SELECT COUNT(*) FROM matriculas WHERE grupo_id = ?");
+                                $stmtCountM->execute([$tg['id']]);
+                                $countM = (int)$stmtCountM->fetchColumn();
+                            ?>
+                            <a href="gestion_matriculas.php?af_id=<?= $af_id ?>&grupo_id=<?= $tg['id'] ?>" 
+                               style="text-decoration: none; padding: 5px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; <?= $isActiveG ? 'background: #0284c7; color: white; box-shadow: 0 2px 8px rgba(2,132,199,0.35);' : 'background: #e2e8f0; color: #334155;' ?>">
+                                📁 Grupo <?= htmlspecialchars($tg['numero_grupo'] ?: $tg['id']) ?>
+                                <span style="font-size: 0.75rem; padding: 1px 7px; border-radius: 12px; <?= $isActiveG ? 'background: rgba(255,255,255,0.25); color: white;' : 'background: #cbd5e1; color: #475569;' ?>">
+                                    <?= $countM ?> alum.
+                                </span>
+                            </a>
+                        <?php endforeach; ?>
+                        <a href="relacion_alumnos.php?grupo_id=<?= $grupo_id ?>" style="text-decoration: none; padding: 5px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; background: #10b981; color: white; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(16,185,129,0.3);">
+                            📋 Relación Alumnos (Grupo <?= htmlspecialchars($grupo_full['numero_grupo'] ?: $grupo_id) ?>)
+                        </a>
+                    </div>
+                <?php endif; ?>
             </div>
             <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                 <a href="importar_matriculas_rapido.php?af_id=<?= $af_id ?>&grupo_id=<?= $grupo_id ?>" class="btn" style="background: linear-gradient(135deg, #006ce4 0%, #0284c7 100%); color: white; text-decoration: none; padding: 10px 15px; border-radius: 8px; font-weight: 800; display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; box-shadow: 0 4px 12px rgba(0, 108, 228, 0.25);">
@@ -491,7 +537,7 @@ $alumnos = $matriculados->fetchAll();
         <?php elseif (isset($_GET['removed']) && !isset($_GET['error'])): ?>
             <?php
             $moodle_status = $_GET['moodle_status'] ?? '';
-            $removed_msg = 'Matrícula eliminada correctamente de la Intranet.';
+            $removed_msg = 'Matrícula eliminada correctamente de este curso. El alumno se mantiene en la Intranet.';
             if ($moodle_status === 'success') {
                 $removed_msg .= ' También se desmatriculó al alumno de Moodle con éxito.';
             } elseif ($moodle_status === 'missing_ids') {
@@ -537,9 +583,9 @@ $alumnos = $matriculados->fetchAll();
                                 </button>
                                 
                                 <a href="?af_id=<?= $af_id ?>&remove_id=<?= $a['matricula_id'] ?>" 
-                                   onclick="return confirm('¿Dar de baja a este alumno de este curso?')"
+                                   onclick="return confirm('¿Dar de baja a este alumno de este curso? (Nota: El alumno NO se borrará de la Intranet, solo se elimina su matrícula de este curso).')"
                                    style="color: #ef4444; padding: 6px; border-radius: 8px; transition: background 0.2s; display: inline-flex; align-items: center; justify-content: center;"
-                                   title="Dar de baja">
+                                   title="Dar de baja de esta matrícula">
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                                 </a>
                             </div>

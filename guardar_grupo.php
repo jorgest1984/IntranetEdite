@@ -312,8 +312,30 @@ try {
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute($data);
+    $grupo_id_actual = $id ?: $pdo->lastInsertId();
 
-    header("Location: relacion_alumnos.php?grupo_id=" . ($id ?: $pdo->lastInsertId()) . "&success=1");
+    // Sincronizar inspector en Moodle de forma inmediata si se han proporcionado credenciales
+    if (!empty($_POST['usuario_gestor'])) {
+        try {
+            require_once 'includes/moodle_api.php';
+            $moodle = new MoodleAPI($pdo);
+            if ($moodle->isConfigured()) {
+                $codigo_plat = $_POST['codigo_plat'] ?? ($_POST['id_plataforma'] ?? '');
+                if (empty($codigo_plat) && !empty($accion_id)) {
+                    $stmtCourse = $pdo->prepare("SELECT id_plataforma FROM acciones_formativas WHERE id = ?");
+                    $stmtCourse->execute([$accion_id]);
+                    $codigo_plat = $stmtCourse->fetchColumn();
+                }
+                $cId = $moodle->findCourseId($codigo_plat);
+                if ($cId) {
+                    $moodleGroupId = !empty($_POST['id_plataforma']) && is_numeric($_POST['id_plataforma']) ? (int)$_POST['id_plataforma'] : null;
+                    $moodle->provisionInspector($cId, $moodleGroupId, $_POST['usuario_gestor'], $_POST['contrasena_gestor'] ?? '');
+                }
+            }
+        } catch (Exception $mEx) {}
+    }
+
+    header("Location: relacion_alumnos.php?grupo_id=" . $grupo_id_actual . "&success=1");
     exit();
 
 } catch (Exception $e) {

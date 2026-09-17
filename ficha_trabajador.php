@@ -3010,14 +3010,14 @@ $tareas = $stmt_tareas->fetchAll();
                     </div>
 
                     <div style="margin-bottom: 15px;">
-                        <label style="display: block; font-weight: 700; color: #475569; margin-bottom: 5px; font-size: 0.85rem;">Establecer Nueva Contraseña (Opcional)</label>
+                        <label style="display: block; font-weight: 700; color: #1e3a8a; margin-bottom: 5px; font-size: 0.85rem;">Contraseña de Acceso (se guardará en el sistema y se enviará por email)</label>
                         <div style="display: flex; gap: 8px; align-items: center;">
-                            <input type="text" name="password" id="sendKeysPassword" placeholder="Dejar en blanco para mantener la actual" style="flex: 1; border: 1px solid #cbd5e1; padding: 8px 12px; border-radius: 6px; font-size: 0.9rem; box-sizing: border-box;" oninput="updateKeysEmailBody();">
-                            <button type="button" onclick="generateSendKeysPassword()" style="padding: 8px 12px; border-radius: 6px; background: #2563eb; color: white; border: 1px solid #2563eb; cursor: pointer; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;">
-                                🔑 Generar
+                            <input type="text" name="password" id="sendKeysPassword" required placeholder="Escribe o genera una contraseña" style="flex: 1; border: 1px solid #cbd5e1; padding: 8px 12px; border-radius: 6px; font-size: 0.95rem; font-weight: 600; color: #1e293b; box-sizing: border-box;" oninput="updateKeysEmailBody();">
+                            <button type="button" onclick="generateSendKeysPassword()" style="padding: 8px 14px; border-radius: 6px; background: #2563eb; color: white; border: 1px solid #2563eb; cursor: pointer; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;">
+                                🔑 Generar Nueva
                             </button>
                         </div>
-                        <span style="font-size: 0.72rem; color: #64748b; display: block; margin-top: 4px;">⚠️ Si escribe una contraseña aquí, se guardará y actualizará en la base de datos al enviar el correo.</span>
+                        <span style="font-size: 0.75rem; color: #059669; font-weight: 600; display: block; margin-top: 4px;">✅ Esta contraseña se guardará en la base de datos y se notificará directamente al usuario.</span>
                     </div>
 
                     <div style="margin-bottom: 15px;">
@@ -3044,16 +3044,15 @@ $tareas = $stmt_tareas->fetchAll();
     <script>
         const workerUsername = <?= json_encode($trabajador['username'] ?? '') ?>;
         const workerNombre = <?= json_encode($trabajador['nombre'] ?? '') ?>;
+        const workerEmail = <?= json_encode($trabajador['email'] ?? '') ?>;
 
         function openSendKeysModal() {
             const overlay = document.getElementById('modalSendKeys');
             const container = overlay.querySelector('.modal-container');
             
-            // Limpiar errores e inputs
+            // Limpiar errores e inputs y generar siempre contraseña por defecto
             document.getElementById('sendKeysError').style.display = 'none';
-            document.getElementById('sendKeysPassword').value = '';
-            
-            updateKeysEmailBody();
+            generateSendKeysPassword();
             
             overlay.style.display = 'flex';
             // Force reflow
@@ -3075,41 +3074,29 @@ $tareas = $stmt_tareas->fetchAll();
         }
 
         function generateSendKeysPassword() {
-            const uppers = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-            const lowers = "abcdefghijklmnopqrstuvwxyz";
-            const numbers = "0123456789";
-            const specials = "@$!%*?&#";
-            const all = uppers + lowers + numbers + specials;
-            
-            let password = "";
-            password += uppers.charAt(Math.floor(Math.random() * uppers.length));
-            password += lowers.charAt(Math.floor(Math.random() * lowers.length));
-            password += numbers.charAt(Math.floor(Math.random() * numbers.length));
-            password += specials.charAt(Math.floor(Math.random() * specials.length));
-            
-            for (let i = 0; i < 8; i++) {
-                password += all.charAt(Math.floor(Math.random() * all.length));
+            const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+            let randomPart = "";
+            for (let i = 0; i < 6; i++) {
+                randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
             }
-            
-            password = password.split('').sort(() => 0.5 - Math.random()).join('');
-            
-            document.getElementById('sendKeysPassword').value = password;
+            const pass = "Efp" + (Math.floor(100 + Math.random() * 900)) + randomPart + "!";
+            document.getElementById('sendKeysPassword').value = pass;
             updateKeysEmailBody();
         }
 
         function updateKeysEmailBody() {
-            const passVal = document.getElementById('sendKeysPassword').value;
-            const passwordText = passVal ? passVal : '[Mantiene su contraseña actual]';
+            const passVal = document.getElementById('sendKeysPassword').value.trim();
+            const passwordText = passVal ? passVal : '[Pendiente de indicar]';
             
             const bodyText = `Hola ${workerNombre},
 
 Te facilitamos tus credenciales para acceder a la Intranet de Grupo EFP:
 
 Dirección de acceso: https://gestion.grupoefp.es/
-Usuario: ${workerUsername}
+Usuario: ${workerUsername}  (o con su email: ${workerEmail})
 Contraseña: ${passwordText}
 
-Por favor, guarde estos datos en un lugar seguro. Si se le ha generado una contraseña temporal, recuerde cambiarla tras su primer inicio de sesión desde su perfil.
+Por favor, guarde estos datos en un lugar seguro. Puede acceder tanto con su nombre de usuario como con su dirección de correo electrónico.
 
 Un saludo,
 El equipo de administración.`;

@@ -76,7 +76,7 @@ $documentos = $stmtDocs->fetchAll();
 
 // Cargar matrículas/inscripciones asociadas
 $stmtMatriculas = $pdo->prepare("
-    SELECT m.*, c.nombre as convocatoria_nombre, c.codigo_expediente,
+    SELECT m.*, m.envio_claves, m.fecha_claves, c.nombre as convocatoria_nombre, c.codigo_expediente,
            p.nombre as plan_nombre, e.nombre as empresa_nombre,
            g.numero_grupo, g.codigo_plataforma as grupo_cod, g.fecha_inicio as grupo_inicio, g.fecha_fin as grupo_fin, g.horas,
            af.abreviatura as af_abreviatura, af.prioridad as af_prioridad, cu.nombre_corto as curso_nombre,
@@ -100,6 +100,62 @@ $matriculas = $stmtMatriculas->fetchAll();
 
 // Cargar todas las convocatorias para el select de agregar inscripción
 $convocatorias = $pdo->query("SELECT id, nombre, codigo_expediente FROM convocatorias ORDER BY nombre ASC")->fetchAll();
+
+// Obtener los planes en los que el alumno tiene/tuvo matrículas registradas
+$alumno_planes = [];
+$alumno_plan_ids = [];
+try {
+    $stmtAP = $pdo->prepare("
+        SELECT DISTINCT p.id as plan_id, p.nombre as plan_nombre, p.codigo as plan_codigo
+        FROM matriculas m
+        JOIN grupos g ON m.grupo_id = g.id
+        JOIN acciones_formativas af ON g.accion_id = af.id
+        JOIN planes p ON af.plan_id = p.id
+        WHERE m.alumno_id = ? AND p.id IS NOT NULL
+    ");
+    $stmtAP->execute([$id]);
+    $alumno_planes = $stmtAP->fetchAll(PDO::FETCH_ASSOC);
+    $alumno_plan_ids = array_column($alumno_planes, 'plan_id');
+} catch (Exception $e) {}
+
+// Cargar Acciones Formativas / Grupos disponibles RESTRINGIDOS al mismo plan del alumno
+$grupos_disponibles = [];
+try {
+    if (!empty($alumno_plan_ids)) {
+        // Alumno tiene plan previo: RESTRINGIR a acciones pertenecientes al mismo plan
+        $placeholders = implode(',', array_fill(0, count($alumno_plan_ids), '?'));
+        $stmtGDisp = $pdo->prepare("
+            SELECT g.id as grupo_id, g.numero_grupo, g.modalidad, g.horas,
+                   af.id as accion_id, af.num_accion, af.abreviatura, af.plan_id,
+                   c.nombre_largo as curso_nombre, c.nombre_corto as curso_codigo,
+                   p.nombre as plan_nombre, p.convocatoria_id
+            FROM grupos g
+            JOIN acciones_formativas af ON g.accion_id = af.id
+            JOIN cursos c ON af.curso_id = c.id
+            JOIN planes p ON af.plan_id = p.id
+            WHERE af.plan_id IN ($placeholders)
+            ORDER BY p.nombre ASC, c.nombre_largo ASC, g.numero_grupo ASC
+        ");
+        $stmtGDisp->execute($alumno_plan_ids);
+        $grupos_disponibles = $stmtGDisp->fetchAll(PDO::FETCH_ASSOC);
+    } else {
+        // Alumno nuevo sin plan previo: mostrar grupos con plan activo
+        $stmtGDisp = $pdo->query("
+            SELECT g.id as grupo_id, g.numero_grupo, g.modalidad, g.horas,
+                   af.id as accion_id, af.num_accion, af.abreviatura, af.plan_id,
+                   c.nombre_largo as curso_nombre, c.nombre_corto as curso_codigo,
+                   p.nombre as plan_nombre, p.convocatoria_id
+            FROM grupos g
+            JOIN acciones_formativas af ON g.accion_id = af.id
+            JOIN cursos c ON af.curso_id = c.id
+            JOIN planes p ON af.plan_id = p.id
+            ORDER BY p.nombre ASC, c.nombre_largo ASC, g.numero_grupo ASC
+            LIMIT 500
+        ");
+        if ($stmtGDisp) $grupos_disponibles = $stmtGDisp->fetchAll(PDO::FETCH_ASSOC);
+    }
+} catch (Exception $e) {}
+
 $comerciales = $pdo->query("SELECT u.id, u.nombre, u.apellidos FROM usuarios u JOIN roles r ON u.rol_id = r.id WHERE r.nombre LIKE '%Comercial%' AND u.activo = 1 ORDER BY u.nombre ASC")->fetchAll();
 $empresas = $pdo->query("SELECT id, nombre FROM empresas ORDER BY nombre ASC LIMIT 100")->fetchAll();
 $provincias = ["Álava", "Albacete", "Alicante", "Almería", "Asturias", "Ávila", "Badajoz", "Baleares", "Barcelona", "Burgos", "Cáceres", "Cádiz", "Cantabria", "Castellón", "Ciudad Real", "Córdoba", "Coruña (La)", "Cuenca", "Gerona", "Granada", "Guadalajara", "Guipúzcoa", "Huelva", "Huesca", "Jaén", "León", "Lérida", "Lugo", "Madrid", "Málaga", "Murcia", "Navarra", "Orense", "Palencia", "Las Palmas", "Pontevedra", "La Rioja", "Salamanca", "Santa Cruz de Tenerife", "Segovia", "Sevilla", "Soria", "Tarragona", "Teruel", "Toledo", "Valencia", "Valladolid", "Vizcaya", "Zamora", "Zaragoza", "Ceuta", "Melilla"];
@@ -344,33 +400,76 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     }
 }
 
-// Acción: Añadir Inscripción
+// Acción: Añadir Inscripción (Restringida al mismo Plan del alumno)
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'add_inscripcion') {
     try {
-        $convocatoria_id = $_POST['convocatoria_id'] ?? null;
         $grupo_id = !empty($_POST['grupo_id']) ? (int)$_POST['grupo_id'] : null;
+        $convocatoria_id = !empty($_POST['convocatoria_id']) ? (int)$_POST['convocatoria_id'] : null;
         $estado = $_POST['estado'] ?? 'Inscrito';
         $fecha_matricula = !empty($_POST['fecha_matricula']) ? $_POST['fecha_matricula'] : date('Y-m-d');
         
-        if (empty($convocatoria_id) && empty($grupo_id)) {
-            throw new Exception("Debes seleccionar una convocatoria o un grupo.");
+        if (empty($grupo_id) && empty($convocatoria_id)) {
+            throw new Exception("Debes seleccionar una Acción Formativa / Grupo.");
         }
 
         if ($grupo_id) {
+            // Verificar datos del grupo y su plan
+            $stmtGInfo = $pdo->prepare("
+                SELECT g.id as grupo_id, g.accion_id, af.plan_id, af.curso_id,
+                       p.nombre as plan_nombre, p.convocatoria_id as plan_convocatoria_id,
+                       c.nombre_largo as curso_titulo, COALESCE(c.moodle_id, af.id_plataforma) as curso_moodle_id
+                FROM grupos g
+                JOIN acciones_formativas af ON g.accion_id = af.id
+                JOIN planes p ON af.plan_id = p.id
+                LEFT JOIN cursos c ON af.curso_id = c.id
+                WHERE g.id = ?
+            ");
+            $stmtGInfo->execute([$grupo_id]);
+            $gInfo = $stmtGInfo->fetch(PDO::FETCH_ASSOC);
+
+            if (!$gInfo) {
+                throw new Exception("El grupo seleccionado no existe o no tiene un Plan asignado.");
+            }
+
+            if (!$convocatoria_id && !empty($gInfo['plan_convocatoria_id'])) {
+                $convocatoria_id = (int)$gInfo['plan_convocatoria_id'];
+            }
+
+            // RESTRICCIÓN ESTRICTA: El alumno solo puede matricularse en el MISMO plan previo
+            $stmtCheckPlan = $pdo->prepare("
+                SELECT DISTINCT af.plan_id, p.nombre as plan_nombre
+                FROM matriculas m
+                JOIN grupos g ON m.grupo_id = g.id
+                JOIN acciones_formativas af ON g.accion_id = af.id
+                JOIN planes p ON af.plan_id = p.id
+                WHERE m.alumno_id = ? AND af.plan_id IS NOT NULL
+            ");
+            $stmtCheckPlan->execute([$id]);
+            $priorPlanes = $stmtCheckPlan->fetchAll(PDO::FETCH_ASSOC);
+
+            if (!empty($priorPlanes)) {
+                $priorPlanIds = array_column($priorPlanes, 'plan_id');
+                if (!in_array($gInfo['plan_id'], $priorPlanIds)) {
+                    $priorNames = implode(', ', array_column($priorPlanes, 'plan_nombre'));
+                    throw new Exception("Acceso denegado: El alumno únicamente puede matricularse en Acciones Formativas pertenecientes a su mismo Plan previo ('{$priorNames}').");
+                }
+            }
+
+            // Validar tope de horas del plan
             $checkHours = validate_plan_hours_limit($pdo, $id, $grupo_id);
             if (!$checkHours['allowed']) {
                 throw new Exception($checkHours['message']);
             }
         }
-        
+
         // Comprobar si ya está inscrito
         $stmtCheckMat = $pdo->prepare("SELECT id FROM matriculas WHERE alumno_id = ? AND " . ($grupo_id ? "grupo_id = ?" : "convocatoria_id = ?"));
         $stmtCheckMat->execute([$id, $grupo_id ?: $convocatoria_id]);
         if ($stmtCheckMat->rowCount() > 0) {
-            throw new Exception("El alumno ya está inscrito en esta " . ($grupo_id ? "matrícula / grupo." : "convocatoria."));
+            throw new Exception("El alumno ya está inscrito en este grupo / curso.");
         }
         
-        // Insertar
+        // Insertar matrícula
         if ($grupo_id) {
             $stmtInsert = $pdo->prepare("INSERT INTO matriculas (alumno_id, convocatoria_id, grupo_id, estado, fecha_matricula, creado_en) VALUES (?, ?, ?, ?, ?, ?)");
             $stmtInsert->execute([$id, $convocatoria_id, $grupo_id, $estado, $fecha_matricula, date('Y-m-d H:i:s')]);
@@ -380,21 +479,47 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         }
         $nuevaMatriculaId = $pdo->lastInsertId();
         
+        // Sincronizar/Matricular automáticamente en Moodle si está configurado
+        $moodle_sync_msg = '';
+        if ($grupo_id && !empty($gInfo['curso_moodle_id'])) {
+            try {
+                require_once 'includes/moodle_api.php';
+                $moodle = new MoodleAPI($pdo);
+                if ($moodle->isConfigured()) {
+                    $userData = [
+                        'email' => $alumno['email'],
+                        'username' => $alumno['plat_usuario'] ?: strtolower(explode('@', $alumno['email'])[0]),
+                        'firstname' => $alumno['nombre'],
+                        'lastname' => trim(($alumno['primer_apellido'] ?? '') . ' ' . ($alumno['segundo_apellido'] ?? '')),
+                        'password' => $alumno['plat_clave'] ?: 'Edite2026*'
+                    ];
+                    $mUserId = $moodle->provisionStudent($gInfo['curso_moodle_id'], null, $userData);
+                    if ($mUserId && empty($alumno['moodle_user_id'])) {
+                        $pdo->prepare("UPDATE alumnos SET moodle_user_id = ? WHERE id = ?")->execute([$mUserId, $id]);
+                    }
+                    $moodle_sync_msg = "&moodle_enrol=1";
+                }
+            } catch (Exception $mEx) {
+                // Omitir bloqueo si falla Moodle
+            }
+        }
+
         audit_log($pdo, 'MATRICULA_CREADA', 'matriculas', $nuevaMatriculaId, null, [
             'alumno_id' => $id,
+            'grupo_id' => $grupo_id,
             'convocatoria_id' => $convocatoria_id,
             'estado' => $estado,
             'fecha_matricula' => $fecha_matricula
         ]);
         
-        header("Location: ficha_alumno.php?id=$id&tab=inscripciones&success_add=1");
+        header("Location: ficha_alumno.php?id=$id&tab=inscripciones&success_add=1{$moodle_sync_msg}");
         exit();
     } catch (Exception $e) {
         $error = "Error al añadir inscripción: " . $e->getMessage();
     }
 }
 
-// Acción: Eliminar Inscripción
+// Acción: Eliminar / Dar de Baja Inscripción (Intranet + Moodle)
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'delete_inscripcion') {
     try {
         $matricula_id = $_POST['matricula_id'] ?? null;
@@ -402,11 +527,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             throw new Exception("Inscripción no válida.");
         }
         
-        // Obtener datos antes de borrar para el log y para el título de la Papelera
+        // Obtener datos antes de borrar para Moodle y Papelera
         $stmtGetMat = $pdo->prepare("
-            SELECT m.*, a.nombre, a.primer_apellido, a.segundo_apellido, 
+            SELECT m.*, a.nombre, a.primer_apellido, a.segundo_apellido, a.moodle_user_id, a.email,
                    c.nombre as convocatoria_nombre,
-                   cur.nombre_largo as curso_titulo
+                   cur.nombre_largo as curso_titulo,
+                   COALESCE(cur.moodle_id, af.id_plataforma) as curso_moodle_id
             FROM matriculas m
             JOIN alumnos a ON m.alumno_id = a.id
             LEFT JOIN convocatorias c ON m.convocatoria_id = c.id
@@ -419,6 +545,36 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         $oldMat = $stmtGetMat->fetch(PDO::FETCH_ASSOC);
         
         if ($oldMat) {
+            $moodle_status = 'skipped';
+            $moodle_error = null;
+            
+            // 1. Desmatricular de Moodle si está configurado
+            try {
+                require_once 'includes/moodle_api.php';
+                $moodle = new MoodleAPI($pdo);
+                if ($moodle->isConfigured()) {
+                    $moodleUserId = $oldMat['moodle_user_id'];
+                    $courseMoodleId = $oldMat['curso_moodle_id'];
+                    $email = $oldMat['email'];
+
+                    if (empty($moodleUserId) && !empty($email)) {
+                        $existingUsers = $moodle->getUsersByField('email', [$email]);
+                        if (!empty($existingUsers) && isset($existingUsers['users'][0])) {
+                            $moodleUserId = $existingUsers['users'][0]['id'];
+                            $pdo->prepare("UPDATE alumnos SET moodle_user_id = ? WHERE id = ?")->execute([$moodleUserId, $id]);
+                        }
+                    }
+
+                    if (!empty($moodleUserId) && !empty($courseMoodleId)) {
+                        $moodle->unenrolUser($moodleUserId, $courseMoodleId);
+                        $moodle_status = 'success';
+                    }
+                }
+            } catch (Exception $mEx) {
+                $moodle_error = $mEx->getMessage();
+            }
+
+            // 2. Archivar en Papelera y eliminar matrícula localmente
             require_once 'includes/Papelera.php';
             $alumno_nombre = trim($oldMat['nombre'] . ' ' . ($oldMat['primer_apellido'] ?? '') . ' ' . ($oldMat['segundo_apellido'] ?? ''));
             $nombre_curso = $oldMat['curso_titulo'] ?: ($oldMat['convocatoria_nombre'] ?? 'Sin Convocatoria/Curso');
@@ -426,7 +582,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             
             $pdo->beginTransaction();
             try {
-                // Obtener el registro limpio de la matrícula para archivar en Papelera (solo campos de la tabla matriculas)
                 $stmtMatClean = $pdo->prepare("SELECT * FROM matriculas WHERE id = ?");
                 $stmtMatClean->execute([$matricula_id]);
                 $matricula_clean = $stmtMatClean->fetch(PDO::FETCH_ASSOC);
@@ -449,10 +604,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             }
         }
         
-        header("Location: ficha_alumno.php?id=$id&tab=inscripciones&success_delete=1");
+        $mParam = ($moodle_status === 'success') ? '&moodle_unenroll=1' : '';
+        header("Location: ficha_alumno.php?id=$id&tab=inscripciones&success_delete=1{$mParam}");
         exit();
     } catch (Exception $e) {
-        $error = "Error al eliminar inscripción: " . $e->getMessage();
+        $error = "Error al dar de baja la inscripción: " . $e->getMessage();
     }
 }
 ?>
@@ -844,6 +1000,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         <nav class="tabs-header">
             <button class="tab-btn <?= $active_tab == 'personales' ? 'active' : '' ?>" onclick="location.href='?id=<?= $id ?>&tab=personales'">Datos Personales</button>
             <button class="tab-btn <?= $active_tab == 'inscripciones' ? 'active' : '' ?>" onclick="location.href='?id=<?= $id ?>&tab=inscripciones'">Cursos / Inscripciones</button>
+            <button class="tab-btn <?= $active_tab == 'envio_claves' ? 'active' : '' ?>" onclick="location.href='?id=<?= $id ?>&tab=envio_claves'">Envío de Claves</button>
             <button class="tab-btn <?= $active_tab == 'documentacion' ? 'active' : '' ?>" onclick="location.href='?id=<?= $id ?>&tab=documentacion'">Documentación</button>
         </nav>
 
@@ -1332,6 +1489,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             <div id="tab-inscripciones" style="<?= $active_tab == 'inscripciones' ? '' : 'display:none;' ?>">
                 
                 <div class="card-section-premium" style="padding: 2rem;">
+                    <?php if (isset($_GET['moodle_unenroll'])): ?>
+                        <div style="background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; border-left: 4px solid #10b981; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-check-circle" style="font-size: 1.1rem; color: #10b981;"></i>
+                            <span>Matrícula eliminada correctamente de la Intranet y alumno desmatriculado con éxito del Aula Virtual (Moodle).</span>
+                        </div>
+                    <?php endif; ?>
+                    <?php if (isset($_GET['moodle_enrol'])): ?>
+                        <div style="background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; border-left: 4px solid #10b981; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-check-circle" style="font-size: 1.1rem; color: #10b981;"></i>
+                            <span>Alumno matriculado correctamente en la Intranet y volcado/inscrito en Moodle.</span>
+                        </div>
+                    <?php endif; ?>
+
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
                         <h3 class="card-section-title" style="margin-bottom: 0;"><i class="fas fa-graduation-cap"></i> Cursos Contratos-Programa</h3>
                         <button class="btn btn-primary" onclick="document.getElementById('form-nueva-inscripcion').style.display='block'; document.getElementById('form-nueva-inscripcion').scrollIntoView({behavior: 'smooth'}); return false;" style="padding: 8px 16px; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.5rem;">
@@ -1361,6 +1531,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                     <th>Curso</th>
                                     <th>Tutor</th>
                                     <th>Situación</th>
+                                    <th>Envío Claves</th>
                                     <th>Inicio</th>
                                     <th>Fin</th>
                                     <th style="text-align: center; width: 60px;">Ficha</th>
@@ -1370,7 +1541,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                             <tbody>
                                 <?php if (empty($matriculas)): ?>
                                     <tr>
-                                        <td colspan="13" style="text-align: center; color: var(--text-muted); padding: 2rem 0; font-style: italic;">No hay inscripciones registradas.</td>
+                                        <td colspan="14" style="text-align: center; color: var(--text-muted); padding: 2rem 0; font-style: italic;">No hay inscripciones registradas.</td>
                                     </tr>
                                 <?php else: ?>
                                     <?php foreach ($matriculas as $mat): ?>
@@ -1399,6 +1570,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                                 ?>
                                                 <span class="badge <?= $badge_class ?>"><?= htmlspecialchars($mat['estado']) ?></span>
                                             </td>
+                                            <td>
+                                                <?php if (!empty($mat['envio_claves'])): ?>
+                                                    <span class="badge badge-finalizado" style="font-size:0.75rem;" title="Enviado el <?= $mat['fecha_claves'] ? date('d/m/Y', strtotime($mat['fecha_claves'])) : '' ?>">SÍ <?= $mat['fecha_claves'] ? '(' . date('d/m/Y', strtotime($mat['fecha_claves'])) . ')' : '' ?></span>
+                                                <?php else: ?>
+                                                    <span class="badge badge-baja" style="font-size:0.75rem;">NO</span>
+                                                <?php endif; ?>
+                                            </td>
                                             <td style="font-weight: 500;"><?= !empty($mat['grupo_inicio']) && $mat['grupo_inicio'] != '0000-00-00' ? date('d/m/Y', strtotime($mat['grupo_inicio'])) : '' ?></td>
                                             <td style="font-weight: 500;"><?= !empty($mat['grupo_fin']) && $mat['grupo_fin'] != '0000-00-00' ? date('d/m/Y', strtotime($mat['grupo_fin'])) : '' ?></td>
                                             <td style="text-align: center;">
@@ -1408,11 +1586,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                             </td>
                                             <td style="text-align: center;">
                                                 <?php if (!$is_comercial): ?>
-                                                <form method="POST" style="display: inline; margin: 0;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta inscripción?');">
+                                                <form method="POST" style="display: inline; margin: 0;" onsubmit="return confirm('¿Estás seguro de dar de baja al alumno de esta inscripción? (Se desmatriculará de la Intranet y del Aula Virtual Moodle).');">
                                                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                                                     <input type="hidden" name="action" value="delete_inscripcion">
                                                     <input type="hidden" name="matricula_id" value="<?= $mat['id'] ?>">
-                                                    <button type="submit" class="btn" style="padding: 6px; border-radius: 6px; min-width: auto; background: rgba(239,68,68,0.05); color: #ef4444; border: 1px solid rgba(239,68,68,0.1); display: inline-flex; align-items: center; justify-content: center; cursor: pointer;">
+                                                    <button type="submit" class="btn" style="padding: 6px; border-radius: 6px; min-width: auto; background: rgba(239,68,68,0.05); color: #ef4444; border: 1px solid rgba(239,68,68,0.1); display: inline-flex; align-items: center; justify-content: center; cursor: pointer;" title="Dar de baja / Eliminar de Intranet y Moodle">
                                                         <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="display: inline-block;"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
                                                     </button>
                                                 </form>
@@ -1434,26 +1612,43 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                     </div>
                 </div>
                 
-                <!-- Formulario Añadir Inscripcion (Oculto inicialmente) -->
+                <!-- Formulario Añadir Inscripcion (Restringido al mismo Plan del alumno) -->
                 <div id="form-nueva-inscripcion" class="card-section-premium" style="display: none; margin-top: 1.5rem; background: #f8fafc; border-color: var(--primary-color);">
-                    <h3 class="card-section-title" style="color: var(--primary-color); border-left-color: var(--primary-color);"><i class="fas fa-plus-circle"></i> Registrar Nueva Inscripción</h3>
+                    <h3 class="card-section-title" style="color: var(--primary-color); border-left-color: var(--primary-color);"><i class="fas fa-plus-circle"></i> Registrar Nueva Inscripción (Mismo Plan del Alumno)</h3>
+                    
+                    <?php if (!empty($alumno_planes)): ?>
+                        <div style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 0.82rem; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-lock" style="font-size: 1.1rem; flex-shrink: 0;"></i>
+                            <span><strong>Restricción de Plan:</strong> El alumno únicamente puede realizar Acciones Formativas pertenecientes a su mismo Plan previa: <strong><?= htmlspecialchars(implode(', ', array_column($alumno_planes, 'plan_nombre'))) ?></strong>.</span>
+                        </div>
+                    <?php else: ?>
+                        <div style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 0.82rem; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-info-circle" style="font-size: 1.1rem; flex-shrink: 0;"></i>
+                            <span>Selecciona la Acción Formativa / Grupo para matricular al alumno.</span>
+                        </div>
+                    <?php endif; ?>
+
                     <form method="POST">
                         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                         <input type="hidden" name="action" value="add_inscripcion">
                         
                         <div class="form-grid">
-                            <div class="form-group-custom span-6">
-                                <label>Convocatoria / Curso *</label>
-                                <select name="convocatoria_id" required class="form-control-edit">
-                                    <option value="">-- Seleccionar Convocatoria --</option>
-                                    <?php foreach ($convocatorias as $c): ?>
-                                        <option value="<?= $c['id'] ?>">
-                                            <?= htmlspecialchars(($c['codigo_expediente'] ? '['.$c['codigo_expediente'].'] ' : '') . $c['nombre']) ?>
-                                        </option>
-                                    <?php endforeach; ?>
+                            <div class="form-group-custom span-7">
+                                <label>Acción Formativa / Grupo Disponible *</label>
+                                <select name="grupo_id" required class="form-control-edit">
+                                    <option value="">-- Seleccionar Acción Formativa del Plan --</option>
+                                    <?php if (empty($grupos_disponibles)): ?>
+                                        <option value="" disabled>No hay acciones formativas/grupos disponibles para el Plan del alumno</option>
+                                    <?php else: ?>
+                                        <?php foreach ($grupos_disponibles as $gDisp): ?>
+                                            <option value="<?= $gDisp['grupo_id'] ?>">
+                                                [<?= htmlspecialchars($gDisp['plan_nombre']) ?>] AF <?= htmlspecialchars($gDisp['num_accion']) ?>: <?= htmlspecialchars($gDisp['curso_nombre']) ?> (<?= htmlspecialchars($gDisp['numero_grupo']) ?> - <?= htmlspecialchars($gDisp['modalidad']) ?> - <?= $gDisp['horas'] ?>h)
+                                            </option>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
                                 </select>
                             </div>
-                            <div class="form-group-custom span-3">
+                            <div class="form-group-custom span-2">
                                 <label>Estado *</label>
                                 <select name="estado" required class="form-control-edit">
                                     <option value="Inscrito" selected>Inscrito</option>
@@ -1471,13 +1666,99 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                         
                         <div style="margin-top: 1.5rem; text-align: right; display: flex; gap: 0.5rem; justify-content: flex-end;">
                             <button type="submit" class="btn btn-primary" style="padding: 8px 20px; font-weight: 700; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 4px;">
-                                <i class="fas fa-save"></i> Registrar
+                                <i class="fas fa-save"></i> Registrar Inscripción
                             </button>
                             <button type="button" class="btn" onclick="document.getElementById('form-nueva-inscripcion').style.display='none'; return false;" style="padding: 8px 20px; font-weight: 700; font-size: 0.8rem; background: #ef4444; color: white; border: 1px solid #ef4444; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;">
                                 <i class="fas fa-times"></i> Cancelar
                             </button>
                         </div>
                     </form>
+                </div>
+            </div>
+
+            <!-- TAB: Envío de Claves -->
+            <div id="tab-envio_claves" style="<?= $active_tab == 'envio_claves' ? '' : 'display:none;' ?>">
+                <div class="card-section-premium" style="padding: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+                        <h3 class="card-section-title" style="margin-bottom: 0; color: #0284c7; border-left-color: #0284c7;">
+                            <i class="fas fa-key"></i> Gestión y Envío de Claves por Mail
+                        </h3>
+                    </div>
+
+                    <!-- Card Informativa de Credenciales del Alumno -->
+                    <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 12px; padding: 1.25rem; margin-bottom: 2rem;">
+                        <h4 style="margin: 0 0 10px 0; color: #0369a1; font-size: 0.9rem; font-weight: 700;">
+                            <i class="fas fa-user-lock"></i> Credenciales de Acceso del Alumno
+                        </h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; font-size: 0.85rem;">
+                            <div>
+                                <span style="color: #64748b; font-weight: 500;">Email destinatario:</span><br>
+                                <strong style="color: #0f172a;"><?= htmlspecialchars($alumno['email'] ?? 'Sin e-mail registrado') ?></strong>
+                            </div>
+                            <div>
+                                <span style="color: #64748b; font-weight: 500;">Usuario Plataforma:</span><br>
+                                <strong style="color: #0369a1;"><?= htmlspecialchars($alumno['plat_usuario'] ?? 'Se generará automáticamente') ?></strong>
+                            </div>
+                            <div>
+                                <span style="color: #64748b; font-weight: 500;">Contraseña Plataforma:</span><br>
+                                <strong style="color: #0369a1;"><?= htmlspecialchars($alumno['plat_clave'] ?? 'Se generará automáticamente') ?></strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de Cursos para Envío de Claves -->
+                    <div style="overflow-x: auto; border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
+                        <table class="table-premium-dense">
+                            <thead>
+                                <tr>
+                                    <th>Curso / Acción Formativa</th>
+                                    <th>Grupo</th>
+                                    <th>Modalidad</th>
+                                    <th>Estado Matrícula</th>
+                                    <th>Envío Claves</th>
+                                    <th>Último Envío</th>
+                                    <th style="text-align: center; width: 140px;">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (empty($matriculas)): ?>
+                                    <tr>
+                                        <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem 0; font-style: italic;">No hay cursos registrados para este alumno.</td>
+                                    </tr>
+                                <?php else: ?>
+                                    <?php foreach ($matriculas as $mat): ?>
+                                        <tr>
+                                            <td style="font-weight: 700; color: var(--primary-color);">
+                                                <?= htmlspecialchars($mat['curso_nombre'] ?? $mat['convocatoria_nombre'] ?? 'Curso') ?>
+                                            </td>
+                                            <td><?= htmlspecialchars($mat['numero_grupo'] ?? '1') ?></td>
+                                            <td>
+                                                <span style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-weight: 600; font-size: 0.72rem; color: #475569;"><?= htmlspecialchars($mat['modalidad_real'] ?? 'T') ?></span>
+                                            </td>
+                                            <td>
+                                                <span class="badge badge-admitido"><?= htmlspecialchars($mat['estado'] ?? 'Inscrito') ?></span>
+                                            </td>
+                                            <td>
+                                                <?php if (!empty($mat['envio_claves'])): ?>
+                                                    <span class="badge badge-finalizado" style="font-size:0.8rem;">SÍ</span>
+                                                <?php else: ?>
+                                                    <span class="badge badge-baja" style="font-size:0.8rem;">NO</span>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td style="font-weight: 600; color: #475569;">
+                                                <?= !empty($mat['fecha_claves']) ? date('d/m/Y', strtotime($mat['fecha_claves'])) : '—' ?>
+                                            </td>
+                                            <td style="text-align: center;">
+                                                <button type="button" class="btn" style="background: #0284c7; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" onclick="enviarClavesAlumno(<?= $mat['id'] ?>, '<?= htmlspecialchars(addslashes($alumno['nombre'] . ' ' . $alumno['primer_apellido']), ENT_QUOTES) ?>', <?= (int)($mat['envio_claves'] ?? 0) ?>, '<?= !empty($mat['fecha_claves']) ? date('d/m/Y', strtotime($mat['fecha_claves'])) : '' ?>')">
+                                                    <i class="fas fa-paper-plane"></i> Enviar Claves
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
             
@@ -1871,6 +2152,40 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                 }
                 alert(`❌ Error de comunicación con el servidor:\n\n${err.message}`);
             });
+    }
+
+    function enviarClavesAlumno(matriculaId, alumnoNombre, yaEnviado, fechaEnviado) {
+        if (yaEnviado == 1) {
+            var msg = "¡ATENCIÓN!\n\nLas claves ya fueron enviadas previamente a " + alumnoNombre + (fechaEnviado ? " el " + fechaEnviado : "") + ".\n\n¿Estás seguro de que deseas volver a enviar las claves por correo electrónico?";
+            if (!confirm(msg)) {
+                return;
+            }
+        }
+        
+        var defaultSubject = "Acceso a Aula Virtual / Plataforma";
+        var defaultBody = "Estimado/a {nombre},\n\nLe enviamos las credenciales de acceso para su curso {curso}:\n\nURL: {url}\nUsuario: {usuario}\nContraseña: {contrasena}\n\nUn cordial saludo.";
+        
+        var formData = new FormData();
+        formData.append('matricula_id', matriculaId);
+        formData.append('subject', defaultSubject);
+        formData.append('body', defaultBody);
+        
+        fetch('api_send_matricula_keys.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                alert("✓ " + data.message);
+                location.reload();
+            } else {
+                alert("❌ Error: " + (data.error || "No se pudo enviar el correo."));
+            }
+        })
+        .catch(err => {
+            alert("❌ Error de comunicación con el servidor: " + err);
+        });
     }
 </script>
 </body>

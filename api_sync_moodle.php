@@ -205,35 +205,11 @@ try {
     $gestor_msg = '';
     if (!empty($raw_gestor)) {
         try {
-            // Limpiar nombre de usuario para compatibilidad con Moodle
-            $gestor_username = preg_replace('/[^a-z0-9_.-]/', '', strtolower(str_replace(' ', '_', $raw_gestor)));
-            $gestor_email = $gestor_username . '@avefp.es';
             $gestor_pass = !empty($grupo['contrasena_gestor']) ? trim($grupo['contrasena_gestor']) : 'InspectorSepe-2026*';
-            if (!preg_match('/[^a-zA-Z0-9]/', $gestor_pass)) {
-                $gestor_pass .= '-*';
-            }
-            
-            $existingGestor = $moodle->getUsersByField('username', [$gestor_username]);
-            $gestorUserId = null;
-            if (!empty($existingGestor) && isset($existingGestor['users'][0])) {
-                $gestorUserId = $existingGestor['users'][0]['id'];
-            } else {
-                $newGestor = $moodle->createUser(
-                    $gestor_username,
-                    $gestor_pass,
-                    'Inspector',
-                    'SEPE',
-                    $gestor_email
-                );
-                if (!empty($newGestor) && isset($newGestor[0]['id'])) {
-                    $gestorUserId = $newGestor[0]['id'];
-                }
-            }
-            
+            $gestorUserId = $moodle->provisionInspector($courseId, $moodleGroupId, $raw_gestor, $gestor_pass);
             if ($gestorUserId) {
-                // Matricular como Profesor sin permiso de edición (rol_id = 4)
-                $moodle->enrolUser($gestorUserId, $courseId, 4);
-                $gestor_msg = " | Usuario gestor '$gestor_username' sincronizado en Moodle";
+                $clean_username = preg_replace('/[^a-z0-9_.-]/', '', strtolower(str_replace(' ', '_', $raw_gestor)));
+                $gestor_msg = " | Usuario gestor '$clean_username' sincronizado en Moodle";
             }
         } catch (Exception $gestorEx) {
             $gestor_msg = " | Error al sincronizar gestor: " . $gestorEx->getMessage();

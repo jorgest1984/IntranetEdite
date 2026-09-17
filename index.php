@@ -37,12 +37,16 @@ $error = '';
 
 
 // Constantes de bloqueo
-define('MAX_INTENTOS',      3);
+define('MAX_INTENTOS',      6);
 define('VENTANA_SEGUNDOS',  900); // 15 minutos
 
-// Si ya está logueado, redirigir al home
+// Si ya está logueado, redirigir al home o comerciales según rol
 if (isset($_SESSION['user_id'])) {
-    header("Location: home.php");
+    if (isset($_SESSION['rol_id']) && in_array($_SESSION['rol_id'], [ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL])) {
+        header("Location: comerciales.php");
+    } else {
+        header("Location: home.php");
+    }
     exit();
 }
 
@@ -53,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
 
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
+    $inputUser = strtolower($username);
 
     if (empty($username) || empty($password)) {
         $error = "Por favor, introduce usuario y contraseña.";
@@ -73,8 +78,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
 
                 // ============================================================
                 // BLOQUEO — timestamps Unix, inmune a zonas horarias
-                // Nivel 1: IP global  (≥10 fallos cualquier cuenta en 15 min)
-                // Nivel 2: IP+cuenta  (≥3 fallos mismo usuario en 15 min)
+                // Nivel 1: IP global  (≥15 fallos cualquier cuenta en 15 min)
+                // Nivel 2: IP+cuenta  (≥6 fallos mismo usuario en 15 min)
                 // ============================================================
                 $ahora = time();
                 $desde = $ahora - VENTANA_SEGUNDOS;
@@ -89,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                 $st_ip->execute([$ip_address, $desde]);
                 $fallos_ip = (int) $st_ip->fetchColumn();
 
-                if ($fallos_ip >= 10) {
+                if ($fallos_ip >= 15) {
                     // IP bloqueada globalmente
                     $error = "Acceso bloqueado por seguridad (demasiados intentos desde esta red). Inténtelo de nuevo en 15 minutos.";
 
@@ -102,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                           AND is_successful = 0
                           AND attempt_unix  > ?
                     ");
-                    $st_count->execute([$ip_address, strtolower($username), $desde]);
+                    $st_count->execute([$ip_address, $inputUser, $desde]);
                     $fallos = (int) $st_count->fetchColumn();
 
                     if ($fallos >= MAX_INTENTOS) {
@@ -114,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                               AND is_successful = 0
                               AND attempt_unix  > ?
                         ");
-                        $st_first->execute([$ip_address, strtolower($username), $desde]);
+                        $st_first->execute([$ip_address, $inputUser, $desde]);
                         $primer_fallo  = (int) $st_first->fetchColumn();
                         $desbloqueo    = $primer_fallo + VENTANA_SEGUNDOS;
                         $segundos_left = max(0, $desbloqueo - $ahora);
@@ -122,15 +127,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                         $error = "Acceso bloqueado por seguridad. Inténtelo de nuevo en {$minutos_left} minuto" . ($minutos_left != 1 ? "s" : "") . ".";
 
                     } else {
-                        // ── Sin bloqueo: verificar credenciales ──────────────
-                        $stmt = $pdo->prepare("SELECT u.*, r.nombre as rol_nombre FROM usuarios u INNER JOIN roles r ON u.rol_id = r.id WHERE u.username = ? AND u.activo = 1");
-                        $stmt->execute([$username]);
+                        // ── Sin bloqueo: verificar credenciales por usuario o email ──
+                        $stmt = $pdo->prepare("
+                            SELECT u.*, r.nombre as rol_nombre 
+                            FROM usuarios u 
+                            INNER JOIN roles r ON u.rol_id = r.id 
+                            WHERE (LOWER(u.username) = ? OR LOWER(u.email) = ?) 
+                              AND u.activo = 1 
+                            LIMIT 1
+                        ");
+                        $stmt->execute([$inputUser, $inputUser]);
                         $user = $stmt->fetch();
 
                         if ($user && password_verify($password, $user['password_hash'])) {
                             // ✅ LOGIN CORRECTO — limpiar intentos fallidos
-                            $pdo->prepare("DELETE FROM login_attempts WHERE ip_address = ? AND username = ? AND is_successful = 0")
-                                ->execute([$ip_address, strtolower($username)]);
+                            $pdo->prepare("DELETE FROM login_attempts WHERE (username = ? OR username = ?)")
+                                ->execute([$inputUser, strtolower($user['username'])]);
 
                             session_regenerate_id(true);
 
@@ -151,17 +163,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
 
                             try {
                                 $pdo->prepare("INSERT INTO login_attempts (ip_address, username, attempt_unix, is_successful) VALUES (?, ?, ?, 1)")
-                                    ->execute([$ip_address, strtolower($username), $ahora]);
+                                    ->execute([$ip_address, strtolower($user['username']), $ahora]);
                             } catch (PDOException $e) {}
                             audit_log($pdo, 'LOGIN_SUCCESS', 'sesion', $user['id'], null, ['ip' => $ip_address]);
 
-                            header("Location: home.php");
+                            if (in_array($user['rol_id'], [ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL])) {
+                                header("Location: comerciales.php");
+                            } else {
+                                header("Location: home.php");
+                            }
                             exit();
 
                         } else {
                             // ❌ LOGIN INCORRECTO — registrar fallo
                             $pdo->prepare("INSERT INTO login_attempts (ip_address, username, attempt_unix, is_successful) VALUES (?, ?, ?, 0)")
-                                ->execute([$ip_address, strtolower($username), $ahora]);
+                                ->execute([$ip_address, $inputUser, $ahora]);
 
                             $restantes = MAX_INTENTOS - ($fallos + 1);
 

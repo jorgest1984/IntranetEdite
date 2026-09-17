@@ -68,7 +68,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['matri
     try {
         $stmtDel = $pdo->prepare("DELETE FROM matriculas WHERE id = ? AND grupo_id = ?");
         $stmtDel->execute([$matricula_id, $grupo_id]);
-        $success_msg = "Matrícula eliminada correctamente.";
+        $success_msg = "Matrícula eliminada correctamente del grupo. El alumno se mantiene registrado en la Intranet.";
     } catch (Exception $e) {
         $error_msg = "Error al eliminar matrícula: " . $e->getMessage();
     }
@@ -93,7 +93,7 @@ try {
 
     // Obtener alumnos matriculados
     $stmtAlumnos = $pdo->prepare("
-        SELECT m.id as matricula_id, m.estado as matricula_estado, m.fecha_matricula, m.facturables, m.certificables, m.diploma_entregado, m.fecha_comunicacion,
+        SELECT m.id as matricula_id, m.estado as matricula_estado, m.fecha_matricula, m.facturables, m.certificables, m.diploma_entregado, m.fecha_comunicacion, m.envio_claves, m.fecha_claves,
                a.id as alumno_id, CONCAT(a.nombre, ' ', a.primer_apellido, ' ', COALESCE(a.segundo_apellido, '')) as alumno_nombre,
                a.dni, a.fecha_nacimiento, a.localidad, a.provincia,
                e.nombre as empresa_nombre, e.cif as empresa_cif
@@ -386,11 +386,13 @@ $current_page = 'grupos.php'; // Para marcar activo en la sidebar
                             <th>NIF</th>
                             <th>Fecha nac.</th>
                             <th>Estado</th>
+                            <th>Envío Claves</th>
                             <th>Certifica</th>
                             <th>Diploma</th>
                             <th>Fecha Diploma</th>
                             <th style="text-align: center;">Facturable</th>
                             <th style="width: 30px; border-left: none;"></th>
+                            <th style="width: 30px;"></th>
                             <th style="width: 30px;"></th>
                             <th style="width: 30px;"></th>
                             <th style="width: 30px; border-right: none;"></th>
@@ -399,7 +401,7 @@ $current_page = 'grupos.php'; // Para marcar activo en la sidebar
                     <tbody>
                         <?php if (empty($alumnos)): ?>
                             <tr>
-                                <td colspan="16" style="text-align: center; padding: 2rem; color: var(--text-muted);">No hay alumnos matriculados en este grupo.</td>
+                                <td colspan="18" style="text-align: center; padding: 2rem; color: var(--text-muted);">No hay alumnos matriculados en este grupo.</td>
                             </tr>
                         <?php else: ?>
                             <?php foreach ($alumnos as $row): ?>
@@ -429,14 +431,27 @@ $current_page = 'grupos.php'; // Para marcar activo en la sidebar
                                         }
                                         ?>
                                     </td>
+                                    <td>
+                                        <?php if (!empty($row['envio_claves'])): ?>
+                                            <span class="badge-status badge-finalizado" title="Enviado el <?= $row['fecha_claves'] ? date('d/m/Y', strtotime($row['fecha_claves'])) : '' ?>">SÍ <?= $row['fecha_claves'] ? '(' . date('d/m/Y', strtotime($row['fecha_claves'])) . ')' : '' ?></span>
+                                        <?php else: ?>
+                                            <span class="badge-status badge-abandono">NO</span>
+                                        <?php endif; ?>
+                                    </td>
                                     <td><?= htmlspecialchars($row['certificables'] ?? '—') ?></td>
                                     <td><?= !empty($row['diploma_entregado']) ? 'SI' : 'NO' ?></td>
                                     <td><?= $row['fecha_comunicacion'] ? date('d/m/Y', strtotime($row['fecha_comunicacion'])) : '—' ?></td>
                                     <td style="text-align: center;">
                                         <input type="checkbox" name="facturable[<?= $row['matricula_id'] ?>]" value="1" <?= ($row['facturables'] ?? '') === 'SI' ? 'checked' : '' ?> style="width: 16px; height: 16px; cursor: pointer;">
                                     </td>
-                                    <!-- Editar Matrícula -->
+                                    <!-- Enviar Claves por Mail -->
                                     <td style="border-left: none; text-align: center;">
+                                        <button type="button" class="btn-action-relacion btn-user" style="border:none; cursor:pointer; background: #ecfdf5; color: #047857; border-color: #a7f3d0;" title="Enviar Claves por Mail" onclick="enviarClavesAlumno(<?= $row['matricula_id'] ?>, '<?= htmlspecialchars(addslashes($row['alumno_nombre']), ENT_QUOTES) ?>', <?= (int)($row['envio_claves'] ?? 0) ?>, '<?= $row['fecha_claves'] ? date('d/m/Y', strtotime($row['fecha_claves'])) : '' ?>')">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                                        </button>
+                                    </td>
+                                    <!-- Editar Matrícula -->
+                                    <td style="text-align: center;">
                                         <a href="ficha_matricula.php?id=<?= $row['matricula_id'] ?>" class="btn-action-relacion btn-edit" title="Editar Matrícula">
                                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                         </a>
@@ -455,7 +470,7 @@ $current_page = 'grupos.php'; // Para marcar activo en la sidebar
                                     </td>
                                     <!-- Dar de baja matrícula -->
                                     <td style="border-right: none; text-align: center;">
-                                        <a href="relacion_alumnos.php?grupo_id=<?= $grupo_id ?>&action=delete&matricula_id=<?= $row['matricula_id'] ?>" class="btn-action-relacion btn-delete" title="Eliminar Matrícula" onclick="return confirm('¿Seguro que deseas dar de baja este alumno de este grupo?');">
+                                        <a href="relacion_alumnos.php?grupo_id=<?= $grupo_id ?>&action=delete&matricula_id=<?= $row['matricula_id'] ?>" class="btn-action-relacion btn-delete" title="Eliminar Matrícula" onclick="return confirm('¿Seguro que deseas dar de baja este alumno de este grupo? (El alumno NO se borrará de la Intranet, solo se elimina esta matrícula).');">
                                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                                         </a>
                                     </td>
@@ -479,5 +494,41 @@ $current_page = 'grupos.php'; // Para marcar activo en la sidebar
         </div>
     </main>
 </div>
+
+<script>
+function enviarClavesAlumno(matriculaId, alumnoNombre, yaEnviado, fechaEnviado) {
+    if (yaEnviado == 1) {
+        var msg = "¡ATENCIÓN!\n\nLas claves ya fueron enviadas previamente a " + alumnoNombre + (fechaEnviado ? " el " + fechaEnviado : "") + ".\n\n¿Estás seguro de que deseas volver a enviar las claves por correo electrónico?";
+        if (!confirm(msg)) {
+            return;
+        }
+    }
+    
+    var defaultSubject = "Acceso a Aula Virtual / Plataforma";
+    var defaultBody = "Estimado/a {nombre},\n\nLe enviamos las credenciales de acceso para su curso {curso}:\n\nURL: {url}\nUsuario: {usuario}\nContraseña: {contrasena}\n\nUn cordial saludo.";
+    
+    var formData = new FormData();
+    formData.append('matricula_id', matriculaId);
+    formData.append('subject', defaultSubject);
+    formData.append('body', defaultBody);
+    
+    fetch('api_send_matricula_keys.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            alert("✓ " + data.message);
+            location.reload();
+        } else {
+            alert("❌ Error: " + (data.error || "No se pudo enviar el correo."));
+        }
+    })
+    .catch(err => {
+        alert("❌ Error de comunicación con el servidor: " + err);
+    });
+}
+</script>
 </body>
 </html>

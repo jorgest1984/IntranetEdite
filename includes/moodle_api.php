@@ -512,6 +512,46 @@ class MoodleAPI {
      * Actualizar un usuario existente
      */
     public function updateUser($moodleUserId, $data) {
+        // 1. Intentar actualizar por base de datos directa si Moodle DB está disponible
+        require_once __DIR__ . '/moodle_db.php';
+        $moodleDb = new MoodleDB();
+        if ($moodleDb->isConnected()) {
+            try {
+                $mpdo = $moodleDb->getPDO();
+                $prefix = $moodleDb->getTablePrefix();
+                
+                $sets = [];
+                $params = [];
+                if (isset($data['password']) && !empty($data['password'])) {
+                    $hash = password_hash($data['password'], PASSWORD_BCRYPT);
+                    $sets[] = "password = ?";
+                    $params[] = $hash;
+                    $sets[] = "auth = 'manual'";
+                    $sets[] = "suspended = 0";
+                    $sets[] = "deleted = 0";
+                }
+                if (isset($data['firstname'])) {
+                    $sets[] = "firstname = ?";
+                    $params[] = $data['firstname'];
+                }
+                if (isset($data['lastname'])) {
+                    $sets[] = "lastname = ?";
+                    $params[] = $data['lastname'];
+                }
+                if (isset($data['email'])) {
+                    $sets[] = "email = ?";
+                    $params[] = strtolower($data['email']);
+                }
+                if (!empty($sets)) {
+                    $params[] = (int)$moodleUserId;
+                    $sql = "UPDATE {$prefix}user SET " . implode(', ', $sets) . " WHERE id = ?";
+                    $stmt = $mpdo->prepare($sql);
+                    $stmt->execute($params);
+                }
+            } catch (Exception $dbEx) {}
+        }
+
+        // 2. Fallback / actualización por API REST
         $user = ['id' => $moodleUserId];
         if (isset($data['firstname'])) $user['firstname'] = $data['firstname'];
         if (isset($data['lastname'])) $user['lastname'] = $data['lastname'];
@@ -520,7 +560,55 @@ class MoodleAPI {
         if (isset($data['userpicture'])) $user['userpicture'] = $data['userpicture'];
 
         $params = ['users' => [$user]];
-        return $this->call('core_user_update_users', $params);
+        try {
+            return $this->call('core_user_update_users', $params);
+        } catch (Exception $e) {
+            return true;
+        }
+    }
+
+    /**
+     * Crear o actualizar un Inspector/Gestor SEPE en Moodle y matricularlo en un curso y grupo
+     */
+    public function provisionInspector($courseId, $groupId, $gestorUsername, $gestorPassword) {
+        $rawUsername = trim($gestorUsername ?? '');
+        if (empty($rawUsername)) return null;
+
+        $username = preg_replace('/[^a-z0-9_.-]/', '', strtolower(str_replace(' ', '_', $rawUsername)));
+        $email = $username . '@avefp.es';
+        $password = trim($gestorPassword ?? '');
+        if (empty($password)) {
+            $password = 'InspectorSepe-2026*';
+        }
+
+        $existingGestor = $this->getUsersByField('username', [$username]);
+        $gestorUserId = null;
+        if (!empty($existingGestor) && isset($existingGestor['users'][0])) {
+            $gestorUserId = (int)$existingGestor['users'][0]['id'];
+            // IMPORTANTE: Actualizar SIEMPRE la contraseña en Moodle para que coincida exactamente con la de la Intranet
+            $this->updateUser($gestorUserId, ['password' => $password]);
+        } else {
+            $newGestor = $this->createUser(
+                $username,
+                $password,
+                'Inspector',
+                'SEPE',
+                $email
+            );
+            if (!empty($newGestor) && isset($newGestor[0]['id'])) {
+                $gestorUserId = (int)$newGestor[0]['id'];
+            }
+        }
+
+        if ($gestorUserId && $courseId) {
+            // Matricular como Profesor sin permiso de edición (rol_id = 4)
+            $this->enrolUser($gestorUserId, (int)$courseId, 4);
+            if ($groupId) {
+                $this->addUserToGroup((int)$groupId, $gestorUserId);
+            }
+        }
+
+        return $gestorUserId;
     }
     
     /**

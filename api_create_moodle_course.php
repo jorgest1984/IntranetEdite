@@ -72,30 +72,45 @@ try {
     $moodle_id = null;
 
     if ($moodle->isConfigured()) {
-        $categoryId = 1;
-        if (!empty($af['plan_nombre'])) {
-            try {
-                $categoryId = $moodle->getOrCreateCategory($af['plan_nombre']);
-            } catch (Exception $e) {
-                $categoryId = 1;
-            }
-        } elseif (!empty($af['convocatoria_nombre'])) {
-            try {
-                $categoryId = $moodle->getOrCreateCategory($af['convocatoria_nombre']);
-            } catch (Exception $e) {
-                $categoryId = 1;
+        // 1. Verificar primero si el curso ya existe en Moodle por abreviatura o ID para no duplicarlo
+        if (!empty($af['abreviatura'])) {
+            $existingMoodleId = $moodle->findCourseId($af['abreviatura']);
+            if ($existingMoodleId) {
+                $moodle_id = (int)$existingMoodleId;
             }
         }
 
-        $fullname = !empty($af['titulo']) ? $af['titulo'] : (!empty($af['num_accion']) ? 'Accion ' . $af['num_accion'] : 'Curso AF-' . $af_id);
-        $shortname = !empty($af['abreviatura']) ? $af['abreviatura'] : 'CURSO-' . $af_id;
+        if (!$moodle_id && !empty($af['curso_moodle_id'])) {
+            $moodle_id = (int)$af['curso_moodle_id'];
+        }
 
-        // Crear curso en Moodle real
-        $moodleResult = $moodle->createCourse($fullname, $shortname, $categoryId);
-        if (!empty($moodleResult) && isset($moodleResult[0]['id'])) {
-            $moodle_id = (int)$moodleResult[0]['id'];
-        } else {
-            throw new Exception("Moodle no devolvió un ID de curso válido tras crearlo.");
+        // 2. Si no se encontró ningún curso existente en Moodle, proceder a su creación única
+        if (!$moodle_id) {
+            $categoryId = 1;
+            if (!empty($af['plan_nombre'])) {
+                try {
+                    $categoryId = $moodle->getOrCreateCategory($af['plan_nombre']);
+                } catch (Exception $e) {
+                    $categoryId = 1;
+                }
+            } elseif (!empty($af['convocatoria_nombre'])) {
+                try {
+                    $categoryId = $moodle->getOrCreateCategory($af['convocatoria_nombre']);
+                } catch (Exception $e) {
+                    $categoryId = 1;
+                }
+            }
+
+            $fullname = !empty($af['titulo']) ? $af['titulo'] : (!empty($af['num_accion']) ? 'Accion ' . $af['num_accion'] : 'Curso AF-' . $af_id);
+            $shortname = !empty($af['abreviatura']) ? $af['abreviatura'] : 'CURSO-' . $af_id;
+
+            // Crear curso en Moodle real
+            $moodleResult = $moodle->createCourse($fullname, $shortname, $categoryId);
+            if (!empty($moodleResult) && isset($moodleResult[0]['id'])) {
+                $moodle_id = (int)$moodleResult[0]['id'];
+            } else {
+                throw new Exception("Moodle no devolvió un ID de curso válido tras crearlo.");
+            }
         }
     } else {
         // Si no está configurado, simulamos la creación en Moodle

@@ -2,6 +2,12 @@
 // home.php - VERSION 2.0 BRACE_SYNTAX
 require_once 'includes/auth.php'; // Verifica login y permisos
 
+// Si el usuario es Comercial o Jefe Comercial y no Admin, redirigir a su panel específico
+if (has_permission([ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL]) && !has_permission([ROLE_ADMIN])) {
+    header("Location: comerciales.php");
+    exit();
+}
+
 // --- OBTENER DATOS DETALLADOS DEL USUARIO LOGUEADO ---
 $current_user_id = $_SESSION['user_id'] ?? 0;
 $logged_user = null;

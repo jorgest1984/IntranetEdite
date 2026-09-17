@@ -201,6 +201,16 @@ if ($is_local) {
     define('APP_URL', 'https://gestion.grupoefp.es');
 }
 
+// Constantes de Roles (RBAC)
+if (!defined('ROLE_ADMIN')) define('ROLE_ADMIN', 1);
+if (!defined('ROLE_COORD')) define('ROLE_COORD', 2);
+if (!defined('ROLE_TUTOR')) define('ROLE_TUTOR', 3);
+if (!defined('ROLE_LECTURA')) define('ROLE_LECTURA', 4);
+if (!defined('ROLE_COMERCIAL')) define('ROLE_COMERCIAL', 5);
+if (!defined('ROLE_JEFE_COMERCIAL')) define('ROLE_JEFE_COMERCIAL', 6);
+if (!defined('ROLE_ADMINISTRATIVO')) define('ROLE_ADMINISTRATIVO', 7);
+if (!defined('ROLE_FORMADOR')) define('ROLE_FORMADOR', 3);
+
 // Tiempo de expiración de sesión (ej. 30 minutos para ISO 27001)
 define('SESSION_TIMEOUT', 1800);
 

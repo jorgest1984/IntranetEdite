@@ -19,8 +19,12 @@ if (!$cursoid) {
                            FROM grupos g
                            JOIN acciones_formativas af ON g.accion_id = af.id
                            JOIN cursos c ON af.curso_id = c.id
-                           WHERE c.moodle_id = ?");
-    $stmt->execute([$cursoid]);
+                           WHERE c.moodle_id = ? 
+                              OR af.id_plataforma = ? 
+                              OR g.id_plataforma = ? 
+                              OR g.codigo_plat = ?
+                           LIMIT 1");
+    $stmt->execute([$cursoid, $cursoid, $cursoid, $cursoid]);
     $grupo = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$grupo) {
