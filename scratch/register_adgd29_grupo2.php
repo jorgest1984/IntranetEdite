@@ -13,7 +13,7 @@ header('Content-Type: text/plain; charset=utf-8');
 echo "=== DIAGNÓSTICO Y CREACIÓN DE GRUPO 6 PARA ADGD29 GRUPO 2 (ID: 16) ===\n\n";
 
 // 1. Obtener Grupo 2 (ID: 16) y Grupo 1 de la Intranet
-$stmtG2 = $pdo->prepare("SELECT g.*, af.titulo, af.num_accion, af.moodle_id as af_moodle_id, af.id_plataforma, c.moodle_id as curso_moodle_id
+$stmtG2 = $pdo->prepare("SELECT g.*, af.titulo, af.num_accion, af.id_plataforma, c.moodle_id as curso_moodle_id
                          FROM grupos g 
                          JOIN acciones_formativas af ON g.accion_id = af.id
                          LEFT JOIN cursos c ON af.curso_id = c.id
@@ -28,7 +28,6 @@ if (!$g2) {
 
 echo "Acción Formativa: {$g2['num_accion']} - {$g2['titulo']}\n";
 echo "Grupo Intranet ID: {$g2['id']} (Número de grupo: {$g2['numero_grupo']})\n";
-echo "AF moodle_id: " . ($g2['af_moodle_id'] ?? 'null') . "\n";
 echo "AF id_plataforma: " . ($g2['id_plataforma'] ?? 'null') . "\n";
 echo "Curso master moodle_id: " . ($g2['curso_moodle_id'] ?? 'null') . "\n";
 
@@ -43,7 +42,7 @@ $mpdo = $moodleDb->getPDO();
 $prefix = $moodleDb->getTablePrefix();
 
 $courseId = 0;
-$candidates = array_filter([$g2['af_moodle_id'], $g2['id_plataforma'], $g2['curso_moodle_id']]);
+$candidates = array_filter([$g2['id_plataforma'], $g2['curso_moodle_id']]);
 foreach ($candidates as $cand) {
     $cand = (int)$cand;
     if ($cand > 0) {
