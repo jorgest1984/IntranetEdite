@@ -44,16 +44,16 @@ function has_permission($required_roles) {
 // 4 = Lectura (Legacy / Mantenimiento)
 // 5 = Comercial
 // 7 = Administrativo (Acceso contabilidad)
-define('ROLE_ADMIN', 1);
-define('ROLE_COORD', 2);
-define('ROLE_TUTOR', 3);
-define('ROLE_LECTURA', 4); // Legacy / Mantenimiento
-define('ROLE_COMERCIAL', 5);
-define('ROLE_JEFE_COMERCIAL', 6);
-define('ROLE_ADMINISTRATIVO', 7); // Separado de Coordinador
+if (!defined('ROLE_ADMIN')) define('ROLE_ADMIN', 1);
+if (!defined('ROLE_COORD')) define('ROLE_COORD', 2);
+if (!defined('ROLE_TUTOR')) define('ROLE_TUTOR', 3);
+if (!defined('ROLE_LECTURA')) define('ROLE_LECTURA', 4); // Legacy / Mantenimiento
+if (!defined('ROLE_COMERCIAL')) define('ROLE_COMERCIAL', 5);
+if (!defined('ROLE_JEFE_COMERCIAL')) define('ROLE_JEFE_COMERCIAL', 6);
+if (!defined('ROLE_ADMINISTRATIVO')) define('ROLE_ADMINISTRATIVO', 7); // Separado de Coordinador
 
 // Alias para compatibilidad con código antiguo
-define('ROLE_FORMADOR', 3);
+if (!defined('ROLE_FORMADOR')) define('ROLE_FORMADOR', 3);
 
 function get_user_centro_filter($column_name = 'grupos.centro_id') {
     if (!empty($_SESSION['centro_id'])) {

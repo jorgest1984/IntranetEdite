@@ -1,14 +1,13 @@
 <?php
 // pdf_informe_alumno.php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+ob_start();
 
 require_once 'includes/auth.php';
 require_once 'includes/config.php';
 require_once 'includes/fpdf/fpdf.php';
 
 if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA, ROLE_TUTOR, ROLE_FORMADOR])) {
+    if (ob_get_length()) ob_end_clean();
     die("Acceso denegado.");
 }
 
@@ -17,6 +16,7 @@ $grupo_id = isset($_GET['grupo_id']) ? (int)$_GET['grupo_id'] : 0;
 $alumno_id = isset($_GET['alumno_id']) ? (int)$_GET['alumno_id'] : 0;
 
 if (!$accion_id || !$grupo_id || !$alumno_id) {
+    if (ob_get_length()) ob_end_clean();
     die("Faltan parámetros requeridos.");
 }
 
@@ -42,6 +42,7 @@ $stmt->execute([$grupo_id, $alumno_id, $accion_id]);
 $data = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$data) {
+    if (ob_get_length()) ob_end_clean();
     die("No se encontraron datos para este alumno en este grupo.");
 }
 
@@ -166,5 +167,6 @@ $pdf->Cell(30, 6, $apto, 0, 0, 'C');
 $pdf->Cell(10, 6, '', 0, 0);
 $pdf->Cell(70, 6, pdf_utf8_to_iso('Ha realizado el ' . $porcentaje_controles . '% de los controles.'), 0, 1, 'L');
 
-// Salida
+// Salida limpia
+if (ob_get_length()) ob_end_clean();
 $pdf->Output('I', 'INFORME_ALUMNO_' . $data['codigo_expediente'] . '_' . $alumno_id . '.pdf');
