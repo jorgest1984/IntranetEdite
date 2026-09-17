@@ -10,7 +10,7 @@ require_once __DIR__ . '/../includes/moodle_api.php';
 
 header('Content-Type: text/plain; charset=utf-8');
 
-echo "=== CREANDO GRUPO 6 EN MOODLE PARA ADGD29 GRUPO 2 (ID INTRANET: 16) ===\n\n";
+echo "=== MATRICULANDO ALUMNOS DE GRUPO 2 EN GRUPO-6 MOODLE (ID MOODLE: 39) ===\n\n";
 
 $moodleDb = new MoodleDB();
 if (!$moodleDb->isConnected()) {
@@ -21,30 +21,20 @@ if (!$moodleDb->isConnected()) {
 $mpdo = $moodleDb->getPDO();
 $prefix = $moodleDb->getTablePrefix();
 $courseId = 43;
+$moodleGroupId = 39; // ID de GRUPO-6 recién creado
 
-// 1. Comprobar si existe GRUPO-6 o Grupo 6 en Moodle para el curso 43
-$groupName = 'GRUPO-6';
-$stmtG = $mpdo->prepare("SELECT id, name FROM {$prefix}groups WHERE courseid = ? AND (name = ? OR name = 'Grupo 6' OR name = 'GRUPO 6') LIMIT 1");
-$stmtG->execute([$courseId, $groupName]);
-$moodleGroup = $stmtG->fetch(PDO::FETCH_ASSOC);
-
-if ($moodleGroup) {
-    $moodleGroupId = (int)$moodleGroup['id'];
-    echo "Grupo Moodle existente encontrado: ID {$moodleGroupId} - '{$moodleGroup['name']}'\n";
-} else {
-    // Crear el grupo en Moodle
-    $now = time();
-    $stmtInsG = $mpdo->prepare("INSERT INTO {$prefix}groups (courseid, name, description, descriptionformat, timecreated, timemodified) 
-                                VALUES (?, ?, '', 1, ?, ?)");
-    $stmtInsG->execute([$courseId, $groupName, $now, $now]);
-    $moodleGroupId = (int)$mpdo->lastInsertId();
-    echo "¡GRUPO CREADO EN MOODLE CON ÉXITO! ID Moodle: {$moodleGroupId} - '{$groupName}'\n";
-}
-
-// Actualizar id_grupo_moodle en Intranet para el grupo 16
-$stmtUpdIntra = $pdo->prepare("UPDATE grupos SET id_grupo_moodle = ? WHERE id = 16");
-$stmtUpdIntra->execute([$moodleGroupId]);
-echo "Actualizado grupos.id_grupo_moodle = {$moodleGroupId} para el Grupo Intranet 16.\n";
+// Intentar guardar en grupos si existe alguna columna relativa a Moodle
+try {
+    $stmtCols = $pdo->query("SHOW COLUMNS FROM grupos");
+    $cols = $stmtCols->fetchAll(PDO::FETCH_COLUMN);
+    foreach (['id_grupo_moodle', 'moodle_group_id', 'moodle_id', 'id_moodle'] as $colCandidate) {
+        if (in_array($colCandidate, $cols)) {
+            $pdo->prepare("UPDATE grupos SET {$colCandidate} = ? WHERE id = 16")->execute([$moodleGroupId]);
+            echo "Guardado {$colCandidate} = {$moodleGroupId} en grupos.\n";
+            break;
+        }
+    }
+} catch (Exception $e) {}
 
 // 2. Obtener la enrol instance manual para el curso 43 en Moodle
 $stmtEnrol = $mpdo->prepare("SELECT id FROM {$prefix}enrol WHERE courseid = ? AND enrol = 'manual' LIMIT 1");
