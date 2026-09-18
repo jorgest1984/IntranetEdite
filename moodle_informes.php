@@ -9,38 +9,91 @@ if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA, ROLE_TUTOR, ROLE_FORM
     exit();
 }
 
-$cursoid = isset($_GET['cursoid']) ? (int)$_GET['cursoid'] : 0;
+$cursoid = isset($_GET['cursoid']) ? (int)$_GET['cursoid'] : (isset($_GET['id']) ? (int)$_GET['id'] : 0);
+$grupo_id = isset($_GET['grupo_id']) ? (int)$_GET['grupo_id'] : (isset($_GET['grupo']) ? (int)$_GET['grupo'] : 0);
+$accion_id = isset($_GET['accion_id']) ? (int)$_GET['accion_id'] : 0;
 
-if (!$cursoid) {
-    $error = "No se ha proporcionado el ID del curso de Moodle.";
-} else {
-    // Buscar a qué grupo y acción corresponde este curso en Moodle
-    $stmt = $pdo->prepare("SELECT g.id as grupo_id, g.numero_grupo, af.id as accion_id, af.titulo, af.num_accion
-                           FROM grupos g
-                           JOIN acciones_formativas af ON g.accion_id = af.id
-                           JOIN cursos c ON af.curso_id = c.id
-                           WHERE c.moodle_id = ? 
-                              OR af.id_plataforma = ? 
-                              OR g.id_plataforma = ? 
-                              OR g.codigo_plat = ?
-                           LIMIT 1");
-    $stmt->execute([$cursoid, $cursoid, $cursoid, $cursoid]);
-    $grupo = $stmt->fetch(PDO::FETCH_ASSOC);
+$grupo = null;
+$todos_grupos = [];
+$alumnos = [];
 
-    if (!$grupo) {
-        $error = "No se ha encontrado un grupo vinculado a este curso de Moodle ($cursoid) en la Intranet.";
-    } else {
-        // Cargar los alumnos
-        $stmtAlumnos = $pdo->prepare("
-            SELECT a.id, a.nombre, a.primer_apellido, a.segundo_apellido, a.dni
-            FROM matriculas m
-            JOIN alumnos a ON m.alumno_id = a.id
-            WHERE m.grupo_id = ? AND m.estado != 'Baja' AND m.estado != 'Cancelada'
-            ORDER BY a.primer_apellido ASC, a.segundo_apellido ASC, a.nombre ASC
-        ");
-        $stmtAlumnos->execute([$grupo['grupo_id']]);
-        $alumnos = $stmtAlumnos->fetchAll(PDO::FETCH_ASSOC);
+// 1. Si viene grupo_id explícito por URL
+if ($grupo_id) {
+    $stmtG = $pdo->prepare("
+        SELECT g.id as grupo_id, g.numero_grupo, af.id as accion_id, af.titulo, af.num_accion, af.id_plataforma, c.moodle_id
+        FROM grupos g
+        JOIN acciones_formativas af ON g.accion_id = af.id
+        LEFT JOIN cursos c ON af.curso_id = c.id
+        WHERE g.id = ?
+    ");
+    $stmtG->execute([$grupo_id]);
+    $grupo = $stmtG->fetch(PDO::FETCH_ASSOC);
+}
+
+// 2. Si no hay grupo pero hay cursoid de Moodle
+if (!$grupo && $cursoid) {
+    $stmtG = $pdo->prepare("
+        SELECT g.id as grupo_id, g.numero_grupo, af.id as accion_id, af.titulo, af.num_accion, af.id_plataforma, c.moodle_id
+        FROM grupos g
+        JOIN acciones_formativas af ON g.accion_id = af.id
+        LEFT JOIN cursos c ON af.curso_id = c.id
+        WHERE c.moodle_id = ? 
+           OR af.id_plataforma = ? 
+           OR g.id_plataforma = ? 
+           OR g.codigo_plat = ?
+        ORDER BY g.id ASC
+    ");
+    $stmtG->execute([$cursoid, $cursoid, $cursoid, $cursoid]);
+    $grupos_encontrados = $stmtG->fetchAll(PDO::FETCH_ASSOC);
+    if (!empty($grupos_encontrados)) {
+        $grupo = $grupos_encontrados[0];
     }
+}
+
+// 3. Si no hay grupo pero hay accion_id de la Intranet
+if (!$grupo && $accion_id) {
+    $stmtG = $pdo->prepare("
+        SELECT g.id as grupo_id, g.numero_grupo, af.id as accion_id, af.titulo, af.num_accion, af.id_plataforma, c.moodle_id
+        FROM grupos g
+        JOIN acciones_formativas af ON g.accion_id = af.id
+        LEFT JOIN cursos c ON af.curso_id = c.id
+        WHERE af.id = ?
+        ORDER BY g.id ASC
+    ");
+    $stmtG->execute([$accion_id]);
+    $grupos_encontrados = $stmtG->fetchAll(PDO::FETCH_ASSOC);
+    if (!empty($grupos_encontrados)) {
+        $grupo = $grupos_encontrados[0];
+    }
+}
+
+if (!$grupo) {
+    $error = "No se ha encontrado un grupo o acción formativa vinculada en la Intranet.";
+} else {
+    $current_accion_id = (int)$grupo['accion_id'];
+    $current_grupo_id = (int)$grupo['grupo_id'];
+    $cursoid = $cursoid ?: ($grupo['id_plataforma'] ?: $grupo['moodle_id']);
+
+    // Cargar TODOS los grupos pertenecientes a esta acción formativa
+    $stmtAllG = $pdo->prepare("
+        SELECT g.id as grupo_id, g.numero_grupo, g.expediente
+        FROM grupos g
+        WHERE g.accion_id = ?
+        ORDER BY g.numero_grupo ASC, g.id ASC
+    ");
+    $stmtAllG->execute([$current_accion_id]);
+    $todos_grupos = $stmtAllG->fetchAll(PDO::FETCH_ASSOC);
+
+    // Cargar los alumnos del grupo seleccionado
+    $stmtAlumnos = $pdo->prepare("
+        SELECT a.id, a.nombre, a.primer_apellido, a.segundo_apellido, a.dni
+        FROM matriculas m
+        JOIN alumnos a ON m.alumno_id = a.id
+        WHERE m.grupo_id = ? AND (m.estado IS NULL OR UPPER(m.estado) != 'BAJA') AND m.estado != 'Cancelada'
+        ORDER BY a.primer_apellido ASC, a.segundo_apellido ASC, a.nombre ASC
+    ");
+    $stmtAlumnos->execute([$current_grupo_id]);
+    $alumnos = $stmtAlumnos->fetchAll(PDO::FETCH_ASSOC);
 }
 ?>
 <!DOCTYPE html>
@@ -73,6 +126,8 @@ if (!$cursoid) {
             box-shadow: var(--shadow-sm);
             display: flex;
             align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
             gap: 1.25rem;
             position: relative;
             overflow: hidden;
@@ -114,6 +169,36 @@ if (!$cursoid) {
             font-weight: 500;
         }
 
+        .btn-group-tab {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.875rem;
+            text-decoration: none;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .btn-group-tab.active {
+            background: #2563eb;
+            color: #ffffff;
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.25);
+            border: 1px solid #2563eb;
+        }
+
+        .btn-group-tab:not(.active) {
+            background: #f8fafc;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+        }
+
+        .btn-group-tab:not(.active):hover {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
         /* List Section */
         .list-section-premium {
             background: #ffffff;
@@ -121,61 +206,57 @@ if (!$cursoid) {
             border: 1px solid var(--border-gray);
             box-shadow: var(--shadow-sm);
             overflow: hidden;
-            margin-top: 1rem;
+            margin-bottom: 2rem;
         }
 
         .section-header-premium {
-            background: #f8fafc;
-            padding: 20px 24px;
+            padding: 1.25rem 1.75rem;
+            background: #ffffff;
             border-bottom: 1px solid var(--border-gray);
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem;
+            justify-content: space-between;
         }
 
         .section-header-premium h2 {
-            margin: 0;
-            font-size: 1.15rem;
-            font-weight: 800;
+            font-size: 1.1rem;
+            font-weight: 700;
             color: var(--title-blue);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            margin: 0;
         }
 
         /* Premium Table */
         .premium-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.925rem;
         }
 
         .premium-table th {
-            text-align: left;
-            padding: 16px 24px;
             background: #f8fafc;
-            color: #475569;
+            padding: 1rem 1.5rem;
+            font-size: 0.75rem;
             font-weight: 700;
+            color: #475569;
             text-transform: uppercase;
-            font-size: 0.725rem;
-            letter-spacing: 0.75px;
+            letter-spacing: 0.05em;
             border-bottom: 1px solid var(--border-gray);
+            text-align: left;
         }
 
         .premium-table td {
-            padding: 16px 24px;
+            padding: 1.25rem 1.5rem;
+            font-size: 0.95rem;
+            color: #334155;
             border-bottom: 1px solid #f1f5f9;
             vertical-align: middle;
-            transition: background-color 0.2s;
         }
 
-        .premium-table tr {
-            transition: transform 0.2s, box-shadow 0.2s;
+        .premium-table tbody tr:last-child td {
+            border-bottom: none;
         }
 
-        .premium-table tr:hover td {
-            background-color: #eff6ff;
+        .premium-table tbody tr:hover {
+            background-color: #f8fafc;
         }
 
         /* Avatar & Identity */
@@ -280,18 +361,33 @@ if (!$cursoid) {
                 </div>
             <?php else: ?>
                 <div class="info-card-premium">
-                    <div class="info-icon-wrapper">
-                        <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2.12-1.15V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/></svg>
+                    <div style="display: flex; align-items: center; gap: 1.25rem;">
+                        <div class="info-icon-wrapper">
+                            <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2.12-1.15V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/></svg>
+                        </div>
+                        <div class="info-content">
+                            <h2><?= htmlspecialchars($grupo['num_accion']) ?> - <?= htmlspecialchars($grupo['titulo']) ?></h2>
+                            <p>Grupo: <strong><?= htmlspecialchars($grupo['numero_grupo']) ?></strong></p>
+                        </div>
                     </div>
-                    <div class="info-content">
-                        <h2><?= htmlspecialchars($grupo['num_accion']) ?> - <?= htmlspecialchars($grupo['titulo']) ?></h2>
-                        <p>Grupo: <?= htmlspecialchars($grupo['numero_grupo']) ?></p>
-                    </div>
+
+                    <?php if (count($todos_grupos) > 1): ?>
+                        <div class="group-selector-tabs" style="display: flex; gap: 8px; align-items: center; background: #f8fafc; padding: 8px 12px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: #64748b; margin-right: 4px;">Seleccionar Grupo:</span>
+                            <?php foreach ($todos_grupos as $g_item): ?>
+                                <?php $is_active = ($g_item['grupo_id'] == $current_grupo_id); ?>
+                                <a href="moodle_informes.php?<?= $cursoid ? 'cursoid=' . $cursoid . '&' : '' ?>grupo_id=<?= $g_item['grupo_id'] ?>" 
+                                   class="btn-group-tab <?= $is_active ? 'active' : '' ?>">
+                                    Grupo <?= htmlspecialchars($g_item['numero_grupo']) ?>
+                                </a>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
 
                 <section class="list-section-premium">
                     <div class="section-header-premium">
-                        <h2>Listado de Alumnos</h2>
+                        <h2>Listado de Alumnos (Grupo <?= htmlspecialchars($grupo['numero_grupo']) ?>)</h2>
                         <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); background: #f1f5f9; padding: 6px 14px; border-radius: 8px;">
                             <?= count($alumnos) ?> alumnos
                         </div>
@@ -308,15 +404,12 @@ if (!$cursoid) {
                             <tbody>
                                 <?php if (empty($alumnos)): ?>
                                     <tr>
-                                        <td colspan="3" style="text-align: center; padding: 3rem; color: #64748b; font-weight: 500;">
-                                            <svg viewBox="0 0 24 24" width="48" height="48" fill="currentColor" style="display: block; margin: 0 auto 15px auto; color: #cbd5e1;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-                                            No hay alumnos matriculados en este grupo.
-                                        </td>
+                                        <td colspan="3" style="text-align: center; color: #64748b; padding: 2rem;">No hay alumnos matriculados en este grupo.</td>
                                     </tr>
                                 <?php else: ?>
                                     <?php foreach ($alumnos as $al): ?>
                                         <?php 
-                                        $iniciales = strtoupper(mb_substr($al['nombre'], 0, 1) . mb_substr($al['primer_apellido'], 0, 1));
+                                            $iniciales = mb_substr($al['nombre'], 0, 1, 'UTF-8') . mb_substr($al['primer_apellido'], 0, 1, 'UTF-8');
                                         ?>
                                         <tr class="user-row-item">
                                             <td>
