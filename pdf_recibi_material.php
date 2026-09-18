@@ -80,6 +80,12 @@ if (empty($alumnos)) {
 }
 
 class PDF extends FPDF {
+    function Header() {
+        if (file_exists('img/plantilla_fondo_efp.png')) {
+            $this->Image('img/plantilla_fondo_efp.png', 0, 0, 210, 297);
+        }
+    }
+
     // Para imprimir texto con negritas y normal (básico)
     function WriteText($text, $lineHeight=6) {
         $text = mb_convert_encoding($text, 'ISO-8859-1', 'UTF-8');
@@ -93,19 +99,20 @@ $pdf->SetAutoPageBreak(true, 20);
 foreach ($alumnos as $data) {
     $pdf->AddPage();
     
-    // Logos
-    // (X, Y, Width)
-    if (file_exists('img/logo_efp.png')) {
-        $pdf->Image('img/logo_efp.png', 15, 10, 60);
-    }
-    if (file_exists('img/logo_fundae.png')) {
-        $pdf->Image('img/logo_fundae.png', 120, 10, 35);
-    }
-    if (file_exists('img/logo_ministerio.png')) {
-        $pdf->Image('img/logo_ministerio.png', 160, 10, 35);
+    // Logos (only if background template is missing)
+    if (!file_exists('img/plantilla_fondo_efp.png')) {
+        if (file_exists('img/logo_efp.png')) {
+            $pdf->Image('img/logo_efp.png', 15, 10, 60);
+        }
+        if (file_exists('img/logo_fundae.png')) {
+            $pdf->Image('img/logo_fundae.png', 120, 10, 35);
+        }
+        if (file_exists('img/logo_ministerio.png')) {
+            $pdf->Image('img/logo_ministerio.png', 160, 10, 35);
+        }
     }
     
-    $pdf->Ln(25);
+    $pdf->SetY(35);
     
     // Title
     $pdf->SetFont('Arial', '', 14);

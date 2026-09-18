@@ -93,15 +93,18 @@ function pdf_iso($string) {
 
 class PDF_Hoja_Bienvenida extends FPDF {
     function Header() {
-        // High quality logos header
-        if (file_exists('img/logo_efp.png')) {
-            $this->Image('img/logo_efp.png', 15, 10, 45);
-        }
-        if (file_exists('img/logo_fundae.png')) {
-            $this->Image('img/logo_fundae.png', 115, 12, 30);
-        }
-        if (file_exists('img/logo_ministerio.png')) {
-            $this->Image('img/logo_ministerio.png', 150, 10, 45);
+        if (file_exists('img/plantilla_fondo_efp.png')) {
+            $this->Image('img/plantilla_fondo_efp.png', 0, 0, 210, 297);
+        } else {
+            if (file_exists('img/logo_efp.png')) {
+                $this->Image('img/logo_efp.png', 15, 10, 45);
+            }
+            if (file_exists('img/logo_fundae.png')) {
+                $this->Image('img/logo_fundae.png', 115, 12, 30);
+            }
+            if (file_exists('img/logo_ministerio.png')) {
+                $this->Image('img/logo_ministerio.png', 150, 10, 45);
+            }
         }
         
         $this->SetXY(15, 27);
