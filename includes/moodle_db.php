@@ -127,6 +127,20 @@ class MoodleDB {
         if ($this->isConnected()) {
             try {
                 $prefix = $this->getTablePrefix();
+
+                // Resolver ID real de Moodle si el ID enviado es un idnumber/código/shortname o referencia diferida
+                if ($moodleCourseId) {
+                    $stmtC = $this->mpdo->prepare("SELECT id FROM {$prefix}course WHERE id = ? LIMIT 1");
+                    $stmtC->execute([$moodleCourseId]);
+                    if (!$stmtC->fetch()) {
+                        $stmtAlt = $this->mpdo->prepare("SELECT id FROM {$prefix}course WHERE idnumber = ? OR shortname = ? LIMIT 1");
+                        $stmtAlt->execute([$moodleCourseId, (string)$moodleCourseId]);
+                        if ($rowAlt = $stmtAlt->fetch()) {
+                            $moodleCourseId = (int)$rowAlt['id'];
+                        }
+                    }
+                }
+
                 $placeholders = implode(',', array_fill(0, count($validUserIds), '?'));
                 $params = array_merge([$moodleCourseId], $validUserIds);
 
