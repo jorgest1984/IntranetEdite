@@ -7,7 +7,7 @@ try {
     header('Content-Type: text/plain; charset=utf-8');
 
     echo "=== ACCIONES FORMATIVAS ===\n";
-    $stmt = $pdo->query("SELECT id, codigo, abreviatura, titulo, id_plataforma, num_accion FROM acciones_formativas WHERE titulo LIKE '%igualdad%' OR abreviatura LIKE '%ADG%' OR codigo LIKE '%ADG%' OR id IN (8, 29, 43)");
+    $stmt = $pdo->query("SELECT id, abreviatura, titulo, id_plataforma, num_accion FROM acciones_formativas WHERE titulo LIKE '%igualdad%' OR abreviatura LIKE '%ADG%' OR id IN (8, 29, 43)");
     $acciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
     print_r($acciones);
 
