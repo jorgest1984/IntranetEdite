@@ -11,12 +11,13 @@ if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_TUTOR])) {
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $moodle_id = isset($_GET['moodle_id']) ? (int)$_GET['moodle_id'] : 0;
 $grupo_id = isset($_GET['grupo_id']) ? (int)$_GET['grupo_id'] : 0;
+$grupo_param = isset($_GET['grupo']) ? trim($_GET['grupo']) : (isset($_GET['g']) ? trim($_GET['g']) : (isset($_GET['numero_grupo']) ? trim($_GET['numero_grupo']) : ''));
 $source = isset($_GET['source']) ? $_GET['source'] : '';
 
 $accion = null;
 $grupo = null;
 
-// 1. Si se pasa grupo_id explícito
+// 1. Si se pasa grupo_id explícito por ID de tabla grupos
 if ($grupo_id) {
     $stmtG = $pdo->prepare("SELECT * FROM grupos WHERE id = ?");
     $stmtG->execute([$grupo_id]);
@@ -28,23 +29,22 @@ if ($grupo_id) {
     }
 }
 
-// 2. Si se pasa moodle_id
+// 2. Si se pasa moodle_id o source === 'moodle'
 if (!$accion && $moodle_id) {
     $stmtA = $pdo->prepare("SELECT * FROM acciones_formativas WHERE id_plataforma = ?");
     $stmtA->execute([$moodle_id]);
     $accion = $stmtA->fetch(PDO::FETCH_ASSOC);
 }
 
-// 3. Si source === 'moodle' y id
 if (!$accion && $source === 'moodle' && $id) {
     $stmtA = $pdo->prepare("SELECT * FROM acciones_formativas WHERE id_plataforma = ?");
     $stmtA->execute([$id]);
     $accion = $stmtA->fetch(PDO::FETCH_ASSOC);
 }
 
-// 4. Si se pasa $id pero no se ha resuelto aún
+// 3. Si se pasa $id
 if (!$accion && $id) {
-    // A. Comprobar si $id es un grupo_id
+    // A. Comprobar si $id es directamente un grupo_id de la tabla grupos
     $stmtG = $pdo->prepare("SELECT * FROM grupos WHERE id = ?");
     $stmtG->execute([$id]);
     $possibleGrupo = $stmtG->fetch(PDO::FETCH_ASSOC);
@@ -59,7 +59,7 @@ if (!$accion && $id) {
         }
     }
 
-    // B. Comprobar si $id es id_plataforma (prioridad si coincide con ID de curso Moodle)
+    // B. Comprobar si $id es id_plataforma (Moodle course ID)
     if (!$accion) {
         $stmtPlat = $pdo->prepare("SELECT * FROM acciones_formativas WHERE id_plataforma = ?");
         $stmtPlat->execute([$id]);
@@ -81,14 +81,28 @@ if (!$accion) {
     die("Acción formativa no encontrada.");
 }
 
-// Reasignar el ID real de la intranet para que el resto del script funcione igual
+// Reasignar el ID real de la intranet
 $id = (int)$accion['id'];
 
-// Si no teníamos grupo cargado pero hay grupo_id
-if ($grupo_id && !$grupo) {
-    $stmtG = $pdo->prepare("SELECT * FROM grupos WHERE id = ? AND accion_id = ?");
-    $stmtG->execute([$grupo_id, $id]);
+// Si se pasó un número de grupo (ej: ?grupo=1 o ?grupo=2 o ?g=2)
+if (!$grupo && !empty($grupo_param)) {
+    $stmtG = $pdo->prepare("SELECT * FROM grupos WHERE accion_id = ? AND (numero_grupo = ? OR numero_grupo = ? OR id = ?) LIMIT 1");
+    $stmtG->execute([$id, $grupo_param, 'G' . $grupo_param, (int)$grupo_param]);
     $grupo = $stmtG->fetch(PDO::FETCH_ASSOC);
+    if ($grupo) {
+        $grupo_id = (int)$grupo['id'];
+    }
+}
+
+// Si aún no tenemos grupo_id definido, seleccionar el primer grupo de la acción formativa por defecto
+if (!$grupo_id) {
+    $stmtAllG = $pdo->prepare("SELECT * FROM grupos WHERE accion_id = ? ORDER BY numero_grupo ASC, id ASC");
+    $stmtAllG->execute([$id]);
+    $grupos_accion = $stmtAllG->fetchAll(PDO::FETCH_ASSOC);
+    if (!empty($grupos_accion)) {
+        $grupo = $grupos_accion[0];
+        $grupo_id = (int)$grupo['id'];
+    }
 }
 
 // Formatear nombre del curso evitando duplicados tipo "ADGD251PO - ADGD251PO - ..."
