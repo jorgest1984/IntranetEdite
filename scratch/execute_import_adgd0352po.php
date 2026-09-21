@@ -225,7 +225,8 @@ try {
                 ]);
                 echo "✓ Alumno actualizado: " . $item['nombre'] . " " . $item['primer_apellido'] . " (DNI: " . $item['dni'] . ", ID: $alumno_id)\n";
             } else {
-                $stmtInsAl = $pdo->prepare("INSERT INTO alumnos (nombre, primer_apellido, segundo_apellido, dni, fecha_nacimiento, localidad, provincia, email, ultima_empresa_id) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?)");
+                // Usar cadena vacía '' para email si la columna es NOT NULL
+                $stmtInsAl = $pdo->prepare("INSERT INTO alumnos (nombre, primer_apellido, segundo_apellido, dni, fecha_nacimiento, localidad, provincia, email, ultima_empresa_id) VALUES (?, ?, ?, ?, ?, ?, ?, '', ?)");
                 $stmtInsAl->execute([
                     $item['nombre'],
                     $item['primer_apellido'],
