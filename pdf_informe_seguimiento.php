@@ -94,9 +94,9 @@ if (!$grupo && !empty($grupo_param)) {
     }
 }
 
-// Si aún no tenemos grupo_id definido, seleccionar el primer grupo de la acción formativa por defecto
+// Si aún no tenemos grupo_id definido, seleccionar el grupo activo por defecto
 if (!$grupo_id) {
-    $stmtAllG = $pdo->prepare("SELECT * FROM grupos WHERE accion_id = ? ORDER BY numero_grupo ASC, id ASC");
+    $stmtAllG = $pdo->prepare("SELECT * FROM grupos WHERE accion_id = ? ORDER BY (fecha_fin >= CURDATE()) DESC, numero_grupo DESC, id DESC");
     $stmtAllG->execute([$id]);
     $grupos_accion = $stmtAllG->fetchAll(PDO::FETCH_ASSOC);
     if (!empty($grupos_accion)) {

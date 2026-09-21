@@ -10,30 +10,45 @@ if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA, ROLE_TUTOR, ROLE_FORM
 }
 
 $cursoid = isset($_GET['cursoid']) ? (int)$_GET['cursoid'] : (isset($_GET['id']) ? (int)$_GET['id'] : 0);
-$grupo_id = isset($_GET['grupo_id']) ? (int)$_GET['grupo_id'] : (isset($_GET['grupo']) ? (int)$_GET['grupo'] : 0);
+$grupo_param = isset($_GET['grupo_id']) ? $_GET['grupo_id'] : (isset($_GET['grupo']) ? $_GET['grupo'] : (isset($_GET['g']) ? $_GET['g'] : ''));
 $accion_id = isset($_GET['accion_id']) ? (int)$_GET['accion_id'] : 0;
 
 $grupo = null;
 $todos_grupos = [];
 $alumnos = [];
 
-// 1. Si viene grupo_id explícito por URL
-if ($grupo_id) {
+// 1. Si viene grupo_id explícito por ID de tabla de grupos (ej: ?grupo_id=16)
+if (!empty($grupo_param) && is_numeric($grupo_param)) {
     $stmtG = $pdo->prepare("
-        SELECT g.id as grupo_id, g.numero_grupo, af.id as accion_id, af.titulo, af.num_accion, af.id_plataforma, c.moodle_id
+        SELECT g.id as grupo_id, g.numero_grupo, g.fecha_inicio, g.fecha_fin, af.id as accion_id, af.titulo, af.num_accion, af.id_plataforma, c.moodle_id
         FROM grupos g
         JOIN acciones_formativas af ON g.accion_id = af.id
         LEFT JOIN cursos c ON af.curso_id = c.id
         WHERE g.id = ?
     ");
-    $stmtG->execute([$grupo_id]);
+    $stmtG->execute([(int)$grupo_param]);
     $grupo = $stmtG->fetch(PDO::FETCH_ASSOC);
 }
 
-// 2. Si no hay grupo pero hay cursoid de Moodle
+// 2. Si no se encontró por g.id o viene numero_grupo (ej: ?cursoid=43&grupo=2)
+if (!$grupo && $cursoid && !empty($grupo_param)) {
+    $stmtG = $pdo->prepare("
+        SELECT g.id as grupo_id, g.numero_grupo, g.fecha_inicio, g.fecha_fin, af.id as accion_id, af.titulo, af.num_accion, af.id_plataforma, c.moodle_id
+        FROM grupos g
+        JOIN acciones_formativas af ON g.accion_id = af.id
+        LEFT JOIN cursos c ON af.curso_id = c.id
+        WHERE (c.moodle_id = ? OR af.id_plataforma = ? OR g.id_plataforma = ? OR g.codigo_plat = ?)
+          AND (g.numero_grupo = ? OR g.numero_grupo = ?)
+        ORDER BY g.id DESC
+    ");
+    $stmtG->execute([$cursoid, $cursoid, $cursoid, $cursoid, $grupo_param, 'G' . $grupo_param]);
+    $grupo = $stmtG->fetch(PDO::FETCH_ASSOC);
+}
+
+// 3. Si no hay grupo pero hay cursoid de Moodle, priorizar el grupo ACTIVO
 if (!$grupo && $cursoid) {
     $stmtG = $pdo->prepare("
-        SELECT g.id as grupo_id, g.numero_grupo, af.id as accion_id, af.titulo, af.num_accion, af.id_plataforma, c.moodle_id
+        SELECT g.id as grupo_id, g.numero_grupo, g.fecha_inicio, g.fecha_fin, af.id as accion_id, af.titulo, af.num_accion, af.id_plataforma, c.moodle_id
         FROM grupos g
         JOIN acciones_formativas af ON g.accion_id = af.id
         LEFT JOIN cursos c ON af.curso_id = c.id
@@ -41,7 +56,7 @@ if (!$grupo && $cursoid) {
            OR af.id_plataforma = ? 
            OR g.id_plataforma = ? 
            OR g.codigo_plat = ?
-        ORDER BY g.id ASC
+        ORDER BY (g.fecha_fin >= CURDATE()) DESC, g.id DESC
     ");
     $stmtG->execute([$cursoid, $cursoid, $cursoid, $cursoid]);
     $grupos_encontrados = $stmtG->fetchAll(PDO::FETCH_ASSOC);
@@ -50,15 +65,15 @@ if (!$grupo && $cursoid) {
     }
 }
 
-// 3. Si no hay grupo pero hay accion_id de la Intranet
+// 4. Si no hay grupo pero hay accion_id de la Intranet, priorizar el grupo ACTIVO
 if (!$grupo && $accion_id) {
     $stmtG = $pdo->prepare("
-        SELECT g.id as grupo_id, g.numero_grupo, af.id as accion_id, af.titulo, af.num_accion, af.id_plataforma, c.moodle_id
+        SELECT g.id as grupo_id, g.numero_grupo, g.fecha_inicio, g.fecha_fin, af.id as accion_id, af.titulo, af.num_accion, af.id_plataforma, c.moodle_id
         FROM grupos g
         JOIN acciones_formativas af ON g.accion_id = af.id
         LEFT JOIN cursos c ON af.curso_id = c.id
         WHERE af.id = ?
-        ORDER BY g.id ASC
+        ORDER BY (g.fecha_fin >= CURDATE()) DESC, g.id DESC
     ");
     $stmtG->execute([$accion_id]);
     $grupos_encontrados = $stmtG->fetchAll(PDO::FETCH_ASSOC);

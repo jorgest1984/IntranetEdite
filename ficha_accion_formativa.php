@@ -113,25 +113,51 @@ if ($id) {
                                     LEFT JOIN empresas e ON g.centro_id = e.id 
                                     LEFT JOIN usuarios u ON g.tutor_id = u.id 
                                     WHERE g.accion_id = ? 
-                                    ORDER BY g.creado_en DESC");
+                                    ORDER BY g.numero_grupo ASC, g.id ASC");
         $stmtGrupos->execute([$id]);
-        $grupos = $stmtGrupos->fetchAll();
+        $grupos = $stmtGrupos->fetchAll(PDO::FETCH_ASSOC);
 
-        // Fetch Moodle Tracking Stats
-        $stmtSeguimiento = $pdo->prepare("SELECT a.id as alumno_id, a.nombre, a.primer_apellido, a.segundo_apellido, a.dni, a.email, a.moodle_user_id, 
-                                            m.moodle_first_access, m.moodle_last_access, m.moodle_connected_time, m.moodle_progress, m.moodle_last_sync,
-                                            m.moodle_m1_completed, m.moodle_m2_completed, m.moodle_m3_completed,
-                                            m.moodle_e1_completed, m.moodle_e2_completed, m.moodle_e3_completed,
-                                            m.moodle_e1_grade, m.moodle_e2_grade, m.moodle_e3_grade,
-                                            m.moodle_final_grade, m.moodle_aptitud,
-                                            g.numero_grupo, m.estado as matricula_estado
-                                          FROM matriculas m
-                                          JOIN alumnos a ON m.alumno_id = a.id
-                                          JOIN grupos g ON m.grupo_id = g.id
-                                          WHERE g.accion_id = ? AND (m.estado IS NULL OR m.estado != 'Baja')
-                                          ORDER BY a.nombre ASC, a.primer_apellido ASC");
-        $stmtSeguimiento->execute([$id]);
-        $alumnos_seguimiento = $stmtSeguimiento->fetchAll();
+        // Selección de grupo para la pestaña Seguimiento Moodle
+        $grupo_sel_id = isset($_GET['grupo_id']) ? (int)$_GET['grupo_id'] : (isset($_GET['grupo_sel']) ? (int)$_GET['grupo_sel'] : -1);
+        $today = date('Y-m-d');
+        
+        // Si no se especificó grupo en la URL (-1) y hay más de un grupo, priorizar el grupo activo/en curso
+        if ($grupo_sel_id === -1 && !empty($grupos)) {
+            foreach ($grupos as $g_check) {
+                if (!empty($g_check['fecha_fin']) && $g_check['fecha_fin'] >= $today) {
+                    $grupo_sel_id = (int)$g_check['id'];
+                    break;
+                }
+            }
+            // Si ninguno está activo por fecha, seleccionar por defecto el último grupo creado
+            if ($grupo_sel_id === -1) {
+                $grupo_sel_id = (int)end($grupos)['id'];
+            }
+        }
+
+        // Fetch Moodle Tracking Stats (filtrado por grupo_sel_id si > 0)
+        $sqlSeguimiento = "SELECT a.id as alumno_id, a.nombre, a.primer_apellido, a.segundo_apellido, a.dni, a.email, a.moodle_user_id, 
+                                    m.moodle_first_access, m.moodle_last_access, m.moodle_connected_time, m.moodle_progress, m.moodle_last_sync,
+                                    m.moodle_m1_completed, m.moodle_m2_completed, m.moodle_m3_completed,
+                                    m.moodle_e1_completed, m.moodle_e2_completed, m.moodle_e3_completed,
+                                    m.moodle_e1_grade, m.moodle_e2_grade, m.moodle_e3_grade,
+                                    m.moodle_final_grade, m.moodle_aptitud,
+                                    g.numero_grupo, g.id as grupo_id, m.estado as matricula_estado
+                                  FROM matriculas m
+                                  JOIN alumnos a ON m.alumno_id = a.id
+                                  JOIN grupos g ON m.grupo_id = g.id
+                                  WHERE g.accion_id = ? AND (m.estado IS NULL OR UPPER(m.estado) != 'BAJA')";
+
+        $paramsSeguimiento = [$id];
+        if ($grupo_sel_id > 0) {
+            $sqlSeguimiento .= " AND m.grupo_id = ?";
+            $paramsSeguimiento[] = $grupo_sel_id;
+        }
+        $sqlSeguimiento .= " ORDER BY a.nombre ASC, a.primer_apellido ASC";
+
+        $stmtSeguimiento = $pdo->prepare($sqlSeguimiento);
+        $stmtSeguimiento->execute($paramsSeguimiento);
+        $alumnos_seguimiento = $stmtSeguimiento->fetchAll(PDO::FETCH_ASSOC);
 
         // Moodle DB Connection Status check
         require_once 'includes/moodle_db.php';
@@ -2284,7 +2310,7 @@ try {
                         ?>
                         <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                             <?php if (!$is_comercial): ?>
-                            <button type="button" class="btn-sync-moodle" id="btn-sync-moodle-times-top" onclick="syncMoodleTimes(<?= $id ?>)" <?= empty($alumnos_seguimiento) ? 'disabled' : '' ?> style="background-color: #b91c1c; border-color: #991b1b; margin: 0; height: 32px; padding: 0 14px; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 8px rgba(185, 28, 28, 0.25);" title="<?= empty($alumnos_seguimiento) ? 'Primero debes importar alumnos' : 'Sincronizar tiempos Moodle' ?>">
+                            <button type="button" class="btn-sync-moodle" id="btn-sync-moodle-times-top" onclick="syncMoodleTimes(<?= $id ?>, <?= $grupo_sel_id > 0 ? $grupo_sel_id : 0 ?>)" <?= empty($alumnos_seguimiento) ? 'disabled' : '' ?> style="background-color: #b91c1c; border-color: #991b1b; margin: 0; height: 32px; padding: 0 14px; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 8px rgba(185, 28, 28, 0.25);" title="<?= empty($alumnos_seguimiento) ? 'Primero debes importar alumnos' : 'Sincronizar tiempos Moodle' ?>">
                                 <svg class="sync-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="transition: transform 0.2s;">
                                     <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
                                 </svg>
@@ -2296,6 +2322,29 @@ try {
                             </span>
                         </div>
                     </div>
+
+                    <?php if (count($grupos) > 1): ?>
+                        <div style="width: 100%; margin-top: -0.5rem; margin-bottom: 1.5rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                <span style="font-size: 0.85rem; font-weight: 700; color: #475569; margin-right: 4px;">Filtrar Grupo:</span>
+                                <a href="ficha_accion_formativa.php?id=<?= $id ?>&tab=seguimiento-moodle&grupo_sel=0" 
+                                   style="padding: 6px 14px; border-radius: 8px; font-weight: 700; font-size: 0.82rem; text-decoration: none; transition: all 0.2s; <?= ($grupo_sel_id == 0) ? 'background: #0f172a; color: #ffffff; box-shadow: 0 2px 4px rgba(15,23,42,0.2);' : 'background: #ffffff; color: #475569; border: 1px solid #cbd5e1;' ?>">
+                                   Todos los Grupos
+                                </a>
+                                <?php foreach ($grupos as $g_tab): ?>
+                                    <?php 
+                                    $is_active_tab = ($g_tab['id'] == $grupo_sel_id);
+                                    $is_en_curso = (!empty($g_tab['fecha_fin']) && $g_tab['fecha_fin'] >= date('Y-m-d'));
+                                    $status_label = $is_en_curso ? ' (Activo)' : ' (Finalizado)';
+                                    ?>
+                                    <a href="ficha_accion_formativa.php?id=<?= $id ?>&tab=seguimiento-moodle&grupo_sel=<?= $g_tab['id'] ?>" 
+                                       style="padding: 6px 14px; border-radius: 8px; font-weight: 700; font-size: 0.82rem; text-decoration: none; transition: all 0.2s; <?= $is_active_tab ? 'background: #2563eb; color: #ffffff; box-shadow: 0 2px 4px rgba(37,99,235,0.25);' : 'background: #ffffff; color: #475569; border: 1px solid #cbd5e1;' ?>">
+                                        Grupo <?= htmlspecialchars($g_tab['numero_grupo']) ?><span style="font-size: 0.72rem; opacity: 0.85;"><?= $status_label ?></span>
+                                    </a>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
                     <div id="sync-status-msg-top" class="sync-status-text" style="margin-bottom: 15px;"></div>
 
                     <?php if ($moodle_connected): ?>
@@ -2515,13 +2564,13 @@ try {
                             </button>
                             <?php endif; ?>
                             
-                            <a href="pdf_informe_seguimiento.php?id=<?= $id ?>" target="_blank" class="btn-sync-moodle" style="background-color: #0f172a; border-color: #020617; text-decoration: none; color: white; display: inline-flex; align-items: center;" <?= empty($alumnos_seguimiento) ? 'onclick="event.preventDefault();"' : '' ?>>
+                            <a href="pdf_informe_seguimiento.php?id=<?= $id ?><?= $grupo_sel_id > 0 ? '&grupo_id=' . $grupo_sel_id : '' ?>" target="_blank" class="btn-sync-moodle" style="background-color: #0f172a; border-color: #020617; text-decoration: none; color: white; display: inline-flex; align-items: center;" <?= empty($alumnos_seguimiento) ? 'onclick="event.preventDefault();"' : '' ?>>
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="margin-right: 8px;">
                                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                     <polyline points="7 10 12 15 17 10"></polyline>
                                     <line x1="12" y1="15" x2="12" y2="3"></line>
                                 </svg>
-                                Descargar Informe PDF
+                                Descargar Informe PDF <?= $grupo_sel_id > 0 ? '(Grupo Seleccionado)' : '' ?>
                             </a>
                         </div>
 
@@ -2762,7 +2811,7 @@ try {
         }
 
         // Moodle synchronization AJAX function
-        function syncMoodleTimes(actionId) {
+        function syncMoodleTimes(actionId, grupoId = 0) {
             const btns = document.querySelectorAll('.btn-sync-moodle');
             const icons = document.querySelectorAll('.sync-icon');
             const msgDiv = document.getElementById('sync-status-msg');
@@ -2776,7 +2825,7 @@ try {
             
             const csrf = '<?= $_SESSION['csrf_token'] ?? '' ?>';
             
-            fetch(`api_sync_moodle_times.php?id=${actionId}&csrf_token=${csrf}`)
+            fetch(`api_sync_moodle_times.php?id=${actionId}&grupo_id=${grupoId}&csrf_token=${csrf}`)
                 .then(response => response.json())
                 .then(data => {
                     icons.forEach(i => i.classList.remove('spinning'));
@@ -2788,7 +2837,7 @@ try {
                         if (msgDivTop) msgDivTop.innerHTML = successMsg;
                         // Reload and redirect back to this tab
                         setTimeout(() => {
-                            window.location.href = `ficha_accion_formativa.php?id=${actionId}&tab=seguimiento-moodle&sync_success=1`;
+                            window.location.href = `ficha_accion_formativa.php?id=${actionId}&tab=seguimiento-moodle${grupoId ? '&grupo_sel=' + grupoId : ''}&sync_success=1`;
                         }, 1200);
                     } else {
                         const errorMsg = `<span style="color:#991b1b; font-weight: 700;">❌ Error: ${data.error}</span>`;

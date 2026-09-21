@@ -77,14 +77,22 @@ try {
         $pdo->prepare("UPDATE cursos SET moodle_id = ? WHERE id = ?")->execute([$courseMoodleId, (int)$af['curso_id']]);
     }
 
-    // 4. Obtener todos los alumnos matriculados en cualquier grupo de esta Acción Formativa
+    $grupo_id = isset($_GET['grupo_id']) ? (int)$_GET['grupo_id'] : 0;
+
+    // 4. Obtener los alumnos matriculados en la Acción Formativa (o grupo específico si se proporcionó grupo_id)
     // que posean un moodle_user_id válido.
-    $stmtAlumnos = $pdo->prepare("SELECT DISTINCT a.id as alumno_id, a.moodle_user_id, m.id as matricula_id 
-                                  FROM matriculas m 
-                                  JOIN alumnos a ON m.alumno_id = a.id 
-                                  JOIN grupos g ON m.grupo_id = g.id 
-                                  WHERE g.accion_id = ? AND a.moodle_user_id IS NOT NULL AND a.moodle_user_id > 0");
-    $stmtAlumnos->execute([$af_id]);
+    $sqlAlumnos = "SELECT DISTINCT a.id as alumno_id, a.moodle_user_id, m.id as matricula_id 
+                   FROM matriculas m 
+                   JOIN alumnos a ON m.alumno_id = a.id 
+                   JOIN grupos g ON m.grupo_id = g.id 
+                   WHERE g.accion_id = ? AND a.moodle_user_id IS NOT NULL AND a.moodle_user_id > 0";
+    $paramsAl = [$af_id];
+    if ($grupo_id > 0) {
+        $sqlAlumnos .= " AND m.grupo_id = ?";
+        $paramsAl[] = $grupo_id;
+    }
+    $stmtAlumnos = $pdo->prepare($sqlAlumnos);
+    $stmtAlumnos->execute($paramsAl);
     $alumnos = $stmtAlumnos->fetchAll();
 
     if (empty($alumnos)) {
