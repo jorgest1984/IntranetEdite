@@ -51,6 +51,7 @@ if (!defined('ROLE_LECTURA')) define('ROLE_LECTURA', 4); // Legacy / Mantenimien
 if (!defined('ROLE_COMERCIAL')) define('ROLE_COMERCIAL', 5);
 if (!defined('ROLE_JEFE_COMERCIAL')) define('ROLE_JEFE_COMERCIAL', 6);
 if (!defined('ROLE_ADMINISTRATIVO')) define('ROLE_ADMINISTRATIVO', 7); // Separado de Coordinador
+if (!defined('ROLE_PRACTICAS')) define('ROLE_PRACTICAS', 8); // Rol de Prácticas
 
 // Alias para compatibilidad con código antiguo
 if (!defined('ROLE_FORMADOR')) define('ROLE_FORMADOR', 3);
@@ -74,6 +75,21 @@ if (!isset($_SESSION['jefe_comercial_migrated_3']) && isset($pdo)) {
         }
         $pdo->exec("UPDATE usuarios SET rol_id = 6 WHERE nombre LIKE '%Eva%' AND apellidos LIKE '%lvarez%'");
         $_SESSION['jefe_comercial_migrated_3'] = true;
+    } catch (Exception $e) {
+        // Ignore silently
+    }
+}
+
+// Automatic migration for Prácticas role
+if (!isset($_SESSION['practicas_migrated_1']) && isset($pdo)) {
+    try {
+        $stmt = $pdo->query("SELECT COUNT(*) FROM roles WHERE id = 8");
+        if ($stmt->fetchColumn() == 0) {
+            $pdo->exec("INSERT INTO roles (id, nombre) VALUES (8, 'Prácticas')");
+        } else {
+            $pdo->exec("UPDATE roles SET nombre = 'Prácticas' WHERE id = 8");
+        }
+        $_SESSION['practicas_migrated_1'] = true;
     } catch (Exception $e) {
         // Ignore silently
     }

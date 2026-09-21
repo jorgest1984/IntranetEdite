@@ -4,7 +4,7 @@ require_once 'includes/auth.php';
 require_once 'includes/moodle_api.php';
 $moodle = new MoodleAPI($pdo);
 
-if (!has_permission([ROLE_ADMIN, ROLE_TUTOR, ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL, ROLE_COORD])) {
+if (!has_permission([ROLE_ADMIN, ROLE_TUTOR, ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL, ROLE_COORD, ROLE_PRACTICAS])) {
     header("Location: dashboard.php");
     exit();
 }

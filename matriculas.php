@@ -2,7 +2,7 @@
 // matriculas.php (Expediente Interno de Convocatoria)
 require_once 'includes/auth.php';
 
-if (!has_permission([ROLE_ADMIN, ROLE_TUTOR])) {
+if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_TUTOR, ROLE_PRACTICAS])) {
     header("Location: home.php");
     exit();
 }
@@ -27,7 +27,7 @@ $error = '';
 $success = '';
 
 // Procesar Matriculación (Añadir alumno al expediente)
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'matricular' && has_permission([ROLE_ADMIN, ROLE_TUTOR])) {
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'matricular' && has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_TUTOR, ROLE_PRACTICAS])) {
     $alumnoId = intval($_POST['alumno_id']);
     $grupoId = !empty($_POST['grupo_id']) ? intval($_POST['grupo_id']) : null;
     $estadoInicial = trim($_POST['estado']);

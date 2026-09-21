@@ -131,7 +131,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
         </li>
         <?php } ?>
 
-        <?php if (has_permission([ROLE_ADMIN, ROLE_TUTOR])) { ?>
+        <?php if (has_permission([ROLE_ADMIN, ROLE_TUTOR, ROLE_COORD, ROLE_PRACTICAS])) { ?>
         <li class="menu-divider">Área Académica</li>
         <li>
             <a href="formacion.php" class="<?= $current_page == 'formacion.php' ? 'active' : '' ?>">
