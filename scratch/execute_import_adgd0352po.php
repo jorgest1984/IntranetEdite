@@ -225,8 +225,11 @@ try {
                 ]);
                 echo "✓ Alumno actualizado: " . $item['nombre'] . " " . $item['primer_apellido'] . " (DNI: " . $item['dni'] . ", ID: $alumno_id)\n";
             } else {
-                // Usar cadena vacía '' para email si la columna es NOT NULL
-                $stmtInsAl = $pdo->prepare("INSERT INTO alumnos (nombre, primer_apellido, segundo_apellido, dni, fecha_nacimiento, localidad, provincia, email, ultima_empresa_id) VALUES (?, ?, ?, ?, ?, ?, ?, '', ?)");
+                // Generar email provisional único estilo sin_email_DNI@noemail.local
+                $cleanDni = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $item['dni']));
+                $tempEmail = "sin_email_" . $cleanDni . "@noemail.local";
+
+                $stmtInsAl = $pdo->prepare("INSERT INTO alumnos (nombre, primer_apellido, segundo_apellido, dni, fecha_nacimiento, localidad, provincia, email, ultima_empresa_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 $stmtInsAl->execute([
                     $item['nombre'],
                     $item['primer_apellido'],
@@ -235,6 +238,7 @@ try {
                     $item['fecha_nacimiento'],
                     $item['localidad'],
                     $item['provincia'],
+                    $tempEmail,
                     $empresa_id
                 ]);
                 $alumno_id = $pdo->lastInsertId();
