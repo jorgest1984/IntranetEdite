@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         }
     } catch (Exception $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();
-        $error = "Error en la sincronización: " . $e->getMessage();
+        $error = "Error en la sincronización: " . $e->getMessage() . "<br><small style='font-size:0.85rem; font-weight:normal;'>💡 <strong>Solución:</strong> En Moodle (Administración del sitio > Servidores > Servicios externos > Funciones), añade la función <code>core_course_get_courses</code> o <code>core_course_search_courses</code> al Servicio asignado al Token.</small>";
     }
 }
 

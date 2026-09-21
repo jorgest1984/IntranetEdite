@@ -107,8 +107,40 @@ class MoodleAPI {
      * Obtener lista de todos los cursos
      */
     public function getCourses() {
-        // En Moodle, pasando parámetros vacíos suele retornar todos si eres admin
-        return $this->call('core_course_get_courses', []);
+        // 1. Intentar por conexión directa a la Base de Datos de Moodle (si está disponible)
+        try {
+            require_once __DIR__ . '/moodle_db.php';
+            $moodleDb = new MoodleDB();
+            if ($moodleDb->isConnected()) {
+                $mpdo = $moodleDb->getPDO();
+                $prefix = $moodleDb->getTablePrefix();
+                $stmt = $mpdo->query("SELECT id, shortname, fullname, visible FROM {$prefix}course WHERE id != 1 ORDER BY fullname ASC");
+                $dbCourses = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                if (!empty($dbCourses)) {
+                    return $dbCourses;
+                }
+            }
+        } catch (Exception $e) {
+            // Continuar con API REST si falla la BD
+        }
+
+        // 2. Intentar API core_course_get_courses
+        try {
+            return $this->call('core_course_get_courses', []);
+        } catch (Exception $e) {
+            // 3. Fallback: probar con core_course_search_courses si core_course_get_courses no está permitida en el token
+            try {
+                $res = $this->call('core_course_search_courses', ['criterianame' => 'search', 'criteriavalue' => '']);
+                if (isset($res['courses']) && is_array($res['courses'])) {
+                    return $res['courses'];
+                }
+            } catch (Exception $e2) {
+                // Lanzar la excepción original para información clara
+                throw $e;
+            }
+        }
+
+        return [];
     }
 
     /**
