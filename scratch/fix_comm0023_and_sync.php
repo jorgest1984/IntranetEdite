@@ -12,7 +12,7 @@ try {
     echo "Acciones formativas actualizadas: " . $stmt1->rowCount() . " filas.\n";
 
     // 2. Update cursos for COMM0023
-    $stmt2 = $pdo->prepare("UPDATE cursos SET moodle_id = 48 WHERE id = 58 OR codigo_curso = 'COMM0023'");
+    $stmt2 = $pdo->prepare("UPDATE cursos SET moodle_id = 48 WHERE id = 58");
     $stmt2->execute();
     echo "Cursos actualizados: " . $stmt2->rowCount() . " filas.\n";
 
