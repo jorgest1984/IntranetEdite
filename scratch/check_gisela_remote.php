@@ -53,17 +53,14 @@ try {
 // 4. Buscar en cursos table
 echo "\n--- TABLA CURSOS ---\n";
 try {
-    $stmtC2 = $pdo->prepare("SELECT * FROM cursos WHERE id = 58 OR id = 48 OR moodle_id = 48 OR moodle_id = 58");
-    $stmtC2->execute();
+    $stmtCol = $pdo->query("SHOW COLUMNS FROM cursos");
+    $cols = array_column($stmtCol->fetchAll(), 'Field');
+    echo "Columnas de cursos: " . implode(', ', $cols) . "\n";
+    
+    $stmtC2 = $pdo->query("SELECT * FROM cursos WHERE id = 58 OR id = 48 OR moodle_id = 48 OR moodle_id = 58");
     print_r($stmtC2->fetchAll());
 } catch (Exception $e) {
     echo "Error Cursos: " . $e->getMessage() . "\n";
-    try {
-        $stmtC3 = $pdo->query("SELECT * FROM cursos LIMIT 10");
-        print_r($stmtC3->fetchAll());
-    } catch (Exception $e2) {
-        echo "Error Cursos select: " . $e2->getMessage() . "\n";
-    }
 }
 
 // Show columns of acciones_formativas
