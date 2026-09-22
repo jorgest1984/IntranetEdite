@@ -287,11 +287,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             'portal', 'escalera', 'planta', 'puerta', 'complemento', 'domicilio',
             'cp', 'localidad', 'provincia', 'telefono', 'telefono_empresa',
             'mananas_desde', 'mananas_hasta', 'tardes_desde', 'tardes_hasta', 'solo_los',
-            'email', 'email_2', 'email_personal', 'cuenta_bancaria', 'teams', 'nacionalidad',
+            'email', 'email_2', 'email_personal', 'teams', 'nacionalidad',
             'activo_hasta', 'es_nuestro', 'ultima_empresa_id', 'centro_trabajo', 'enviar_emails',
             'plat_usuario', 'plat_clave', 'pref_presencial',
-            'modulacion', 'horarios', 'observaciones', 'entrega_atencion', 'entrega_domicilio',
-            'entrega_cp', 'entrega_localidad', 'entrega_provincia',
+            'modulacion', 'horarios', 'observaciones',
             'discapacidad', 'grupo_cotizacion', 'categoria_profesional', 'area_funcional',
             'ocupacion_cno', 'situacion_laboral', 'situacion_laboral_codigo'
         ];
@@ -1365,11 +1364,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                             <div class="card-section-premium">
                                 <h3 class="card-section-title"><i class="fas fa-briefcase"></i> Información Laboral y Académica</h3>
                                 <div class="form-grid">
-                                    <div class="form-group-custom span-4">
-                                        <label>IBAN Cuenta Bancaria</label>
-                                        <input type="text" name="cuenta_bancaria" class="form-control-edit" value="<?= htmlspecialchars($alumno['cuenta_bancaria'] ?? '') ?>" placeholder="ES00 0000 0000 0000 0000 0000">
-                                    </div>
-                                    <div class="form-group-custom span-4">
+                                    <div class="form-group-custom span-8">
                                         <label>Empresa Actual</label>
                                         <input type="text" name="empresa_actual_txt" class="form-control-edit" value="<?= htmlspecialchars($alumno['empresa_nombre'] ?? '') ?>" placeholder="Escriba el nombre de la empresa...">
                                     </div>
@@ -1382,11 +1377,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                             <?php endforeach; ?>
                                         </select>
                                     </div>
-                                    <div class="form-group-custom span-4">
+                                    <div class="form-group-custom span-6">
                                         <label>Sector de Actividad</label>
                                         <input type="text" name="empresa_sector" class="form-control-edit" value="<?= htmlspecialchars($alumno['empresa_sector'] ?? '') ?>">
                                     </div>
-                                    <div class="form-group-custom span-4">
+                                    <div class="form-group-custom span-6">
                                         <label>Convenio de Aplicación</label>
                                         <input type="text" name="empresa_convenio" class="form-control-edit" value="<?= htmlspecialchars($alumno['empresa_convenio'] ?? '') ?>">
                                     </div>
@@ -1440,39 +1435,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                                     <div class="form-group-custom span-12">
                                         <label>Observaciones Generales</label>
                                         <textarea name="observaciones" class="form-control-edit" rows="3"><?= htmlspecialchars($alumno['observaciones'] ?? '') ?></textarea>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- SECCIÓN 5: DIRECCIÓN DE ENTREGA -->
-                            <div class="card-section-premium card-section-entrega">
-                                <h3 class="card-section-title"><i class="fas fa-truck"></i> Dirección de Entrega de Material</h3>
-                                <div class="form-grid">
-                                    <div class="form-group-custom span-4">
-                                        <label>A la atención de</label>
-                                        <input type="text" name="entrega_atencion" class="form-control-edit" value="<?= htmlspecialchars($alumno['entrega_atencion'] ?? '') ?>">
-                                    </div>
-                                    <div class="form-group-custom span-8">
-                                        <label>Dirección de Entrega</label>
-                                        <input type="text" name="entrega_domicilio" class="form-control-edit" value="<?= htmlspecialchars($alumno['entrega_domicilio'] ?? '') ?>">
-                                    </div>
-
-                                    <div class="form-group-custom span-2">
-                                        <label>Código Postal</label>
-                                        <input type="text" name="entrega_cp" class="form-control-edit" value="<?= htmlspecialchars($alumno['entrega_cp'] ?? '') ?>">
-                                    </div>
-                                    <div class="form-group-custom span-5">
-                                        <label>Localidad</label>
-                                        <input type="text" name="entrega_localidad" class="form-control-edit" value="<?= htmlspecialchars($alumno['entrega_localidad'] ?? '') ?>">
-                                    </div>
-                                    <div class="form-group-custom span-5">
-                                        <label>Provincia</label>
-                                        <select name="entrega_provincia" class="form-control-edit">
-                                            <option value="">---</option>
-                                            <?php foreach ($provincias as $p): ?>
-                                                <option value="<?= $p ?>" <?= ($alumno['entrega_provincia'] ?? '') == $p ? 'selected' : '' ?>><?= $p ?></option>
-                                            <?php endforeach; ?>
-                                        </select>
                                     </div>
                                 </div>
                             </div>
