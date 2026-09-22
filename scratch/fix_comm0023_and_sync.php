@@ -11,10 +11,11 @@ try {
     $stmt1->execute();
     echo "Acciones formativas actualizadas: " . $stmt1->rowCount() . " filas.\n";
 
-    // 2. Update cursos for COMM0023
-    $stmt2 = $pdo->prepare("UPDATE cursos SET moodle_id = 48 WHERE id = 58");
+    // 2. Query cursos for moodle_id = 48
+    $stmt2 = $pdo->prepare("SELECT * FROM cursos WHERE moodle_id = 48 OR id = 58");
     $stmt2->execute();
-    echo "Cursos actualizados: " . $stmt2->rowCount() . " filas.\n";
+    echo "Cursos encontrados:\n";
+    print_r($stmt2->fetchAll());
 
     // 3. Test encuesta lookup for Gisela with id_curso=48 and id_alumno=1142
     $id_alumno = 1142;
