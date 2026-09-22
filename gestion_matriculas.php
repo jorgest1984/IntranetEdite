@@ -655,6 +655,12 @@ foreach ($alumnos as $al_c) {
                                         <a href="ficha_alumno.php?id=<?= $a['id'] ?>" target="_blank" style="color: <?= $isBaja ? '#991b1b' : '#1e293b' ?>; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='<?= $isBaja ? '#991b1b' : '#1e293b' ?>'" title="Abrir ficha del alumno para ver y modificar datos">
                                             <?= htmlspecialchars($a['nombre'] . ' ' . ($a['primer_apellido'] ?? '') . ' ' . ($a['segundo_apellido'] ?? '')) ?>
                                         </a>
+                                        <?php if (!empty($a['moodle_user_id'])): ?>
+                                            <span style="font-size: 0.72rem; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; padding: 2px 7px; border-radius: 6px; margin-left: 6px; font-weight: 700; display: inline-flex; align-items: center; gap: 3px;" title="ID Moodle: <?= $a['moodle_user_id'] ?> | Usuario: <?= htmlspecialchars($a['plat_usuario'] ?? '') ?>">
+                                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                                Moodle
+                                            </span>
+                                        <?php endif; ?>
                                     </div>
                                     <small style="color: <?= $isBaja ? '#b91c1c' : '#64748b' ?>; font-weight: 600;"><?= htmlspecialchars($a['dni']) ?> | <?= htmlspecialchars($a['email']) ?></small>
                                 </div>
@@ -675,6 +681,18 @@ foreach ($alumnos as $al_c) {
                                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                         </a>
                                     <?php else: ?>
+                                        <!-- Volcar Alumno Individual a Moodle -->
+                                        <button type="button" 
+                                                id="btnSyncInd_<?= $a['id'] ?>"
+                                                onclick="syncMoodleAlumno(<?= $af_id ?>, <?= $grupo_id ?>, <?= $a['id'] ?>, <?= $a['matricula_id'] ?>, <?= htmlspecialchars(json_encode($a['nombre'] . ' ' . ($a['primer_apellido'] ?? ''))) ?>)" 
+                                                style="background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; padding: 5px 10px; border-radius: 8px; font-weight: 700; font-size: 0.78rem; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s;" 
+                                                onmouseover="this.style.background='#ffedd5'; this.style.borderColor='#fed7aa';" 
+                                                onmouseout="this.style.background='#fff7ed'; this.style.borderColor='#ffedd5';" 
+                                                title="<?= !empty($a['moodle_user_id']) ? 'Re-sincronizar este alumno individualmente en Moodle' : 'Volcar este alumno al Aula Virtual (Moodle)' ?>">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                                            <?= !empty($a['moodle_user_id']) ? 'Sincronizar Moodle' : 'Volcar a Moodle' ?>
+                                        </button>
+
                                         <!-- Editar Ficha Alumno -->
                                         <a href="ficha_alumno.php?id=<?= $a['id'] ?>" target="_blank" style="color: #6366f1; padding: 6px; border-radius: 8px; transition: background 0.2s; display: inline-flex; align-items: center; justify-content: center; text-decoration: none;" title="Editar Ficha del Alumno">
                                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
@@ -973,6 +991,55 @@ function syncMoodle(afId) {
             }
             alert('❌ Error al comunicarse con el servidor:\n\n' + err.message);
             console.error('Sync error:', err);
+        });
+}
+
+function syncMoodleAlumno(afId, grupoId, alumnoId, matriculaId, nombreAlumno) {
+    const btn = document.getElementById(`btnSyncInd_${alumnoId}`);
+    const originalText = btn ? btn.innerHTML : '';
+
+    if (!confirm(`¿Deseas matricular y volcar individualmente a "${nombreAlumno}" en el Aula Virtual (Moodle)?`)) {
+        return;
+    }
+    
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '⌛ Volcando...';
+        btn.style.opacity = '0.7';
+    }
+    
+    fetch(`api_sync_moodle.php?id=${afId}&grupo_id=${grupoId}&alumno_id=${alumnoId}&matricula_id=${matriculaId}`)
+        .then(response => {
+            return response.text().then(text => {
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    throw new Error("Respuesta del servidor no válida: " + text.substring(0, 300));
+                }
+            });
+        })
+        .then(data => {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                btn.style.opacity = '1';
+            }
+            
+            if (data.success) {
+                alert('✅ ' + data.message);
+                window.location.href = `gestion_matriculas.php?af_id=${afId}&grupo_id=${grupoId}&success_sync=1&sync_msg=${encodeURIComponent(data.message)}`;
+            } else {
+                alert('❌ Error al volcar el alumno en Moodle:\n\n' + data.error);
+            }
+        })
+        .catch(err => {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                btn.style.opacity = '1';
+            }
+            alert('❌ Error al comunicarse con el servidor:\n\n' + err.message);
+            console.error('Sync alumno error:', err);
         });
 }
 

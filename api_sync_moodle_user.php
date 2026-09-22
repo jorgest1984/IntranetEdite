@@ -20,7 +20,7 @@ if (!$matricula_id) {
 try {
     // 1. Obtener la matrícula del alumno y los datos del curso
     $stmt = $pdo->prepare("
-        SELECT m.id as matricula_id, af.id_plataforma as course_moodle_id,
+        SELECT m.id as matricula_id, af.id_plataforma as course_moodle_id, g.id_plataforma as group_moodle_id,
                a.id as alumno_id, a.dni, a.nombre, a.primer_apellido, a.segundo_apellido, a.email,
                a.plat_usuario, a.plat_clave, a.moodle_user_id
         FROM matriculas m
@@ -101,13 +101,21 @@ try {
             ->execute([$muid, $username, $password, $matricula['alumno_id']]);
     }
 
-    // 3. Matricular al alumno en el curso de Moodle si está definido
+    // 3. Matricular al alumno en el curso y grupo de Moodle si están definidos
     $course_moodle_id = (int)($matricula['course_moodle_id'] ?? 0);
+    $group_moodle_id = (int)($matricula['group_moodle_id'] ?? 0);
     $enrolled = false;
     if ($course_moodle_id > 0) {
         try {
             $moodle->enrolUser($muid, $course_moodle_id);
             $enrolled = true;
+            if ($group_moodle_id > 0) {
+                try {
+                    $moodle->addUserToGroup($group_moodle_id, $muid);
+                } catch (Exception $grpEx) {
+                    // Silencioso si ya pertenece al grupo
+                }
+            }
         } catch (Exception $enrolEx) {
             echo json_encode(['success' => true, 'message' => "Usuario sincronizado correctamente en Moodle, pero ocurrió un problema al matricularlo en el curso: " . $enrolEx->getMessage()]);
             exit();

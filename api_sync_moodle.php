@@ -18,11 +18,32 @@ require_once 'includes/auth.php';
 require_once 'includes/config.php';
 require_once 'includes/moodle_api.php';
 
-$af_id = (int)($_GET['id'] ?? 0);
+$af_id = (int)($_GET['id'] ?? ($_GET['af_id'] ?? 0));
+$grupo_id_param = (int)($_GET['grupo_id'] ?? 0);
+$alumno_id_param = (int)($_GET['alumno_id'] ?? 0);
+$matricula_id_param = (int)($_GET['matricula_id'] ?? 0);
+
+if (!$af_id && $matricula_id_param > 0) {
+    $stmtMat = $pdo->prepare("SELECT m.alumno_id, m.grupo_id, g.accion_id FROM matriculas m JOIN grupos g ON m.grupo_id = g.id WHERE m.id = ?");
+    $stmtMat->execute([$matricula_id_param]);
+    $matData = $stmtMat->fetch();
+    if ($matData) {
+        $alumno_id_param = (int)$matData['alumno_id'];
+        $grupo_id_param = (int)$matData['grupo_id'];
+        $af_id = (int)$matData['accion_id'];
+    }
+}
+
+if (!$af_id && $grupo_id_param > 0) {
+    $stmtGrp = $pdo->prepare("SELECT accion_id FROM grupos WHERE id = ?");
+    $stmtGrp->execute([$grupo_id_param]);
+    $af_id = (int)$stmtGrp->fetchColumn();
+}
+
 if (!$af_id) { 
     ob_clean();
     header('Content-Type: application/json; charset=utf-8');
-    echo json_encode(['success' => false, 'error' => 'ID no proporcionado']); 
+    echo json_encode(['success' => false, 'error' => 'ID de Acción Formativa o Grupo no proporcionado']); 
     exit; 
 }
 
@@ -48,10 +69,19 @@ try {
 
     if (!$af) throw new Exception("Acción Formativa no encontrada.");
 
-    // 2. Obtener el Grupo local (o crearlo)
-    $stmtG = $pdo->prepare("SELECT id, id_plataforma, codigo_plat, codigo_plataforma, usuario_gestor, contrasena_gestor, tutor_id, tutor_id_2, tutor_reserva_id, fecha_inicio, fecha_fin FROM grupos WHERE accion_id = ? ORDER BY id ASC LIMIT 1");
-    $stmtG->execute([$af_id]);
-    $grupo = $stmtG->fetch();
+    // 2. Obtener el Grupo local (específico si viene por parámetro, o el primero)
+    $grupo = null;
+    if ($grupo_id_param > 0) {
+        $stmtG = $pdo->prepare("SELECT id, id_plataforma, codigo_plat, codigo_plataforma, usuario_gestor, contrasena_gestor, tutor_id, tutor_id_2, tutor_reserva_id, fecha_inicio, fecha_fin FROM grupos WHERE id = ? AND accion_id = ?");
+        $stmtG->execute([$grupo_id_param, $af_id]);
+        $grupo = $stmtG->fetch();
+    }
+
+    if (!$grupo) {
+        $stmtG = $pdo->prepare("SELECT id, id_plataforma, codigo_plat, codigo_plataforma, usuario_gestor, contrasena_gestor, tutor_id, tutor_id_2, tutor_reserva_id, fecha_inicio, fecha_fin FROM grupos WHERE accion_id = ? ORDER BY id ASC LIMIT 1");
+        $stmtG->execute([$af_id]);
+        $grupo = $stmtG->fetch();
+    }
     
     if (!$grupo) {
         $stmtInsGroup = $pdo->prepare("INSERT INTO grupos (accion_id, numero_grupo, estado) VALUES (?, '1', 'En proceso')");
@@ -157,13 +187,32 @@ try {
     }
     $student_status = $is_finished ? 1 : 0;
 
-    // 5. Obtener alumnos matriculados localmente para esta acción formativa
-    $stmt = $pdo->prepare("SELECT a.*, m.id as mat_id, m.grupo_id as mat_grupo_id 
-                           FROM matriculas m 
-                           JOIN alumnos a ON m.alumno_id = a.id 
-                           WHERE m.grupo_id IN (SELECT id FROM grupos WHERE accion_id = ?)");
-    $stmt->execute([$af_id]);
-    $alumnos = $stmt->fetchAll();
+    // 5. Obtener alumno(s) a sincronizar: individual o todos los del grupo
+    if ($alumno_id_param > 0) {
+        $stmt = $pdo->prepare("SELECT a.*, m.id as mat_id, m.grupo_id as mat_grupo_id 
+                               FROM matriculas m 
+                               JOIN alumnos a ON m.alumno_id = a.id 
+                               WHERE m.grupo_id = ? AND a.id = ?");
+        $stmt->execute([$grupo_id_local, $alumno_id_param]);
+        $alumnos = $stmt->fetchAll();
+        
+        if (empty($alumnos)) {
+            // Reintentar asociando al grupo o por id directo
+            $stmt = $pdo->prepare("SELECT a.*, m.id as mat_id, m.grupo_id as mat_grupo_id 
+                                   FROM alumnos a
+                                   LEFT JOIN matriculas m ON m.alumno_id = a.id AND m.grupo_id = ?
+                                   WHERE a.id = ?");
+            $stmt->execute([$grupo_id_local, $alumno_id_param]);
+            $alumnos = $stmt->fetchAll();
+        }
+    } else {
+        $stmt = $pdo->prepare("SELECT a.*, m.id as mat_id, m.grupo_id as mat_grupo_id 
+                               FROM matriculas m 
+                               JOIN alumnos a ON m.alumno_id = a.id 
+                               WHERE m.grupo_id = ?");
+        $stmt->execute([$grupo_id_local]);
+        $alumnos = $stmt->fetchAll();
+    }
 
     $syncCount = 0;
     $student_errors = [];
@@ -198,6 +247,21 @@ try {
         } catch (Exception $studentEx) {
             $student_errors[] = "Error con {$alumno['nombre']}: " . $studentEx->getMessage();
         }
+    }
+
+    // Si es un volcado individual de un único alumno:
+    if ($alumno_id_param > 0) {
+        if ($syncCount === 0 && !empty($student_errors)) {
+            throw new Exception("No se pudo matricular al alumno en Moodle: " . implode(" | ", $student_errors));
+        }
+        $alName = !empty($alumnos[0]) ? trim($alumnos[0]['nombre'] . ' ' . ($alumnos[0]['primer_apellido'] ?? '')) : 'El alumno';
+        ob_clean();
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode([
+            'success' => true,
+            'message' => "Volcado individual exitoso: $alName ha sido matriculado e integrado en el grupo en Moodle (Curso ID: $courseId, Grupo Moodle: $moodleGroupId)."
+        ]);
+        exit;
     }
 
     // 6. Sincronizar el Usuario Gestor (ej: INSPECTOR SEPE)
