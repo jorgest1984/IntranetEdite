@@ -201,20 +201,22 @@ $current_page = 'grupos.php'; // Para marcar activo en la sidebar
             background: linear-gradient(180deg, #1e3a8a 0%, #172554 100%);
             color: #ffffff;
             font-weight: 600;
-            padding: 8px 10px;
+            padding: 7px 8px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             text-transform: uppercase;
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             letter-spacing: 0.5px;
             white-space: nowrap;
         }
 
         .table-relacion td {
-            padding: 6px 10px; /* Highly optimized height */
+            padding: 4px 8px; /* Compact height */
             border: 1px solid #cbd5e1;
             vertical-align: middle;
             color: #334155;
             white-space: nowrap;
+            font-size: 0.8rem;
+            line-height: 1.2;
         }
 
         .table-relacion tr:nth-child(even) td {
@@ -237,9 +239,9 @@ $current_page = 'grupos.php'; // Para marcar activo en la sidebar
         }
 
         .badge-status {
-            padding: 2px 8px;
+            padding: 2px 7px;
             border-radius: 9999px;
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             font-weight: 600;
             display: inline-flex;
             align-items: center;
@@ -247,44 +249,55 @@ $current_page = 'grupos.php'; // Para marcar activo en la sidebar
         }
 
         .badge-finalizado { background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
-        .badge-finalizado::before { content: '•'; font-size: 1rem; line-height: 0; }
+        .badge-finalizado::before { content: '•'; font-size: 0.9rem; line-height: 0; }
         
         .badge-abandono { background-color: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
-        .badge-abandono::before { content: '•'; font-size: 1rem; line-height: 0; }
+        .badge-abandono::before { content: '•'; font-size: 0.9rem; line-height: 0; }
         
         .badge-otros { background-color: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
-        .badge-otros::before { content: '•'; font-size: 1rem; line-height: 0; }
+        .badge-otros::before { content: '•'; font-size: 0.9rem; line-height: 0; }
+
+        .actions-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
 
         .btn-action-relacion {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 24px;
-            height: 24px;
+            width: 28px;
+            height: 28px;
             border-radius: 6px;
             border: 1px solid #e2e8f0;
             background: #fff;
             color: #64748b;
             text-decoration: none;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.15s ease;
             cursor: pointer;
+            flex-shrink: 0;
         }
 
         .btn-action-relacion:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            transform: translateY(-1px);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.12);
         }
 
-        .btn-edit { color: #d97706; background-color: rgba(217, 119, 6, 0.05); border-color: rgba(217, 119, 6, 0.15); }
-        .btn-edit:hover { background-color: #d97706; color: #fff; border-color: #d97706; }
+        .btn-email { color: #047857; background-color: #ecfdf5; border-color: #a7f3d0; }
+        .btn-email:hover { background-color: #10b981; color: #fff; border-color: #10b981; }
 
-        .btn-user { color: #2563eb; background-color: rgba(37, 99, 235, 0.05); border-color: rgba(37, 99, 235, 0.15); }
+        .btn-edit { color: #d97706; background-color: #fffbeb; border-color: #fde68a; }
+        .btn-edit:hover { background-color: #f59e0b; color: #fff; border-color: #f59e0b; }
+
+        .btn-user { color: #2563eb; background-color: #eff6ff; border-color: #bfdbfe; }
         .btn-user:hover { background-color: #2563eb; color: #fff; border-color: #2563eb; }
 
-        .btn-doc { color: #475569; background-color: rgba(71, 85, 105, 0.05); border-color: rgba(71, 85, 105, 0.15); }
+        .btn-doc { color: #475569; background-color: #f8fafc; border-color: #cbd5e1; }
         .btn-doc:hover { background-color: #475569; color: #fff; border-color: #475569; }
 
-        .btn-delete { color: #dc2626; background-color: rgba(220, 38, 38, 0.05); border-color: rgba(220, 38, 38, 0.15); }
+        .btn-delete { color: #dc2626; background-color: #fef2f2; border-color: #fecaca; }
         .btn-delete:hover { background-color: #dc2626; color: #fff; border-color: #dc2626; }
 
         .footer-info {
@@ -391,17 +404,13 @@ $current_page = 'grupos.php'; // Para marcar activo en la sidebar
                             <th>Diploma</th>
                             <th>Fecha Diploma</th>
                             <th style="text-align: center;">Facturable</th>
-                            <th style="width: 30px; border-left: none;"></th>
-                            <th style="width: 30px;"></th>
-                            <th style="width: 30px;"></th>
-                            <th style="width: 30px;"></th>
-                            <th style="width: 30px; border-right: none;"></th>
+                            <th style="text-align: center; width: 170px;">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (empty($alumnos)): ?>
                             <tr>
-                                <td colspan="18" style="text-align: center; padding: 2rem; color: var(--text-muted);">No hay alumnos matriculados en este grupo.</td>
+                                <td colspan="14" style="text-align: center; padding: 2rem; color: var(--text-muted);">No hay alumnos matriculados en este grupo.</td>
                             </tr>
                         <?php else: ?>
                             <?php foreach ($alumnos as $row): ?>
@@ -442,37 +451,31 @@ $current_page = 'grupos.php'; // Para marcar activo en la sidebar
                                     <td><?= !empty($row['diploma_entregado']) ? 'SI' : 'NO' ?></td>
                                     <td><?= $row['fecha_comunicacion'] ? date('d/m/Y', strtotime($row['fecha_comunicacion'])) : '—' ?></td>
                                     <td style="text-align: center;">
-                                        <input type="checkbox" name="facturable[<?= $row['matricula_id'] ?>]" value="1" <?= ($row['facturables'] ?? '') === 'SI' ? 'checked' : '' ?> style="width: 16px; height: 16px; cursor: pointer;">
+                                        <input type="checkbox" name="facturable[<?= $row['matricula_id'] ?>]" value="1" <?= ($row['facturables'] ?? '') === 'SI' ? 'checked' : '' ?> style="width: 15px; height: 15px; cursor: pointer; vertical-align: middle;">
                                     </td>
-                                    <!-- Enviar Claves por Mail -->
-                                    <td style="border-left: none; text-align: center;">
-                                        <button type="button" class="btn-action-relacion btn-user" style="border:none; cursor:pointer; background: #ecfdf5; color: #047857; border-color: #a7f3d0;" title="Enviar Claves por Mail" onclick="enviarClavesAlumno(<?= $row['matricula_id'] ?>, '<?= htmlspecialchars(addslashes($row['alumno_nombre']), ENT_QUOTES) ?>', <?= (int)($row['envio_claves'] ?? 0) ?>, '<?= $row['fecha_claves'] ? date('d/m/Y', strtotime($row['fecha_claves'])) : '' ?>')">
-                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-                                        </button>
-                                    </td>
-                                    <!-- Editar Matrícula -->
                                     <td style="text-align: center;">
-                                        <a href="ficha_matricula.php?id=<?= $row['matricula_id'] ?>" class="btn-action-relacion btn-edit" title="Editar Matrícula">
-                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                                        </a>
-                                    </td>
-                                    <!-- Ver Ficha Alumno -->
-                                    <td style="text-align: center;">
-                                        <a href="ficha_alumno.php?id=<?= $row['alumno_id'] ?>" class="btn-action-relacion btn-user" title="Ficha del Alumno">
-                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                                        </a>
-                                    </td>
-                                    <!-- Documentos -->
-                                    <td style="text-align: center;">
-                                        <a href="ficha_matricula.php?id=<?= $row['matricula_id'] ?>&active_tab=tab-documentacion" class="btn-action-relacion btn-doc" title="Documentación">
-                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                                        </a>
-                                    </td>
-                                    <!-- Dar de baja matrícula -->
-                                    <td style="border-right: none; text-align: center;">
-                                        <a href="relacion_alumnos.php?grupo_id=<?= $grupo_id ?>&action=delete&matricula_id=<?= $row['matricula_id'] ?>" class="btn-action-relacion btn-delete" title="Eliminar Matrícula" onclick="return confirm('¿Seguro que deseas dar de baja este alumno de este grupo? (El alumno NO se borrará de la Intranet, solo se elimina esta matrícula).');">
-                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                                        </a>
+                                        <div class="actions-wrapper">
+                                            <!-- Enviar Claves por Mail -->
+                                            <button type="button" class="btn-action-relacion btn-email" title="Enviar Claves por Mail" onclick="enviarClavesAlumno(<?= $row['matricula_id'] ?>, '<?= htmlspecialchars(addslashes($row['alumno_nombre']), ENT_QUOTES) ?>', <?= (int)($row['envio_claves'] ?? 0) ?>, '<?= $row['fecha_claves'] ? date('d/m/Y', strtotime($row['fecha_claves'])) : '' ?>')">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                                            </button>
+                                            <!-- Editar Matrícula -->
+                                            <a href="ficha_matricula.php?id=<?= $row['matricula_id'] ?>" class="btn-action-relacion btn-edit" title="Editar Matrícula">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                            </a>
+                                            <!-- Ver Ficha Alumno -->
+                                            <a href="ficha_alumno.php?id=<?= $row['alumno_id'] ?>" class="btn-action-relacion btn-user" title="Ficha del Alumno">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                            </a>
+                                            <!-- Documentos -->
+                                            <a href="ficha_matricula.php?id=<?= $row['matricula_id'] ?>&active_tab=tab-documentacion" class="btn-action-relacion btn-doc" title="Documentación">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                            </a>
+                                            <!-- Dar de baja matrícula -->
+                                            <a href="relacion_alumnos.php?grupo_id=<?= $grupo_id ?>&action=delete&matricula_id=<?= $row['matricula_id'] ?>" class="btn-action-relacion btn-delete" title="Eliminar Matrícula" onclick="return confirm('¿Seguro que deseas dar de baja este alumno de este grupo? (El alumno NO se borrará de la Intranet, solo se elimina esta matrícula).');">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
