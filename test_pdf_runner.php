@@ -182,16 +182,16 @@ if (empty($alumnos)) {
         $m2 = $al['moodle_m2_completed'] ? 'X' : '';
         $m3 = $al['moodle_m3_completed'] ? 'X' : '';
         
-        $e1 = $al['moodle_e1_grade'] !== null ? number_format(round((float)$al['moodle_e1_grade']), 0) : '';
-        $e2 = $al['moodle_e2_grade'] !== null ? number_format(round((float)$al['moodle_e2_grade']), 0) : '';
-        $e3 = $al['moodle_e3_grade'] !== null ? number_format(round((float)$al['moodle_e3_grade']), 0) : '';
+        $e1 = $al['moodle_e1_grade'] !== null ? number_format(floor((float)$al['moodle_e1_grade']), 0) : '';
+        $e2 = $al['moodle_e2_grade'] !== null ? number_format(floor((float)$al['moodle_e2_grade']), 0) : '';
+        $e3 = $al['moodle_e3_grade'] !== null ? number_format(floor((float)$al['moodle_e3_grade']), 0) : '';
         
         // % Controles calculation
         $c_total = 3;
         $c_done = ($e1 !== '' ? 1 : 0) + ($e2 !== '' ? 1 : 0) + ($e3 !== '' ? 1 : 0);
         $porc_controles = number_format(($c_done / $c_total) * 100, 2) . '%';
         
-        $nota = $al['moodle_final_grade'] !== null ? number_format(round((float)$al['moodle_final_grade']), 0) : '';
+        $nota = $al['moodle_final_grade'] !== null ? number_format(floor((float)$al['moodle_final_grade']), 0) : '';
         $aptitud = strtoupper($al['moodle_aptitud'] ? $al['moodle_aptitud'] : '');
         
         $pdf->Cell($w_alumno, 6, utf8_decode($nombreCompleto), 1, 0, 'L');

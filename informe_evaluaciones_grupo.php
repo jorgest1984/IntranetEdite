@@ -248,7 +248,7 @@ $current_page = 'grupos.php';
                                 if ($alumno['moodle_e2_grade'] !== null) $grades[] = (float)$alumno['moodle_e2_grade'];
                                 if ($alumno['moodle_e3_grade'] !== null) $grades[] = (float)$alumno['moodle_e3_grade'];
                                 
-                                $media = count($grades) > 0 ? round(array_sum($grades) / count($grades), 2) : null;
+                                $media = count($grades) > 0 ? floor(array_sum($grades) / count($grades)) : null;
                                 
                                 // Colores de aptitud
                                 $aptitud = mb_strtoupper(trim($alumno['moodle_aptitud'] ?: 'PENDIENTE'));
@@ -275,7 +275,7 @@ $current_page = 'grupos.php';
                                     <!-- Ev Inicial -->
                                     <td style="text-align: center;">
                                         <?php if ($alumno['moodle_e1_grade'] !== null): ?>
-                                            <span class="grade-number"><?= number_format(round((float)$alumno['moodle_e1_grade']), 0) ?></span>
+                                            <span class="grade-number"><?= number_format(floor((float)$alumno['moodle_e1_grade']), 0) ?></span>
                                             <br><small class="badge badge-success" style="font-size: 0.65rem; padding: 2px 6px;">Hecho</small>
                                         <?php else: ?>
                                             <span style="color: var(--text-muted);">—</span>
@@ -286,7 +286,7 @@ $current_page = 'grupos.php';
                                     <!-- Ev Intermedia -->
                                     <td style="text-align: center;">
                                         <?php if ($alumno['moodle_e2_grade'] !== null): ?>
-                                            <span class="grade-number"><?= number_format(round((float)$alumno['moodle_e2_grade']), 0) ?></span>
+                                            <span class="grade-number"><?= number_format(floor((float)$alumno['moodle_e2_grade']), 0) ?></span>
                                             <br><small class="badge badge-success" style="font-size: 0.65rem; padding: 2px 6px;">Hecho</small>
                                         <?php else: ?>
                                             <span style="color: var(--text-muted);">—</span>
@@ -297,7 +297,7 @@ $current_page = 'grupos.php';
                                     <!-- Ev Final -->
                                     <td style="text-align: center;">
                                         <?php if ($alumno['moodle_e3_grade'] !== null): ?>
-                                            <span class="grade-number"><?= number_format(round((float)$alumno['moodle_e3_grade']), 0) ?></span>
+                                            <span class="grade-number"><?= number_format(floor((float)$alumno['moodle_e3_grade']), 0) ?></span>
                                             <br><small class="badge badge-success" style="font-size: 0.65rem; padding: 2px 6px;">Hecho</small>
                                         <?php else: ?>
                                             <span style="color: var(--text-muted);">—</span>
@@ -316,7 +316,7 @@ $current_page = 'grupos.php';
                                     
                                     <!-- Nota Media -->
                                     <td style="text-align: center; font-weight: 700; color: var(--primary-color);">
-                                        <?= $media !== null ? number_format(round((float)$media), 0) : '—' ?>
+                                        <?= $media !== null ? number_format(floor((float)$media), 0) : '—' ?>
                                     </td>
                                     
                                     <!-- Aptitud -->

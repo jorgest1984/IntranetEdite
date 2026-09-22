@@ -58,9 +58,9 @@ if ($horas <= 0) {
 
 $moodle_progress = $data['moodle_progress'] !== null ? number_format((float)$data['moodle_progress'], 2) : '0.00';
 
-$e1 = $data['moodle_e1_grade'] !== null ? number_format(round((float)$data['moodle_e1_grade']), 0) : '      ';
-$e2 = $data['moodle_e2_grade'] !== null ? number_format(round((float)$data['moodle_e2_grade']), 0) : '      ';
-$e3 = $data['moodle_e3_grade'] !== null ? number_format(round((float)$data['moodle_e3_grade']), 0) : '      ';
+$e1 = $data['moodle_e1_grade'] !== null ? number_format(floor((float)$data['moodle_e1_grade']), 0) : '      ';
+$e2 = $data['moodle_e2_grade'] !== null ? number_format(floor((float)$data['moodle_e2_grade']), 0) : '      ';
+$e3 = $data['moodle_e3_grade'] !== null ? number_format(floor((float)$data['moodle_e3_grade']), 0) : '      ';
 
 $eval_grades = [];
 if ($data['moodle_e2_grade'] !== null) $eval_grades[] = (float)$data['moodle_e2_grade'];
@@ -71,7 +71,7 @@ if ($data['moodle_final_grade'] !== null) {
 } else {
     $final_val = count($eval_grades) > 0 ? (array_sum($eval_grades) / count($eval_grades)) : 0.0;
 }
-$final = number_format(round($final_val), 0);
+$final = number_format(floor($final_val), 0);
 
 $controles_hechos = 0;
 if ($data['moodle_e1_completed'] || $data['moodle_e1_grade'] !== null) $controles_hechos++;
