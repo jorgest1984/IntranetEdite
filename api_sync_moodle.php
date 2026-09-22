@@ -163,17 +163,29 @@ try {
     if ($moodleGroupId) {
         if (!$moodle->groupExists($moodleGroupId)) {
             $moodleGroupId = null;
-            // Limpiar localmente para forzar su recreación
+            // Limpiar localmente para forzar su recreación/revinculación
             $pdo->prepare("UPDATE grupos SET id_plataforma = NULL WHERE id = ?")->execute([$grupo_id_local]);
         }
     }
 
-    // 4. Si el grupo no tiene ID de plataforma (Moodle) válido, lo creamos en Moodle
+    // 4. Si el grupo no tiene ID de plataforma (Moodle) válido, buscar si ya existe en Moodle antes de crear uno nuevo
     if (!$moodleGroupId) {
-        $moodleGroupResult = $moodle->createGroup($courseId, "GRUPO-" . $grupo_id_local);
-        if (isset($moodleGroupResult[0]['id'])) {
-            $moodleGroupId = $moodleGroupResult[0]['id'];
-            $pdo->prepare("UPDATE grupos SET id_plataforma = ? WHERE id = ?")->execute([$moodleGroupId, $grupo_id_local]);
+        $candidateNames = array_unique(array_filter([
+            !empty($grupo['numero_grupo']) ? ("GRUPO-" . $grupo['numero_grupo']) : null,
+            !empty($grupo['numero_grupo']) ? ("Grupo " . $grupo['numero_grupo']) : null,
+            "GRUPO-" . $grupo_id_local,
+            "Grupo " . $grupo_id_local
+        ]));
+
+        foreach ($candidateNames as $cName) {
+            try {
+                $mGroupResult = $moodle->createGroup($courseId, $cName);
+                if (isset($mGroupResult[0]['id'])) {
+                    $moodleGroupId = $mGroupResult[0]['id'];
+                    $pdo->prepare("UPDATE grupos SET id_plataforma = ? WHERE id = ?")->execute([$moodleGroupId, $grupo_id_local]);
+                    break;
+                }
+            } catch (Exception $grpEx) {}
         }
     }
 
