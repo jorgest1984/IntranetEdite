@@ -41,7 +41,7 @@ if (!$id_curso || !$id_alumno) {
 try {
     $matricula = null;
     
-    // Intento 1: Buscar por IDs de Moodle (id_curso = id_plataforma, id_alumno = moodle_user_id)
+    // Intento 1: Buscar por coincidencia directa de IDs de Moodle o Intranet
     $stmt = $pdo->prepare("
         SELECT m.id as matricula_id, af.id as accion_id, af.titulo as curso_nombre, af.abreviatura, af.duracion,
                af.modalidad, af.num_accion, g.numero_grupo, g.fecha_inicio, g.fecha_fin,
@@ -51,15 +51,25 @@ try {
         JOIN alumnos a ON m.alumno_id = a.id
         JOIN grupos g ON m.grupo_id = g.id
         JOIN acciones_formativas af ON g.accion_id = af.id
+        LEFT JOIN cursos c ON af.curso_id = c.id
         LEFT JOIN planes pl ON af.plan_id = pl.id
         LEFT JOIN convocatorias co ON pl.convocatoria_id = co.id
-        WHERE a.moodle_user_id = ? AND af.id_plataforma = ?
+        WHERE (a.moodle_user_id = :id_alumno OR a.id = :id_alumno)
+          AND (
+              af.id_plataforma = :id_curso
+              OR af.id = :id_curso
+              OR (c.id IS NOT NULL AND c.moodle_id = :id_curso)
+              OR (c.id IS NOT NULL AND c.id = :id_curso)
+              OR g.id_plataforma = :id_curso
+              OR g.moodle_group_id = :id_curso
+          )
+        ORDER BY m.id DESC
         LIMIT 1
     ");
-    $stmt->execute([$id_alumno, $id_curso]);
+    $stmt->execute([':id_alumno' => $id_alumno, ':id_curso' => $id_curso]);
     $matricula = $stmt->fetch();
     
-    // Intento 2 (Fallback): Buscar por IDs internos de la Intranet (id_curso = af.id, id_alumno = a.id)
+    // Intento 2 (Fallback por alumno único): Si no se encontró coincidencia estricta de curso pero se encuentra el alumno por moodle_user_id o id, tomar la matrícula activa del alumno
     if (!$matricula) {
         $stmt = $pdo->prepare("
             SELECT m.id as matricula_id, af.id as accion_id, af.titulo as curso_nombre, af.abreviatura, af.duracion,
@@ -72,10 +82,11 @@ try {
             JOIN acciones_formativas af ON g.accion_id = af.id
             LEFT JOIN planes pl ON af.plan_id = pl.id
             LEFT JOIN convocatorias co ON pl.convocatoria_id = co.id
-            WHERE a.id = ? AND af.id = ?
+            WHERE (a.moodle_user_id = ? OR a.id = ?)
+            ORDER BY m.id DESC
             LIMIT 1
         ");
-        $stmt->execute([$id_alumno, $id_curso]);
+        $stmt->execute([$id_alumno, $id_alumno]);
         $matricula = $stmt->fetch();
     }
 } catch (Exception $e) {
