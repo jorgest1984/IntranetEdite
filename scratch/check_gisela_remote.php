@@ -1,52 +1,68 @@
 <?php
 // scratch/check_gisela_remote.php
 header('Content-Type: text/plain; charset=utf-8');
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 require_once __DIR__ . '/../includes/config.php';
 
 echo "=== DIAGNÓSTICO ALUMNA GISELA JUBANY ANIORTE ===\n\n";
 
 // 1. Buscar alumno
-$stmt = $pdo->prepare("SELECT id, nombre, primer_apellido, segundo_apellido, dni, email, moodle_user_id FROM alumnos WHERE nombre LIKE '%Gisela%' OR primer_apellido LIKE '%Jubany%' OR segundo_apellido LIKE '%Jubany%'");
-$stmt->execute();
-$alumnos = $stmt->fetchAll();
-echo "--- ALUMNOS ENCONTRADOS (" . count($alumnos) . ") ---\n";
-print_r($alumnos);
+try {
+    $stmt = $pdo->prepare("SELECT * FROM alumnos WHERE nombre LIKE '%Gisela%' OR primer_apellido LIKE '%Jubany%' OR segundo_apellido LIKE '%Jubany%'");
+    $stmt->execute();
+    $alumnos = $stmt->fetchAll();
+    echo "--- ALUMNOS ENCONTRADOS (" . count($alumnos) . ") ---\n";
+    print_r($alumnos);
 
-// 2. Buscar matrículas de Gisela
-foreach ($alumnos as $al) {
-    echo "\n--- MATRICULAS ALUMNO ID: {$al['id']} (moodle_user_id: {$al['moodle_user_id']}) ---\n";
-    $stmtM = $pdo->prepare("
-        SELECT m.id as matricula_id, m.alumno_id, m.grupo_id, m.estado,
-               g.numero_grupo, g.id_plataforma as grupo_plataforma, g.moodle_group_id,
-               af.id as accion_id, af.titulo, af.num_accion, af.abreviatura, af.id_plataforma as af_plataforma,
-               af.curso_id, c.moodle_id as curso_moodle_id, c.nombre_curso
-        FROM matriculas m
-        JOIN grupos g ON m.grupo_id = g.id
-        JOIN acciones_formativas af ON g.accion_id = af.id
-        LEFT JOIN cursos c ON af.curso_id = c.id
-        WHERE m.alumno_id = ?
-    ");
-    $stmtM->execute([$al['id']]);
-    $mats = $stmtM->fetchAll();
-    print_r($mats);
+    // 2. Buscar matrículas de Gisela
+    foreach ($alumnos as $al) {
+        echo "\n--- MATRICULAS ALUMNO ID: {$al['id']} (moodle_user_id: " . ($al['moodle_user_id'] ?? 'NULL') . ") ---\n";
+        $stmtM = $pdo->prepare("
+            SELECT m.*, g.numero_grupo, g.id_plataforma as grupo_plataforma, af.id as accion_id, af.titulo, af.num_accion, af.abreviatura, af.id_plataforma as af_plataforma
+            FROM matriculas m
+            JOIN grupos g ON m.grupo_id = g.id
+            JOIN acciones_formativas af ON g.accion_id = af.id
+            WHERE m.alumno_id = ?
+        ");
+        $stmtM->execute([$al['id']]);
+        $mats = $stmtM->fetchAll();
+        print_r($mats);
+    }
+} catch (Exception $e) {
+    echo "Error Alumnos/Matriculas: " . $e->getMessage() . "\n";
 }
 
 // 3. Buscar acciones formativas / cursos relacionados con COMM0023 o Instagram
-echo "\n--- ACCIONES FORMATIVAS Y CURSOS (COMM0023 / Instagram) ---\n";
-$stmtC = $pdo->prepare("
-    SELECT af.id as af_id, af.titulo, af.num_accion, af.abreviatura, af.id_plataforma as af_plataforma, af.curso_id,
-           c.moodle_id as curso_moodle_id, c.nombre_curso, c.codigo_curso,
-           g.id as grupo_id, g.numero_grupo, g.id_plataforma as grupo_plataforma
-    FROM acciones_formativas af
-    LEFT JOIN cursos c ON af.curso_id = c.id
-    LEFT JOIN grupos g ON g.accion_id = af.id
-    WHERE af.num_accion LIKE '%COMM0023%' OR af.abreviatura LIKE '%COMM0023%' OR af.titulo LIKE '%Instagram%' OR c.nombre_curso LIKE '%Instagram%' OR c.codigo_curso LIKE '%COMM0023%'
-");
-$stmtC->execute();
-$cursos = $stmtC->fetchAll();
-print_r($cursos);
+echo "\n--- ACCIONES FORMATIVAS (COMM0023 / Instagram) ---\n";
+try {
+    $stmtC = $pdo->prepare("
+        SELECT af.*, g.id as grupo_id, g.numero_grupo, g.id_plataforma as grupo_plataforma
+        FROM acciones_formativas af
+        LEFT JOIN grupos g ON g.accion_id = af.id
+        WHERE af.num_accion LIKE '%COMM0023%' OR af.abreviatura LIKE '%COMM0023%' OR af.titulo LIKE '%Instagram%'
+    ");
+    $stmtC->execute();
+    $cursos = $stmtC->fetchAll();
+    print_r($cursos);
+} catch (Exception $e) {
+    echo "Error Acciones: " . $e->getMessage() . "\n";
+}
 
-// 4. Buscar usuario en Moodle BD si está configurada
+// 4. Buscar en cursos table
+echo "\n--- TABLA CURSOS (COMM0023 / Instagram) ---\n";
+try {
+    $stmtC2 = $pdo->prepare("
+        SELECT * FROM cursos WHERE nombre_curso LIKE '%Instagram%' OR codigo_curso LIKE '%COMM0023%'
+    ");
+    $stmtC2->execute();
+    print_r($stmtC2->fetchAll());
+} catch (Exception $e) {
+    echo "Error Cursos: " . $e->getMessage() . "\n";
+}
+
+// 5. Moodle DB
 if (defined('MOODLE_DB_HOST')) {
     echo "\n--- MOODLE DB SEARCH ---\n";
     try {
@@ -71,3 +87,4 @@ if (defined('MOODLE_DB_HOST')) {
         echo "Error Moodle DB: " . $e->getMessage() . "\n";
     }
 }
+
