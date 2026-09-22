@@ -50,17 +50,25 @@ try {
     echo "Error Acciones: " . $e->getMessage() . "\n";
 }
 
-// 4. Buscar en cursos table
+// 4. Buscar en cursos y Moodle
 echo "\n--- TABLA CURSOS ---\n";
 try {
-    $stmtCol = $pdo->query("SHOW COLUMNS FROM cursos");
-    $cols = array_column($stmtCol->fetchAll(), 'Field');
-    echo "Columnas de cursos: " . implode(', ', $cols) . "\n";
-    
-    $stmtC2 = $pdo->query("SELECT * FROM cursos WHERE id = 58 OR id = 48 OR moodle_id = 48 OR moodle_id = 58");
+    $stmtC2 = $pdo->query("SELECT * FROM cursos WHERE id IN (48, 58) OR moodle_id IN (48, 58)");
     print_r($stmtC2->fetchAll());
 } catch (Exception $e) {
     echo "Error Cursos: " . $e->getMessage() . "\n";
+}
+
+if (defined('MOODLE_DB_HOST')) {
+    echo "\n--- MOODLE COURSES 48, 58 ---\n";
+    try {
+        $moodle_pdo = new PDO("mysql:host=".MOODLE_DB_HOST.";dbname=".MOODLE_DB_NAME.";charset=utf8mb4", MOODLE_DB_USER, MOODLE_DB_PASS);
+        $prefix = MOODLE_DB_PREFIX;
+        $stmtCrs = $moodle_pdo->query("SELECT id, shortname, fullname FROM {$prefix}course WHERE id IN (48, 58) OR shortname LIKE '%COMM0023%'");
+        print_r($stmtCrs->fetchAll());
+    } catch (Exception $e) {
+        echo "Error Moodle: " . $e->getMessage() . "\n";
+    }
 }
 
 // Show columns of acciones_formativas
