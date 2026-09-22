@@ -54,13 +54,36 @@ try {
 echo "\n--- TABLA CURSOS (COMM0023 / Instagram) ---\n";
 try {
     $stmtC2 = $pdo->prepare("
-        SELECT * FROM cursos WHERE nombre_curso LIKE '%Instagram%' OR codigo_curso LIKE '%COMM0023%'
+        SELECT * FROM cursos WHERE titulo LIKE '%Instagram%' OR abreviatura LIKE '%COMM0023%' OR nombre LIKE '%Instagram%' OR codigo LIKE '%COMM0023%' OR moodle_id = 48 OR id = 58
     ");
     $stmtC2->execute();
     print_r($stmtC2->fetchAll());
 } catch (Exception $e) {
     echo "Error Cursos: " . $e->getMessage() . "\n";
+
+    // Show columns of cursos
+    try {
+        $stmtCol = $pdo->query("SHOW COLUMNS FROM cursos");
+        echo "Columnas de cursos:\n";
+        print_r($stmtCol->fetchAll());
+    } catch (Exception $e2) {
+        echo "Error describe cursos: " . $e2->getMessage() . "\n";
+    }
 }
+
+// Show columns of acciones_formativas
+try {
+    $stmtColAF = $pdo->query("SHOW COLUMNS FROM acciones_formativas");
+    echo "Columnas de acciones_formativas:\n";
+    print_r(array_column($stmtColAF->fetchAll(), 'Field'));
+} catch (Exception $e) {}
+
+// Show columns of grupos
+try {
+    $stmtColG = $pdo->query("SHOW COLUMNS FROM grupos");
+    echo "Columnas de grupos:\n";
+    print_r(array_column($stmtColG->fetchAll(), 'Field'));
+} catch (Exception $e) {}
 
 // 5. Moodle DB
 if (defined('MOODLE_DB_HOST')) {
