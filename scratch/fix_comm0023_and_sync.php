@@ -40,7 +40,7 @@ try {
               OR (c.id IS NOT NULL AND c.moodle_id = :id_curso)
               OR (c.id IS NOT NULL AND c.id = :id_curso)
               OR g.id_plataforma = :id_curso
-              OR g.moodle_group_id = :id_curso
+              OR g.id = :id_curso
           )
         ORDER BY m.id DESC
         LIMIT 1
