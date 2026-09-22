@@ -51,23 +51,18 @@ try {
 }
 
 // 4. Buscar en cursos table
-echo "\n--- TABLA CURSOS (COMM0023 / Instagram) ---\n";
+echo "\n--- TABLA CURSOS ---\n";
 try {
-    $stmtC2 = $pdo->prepare("
-        SELECT * FROM cursos WHERE titulo LIKE '%Instagram%' OR abreviatura LIKE '%COMM0023%' OR nombre LIKE '%Instagram%' OR codigo LIKE '%COMM0023%' OR moodle_id = 48 OR id = 58
-    ");
+    $stmtC2 = $pdo->prepare("SELECT * FROM cursos WHERE id = 58 OR id = 48 OR moodle_id = 48 OR moodle_id = 58");
     $stmtC2->execute();
     print_r($stmtC2->fetchAll());
 } catch (Exception $e) {
     echo "Error Cursos: " . $e->getMessage() . "\n";
-
-    // Show columns of cursos
     try {
-        $stmtCol = $pdo->query("SHOW COLUMNS FROM cursos");
-        echo "Columnas de cursos:\n";
-        print_r($stmtCol->fetchAll());
+        $stmtC3 = $pdo->query("SELECT * FROM cursos LIMIT 10");
+        print_r($stmtC3->fetchAll());
     } catch (Exception $e2) {
-        echo "Error describe cursos: " . $e2->getMessage() . "\n";
+        echo "Error Cursos select: " . $e2->getMessage() . "\n";
     }
 }
 
