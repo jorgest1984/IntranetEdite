@@ -650,45 +650,54 @@ try {
         .identity-flex {
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 1.15rem;
         }
 
         .user-avatar-gradient {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #ffffff;
-            font-weight: 700;
-            font-size: 1.05rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            font-weight: 800;
+            font-size: 1.35rem;
+            box-shadow: 0 6px 14px -3px rgba(0, 0, 0, 0.12);
             text-transform: uppercase;
             flex-shrink: 0;
+            border: 2px solid #ffffff;
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease;
         }
 
-        .avatar-admin { background: var(--admin-gradient); box-shadow: 0 4px 8px rgba(244, 63, 94, 0.25); }
-        .avatar-adm { background: var(--adm-gradient); box-shadow: 0 4px 8px rgba(59, 130, 246, 0.25); }
-        .avatar-tutor { background: var(--tutor-gradient); box-shadow: 0 4px 8px rgba(16, 185, 129, 0.25); }
-        .avatar-com { background: var(--com-gradient); box-shadow: 0 4px 8px rgba(245, 158, 11, 0.25); }
-        .avatar-lec { background: var(--lec-gradient); box-shadow: 0 4px 8px rgba(107, 114, 128, 0.25); }
+        .premium-table tr:hover .user-avatar-gradient {
+            transform: scale(1.06);
+            box-shadow: 0 8px 18px -2px rgba(0, 0, 0, 0.18);
+        }
+
+        .avatar-admin { background: var(--admin-gradient); box-shadow: 0 6px 12px rgba(244, 63, 94, 0.25); }
+        .avatar-adm { background: var(--adm-gradient); box-shadow: 0 6px 12px rgba(59, 130, 246, 0.25); }
+        .avatar-tutor { background: var(--tutor-gradient); box-shadow: 0 6px 12px rgba(16, 185, 129, 0.25); }
+        .avatar-com { background: var(--com-gradient); box-shadow: 0 6px 12px rgba(245, 158, 11, 0.25); }
+        .avatar-lec { background: var(--lec-gradient); box-shadow: 0 6px 12px rgba(107, 114, 128, 0.25); }
 
         .user-info-text {
             display: flex;
             flex-direction: column;
+            justify-content: center;
         }
 
         .user-info-text .username {
-            font-weight: 700;
+            font-weight: 800;
             color: var(--text-color);
-            font-size: 0.975rem;
+            font-size: 1.05rem;
+            letter-spacing: -0.2px;
         }
 
         .user-info-text .email {
-            font-size: 0.775rem;
+            font-size: 0.825rem;
             color: var(--text-muted);
-            margin-top: 1px;
+            margin-top: 2px;
         }
 
         /* Badges */
