@@ -612,6 +612,32 @@ try {
             letter-spacing: 0.5px;
         }
 
+        /* Scroll container for Table View */
+        .table-scroll-container {
+            overflow-x: auto;
+            overflow-y: auto;
+            max-height: calc(100vh - 270px);
+            min-height: 300px;
+            width: 100%;
+        }
+
+        .table-scroll-container::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .table-scroll-container::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 6px;
+        }
+        .table-scroll-container::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 6px;
+            border: 2px solid #f1f5f9;
+        }
+        .table-scroll-container::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
         /* Premium Table and Rows */
         .premium-table {
             width: 100%;
@@ -620,8 +646,11 @@ try {
         }
 
         .premium-table th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
             text-align: left;
-            padding: 16px 24px;
+            padding: 14px 20px;
             background: #f8fafc;
             color: #475569;
             font-weight: 700;
@@ -629,6 +658,7 @@ try {
             font-size: 0.725rem;
             letter-spacing: 0.75px;
             border-bottom: 1px solid var(--border-gray);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
         }
 
         .premium-table td {
@@ -1093,6 +1123,11 @@ try {
                 margin-top: 0.5rem !important;
             }
 
+            .table-scroll-container {
+                max-height: none !important;
+                overflow: visible !important;
+            }
+
             .section-header-premium {
                 background: #ffffff !important;
                 border: 1px solid var(--border-gray) !important;
@@ -1504,7 +1539,7 @@ try {
                     <?= $total_users ?> usuarios
                 </div>
             </div>
-            <div style="overflow-x: auto;">
+            <div class="table-scroll-container">
                 <table class="premium-table" id="usersTable">
                     <thead>
                     <tr>
