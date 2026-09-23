@@ -687,22 +687,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             letter-spacing: 0.5px;
             color: #475569;
         }
-        .form-group-custom label.label-red {
-            color: #ef4444 !important;
+        .form-group-custom:focus-within label {
+            color: #1e40af;
+            font-weight: 800;
         }
         .form-control-edit {
             padding: 0.5rem 0.75rem;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 0.82rem;
-            background: var(--input-bg);
+            border: 1.5px solid #cbd5e1;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(10px) saturate(180%);
+            -webkit-backdrop-filter: blur(10px) saturate(180%);
             color: var(--text-color);
             outline: none;
-            transition: all 0.2s ease;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             width: 100%;
             box-sizing: border-box;
             height: 38px;
             text-overflow: ellipsis;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04), inset 0 1px 2px rgba(255, 255, 255, 0.8);
+        }
+        .form-control-edit:hover {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: #3b82f6;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.12), inset 0 1px 2px #ffffff;
         }
         select.form-control-edit {
             -webkit-appearance: none;
@@ -715,9 +725,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             padding-right: 2.5rem !important;
         }
         .form-control-edit:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.15);
-            background: #fff;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.25), 0 4px 16px rgba(37, 99, 235, 0.15);
+            background: #ffffff;
+            transform: translateY(-1px);
         }
         textarea.form-control-edit {
             height: auto;
