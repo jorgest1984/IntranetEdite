@@ -329,7 +329,13 @@ if (isset($_GET['success'])) $success = "Plan guardado correctamente.";
                 <p style="color: #64748b; margin-top: 0.25rem;">Convocatoria: <?= htmlspecialchars($convocatoria['nombre'] ?? '') ?> (<?= htmlspecialchars($convocatoria['anio'] ?? '') ?>)</p>
             </div>
             <div class="btn-header">
-                <a href="editar_convocatoria.php?id=<?= $conv_id ?>" class="btn-back">Cancelar y Volver</a>
+                <?php
+                $volver_url = "editar_convocatoria.php?id=" . urlencode($conv_id);
+                if ((isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'planes.php') !== false) || (isset($_GET['from']) && $_GET['from'] === 'planes')) {
+                    $volver_url = "planes.php?convocatoria_id=" . urlencode($conv_id);
+                }
+                ?>
+                <a href="<?= htmlspecialchars($volver_url) ?>" class="btn-back">Cancelar y Volver</a>
             </div>
         </header>
 
