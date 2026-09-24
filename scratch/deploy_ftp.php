@@ -18,6 +18,8 @@ ftp_pasv($conn, true);
 $files = [
     "includes/auth.php",
     "includes/moodle_api.php",
+    "includes/PdfGenerator.php",
+    "pdf_diploma.php",
     "api_sync_moodle.php",
     "procesar_nueva_af.php",
     "cursos.php",

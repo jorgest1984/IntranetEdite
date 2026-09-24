@@ -11,27 +11,87 @@ if (!function_exists('pdf_utf8_to_iso')) {
 }
 
 class PDF_Diploma extends PDF_Curve {
-    function drawBackground() {
-        // Cyan shape
-        $this->SetFillColor(5, 149, 197); // Cyan-ish #0595c5
-        $pts_cyan = array(
-            array('type'=>'m', 'x'=>135, 'y'=>210),
-            array('type'=>'c', 'x1'=>150, 'y1'=>140, 'x2'=>200, 'y2'=>80, 'x'=>150, 'y'=>0),
+    function drawBackground($tipo = 'certificado') {
+        // 1. Si existe imagen de fondo dedicada (ej. img/fondo_diploma.png o img/fondo_certificado.png)
+        $bg_file = '';
+        if ($tipo === 'diploma' && file_exists('img/fondo_diploma.png')) {
+            $bg_file = 'img/fondo_diploma.png';
+        } elseif ($tipo === 'certificado' && file_exists('img/fondo_certificado.png')) {
+            $bg_file = 'img/fondo_certificado.png';
+        } elseif (file_exists('img/fondo_diploma.png')) {
+            $bg_file = 'img/fondo_diploma.png';
+        }
+
+        if (!empty($bg_file) && file_exists($bg_file)) {
+            $this->Image($bg_file, 0, 0, 297, 210);
+            return;
+        }
+
+        // 2. Diseño vectorial moderno de fondo
+        $isDiploma = ($tipo === 'diploma');
+
+        // Fondo suave de lienzo (Soft Off-White/Ice Tint)
+        $this->SetFillColor(248, 250, 252);
+        $this->Rect(0, 0, 297, 210, 'F');
+
+        // Marco fino decorativo interior
+        $this->SetDrawColor(226, 232, 240); // Soft Slate Gray
+        $this->SetLineWidth(0.4);
+        $this->Rect(6, 6, 285, 198, 'D');
+
+        // Línea fina dorada o azul de acento en marco interior
+        if ($isDiploma) {
+            $this->SetDrawColor(217, 119, 6); // Dorado #d97706
+        } else {
+            $this->SetDrawColor(2, 132, 199); // Azul Cyán #0284c7
+        }
+        $this->SetLineWidth(0.8);
+        $this->Rect(8, 8, 281, 194, 'D');
+
+        // Layer 1: Sombra/Curva trasera (Deep Cyan/Blue)
+        $this->SetFillColor(2, 132, 199); // #0284c7
+        $pts_layer1 = array(
+            array('type'=>'m', 'x'=>128, 'y'=>210),
+            array('type'=>'c', 'x1'=>145, 'y1'=>140, 'x2'=>195, 'y2'=>75, 'x'=>140, 'y'=>0),
             array('type'=>'l', 'x'=>297, 'y'=>0),
             array('type'=>'l', 'x'=>297, 'y'=>210),
-            array('type'=>'l', 'x'=>135, 'y'=>210),
+            array('type'=>'l', 'x'=>128, 'y'=>210),
         );
-        $this->DrawShape($pts_cyan, 'F');
-        
-        // Dark blue shape top right
-        $this->SetFillColor(24, 60, 125); // Dark Blue #183c7d
-        $pts_blue = array(
-            array('type'=>'m', 'x'=>150, 'y'=>0),
-            array('type'=>'c', 'x1'=>180, 'y1'=>60, 'x2'=>250, 'y2'=>80, 'x'=>297, 'y'=>60),
+        $this->DrawShape($pts_layer1, 'F');
+
+        // Layer 2: Onda principal (Cyan vivo o Teal)
+        if ($isDiploma) {
+            $this->SetFillColor(3, 105, 161); // Deep Ocean Blue #0369a1
+        } else {
+            $this->SetFillColor(13, 148, 136); // Teal elegante #0d9488
+        }
+        $pts_layer2 = array(
+            array('type'=>'m', 'x'=>136, 'y'=>210),
+            array('type'=>'c', 'x1'=>152, 'y1'=>135, 'x2'=>202, 'y2'=>70, 'x'=>148, 'y'=>0),
             array('type'=>'l', 'x'=>297, 'y'=>0),
-            array('type'=>'l', 'x'=>150, 'y'=>0),
+            array('type'=>'l', 'x'=>297, 'y'=>210),
+            array('type'=>'l', 'x'=>136, 'y'=>210),
+        );
+        $this->DrawShape($pts_layer2, 'F');
+
+        // Layer 3: Esquina superior derecha (Dark Navy)
+        $this->SetFillColor(15, 23, 42); // Dark Navy #0f172a
+        $pts_blue = array(
+            array('type'=>'m', 'x'=>148, 'y'=>0),
+            array('type'=>'c', 'x1'=>180, 'y1'=>58, 'x2'=>248, 'y2'=>78, 'x'=>297, 'y'=>58),
+            array('type'=>'l', 'x'=>297, 'y'=>0),
+            array('type'=>'l', 'x'=>148, 'y'=>0),
         );
         $this->DrawShape($pts_blue, 'F');
+
+        // Accesorios: Fina franja curva en dorado/acento
+        if ($isDiploma) {
+            $this->SetDrawColor(245, 158, 11); // Amber/Gold #f59e0b
+        } else {
+            $this->SetDrawColor(56, 189, 248); // Sky Blue #38bdf8
+        }
+        $this->SetLineWidth(1.2);
+        $this->Curve(136, 210, 152, 135, 202, 70, 148, 0, 'D');
     }
 }
 
@@ -105,7 +165,7 @@ class PdfGenerator {
         $pdf = new PDF_Diploma('L', 'mm', 'A4');
         $pdf->SetAutoPageBreak(false); // EVITA QUE CREE PÁGINAS EN BLANCO SI EL TEXTO ES LARGO
         $pdf->AddPage();
-        $pdf->drawBackground();
+        $pdf->drawBackground($tipo);
 
         // Logos (Esquina superior derecha en la zona azul oscuro)
         if (file_exists('img/logo_diploma.png')) {
