@@ -144,9 +144,9 @@ $pdf->SetFillColor(240, 245, 250);
 
 foreach ($alumnos as $alumno) {
     $pdf->Cell($w[0], 6.5, pdf_utf8_to_iso($alumno['dni']), 1, 0, 'C', $fill);
-    $pdf->Cell($w[1], 6.5, pdf_utf8_to_iso($alumno['nombre']), 1, 0, 'L', $fill);
+    $pdf->Cell($w[1], 6.5, pdf_utf8_to_iso($alumno['nombre']), 1, 0, 'C', $fill);
     $apellidos = trim($alumno['primer_apellido'] . ' ' . $alumno['segundo_apellido']);
-    $pdf->Cell($w[2], 6.5, pdf_utf8_to_iso($apellidos), 1, 0, 'L', $fill);
+    $pdf->Cell($w[2], 6.5, pdf_utf8_to_iso($apellidos), 1, 0, 'C', $fill);
     $pdf->Cell($w[3], 6.5, pdf_utf8_to_iso($alumno['telefono']), 1, 0, 'C', $fill);
     
     // El email puede ser largo, usamos truncado o fuente más pequeña si es muy grande
@@ -154,7 +154,7 @@ foreach ($alumnos as $alumno) {
     if (strlen($email) > 40) {
         $pdf->SetFont('Arial', '', 7);
     }
-    $pdf->Cell($w[4], 6.5, pdf_utf8_to_iso($email), 1, 1, 'L', $fill);
+    $pdf->Cell($w[4], 6.5, pdf_utf8_to_iso($email), 1, 1, 'C', $fill);
     $pdf->SetFont('Arial', '', 9); // reset
     
     $fill = !$fill;
