@@ -45,7 +45,16 @@ $stmtAlumnos = $pdo->prepare("
     FROM matriculas m
     JOIN alumnos a ON m.alumno_id = a.id
     LEFT JOIN empresas e ON a.ultima_empresa_id = e.id
-    WHERE m.estado IN ('Inscrito', 'Activo', 'Finalizada') AND m.grupo_id = ?
+    WHERE m.grupo_id = ?
+      AND (m.estado IS NULL OR (UPPER(m.estado) != 'BAJA' AND UPPER(m.estado) != 'CANCELADA'))
+      AND a.email NOT LIKE 'tutora.%'
+      AND a.email NOT LIKE 'tutor.%'
+      AND a.email NOT LIKE '%@avefp.es'
+      AND a.nombre NOT LIKE '%Inspector%'
+      AND a.nombre NOT LIKE '%SEPE%'
+      AND a.dni NOT LIKE 'e25%'
+      AND a.dni NOT LIKE 'e24%'
+    ORDER BY a.primer_apellido, a.segundo_apellido, a.nombre
 ");
 // Si venía por accion_id, cogemos el ID del primer grupo encontrado
 $grupo_id_real = $grupo_id ?: $grupoData['id'];

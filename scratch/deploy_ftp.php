@@ -27,6 +27,8 @@ $files = [
     "relacion_alumnos.php",
     "envio_claves.php",
     "api_send_matricula_keys.php",
+    "pdf_contactos_fundae.php",
+    "exportar_fundae_alta_xml.php",
     "ficha_alumno.php",
     "ficha_matricula.php",
     "api_import_moodle_students.php",

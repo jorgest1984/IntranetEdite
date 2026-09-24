@@ -36,7 +36,15 @@ $stmtAlumnos = $pdo->prepare("
     SELECT m.*, a.nombre, a.primer_apellido, a.segundo_apellido, a.dni, a.telefono, a.email
     FROM matriculas m
     JOIN alumnos a ON m.alumno_id = a.id
-    WHERE m.estado IN ('Inscrito', 'Activo', 'Finalizada') AND m.grupo_id = ?
+    WHERE m.grupo_id = ?
+      AND (m.estado IS NULL OR (UPPER(m.estado) != 'BAJA' AND UPPER(m.estado) != 'CANCELADA'))
+      AND a.email NOT LIKE 'tutora.%'
+      AND a.email NOT LIKE 'tutor.%'
+      AND a.email NOT LIKE '%@avefp.es'
+      AND a.nombre NOT LIKE '%Inspector%'
+      AND a.nombre NOT LIKE '%SEPE%'
+      AND a.dni NOT LIKE 'e25%'
+      AND a.dni NOT LIKE 'e24%'
     ORDER BY a.primer_apellido, a.segundo_apellido, a.nombre
 ");
 $stmtAlumnos->execute([$grupo_id]);

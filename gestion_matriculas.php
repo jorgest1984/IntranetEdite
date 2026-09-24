@@ -424,7 +424,7 @@ try {
 } catch (Exception $e) {}
 
 // Obtener alumnos matriculados reales (excluyendo a tutores e inspectores)
-$matriculados = $pdo->prepare("SELECT m.id as matricula_id, m.estado as matricula_estado, m.fecha_comunicacion, a.* 
+$matriculados = $pdo->prepare("SELECT m.id as matricula_id, m.estado as matricula_estado, m.fecha_comunicacion, m.envio_claves, m.fecha_claves, a.* 
                                FROM matriculas m 
                                JOIN alumnos a ON m.alumno_id = a.id 
                                WHERE m.grupo_id = ? 
@@ -441,11 +441,22 @@ $alumnos = $matriculados->fetchAll();
 
 $cntInscritos = 0;
 $cntBajas = 0;
+$cntClavesEnviadas = 0;
+$ultimaFechaClaves = null;
+
 foreach ($alumnos as $al_c) {
     if (strtoupper($al_c['matricula_estado'] ?? '') === 'BAJA') {
         $cntBajas++;
     } else {
         $cntInscritos++;
+        if (!empty($al_c['envio_claves'])) {
+            $cntClavesEnviadas++;
+            if (!empty($al_c['fecha_claves'])) {
+                if (!$ultimaFechaClaves || $al_c['fecha_claves'] > $ultimaFechaClaves) {
+                    $ultimaFechaClaves = $al_c['fecha_claves'];
+                }
+            }
+        }
     }
 }
 ?>
@@ -511,11 +522,23 @@ foreach ($alumnos as $al_c) {
             <div class="page-title">
                 <span style="color: #64748b; font-weight: 700; font-size: 0.75rem; text-transform: uppercase;">Gestión de Matrículas</span>
                 <h1 style="margin: 5px 0;"><?= htmlspecialchars($accion['titulo']) ?></h1>
-                <p>
-                    Grupo: <strong style="color: #0284c7; font-size: 1.05rem;"><?= htmlspecialchars($grupo_full['numero_grupo'] ? 'Grupo ' . $grupo_full['numero_grupo'] : 'Grupo ID ' . $grupo_id) ?></strong> (ID: <strong><?= $grupo_id ?></strong>) 
-                    | Modalidad: <strong><?= $accion['modalidad'] ?></strong>
-                    <?php if (!empty($grupo_full['fecha_inicio'])): ?>
-                        | Fechas: <strong><?= date('d/m/Y', strtotime($grupo_full['fecha_inicio'])) ?> - <?= date('d/m/Y', strtotime($grupo_full['fecha_fin'])) ?></strong>
+                <p style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <span>
+                        Grupo: <strong style="color: #0284c7; font-size: 1.05rem;"><?= htmlspecialchars($grupo_full['numero_grupo'] ? 'Grupo ' . $grupo_full['numero_grupo'] : 'Grupo ID ' . $grupo_id) ?></strong> (ID: <strong><?= $grupo_id ?></strong>) 
+                        | Modalidad: <strong><?= $accion['modalidad'] ?></strong>
+                        <?php if (!empty($grupo_full['fecha_inicio'])): ?>
+                            | Fechas: <strong><?= date('d/m/Y', strtotime($grupo_full['fecha_inicio'])) ?> - <?= date('d/m/Y', strtotime($grupo_full['fecha_fin'])) ?></strong>
+                        <?php endif; ?>
+                    </span>
+                    <?php if ($cntClavesEnviadas > 0): ?>
+                        <span style="background: #dcfce7; color: #15803d; border: 1px solid #86efac; padding: 2px 10px; border-radius: 20px; font-weight: 700; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 5px;" title="Claves enviadas a <?= $cntClavesEnviadas ?> de <?= $cntInscritos ?> alumnos inscritos">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            Claves Enviadas (<?= $cntClavesEnviadas ?>/<?= $cntInscritos ?>)<?= $ultimaFechaClaves ? ' - ' . date('d/m/Y', strtotime($ultimaFechaClaves)) : '' ?>
+                        </span>
+                    <?php else: ?>
+                        <span style="background: #fef3c7; color: #b45309; border: 1px solid #fde68a; padding: 2px 10px; border-radius: 20px; font-weight: 700; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 5px;">
+                            ✉️ Claves pendientes
+                        </span>
                     <?php endif; ?>
                 </p>
                 <?php if (count($todos_grupos) > 1): ?>
@@ -565,9 +588,20 @@ foreach ($alumnos as $al_c) {
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M12 18v-6"></path><path d="M9 15l3 3 3-3"></path></svg>
                         Contactos FUNDAE (PDF)
                     </a>
-                    <button type="button" onclick="openMassKeysModal()" class="btn" style="background: #0284c7; color: white; border: none; font-weight: 700; padding: 10px 15px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem;">
-                        📨 Envío Masivo Claves
-                    </button>
+                    <?php if ($cntClavesEnviadas > 0 && $cntClavesEnviadas >= $cntInscritos): ?>
+                        <button type="button" onclick="openMassKeysModal()" class="btn" style="background: #10b981; color: white; border: none; font-weight: 700; padding: 10px 15px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; box-shadow: 0 2px 8px rgba(16,185,129,0.35);" title="Claves ya enviadas a los <?= $cntClavesEnviadas ?> alumnos inscritos. Clic para realizar un reenvío.">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            Claves Masivas Enviadas (<?= $cntClavesEnviadas ?>/<?= $cntInscritos ?>)
+                        </button>
+                    <?php elseif ($cntClavesEnviadas > 0): ?>
+                        <button type="button" onclick="openMassKeysModal()" class="btn" style="background: #0284c7; color: white; border: none; font-weight: 700; padding: 10px 15px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem;" title="Claves enviadas a <?= $cntClavesEnviadas ?> de <?= $cntInscritos ?> alumnos">
+                            📨 Envío Masivo Claves (<?= $cntClavesEnviadas ?>/<?= $cntInscritos ?>)
+                        </button>
+                    <?php else: ?>
+                        <button type="button" onclick="openMassKeysModal()" class="btn" style="background: #0284c7; color: white; border: none; font-weight: 700; padding: 10px 15px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem;">
+                            📨 Envío Masivo Claves
+                        </button>
+                    <?php endif; ?>
                 <?php endif; ?>
                 <a href="acciones_formativas.php?plan_id=<?= $accion['plan_id'] ?>" class="btn" style="background: #f1f5f9; color: #1e3a8a; text-decoration:none; padding: 10px 15px; border-radius:8px; font-weight:700; font-size: 0.85rem;">Volver</a>
             </div>
@@ -622,11 +656,21 @@ foreach ($alumnos as $al_c) {
 
         <div class="gestion-container">
             <div class="enrolled-section">
-                <h2 style="font-size: 1.1rem; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                <h2 style="font-size: 1.1rem; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                     Alumnos Matriculados 
                     <span class="badge-count"><?= $cntInscritos ?> Inscritos</span>
                     <?php if ($cntBajas > 0): ?>
                         <span class="badge-count" style="background: #dc2626;"><?= $cntBajas ?> Bajas</span>
+                    <?php endif; ?>
+                    <?php if ($cntClavesEnviadas > 0): ?>
+                        <span class="badge-count" style="background: #10b981; display: inline-flex; align-items: center; gap: 4px;" title="Claves de acceso enviadas por correo electrónico">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            Claves Enviadas (<?= $cntClavesEnviadas ?>/<?= $cntInscritos ?>)
+                        </span>
+                    <?php else: ?>
+                        <span class="badge-count" style="background: #f59e0b;" title="Aún no se ha realizado el envío masivo de claves para este grupo">
+                            ✉️ Claves Pendientes
+                        </span>
                     <?php endif; ?>
                 </h2>
                 
@@ -659,6 +703,16 @@ foreach ($alumnos as $al_c) {
                                             <span style="font-size: 0.72rem; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; padding: 2px 7px; border-radius: 6px; margin-left: 6px; font-weight: 700; display: inline-flex; align-items: center; gap: 3px;" title="ID Moodle: <?= $a['moodle_user_id'] ?> | Usuario: <?= htmlspecialchars($a['plat_usuario'] ?? '') ?>">
                                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                                 Moodle
+                                            </span>
+                                        <?php endif; ?>
+                                        <?php if (!empty($a['envio_claves'])): ?>
+                                            <span style="font-size: 0.72rem; background: #dcfce7; color: #15803d; border: 1px solid #86efac; padding: 2px 7px; border-radius: 6px; margin-left: 6px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;" title="Claves de acceso enviadas por correo el <?= !empty($a['fecha_claves']) ? date('d/m/Y', strtotime($a['fecha_claves'])) : '' ?>">
+                                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                                Claves Enviadas <?= !empty($a['fecha_claves']) ? '(' . date('d/m/Y', strtotime($a['fecha_claves'])) . ')' : '' ?>
+                                            </span>
+                                        <?php else: ?>
+                                            <span style="font-size: 0.72rem; background: #fef3c7; color: #b45309; border: 1px solid #fde68a; padding: 2px 7px; border-radius: 6px; margin-left: 6px; font-weight: 700; display: inline-flex; align-items: center; gap: 3px;" title="Claves de acceso aún no enviadas a este alumno">
+                                                ✉️ Pendiente Claves
                                             </span>
                                         <?php endif; ?>
                                     </div>
@@ -699,8 +753,19 @@ foreach ($alumnos as $al_c) {
                                         </a>
 
                                         <!-- Enviar Claves Individual -->
-                                        <button type="button" onclick="openSingleKeysModal(<?= $a['matricula_id'] ?>, <?= htmlspecialchars(json_encode($a['nombre'] . ' ' . ($a['primer_apellido'] ?? '') . ' ' . ($a['segundo_apellido'] ?? ''))) ?>, <?= htmlspecialchars(json_encode($a['email'])) ?>, <?= htmlspecialchars(json_encode($a['plat_usuario'] ?? '')) ?>, <?= htmlspecialchars(json_encode($a['plat_clave'] ?? '')) ?>, <?= htmlspecialchars(json_encode($a['dni'] ?? '')) ?>)" style="background: none; border: none; cursor: pointer; color: #0284c7; padding: 6px; display: inline-flex; align-items: center; justify-content: center;" title="Enviar Claves de Acceso">
+                                        <?php 
+                                        $hasKeysSent = !empty($a['envio_claves']);
+                                        $keysDateStr = !empty($a['fecha_claves']) ? date('d/m/Y', strtotime($a['fecha_claves'])) : '';
+                                        $keysTitle = $hasKeysSent ? "Claves ya enviadas el {$keysDateStr}. Clic para reenviar." : "Enviar Claves de Acceso por correo";
+                                        ?>
+                                        <button type="button" 
+                                                onclick="openSingleKeysModal(<?= $a['matricula_id'] ?>, <?= htmlspecialchars(json_encode($a['nombre'] . ' ' . ($a['primer_apellido'] ?? '') . ' ' . ($a['segundo_apellido'] ?? ''))) ?>, <?= htmlspecialchars(json_encode($a['email'])) ?>, <?= htmlspecialchars(json_encode($a['plat_usuario'] ?? '')) ?>, <?= htmlspecialchars(json_encode($a['plat_clave'] ?? '')) ?>, <?= htmlspecialchars(json_encode($a['dni'] ?? '')) ?>)" 
+                                                style="background: <?= $hasKeysSent ? '#ecfdf5' : 'none' ?>; border: <?= $hasKeysSent ? '1px solid #a7f3d0' : 'none' ?>; border-radius: 6px; cursor: pointer; color: <?= $hasKeysSent ? '#059669' : '#0284c7' ?>; padding: 5px 7px; display: inline-flex; align-items: center; justify-content: center; gap: 3px;" 
+                                                title="<?= htmlspecialchars($keysTitle) ?>">
                                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                                            <?php if ($hasKeysSent): ?>
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                            <?php endif; ?>
                                         </button>
                                         
                                         <!-- Dar de Baja de Moodle y Marcar con Franja Roja -->
@@ -1333,6 +1398,12 @@ Equipo de Soporte de Formación</textarea>
         for (let i = 0; i < alumnosParaEnvio.length; i++) {
             const student = alumnosParaEnvio[i];
             const name = student.nombre + ' ' + (student.primer_apellido || '') + ' ' + (student.segundo_apellido || '');
+            
+            if (student.matricula_estado && student.matricula_estado.toUpperCase() === 'BAJA') {
+                logArea.innerHTML += `> [${i+1}/${alumnosParaEnvio.length}] Omitido (Alumno en BAJA): ${name}\n`;
+                logArea.scrollTop = logArea.scrollHeight;
+                continue;
+            }
             
             logArea.innerHTML += `> [${i+1}/${alumnosParaEnvio.length}] Procesando: ${name}... `;
             logArea.scrollTop = logArea.scrollHeight;
