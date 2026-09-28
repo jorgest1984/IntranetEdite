@@ -20,6 +20,7 @@ $files = [
     "includes/moodle_api.php",
     "includes/PdfGenerator.php",
     "pdf_diploma.php",
+    "pdf_acta_evaluacion.php",
     "api_sync_moodle.php",
     "procesar_nueva_af.php",
     "cursos.php",

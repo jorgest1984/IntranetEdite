@@ -45,16 +45,23 @@ if (!$grupo) {
     die("Grupo no encontrado.");
 }
 
-// 2. Obtener alumnos COMPLETADOS
-$stmtAl = $pdo->prepare("SELECT m.id as matricula_id, 
+// 2. Obtener todos los alumnos del grupo
+$stmtAl = $pdo->prepare("SELECT m.id as matricula_id, m.estado as matricula_estado,
                                 m.moodle_e1_grade, m.moodle_e2_grade, m.moodle_e3_grade, 
+                                m.moodle_e1_completed, m.moodle_e2_completed, m.moodle_e3_completed,
                                 m.moodle_final_grade,
                                 a.id as alumno_id, a.nombre, a.primer_apellido, a.segundo_apellido
                          FROM matriculas m
                          JOIN alumnos a ON m.alumno_id = a.id
-                         WHERE m.grupo_id = ? AND m.estado != 'Baja' AND m.estado != 'Cancelada'
-                           AND m.moodle_e1_completed = 1 AND m.moodle_e2_completed = 1 AND m.moodle_e3_completed = 1
-                         ORDER BY a.primer_apellido ASC, a.segundo_apellido ASC, a.nombre ASC");
+                         WHERE m.grupo_id = ?
+                           AND a.email NOT LIKE 'tutora.%'
+                           AND a.email NOT LIKE 'tutor.%'
+                           AND a.email NOT LIKE '%@avefp.es'
+                           AND a.nombre NOT LIKE '%Inspector%'
+                           AND a.nombre NOT LIKE '%SEPE%'
+                           AND a.dni NOT LIKE 'e25%'
+                           AND a.dni NOT LIKE 'e24%'
+                         ORDER BY (CASE WHEN UPPER(m.estado) IN ('BAJA', 'ABANDONO', 'CANCELADA') THEN 1 ELSE 0 END) ASC, a.primer_apellido ASC, a.segundo_apellido ASC, a.nombre ASC");
 $stmtAl->execute([$grupo_id]);
 $alumnos = $stmtAl->fetchAll(PDO::FETCH_ASSOC);
 
@@ -153,28 +160,61 @@ $pdf->Cell(20, 6, '', 'BR', 1, 'C'); // Under CALIFICACION but no text
 $pdf->SetFont('Arial', '', 9);
 
 if (empty($alumnos)) {
-    $pdf->Cell(190, 8, pdf_utf8_to_iso('No hay alumnos aptos para generar el acta final.'), 1, 1, 'C');
+    $pdf->Cell(190, 8, pdf_utf8_to_iso('No hay alumnos matriculados en este grupo.'), 1, 1, 'C');
 } else {
     foreach ($alumnos as $alumno) {
         $apellidos = trim(($alumno['primer_apellido'] ?? '') . ' ' . ($alumno['segundo_apellido'] ?? ''));
         $nombre_completo = mb_strtoupper($apellidos . ', ' . $alumno['nombre']);
         
-        $grades = [];
-        if ($alumno['moodle_e2_grade'] !== null) $grades[] = (float)$alumno['moodle_e2_grade'];
-        if ($alumno['moodle_e3_grade'] !== null) $grades[] = (float)$alumno['moodle_e3_grade'];
-        $media = count($grades) > 0 ? number_format(floor(array_sum($grades) / count($grades)), 0) : '10';
+        $estado_upper = strtoupper(trim((string)($alumno['matricula_estado'] ?? '')));
+        $isBajaOrAbandono = in_array($estado_upper, ['BAJA', 'ABANDONO', 'CANCELADA', 'ANULADA']);
         
-        $e1 = $alumno['moodle_e1_grade'] !== null ? number_format(floor((float)$alumno['moodle_e1_grade']), 0) : '10';
-        $e2 = $alumno['moodle_e2_grade'] !== null ? number_format(floor((float)$alumno['moodle_e2_grade']), 0) : '10';
-        $e3 = $alumno['moodle_e3_grade'] !== null ? number_format(floor((float)$alumno['moodle_e3_grade']), 0) : '10';
+        $e1_done = !empty($alumno['moodle_e1_completed']);
+        $e2_done = !empty($alumno['moodle_e2_completed']);
+        $e3_done = !empty($alumno['moodle_e3_completed']);
         
+        $isCompleted = ($e1_done && $e2_done && $e3_done);
+
+        if ($isBajaOrAbandono) {
+            $calificacion = 'ABANDONO';
+        } elseif ($isCompleted) {
+            $calificacion = 'APTO';
+        } else {
+            $calificacion = 'NO APTO';
+        }
+
+        // Notas individuales
+        $e1 = ($alumno['moodle_e1_grade'] !== null && $alumno['moodle_e1_grade'] !== '') ? number_format(floor((float)$alumno['moodle_e1_grade']), 0) : '—';
+        $e2 = ($alumno['moodle_e2_grade'] !== null && $alumno['moodle_e2_grade'] !== '') ? number_format(floor((float)$alumno['moodle_e2_grade']), 0) : '—';
+        $e3 = ($alumno['moodle_e3_grade'] !== null && $alumno['moodle_e3_grade'] !== '') ? number_format(floor((float)$alumno['moodle_e3_grade']), 0) : '—';
+
+        // Porcentaje de controles y nota media final
+        if ($isCompleted) {
+            $pctControles = '100.00%';
+            $grades = [];
+            if ($alumno['moodle_e1_grade'] !== null && $alumno['moodle_e1_grade'] !== '') $grades[] = (float)$alumno['moodle_e1_grade'];
+            if ($alumno['moodle_e2_grade'] !== null && $alumno['moodle_e2_grade'] !== '') $grades[] = (float)$alumno['moodle_e2_grade'];
+            if ($alumno['moodle_e3_grade'] !== null && $alumno['moodle_e3_grade'] !== '') $grades[] = (float)$alumno['moodle_e3_grade'];
+            $media = count($grades) > 0 ? number_format(floor(array_sum($grades) / count($grades)), 0) : '10';
+        } else {
+            $countDone = ($e1_done ? 1 : 0) + ($e2_done ? 1 : 0) + ($e3_done ? 1 : 0);
+            $pctControles = $countDone > 0 ? number_format(($countDone / 3) * 100, 2) . '%' : '0.00%';
+            
+            $grades = [];
+            if ($e1_done && $alumno['moodle_e1_grade'] !== null) $grades[] = (float)$alumno['moodle_e1_grade'];
+            if ($e2_done && $alumno['moodle_e2_grade'] !== null) $grades[] = (float)$alumno['moodle_e2_grade'];
+            if ($e3_done && $alumno['moodle_e3_grade'] !== null) $grades[] = (float)$alumno['moodle_e3_grade'];
+            
+            $media = count($grades) > 0 ? number_format(floor(array_sum($grades) / count($grades)), 0) : '—';
+        }
+
         $pdf->Cell(90, 7, pdf_utf8_to_iso($nombre_completo), 1, 0, 'L');
         $pdf->Cell(12, 7, $e1, 1, 0, 'C');
         $pdf->Cell(12, 7, $e2, 1, 0, 'C');
         $pdf->Cell(12, 7, $e3, 1, 0, 'C');
-        $pdf->Cell(24, 7, '100.00%', 1, 0, 'C');
+        $pdf->Cell(24, 7, $pctControles, 1, 0, 'C');
         $pdf->Cell(20, 7, $media, 1, 0, 'C');
-        $pdf->Cell(20, 7, 'APTO', 1, 1, 'C');
+        $pdf->Cell(20, 7, pdf_utf8_to_iso($calificacion), 1, 1, 'C');
     }
 }
 
