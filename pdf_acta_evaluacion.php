@@ -184,9 +184,9 @@ if (empty($alumnos)) {
         }
 
         // Notas individuales
-        $e1 = ($alumno['moodle_e1_grade'] !== null && $alumno['moodle_e1_grade'] !== '') ? number_format(floor((float)$alumno['moodle_e1_grade']), 0) : '—';
-        $e2 = ($alumno['moodle_e2_grade'] !== null && $alumno['moodle_e2_grade'] !== '') ? number_format(floor((float)$alumno['moodle_e2_grade']), 0) : '—';
-        $e3 = ($alumno['moodle_e3_grade'] !== null && $alumno['moodle_e3_grade'] !== '') ? number_format(floor((float)$alumno['moodle_e3_grade']), 0) : '—';
+        $e1 = ($alumno['moodle_e1_grade'] !== null && $alumno['moodle_e1_grade'] !== '') ? number_format(floor((float)$alumno['moodle_e1_grade']), 0) : '-';
+        $e2 = ($alumno['moodle_e2_grade'] !== null && $alumno['moodle_e2_grade'] !== '') ? number_format(floor((float)$alumno['moodle_e2_grade']), 0) : '-';
+        $e3 = ($alumno['moodle_e3_grade'] !== null && $alumno['moodle_e3_grade'] !== '') ? number_format(floor((float)$alumno['moodle_e3_grade']), 0) : '-';
 
         // Porcentaje de controles y nota media final
         if ($isCompleted) {
@@ -205,15 +205,15 @@ if (empty($alumnos)) {
             if ($e2_done && $alumno['moodle_e2_grade'] !== null) $grades[] = (float)$alumno['moodle_e2_grade'];
             if ($e3_done && $alumno['moodle_e3_grade'] !== null) $grades[] = (float)$alumno['moodle_e3_grade'];
             
-            $media = count($grades) > 0 ? number_format(floor(array_sum($grades) / count($grades)), 0) : '—';
+            $media = count($grades) > 0 ? number_format(floor(array_sum($grades) / count($grades)), 0) : '-';
         }
 
         $pdf->Cell(90, 7, pdf_utf8_to_iso($nombre_completo), 1, 0, 'L');
-        $pdf->Cell(12, 7, $e1, 1, 0, 'C');
-        $pdf->Cell(12, 7, $e2, 1, 0, 'C');
-        $pdf->Cell(12, 7, $e3, 1, 0, 'C');
-        $pdf->Cell(24, 7, $pctControles, 1, 0, 'C');
-        $pdf->Cell(20, 7, $media, 1, 0, 'C');
+        $pdf->Cell(12, 7, pdf_utf8_to_iso($e1), 1, 0, 'C');
+        $pdf->Cell(12, 7, pdf_utf8_to_iso($e2), 1, 0, 'C');
+        $pdf->Cell(12, 7, pdf_utf8_to_iso($e3), 1, 0, 'C');
+        $pdf->Cell(24, 7, pdf_utf8_to_iso($pctControles), 1, 0, 'C');
+        $pdf->Cell(20, 7, pdf_utf8_to_iso($media), 1, 0, 'C');
         $pdf->Cell(20, 7, pdf_utf8_to_iso($calificacion), 1, 1, 'C');
     }
 }
