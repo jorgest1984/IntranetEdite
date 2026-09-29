@@ -498,6 +498,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             transition: all 0.2s;
             box-sizing: border-box;
         }
+        select.form-control {
+            background-color: #ffffff;
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2#475569'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.65rem center;
+            background-size: 1.1em 1.1em;
+            padding-right: 2rem;
+        }
         .form-control:focus {
             outline: none;
             border-color: var(--primary-color);
@@ -1408,18 +1417,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     <div class="form-group" style="grid-column: span 1;">
                         <label>Estado nuevo</label>
                         <select name="estado_nuevo" class="form-control">
-                            <option value="Pendiente validacion" <?= ($matricula['estado'] ?? '') == 'Pendiente validacion' ? 'selected' : '' ?>>Pendiente validacion</option>
-                            <option value="Pendiente estado" <?= ($matricula['estado'] ?? '') == 'Pendiente estado' ? 'selected' : '' ?>>Pendiente estado</option>
-                            <option value="Admitido" <?= ($matricula['estado'] ?? '') == 'Admitido' ? 'selected' : '' ?>>Admitido</option>
-                            <option value="Pendiente docu" <?= ($matricula['estado'] ?? '') == 'Pendiente docu' ? 'selected' : '' ?>>Pendiente docu</option>
-                            <option value="Reserva" <?= ($matricula['estado'] ?? '') == 'Reserva' ? 'selected' : '' ?>>Reserva</option>
-                            <option value="Espera" <?= ($matricula['estado'] ?? '') == 'Espera' ? 'selected' : '' ?>>Espera</option>
-                            <option value="Empleado en curso" <?= ($matricula['estado'] ?? '') == 'Empleado en curso' ? 'selected' : '' ?>>Empleado en curso</option>
-                            <option value="Finalizado" <?= ($matricula['estado'] ?? '') == 'Finalizado' || ($matricula['estado'] ?? '') == 'Finalizada' ? 'selected' : '' ?>>Finalizado</option>
-                            <option value="Abandono" <?= ($matricula['estado'] ?? '') == 'Abandono' ? 'selected' : '' ?>>Abandono</option>
-                            <option value="Baja" <?= ($matricula['estado'] ?? '') == 'Baja' ? 'selected' : '' ?>>Baja</option>
-                            <option value="Inscrito" <?= ($matricula['estado'] ?? '') == 'Inscrito' ? 'selected' : '' ?>>Inscrito</option>
-                            <option value="Preinscrito" <?= ($matricula['estado'] ?? '') == 'Preinscrito' ? 'selected' : '' ?>>Preinscrito</option>
+                            <option value="Pendiente validacion" <?= strcasecmp(trim((string)($matricula['estado'] ?? '')), 'Pendiente validacion') == 0 ? 'selected' : '' ?>>Pendiente validacion</option>
+                            <option value="Pendiente estado" <?= strcasecmp(trim((string)($matricula['estado'] ?? '')), 'Pendiente estado') == 0 ? 'selected' : '' ?>>Pendiente estado</option>
+                            <option value="Pendiente docu" <?= strcasecmp(trim((string)($matricula['estado'] ?? '')), 'Pendiente docu') == 0 ? 'selected' : '' ?>>Pendiente docu</option>
+                            <option value="Pendiente otro curso" <?= strcasecmp(trim((string)($matricula['estado'] ?? '')), 'Pendiente otro curso') == 0 ? 'selected' : '' ?>>Pendiente otro curso</option>
+                            <option value="Admitido" <?= strcasecmp(trim((string)($matricula['estado'] ?? '')), 'Admitido') == 0 ? 'selected' : '' ?>>Admitido</option>
+                            <option value="Reserva" <?= strcasecmp(trim((string)($matricula['estado'] ?? '')), 'Reserva') == 0 ? 'selected' : '' ?>>Reserva</option>
+                            <option value="Espera" <?= strcasecmp(trim((string)($matricula['estado'] ?? '')), 'Espera') == 0 ? 'selected' : '' ?>>Espera</option>
+                            <option value="Empleado en curso" <?= strcasecmp(trim((string)($matricula['estado'] ?? '')), 'Empleado en curso') == 0 ? 'selected' : '' ?>>Empleado en curso</option>
+                            <option value="Finalizado" <?= in_array(strtolower(trim((string)($matricula['estado'] ?? ''))), ['finalizado', 'finalizada']) ? 'selected' : '' ?>>Finalizado</option>
+                            <option value="Finalizado sobrante" <?= strcasecmp(trim((string)($matricula['estado'] ?? '')), 'Finalizado sobrante') == 0 ? 'selected' : '' ?>>Finalizado sobrante</option>
+                            <option value="Abandono" <?= strcasecmp(trim((string)($matricula['estado'] ?? '')), 'Abandono') == 0 ? 'selected' : '' ?>>Abandono</option>
+                            <option value="Baja" <?= strcasecmp(trim((string)($matricula['estado'] ?? '')), 'Baja') == 0 ? 'selected' : '' ?>>Baja</option>
+                            <option value="Baja por colocación" <?= strcasecmp(trim((string)($matricula['estado'] ?? '')), 'Baja por colocación') == 0 ? 'selected' : '' ?>>Baja por colocación</option>
+                            <option value="Inscrito" <?= strcasecmp(trim((string)($matricula['estado'] ?? '')), 'Inscrito') == 0 ? 'selected' : '' ?>>Inscrito</option>
+                            <option value="Preinscrito" <?= strcasecmp(trim((string)($matricula['estado'] ?? '')), 'Preinscrito') == 0 ? 'selected' : '' ?>>Preinscrito</option>
+                            <option value="Cancelada" <?= strcasecmp(trim((string)($matricula['estado'] ?? '')), 'Cancelada') == 0 ? 'selected' : '' ?>>Cancelada</option>
+                            <option value="Anulada" <?= strcasecmp(trim((string)($matricula['estado'] ?? '')), 'Anulada') == 0 ? 'selected' : '' ?>>Anulada</option>
                         </select>
                     </div>
                     <div class="form-group" style="grid-column: span 1;">
@@ -1429,7 +1443,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     <div class="form-group" style="grid-column: span 1;">
                         <label>Estado para SEPE</label>
                         <select name="estado_sepe" class="form-control">
-                            <option value=""></option>
+                            <option value="">Seleccione...</option>
+                            <option value="Pendiente validacion" <?= strcasecmp(trim((string)($matricula['estado_sepe'] ?? '')), 'Pendiente validacion') == 0 ? 'selected' : '' ?>>Pendiente validacion</option>
+                            <option value="Pendiente estado" <?= strcasecmp(trim((string)($matricula['estado_sepe'] ?? '')), 'Pendiente estado') == 0 ? 'selected' : '' ?>>Pendiente estado</option>
+                            <option value="Admitido" <?= strcasecmp(trim((string)($matricula['estado_sepe'] ?? '')), 'Admitido') == 0 ? 'selected' : '' ?>>Admitido</option>
+                            <option value="Pendiente docu" <?= strcasecmp(trim((string)($matricula['estado_sepe'] ?? '')), 'Pendiente docu') == 0 ? 'selected' : '' ?>>Pendiente docu</option>
+                            <option value="Reserva" <?= strcasecmp(trim((string)($matricula['estado_sepe'] ?? '')), 'Reserva') == 0 ? 'selected' : '' ?>>Reserva</option>
+                            <option value="Espera" <?= strcasecmp(trim((string)($matricula['estado_sepe'] ?? '')), 'Espera') == 0 ? 'selected' : '' ?>>Espera</option>
+                            <option value="Empleado en curso" <?= strcasecmp(trim((string)($matricula['estado_sepe'] ?? '')), 'Empleado en curso') == 0 ? 'selected' : '' ?>>Empleado en curso</option>
+                            <option value="Finalizado" <?= strcasecmp(trim((string)($matricula['estado_sepe'] ?? '')), 'Finalizado') == 0 ? 'selected' : '' ?>>Finalizado</option>
+                            <option value="Abandono" <?= strcasecmp(trim((string)($matricula['estado_sepe'] ?? '')), 'Abandono') == 0 ? 'selected' : '' ?>>Abandono</option>
+                            <option value="Baja" <?= strcasecmp(trim((string)($matricula['estado_sepe'] ?? '')), 'Baja') == 0 ? 'selected' : '' ?>>Baja</option>
+                            <option value="Inscrito" <?= strcasecmp(trim((string)($matricula['estado_sepe'] ?? '')), 'Inscrito') == 0 ? 'selected' : '' ?>>Inscrito</option>
+                            <option value="Preinscrito" <?= strcasecmp(trim((string)($matricula['estado_sepe'] ?? '')), 'Preinscrito') == 0 ? 'selected' : '' ?>>Preinscrito</option>
+                            <option value="Cancelada" <?= strcasecmp(trim((string)($matricula['estado_sepe'] ?? '')), 'Cancelada') == 0 ? 'selected' : '' ?>>Cancelada</option>
+                            <option value="Anulada" <?= strcasecmp(trim((string)($matricula['estado_sepe'] ?? '')), 'Anulada') == 0 ? 'selected' : '' ?>>Anulada</option>
                         </select>
                     </div>
                     <div class="form-group" style="grid-column: span 1;">

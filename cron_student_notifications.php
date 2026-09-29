@@ -78,10 +78,12 @@ try {
         $fecha_3_dias = ($grupo['fecha_3_dias_fin']) ? date('Y-m-d', strtotime($grupo['fecha_3_dias_fin'])) : ($grupo['fecha_fin'] ? date('Y-m-d', strtotime($grupo['fecha_fin'] . ' -3 days')) : null);
         $fecha_fin = $grupo['fecha_fin'] ? date('Y-m-d', strtotime($grupo['fecha_fin'])) : null;
 
-        // Obtener alumnos del grupo
+        // Obtener alumnos del grupo con todos sus campos de progreso
         $stmtAl = $pdo->prepare("SELECT m.id as matricula_id, m.estado as matricula_estado, 
                                         m.notificacion_25_enviada, m.notificacion_50_enviada, m.notificacion_fin_enviada,
-                                        m.moodle_first_access,
+                                        m.moodle_first_access, m.moodle_last_access, m.moodle_connected_time,
+                                        m.moodle_e1_completed, m.moodle_e2_completed, m.moodle_e3_completed,
+                                        m.moodle_e1_grade, m.moodle_e2_grade, m.moodle_e3_grade, m.moodle_final_grade,
                                         a.id as alumno_id, a.nombre, a.primer_apellido, a.email, a.dni, a.moodle_user_id
                                  FROM matriculas m
                                  JOIN alumnos a ON m.alumno_id = a.id
@@ -113,6 +115,8 @@ try {
                             
                             // Actualizar en el array
                             $al['moodle_first_access'] = $first_acc;
+                            $al['moodle_last_access'] = $last_acc;
+                            $al['moodle_connected_time'] = $conn_time;
                         }
                     }
                 } catch (Exception $syncEx) {
@@ -126,23 +130,51 @@ try {
             $nombre_completo = trim($alumno['nombre'] . ' ' . $alumno['primer_apellido']);
             $email = trim($alumno['email']);
             $moodle_uid = $alumno['moodle_user_id'];
-            $first_access = $alumno['moodle_first_access'];
-            $has_accessed = ($first_access && $first_access !== '0000-00-00 00:00:00' && $first_access !== '1970-01-01 00:00:00');
+            
+            $estado_upper = strtoupper(trim((string)($alumno['matricula_estado'] ?? '')));
+            $isBaja = in_array($estado_upper, ['BAJA', 'ABANDONO', 'CANCELADA', 'ANULADA']);
+
+            if ($isBaja) {
+                // Alumno ya dado de baja o cancelado: no enviar notificaciones de hito
+                continue;
+            }
+
+            // Verificación exhaustiva de si el alumno ya ha accedido o realizado actividades
+            $first_access = $alumno['moodle_first_access'] ?? null;
+            $last_access = $alumno['moodle_last_access'] ?? null;
+            $conn_time = (int)($alumno['moodle_connected_time'] ?? 0);
+
+            $has_first_access = (!empty($first_access) && $first_access !== '0000-00-00 00:00:00' && $first_access !== '1970-01-01 00:00:00' && $first_access !== '1970-01-01 01:00:00');
+            $has_last_access = (!empty($last_access) && $last_access !== '0000-00-00 00:00:00' && $last_access !== '1970-01-01 00:00:00' && $last_access !== '1970-01-01 01:00:00');
+            $has_time = ($conn_time > 0);
+            $has_evaluations = (!empty($alumno['moodle_e1_completed']) || !empty($alumno['moodle_e2_completed']) || !empty($alumno['moodle_e3_completed']));
+            $has_grades = (
+                ($alumno['moodle_e1_grade'] !== null && $alumno['moodle_e1_grade'] !== '') ||
+                ($alumno['moodle_e2_grade'] !== null && $alumno['moodle_e2_grade'] !== '') ||
+                ($alumno['moodle_e3_grade'] !== null && $alumno['moodle_e3_grade'] !== '') ||
+                ($alumno['moodle_final_grade'] !== null && $alumno['moodle_final_grade'] !== '')
+            );
+
+            $has_accessed = ($has_first_access || $has_last_access || $has_time || $has_evaluations || $has_grades);
 
             if (empty($email)) {
                 echo "   -> Alumno '{$nombre_completo}' no tiene email configurado. Omitiendo notificaciones.\n";
                 continue;
             }
 
-            // 1. Alerta del 25% (Día de antes de la fecha del 25%)
+            // 1. Alerta del 25% (Aviso previo a la fecha límite del 25% SOLO para alumnos que NO han accedido)
             if ($fecha_25 && !$has_accessed && $alumno['notificacion_25_enviada'] == 0) {
-                $dia_antes_25 = date('Y-m-d', strtotime($fecha_25 . ' -1 day'));
-                if ($hoy === $dia_antes_25) {
+                $ts_25 = strtotime($fecha_25);
+                $ts_hoy = strtotime($hoy);
+                $dias_hasta_25 = round(($ts_25 - $ts_hoy) / 86400);
+
+                // Notificar si la fecha del 25% está próxima (entre 0 y 3 días antes)
+                if ($dias_hasta_25 >= 0 && $dias_hasta_25 <= 3) {
                     $subject = "⚠️ IMPORTANTE: Acceso pendiente a tu curso en el Aula Virtual";
                     $pass = 'Edite' . str_replace(['-', '.', ' '], '', $alumno['dni']) . '!';
                     $body = "Hola " . $alumno['nombre'] . ",\n\n"
                           . "Te recordamos que tu curso '" . $grupo['curso_titulo'] . "' se encuentra en marcha. Aún no registramos tu primer acceso a nuestra Aula Virtual.\n\n"
-                          . "Es obligatorio que accedas como tarde mañana (" . date('d/m/Y', strtotime($fecha_25)) . "), ya que si no registras tu primer acceso antes de esa fecha límite, la plataforma te dará de baja de forma automática y perderás tu plaza en el curso.\n\n"
+                          . "Es obligatorio que accedas como tarde el " . date('d/m/Y', strtotime($fecha_25)) . ", ya que si no registras tu primer acceso antes de esa fecha límite, la plataforma procesará tu baja de forma automática.\n\n"
                           . "Por favor, accede cuanto antes haciendo clic aquí:\n" . MOODLE_AULA_VIRTUAL_URL . "\n\n"
                           . "Tus credenciales de acceso son:\n"
                           . "- Usuario: " . $alumno['dni'] . "\n"
@@ -157,8 +189,8 @@ try {
                 }
             }
 
-            // 2. Baja por falta de acceso del 25% (El día del 25% o posterior si sigue inscrito)
-            if ($fecha_25 && !$has_accessed && $alumno['matricula_estado'] !== 'Baja') {
+            // 2. Baja por falta de acceso del 25% (El día del 25% o posterior si NUNCA accedió y sigue activo)
+            if ($fecha_25 && !$has_accessed && !$isBaja) {
                 if ($hoy >= $fecha_25) {
                     // Dar de baja localmente
                     $pdo->prepare("UPDATE matriculas SET estado = 'Baja' WHERE id = ?")->execute([$alumno['matricula_id']]);
@@ -188,8 +220,8 @@ try {
                 }
             }
 
-            // 3. Mensaje del 50% (Día de mitad de curso)
-            if ($fecha_mitad && $alumno['notificacion_50_enviada'] == 0 && $alumno['matricula_estado'] !== 'Baja') {
+            // 3. Mensaje del 50% (Día de mitad de curso para alumnos activos que avanzan)
+            if ($fecha_mitad && $alumno['notificacion_50_enviada'] == 0 && !$isBaja) {
                 if ($hoy === $fecha_mitad) {
                     $subject = "📈 Progreso del curso: ¡Has alcanzado el 50%!";
                     $body = "Hola " . $alumno['nombre'] . ",\n\n"
@@ -206,8 +238,8 @@ try {
                 }
             }
 
-            // 4. Mensaje de Fin de Curso (Faltan 3 días)
-            if ($fecha_3_dias && $alumno['notificacion_fin_enviada'] == 0 && $alumno['matricula_estado'] !== 'Baja') {
+            // 4. Mensaje de Fin de Curso (Faltan 3 días para el fin del curso)
+            if ($fecha_3_dias && $alumno['notificacion_fin_enviada'] == 0 && !$isBaja) {
                 if ($hoy === $fecha_3_dias) {
                     $subject = "⏳ Faltan 3 días para finalizar tu curso";
                     $body = "Hola " . $alumno['nombre'] . ",\n\n"

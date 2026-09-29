@@ -80,7 +80,8 @@ $files = [
     "api_send_trabajador_keys.php",
     "scratch/reset_and_send_comerciales.php",
     "scratch/verify_login_test.php",
-    "scratch/check_consuelo.php"
+    "scratch/check_consuelo.php",
+    "cron_student_notifications.php"
 ];
 
 foreach ($files as $f) {
