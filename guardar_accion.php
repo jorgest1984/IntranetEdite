@@ -129,6 +129,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $pdo->exec("ALTER TABLE acciones_formativas ADD COLUMN sector VARCHAR(255) DEFAULT NULL");
     } catch (PDOException $e) {}
+    try {
+        $pdo->exec("ALTER TABLE acciones_formativas ADD COLUMN sede_id INT DEFAULT NULL");
+    } catch (PDOException $e) {}
 
     // Heredar expediente, solicitante y sector del Plan si está asignado
     if (!empty($data['plan_id'])) {
@@ -207,7 +210,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Insert
             $sql = "INSERT INTO acciones_formativas (
                 plan_id, nivel, prioridad, estado, ultimas_plazas, id_plataforma, 
-                titulo, abreviatura, num_accion, duracion, p, d, t, modalidad, 
+                titulo, abreviatura, num_accion, duracion, p, d, t, modalidad, sede_id, 
                 familia_profesional, horas_teoricas, horas_practicas, dias_extra, asignacion, 
                 modulo_sensib, modulo_alfab, encuesta_post, dur_int_empresas, dur_emprendimiento, 
                 objetivos, objetivos_especificos, contenidos, contenidos_breves, que_aprenden, 
@@ -240,7 +243,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $sql .= ") VALUES (
                 :plan_id, :nivel, :prioridad, :estado, :ultimas_plazas, :id_plataforma, 
-                :titulo, :abreviatura, :num_accion, :duracion, :p, :d, :t, :modalidad, 
+                :titulo, :abreviatura, :num_accion, :duracion, :p, :d, :t, :modalidad, :sede_id, 
                 :familia_profesional, :horas_teoricas, :horas_practicas, :dias_extra, :asignacion, 
                 :modulo_sensib, :modulo_alfab, :encuesta_post, :dur_int_empresas, :dur_emprendimiento, 
                 :objetivos, :objetivos_especificos, :contenidos, :contenidos_breves, :que_aprenden, 

@@ -41,6 +41,9 @@ try {
 try {
     $pdo->exec("ALTER TABLE acciones_formativas ADD COLUMN sector VARCHAR(255) DEFAULT NULL");
 } catch (PDOException $e) {}
+try {
+    $pdo->exec("ALTER TABLE acciones_formativas ADD COLUMN sede_id INT DEFAULT NULL");
+} catch (PDOException $e) {}
 
 // Obtener datos heredados del Plan si está asignado
 $expediente = null;
