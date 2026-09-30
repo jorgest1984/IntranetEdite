@@ -50,7 +50,13 @@ if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL
                         <div class="tile-title">Buscar Empresa</div>
                     </a>
 
-                    <!-- Puedes agregar más funcionalidades en el futuro -->
+                    <!-- Tarjeta NUEVA EMPRESA -->
+                    <a href="ficha_empresa.php?new=1" class="tile tile-emerald">
+                        <div class="tile-icon">
+                            <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                        </div>
+                        <div class="tile-title">Crear Nueva Empresa</div>
+                    </a>
 
                 </div>
             </div>

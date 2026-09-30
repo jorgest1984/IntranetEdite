@@ -81,7 +81,12 @@ $files = [
     "scratch/reset_and_send_comerciales.php",
     "scratch/verify_login_test.php",
     "scratch/check_adgd073po.php",
-    "cron_student_notifications.php"
+    "cron_student_notifications.php",
+    "alumnos.php",
+    "buscar_alumnos.php",
+    "importar_alumnos.php",
+    "comerciales_empresas.php",
+    "comerciales_trabajadores.php"
 ];
 
 foreach ($files as $f) {
