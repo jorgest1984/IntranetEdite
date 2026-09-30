@@ -26,6 +26,7 @@ try {
 
     $missingCols = [
         'notificacion_25_enviada' => 'TINYINT(1) DEFAULT 0',
+        'baja_25_enviada' => 'TINYINT(1) DEFAULT 0',
         'notificacion_50_enviada' => 'TINYINT(1) DEFAULT 0',
         'notificacion_fin_enviada' => 'TINYINT(1) DEFAULT 0'
     ];
@@ -80,7 +81,7 @@ try {
 
         // Obtener alumnos del grupo con todos sus campos de progreso
         $stmtAl = $pdo->prepare("SELECT m.id as matricula_id, m.estado as matricula_estado, 
-                                        m.notificacion_25_enviada, m.notificacion_50_enviada, m.notificacion_fin_enviada,
+                                        m.notificacion_25_enviada, m.baja_25_enviada, m.notificacion_50_enviada, m.notificacion_fin_enviada,
                                         m.moodle_first_access, m.moodle_last_access, m.moodle_connected_time,
                                         m.moodle_e1_completed, m.moodle_e2_completed, m.moodle_e3_completed,
                                         m.moodle_e1_grade, m.moodle_e2_grade, m.moodle_e3_grade, m.moodle_final_grade,
@@ -95,6 +96,24 @@ try {
             echo "   -> Sin alumnos matriculados.\n\n";
             continue;
         }
+
+        // Auto-resolver moodle_user_id si falta en alumnos
+        foreach ($alumnos as &$alRef) {
+            if (empty($alRef['moodle_user_id'])) {
+                $foundUid = null;
+                if (!empty($alRef['dni'])) {
+                    $foundUid = $moodleApi->getUserIdByUsername(strtolower(trim($alRef['dni'])));
+                }
+                if (!$foundUid && !empty($alRef['email'])) {
+                    $foundUid = $moodleApi->getUserIdByEmail(trim($alRef['email']));
+                }
+                if ($foundUid) {
+                    $alRef['moodle_user_id'] = $foundUid;
+                    $pdo->prepare("UPDATE alumnos SET moodle_user_id = ? WHERE id = ?")->execute([$foundUid, $alRef['alumno_id']]);
+                }
+            }
+        }
+        unset($alRef);
 
         // Sincronizar accesos desde Moodle antes de evaluar para tener los datos más recientes
         if ($moodleDb->isConnected()) {
@@ -119,6 +138,7 @@ try {
                             $al['moodle_connected_time'] = $conn_time;
                         }
                     }
+                    unset($al);
                 } catch (Exception $syncEx) {
                     echo "   [!] Advertencia al sincronizar accesos: " . $syncEx->getMessage() . "\n";
                 }
@@ -168,7 +188,7 @@ try {
                 $ts_hoy = strtotime($hoy);
                 $dias_hasta_25 = round(($ts_25 - $ts_hoy) / 86400);
 
-                // Notificar si la fecha del 25% está próxima (entre 0 y 3 días antes)
+                // Notificar únicamente si la fecha del 25% es PRÓXIMA (entre 0 y 3 días antes)
                 if ($dias_hasta_25 >= 0 && $dias_hasta_25 <= 3) {
                     $subject = "⚠️ IMPORTANTE: Acceso pendiente a tu curso en el Aula Virtual";
                     $pass = 'Edite' . str_replace(['-', '.', ' '], '', $alumno['dni']) . '!';
@@ -189,11 +209,16 @@ try {
                 }
             }
 
-            // 2. Baja por falta de acceso del 25% (El día del 25% o posterior si NUNCA accedió y sigue activo)
-            if ($fecha_25 && !$has_accessed && !$isBaja) {
-                if ($hoy >= $fecha_25) {
-                    // Dar de baja localmente
-                    $pdo->prepare("UPDATE matriculas SET estado = 'Baja' WHERE id = ?")->execute([$alumno['matricula_id']]);
+            // 2. Baja por falta de acceso del 25% (ÚNICAMENTE el día del 25% o hasta 1 día después, sin reenvíos tardíos)
+            if ($fecha_25 && !$has_accessed && !$isBaja && empty($alumno['baja_25_enviada'])) {
+                $ts_25 = strtotime($fecha_25);
+                $ts_hoy = strtotime($hoy);
+                $dias_pasados = round(($ts_hoy - $ts_25) / 86400);
+
+                // Procesar la baja SOLO en el día del 25% o al día siguiente (0 a 1 día de margen)
+                if ($dias_pasados >= 0 && $dias_pasados <= 1) {
+                    // Dar de baja localmente y marcar baja_25_enviada
+                    $pdo->prepare("UPDATE matriculas SET estado = 'Baja', baja_25_enviada = 1 WHERE id = ?")->execute([$alumno['matricula_id']]);
                     
                     // Suspender matrícula en Moodle (status = 1) para bloquear el acceso sin borrar el historial
                     if ($moodle_uid) {

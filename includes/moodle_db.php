@@ -180,6 +180,24 @@ class MoodleDB {
                     }
                 } catch (Exception $ex) {}
 
+                // 1.C Fallback global de la tabla mdl_user (firstaccess, lastaccess)
+                try {
+                    $sqlUser = "SELECT id, firstaccess, lastaccess FROM {$prefix}user WHERE id IN ($placeholders)";
+                    $stmtU = $this->mpdo->prepare($sqlUser);
+                    $stmtU->execute($validUserIds);
+                    while ($row = $stmtU->fetch()) {
+                        $uid = (int)$row['id'];
+                        if (isset($stats[$uid])) {
+                            if (!empty($row['firstaccess']) && (empty($stats[$uid]['first_access']) || date('Y-m-d H:i:s', $row['firstaccess']) < $stats[$uid]['first_access'])) {
+                                $stats[$uid]['first_access'] = date('Y-m-d H:i:s', $row['firstaccess']);
+                            }
+                            if (!empty($row['lastaccess']) && (empty($stats[$uid]['last_access']) || date('Y-m-d H:i:s', $row['lastaccess']) > $stats[$uid]['last_access'])) {
+                                $stats[$uid]['last_access'] = date('Y-m-d H:i:s', $row['lastaccess']);
+                            }
+                        }
+                    }
+                } catch (Exception $ex) {}
+
                 // 2. Tiempo de conexión por logs
                 try {
                     $sqlLogs = "SELECT userid, timecreated 
