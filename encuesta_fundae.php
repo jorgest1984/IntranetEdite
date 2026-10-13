@@ -11,26 +11,20 @@ require_once 'includes/config.php';
 // Log temporal para depuración de los parámetros enviados por Moodle
 file_put_contents(__DIR__ . '/encuesta_debug.log', date('Y-m-d H:i:s') . ' - QUERY_STRING: ' . ($_SERVER['QUERY_STRING'] ?? '') . ' - GET: ' . json_encode($_GET) . "\n", FILE_APPEND);
 
-$id_curso = isset($_GET['id_curso']) ? (int)$_GET['id_curso'] : 0;
-if (!$id_curso && isset($_GET['idcurso'])) {
-    $id_curso = (int)$_GET['idcurso'];
-}
-if (!$id_curso && isset($_GET['moodle_course_id'])) {
-    $id_curso = (int)$_GET['moodle_course_id'];
-}
-if (!$id_curso && isset($_GET['id'])) {
-    $id_curso = (int)$_GET['id'];
+$id_curso = 0;
+foreach (['id_curso', 'idcurso', 'curso_id', 'cursoid', 'course_id', 'courseid', 'moodle_course_id', 'id'] as $param) {
+    if (!empty($_GET[$param]) && is_numeric($_GET[$param])) {
+        $id_curso = (int)$_GET[$param];
+        break;
+    }
 }
 
-$id_alumno = isset($_GET['id_alumno']) ? (int)$_GET['id_alumno'] : 0;
-if (!$id_alumno && isset($_GET['idalumno'])) {
-    $id_alumno = (int)$_GET['idalumno'];
-}
-if (!$id_alumno && isset($_GET['moodle_user_id'])) {
-    $id_alumno = (int)$_GET['moodle_user_id'];
-}
-if (!$id_alumno && isset($_GET['user_id'])) {
-    $id_alumno = (int)$_GET['user_id'];
+$id_alumno = 0;
+foreach (['id_alumno', 'idalumno', 'alumno_id', 'alumnoid', 'idusuario', 'id_usuario', 'usuario_id', 'usuarioid', 'user_id', 'userid', 'moodle_user_id', 'user', 'usuario'] as $param) {
+    if (!empty($_GET[$param]) && is_numeric($_GET[$param])) {
+        $id_alumno = (int)$_GET[$param];
+        break;
+    }
 }
 
 if (!$id_curso || !$id_alumno) {
@@ -88,6 +82,79 @@ try {
         ");
         $stmt->execute([$id_alumno, $id_alumno]);
         $matricula = $stmt->fetch();
+    }
+
+    // Intento 3 (Fallback por resolución directa en Moodle DB por si moodle_user_id no estaba guardado en Intranet):
+    if (!$matricula && $id_alumno > 0) {
+        require_once __DIR__ . '/includes/moodle_db.php';
+        $moodleDb = new MoodleDB();
+        if ($moodleDb->isConnected()) {
+            $pdoM = $moodleDb->getPDO();
+            $prefix = $moodleDb->getTablePrefix();
+            $stmtMUser = $pdoM->prepare("SELECT id, username, email, firstname, lastname FROM {$prefix}user WHERE id = ? AND deleted = 0 LIMIT 1");
+            $stmtMUser->execute([$id_alumno]);
+            $mUser = $stmtMUser->fetch(PDO::FETCH_ASSOC);
+
+            if ($mUser) {
+                $cleanDni = strtolower(trim(str_replace([' ', '-', '.'], '', $mUser['username'])));
+                $email = strtolower(trim($mUser['email']));
+                $stmtM3 = $pdo->prepare("
+                    SELECT m.id as matricula_id, af.id as accion_id, af.titulo as curso_nombre, af.abreviatura, af.duracion,
+                           af.modalidad, af.num_accion, g.numero_grupo, g.fecha_inicio, g.fecha_fin,
+                           co.codigo_expediente,
+                           a.nombre, a.primer_apellido, a.segundo_apellido, a.dni, a.sexo, a.email
+                    FROM matriculas m
+                    JOIN alumnos a ON m.alumno_id = a.id
+                    JOIN grupos g ON m.grupo_id = g.id
+                    JOIN acciones_formativas af ON g.accion_id = af.id
+                    LEFT JOIN planes pl ON af.plan_id = pl.id
+                    LEFT JOIN convocatorias co ON pl.convocatoria_id = co.id
+                    WHERE (LOWER(a.dni) = ? OR LOWER(a.plat_usuario) = ? OR LOWER(a.email) = ?)
+                    ORDER BY m.id DESC
+                    LIMIT 1
+                ");
+                $stmtM3->execute([$cleanDni, $cleanDni, $email]);
+                $matricula = $stmtM3->fetch(PDO::FETCH_ASSOC);
+                
+                if ($matricula) {
+                    // Vinculación automática en la Intranet
+                    $pdo->prepare("UPDATE alumnos SET moodle_user_id = ? WHERE id = ?")->execute([$id_alumno, $matricula['alumno_id'] ?? 0]);
+                }
+            }
+        }
+    }
+
+    // Intento 4 (Fallback para Tutores/Administradores - Vista previa del cuestionario):
+    // Si el usuario es un tutor, administrador o cuenta de gestión (ej: idusuario=3) y no es un alumno matriculado
+    if (!$matricula && $id_curso > 0) {
+        $stmtTutor = $pdo->prepare("
+            SELECT m.id as matricula_id, af.id as accion_id, af.titulo as curso_nombre, af.abreviatura, af.duracion,
+                   af.modalidad, af.num_accion, g.numero_grupo, g.fecha_inicio, g.fecha_fin,
+                   co.codigo_expediente,
+                   a.nombre, a.primer_apellido, a.segundo_apellido, a.dni, a.sexo, a.email
+            FROM grupos g
+            JOIN acciones_formativas af ON g.accion_id = af.id
+            LEFT JOIN matriculas m ON m.grupo_id = g.id
+            LEFT JOIN alumnos a ON m.alumno_id = a.id
+            LEFT JOIN cursos c ON af.curso_id = c.id
+            LEFT JOIN planes pl ON af.plan_id = pl.id
+            LEFT JOIN convocatorias co ON pl.convocatoria_id = co.id
+            WHERE (
+                af.id_plataforma = :id_curso
+                OR af.id = :id_curso
+                OR (c.id IS NOT NULL AND c.moodle_id = :id_curso)
+                OR (c.id IS NOT NULL AND c.id = :id_curso)
+                OR g.id_plataforma = :id_curso
+                OR g.id = :id_curso
+            )
+            ORDER BY m.id DESC
+            LIMIT 1
+        ");
+        $stmtTutor->execute([':id_curso' => $id_curso]);
+        $matricula = $stmtTutor->fetch(PDO::FETCH_ASSOC);
+        if ($matricula) {
+            $is_tutor_preview = true;
+        }
     }
 } catch (Exception $e) {
     die("Error al consultar la matrícula: " . $e->getMessage());
@@ -475,6 +542,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <h1 style="font-size: 1.15rem; line-height: 1.4; margin-bottom: 5px;">CUESTIONARIO DE LA EVALUACIÓN PARA LA CALIDAD DE LAS ACCIONES FORMATIVAS EN EL MARCO DEL SISTEMA DE FORMACIÓN PARA EL EMPLEO<br><span style="color: var(--primary-light);">FORMACIÓN DE OFERTA</span></h1>
             <p style="font-size: 0.85rem; margin-top: 5px; font-weight: 600;">(Orden TAS/718/2008, de 7 de Marzo)</p>
         </header>
+
+        <?php if (!empty($is_tutor_preview)): ?>
+            <div style="background: #eff6ff; border: 1px solid #93c5fd; color: #1e40af; padding: 15px 20px; border-radius: 8px; margin: 20px 30px 0 30px; font-weight: 600; display: flex; align-items: center; gap: 12px; font-size: 0.9rem;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink: 0;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                <span><strong>Modo Vista Previa (Acceso Tutor/Admin):</strong> Estás viendo el cuestionario oficial de este curso tal como lo ven los alumnos matriculados.</span>
+            </div>
+        <?php endif; ?>
 
         <form method="POST" action="" class="form-body" id="fundaeForm">
             <?php if (isset($error_msg)): ?>

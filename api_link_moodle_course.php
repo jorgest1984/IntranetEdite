@@ -7,7 +7,7 @@ require_once 'includes/moodle_api.php';
 header('Content-Type: application/json; charset=utf-8');
 
 // 1. Verificar permisos
-if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_TUTOR])) {
+if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_TUTOR, ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL, ROLE_PRACTICAS, ROLE_ADMINISTRATIVO])) {
     echo json_encode(['success' => false, 'error' => 'Permisos insuficientes para realizar esta operación.']);
     exit();
 }

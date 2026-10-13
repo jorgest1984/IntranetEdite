@@ -5,7 +5,7 @@ header("Cache-Control: post-check=0, pre-check=0", false);
 header("Pragma: no-cache");
 require_once 'includes/auth.php';
 
-if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA, ROLE_FORMADOR, ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL])) {
+if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_LECTURA, ROLE_FORMADOR, ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL, ROLE_PRACTICAS])) {
     header("Location: dashboard.php");
     exit();
 }
@@ -255,7 +255,7 @@ try {
 // Fetch formadores for the Teleformador dropdown (using usuarios with role Formador/Tutor)
 $formadores = [];
 try {
-    $stmt = $pdo->query("SELECT u.id, u.nombre, u.apellidos as primer_apellido FROM usuarios u JOIN roles r ON u.rol_id = r.id WHERE (r.nombre LIKE '%Formador%' OR r.nombre LIKE '%Tutor%') AND u.activo = 1 ORDER BY u.nombre ASC");
+    $stmt = $pdo->query("SELECT u.id, u.nombre, u.apellidos as primer_apellido FROM usuarios u JOIN roles r ON u.rol_id = r.id WHERE (r.nombre LIKE '%Formador%' OR r.nombre LIKE '%Tutor%' OR r.nombre LIKE '%Docente%' OR u.rol_id = 3) AND u.activo = 1 ORDER BY u.nombre ASC");
     if ($stmt) { $formadores = $stmt->fetchAll(); }
 } catch (Throwable $e) { }
 ?>
@@ -2515,9 +2515,9 @@ try {
                                                 </div>
                                             </td>
                                             <td style="font-size: 0.75rem; white-space: nowrap; line-height: 1.4; color: #475569;">
-                                                E1: <strong><?= $al['moodle_e1_completed'] && $al['moodle_e1_grade'] !== null ? number_format(floor((float)$al['moodle_e1_grade']), 0) : '---' ?></strong><br>
-                                                E2: <strong><?= $al['moodle_e2_completed'] && $al['moodle_e2_grade'] !== null ? number_format(floor((float)$al['moodle_e2_grade']), 0) : '---' ?></strong><br>
-                                                E3: <strong><?= $al['moodle_e3_completed'] && $al['moodle_e3_grade'] !== null ? number_format(floor((float)$al['moodle_e3_grade']), 0) : '---' ?></strong>
+                                                E1: <strong><?= (!empty($al['moodle_e1_completed']) || ($al['moodle_e1_grade'] !== null && $al['moodle_e1_grade'] !== '')) ? (($al['moodle_e1_grade'] !== null && $al['moodle_e1_grade'] !== '') ? number_format(floor((float)$al['moodle_e1_grade']), 0) : '10') : '---' ?></strong><br>
+                                                E2: <strong><?= (!empty($al['moodle_e2_completed']) || ($al['moodle_e2_grade'] !== null && $al['moodle_e2_grade'] !== '')) ? (($al['moodle_e2_grade'] !== null && $al['moodle_e2_grade'] !== '') ? number_format(floor((float)$al['moodle_e2_grade']), 0) : '10') : '---' ?></strong><br>
+                                                E3: <strong><?= (!empty($al['moodle_e3_completed']) || ($al['moodle_e3_grade'] !== null && $al['moodle_e3_grade'] !== '')) ? (($al['moodle_e3_grade'] !== null && $al['moodle_e3_grade'] !== '') ? number_format(floor((float)$al['moodle_e3_grade']), 0) : '10') : '---' ?></strong>
                                             </td>
                                             <td>
                                                 <div class="progress-container">

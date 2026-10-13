@@ -3,7 +3,7 @@
 require_once 'includes/auth.php';
 require_once 'includes/config.php';
 
-if (!has_permission([ROLE_ADMIN, ROLE_TUTOR, ROLE_COORD])) {
+if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_TUTOR, ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL, ROLE_PRACTICAS, ROLE_ADMINISTRATIVO])) {
     header("Location: home.php");
     exit();
 }
@@ -134,34 +134,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action_save_personal']
                 
                 // Sincronizar Inspector del SEPE (Usuario Gestor)
                 if (!empty($usuario_gestor)) {
-                    $gestor_username = preg_replace('/[^a-z0-9_.-]/', '', strtolower(str_replace(' ', '_', $usuario_gestor)));
-                    $gestor_email = $gestor_username . '@avefp.es';
-                    $gestor_pass = !empty($contrasena_gestor) ? $contrasena_gestor : 'InspectorSepe-2026*';
-                    if (!preg_match('/[^a-zA-Z0-9]/', $gestor_pass)) {
-                        $gestor_pass .= '-*';
-                    }
-                    
-                    $existingG = $moodle->getUsersByField('username', [$gestor_username]);
-                    $moodleGestorId = null;
-                    if (!empty($existingG) && isset($existingG['users'][0])) {
-                        $moodleGestorId = $existingG['users'][0]['id'];
-                    } else {
-                        $newG = $moodle->createUser(
-                            $gestor_username,
-                            $gestor_pass,
-                            'Inspector',
-                            'SEPE',
-                            $gestor_email
-                        );
-                        if (isset($newG[0]['id'])) {
-                            $moodleGestorId = $newG[0]['id'];
-                        }
-                    }
-                    
-                    if ($moodleGestorId) {
-                        // Enrol inspector as non-editing teacher (role ID 4)
-                        $moodle->enrolUser($moodleGestorId, $courseMoodleId, 4);
-                        $sync_msg .= ($sync_msg ? ' ' : '') . "Inspector SEPE ('$gestor_username') matriculado en Moodle.";
+                    $moodleGroupId = !empty($grupo_full['id_plataforma']) && is_numeric($grupo_full['id_plataforma']) ? (int)$grupo_full['id_plataforma'] : null;
+                    $gestorUserId = $moodle->provisionInspector($courseMoodleId, $moodleGroupId, $usuario_gestor, $contrasena_gestor);
+                    if ($gestorUserId) {
+                        $clean_username = preg_replace('/[^a-z0-9_.-]/', '', strtolower(str_replace(' ', '_', $usuario_gestor)));
+                        $sync_msg .= ($sync_msg ? ' ' : '') . "Inspector SEPE ('$clean_username') sincronizado y matriculado en Moodle.";
                     }
                 }
             } else {

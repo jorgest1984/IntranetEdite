@@ -30,4 +30,10 @@ node_modules/
 vendor/
 *.mp4
 scratch_*
+.vercel/
+*_bak.php
+scratch/*
+!scratch/deploy_ftp.php
+
+
 

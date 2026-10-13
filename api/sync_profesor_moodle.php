@@ -21,7 +21,7 @@ require_once __DIR__ . '/../includes/moodle_db.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
-if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_TUTOR])) {
+if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_TUTOR, ROLE_ADMINISTRATIVO, ROLE_PRACTICAS])) {
     echo json_encode(['success' => false, 'error' => 'No tienes permisos suficientes para realizar esta operación.']);
     exit();
 }

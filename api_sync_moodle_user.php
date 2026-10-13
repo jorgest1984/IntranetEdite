@@ -6,7 +6,7 @@ require_once 'includes/moodle_api.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
-if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_TUTOR, ROLE_PRACTICAS])) {
+if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_TUTOR, ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL, ROLE_PRACTICAS, ROLE_ADMINISTRATIVO])) {
     echo json_encode(['success' => false, 'error' => 'Permisos insuficientes para realizar esta operación.']);
     exit();
 }
@@ -62,12 +62,12 @@ try {
     // 2. Buscar o crear usuario en Moodle
     $was_created = false;
     
-    // Si no tenemos moodle_user_id localmente, lo buscamos en Moodle por email
+    // Si no tenemos moodle_user_id localmente o es distinto, lo buscamos en Moodle por email, username, DNI o nombre
     if (empty($muid)) {
         try {
-            $mResult = $moodle->getUsersByField('email', [$email]);
-            if (!empty($mResult) && isset($mResult['users'][0])) {
-                $muid = $mResult['users'][0]['id'];
+            $foundMUser = $moodle->findUserByAny($email, $username, $cleanDni, $firstname . ' ' . $lastname);
+            if (!empty($foundMUser['id'])) {
+                $muid = (int)$foundMUser['id'];
             }
         } catch (Exception $e) {
             // Silencioso, procedemos a intentar crearlo

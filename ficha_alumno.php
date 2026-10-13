@@ -176,21 +176,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         $muid = $alumno['moodle_user_id'];
         $was_created = false;
         
-        $mResult = $moodle->getUsersByField('email', [$alumno['email']]);
+        $cleanDni = !empty($alumno['dni']) ? strtolower(trim(str_replace([' ', '-', '.'], '', $alumno['dni']))) : '';
+        $username = !empty($alumno['plat_usuario']) ? $alumno['plat_usuario'] : (!empty($cleanDni) ? $cleanDni : strtolower(explode('@', $alumno['email'])[0]));
+        $foundMUser = $moodle->findUserByAny($alumno['email'], $username, $cleanDni, $alumno['nombre'] . ' ' . $alumno['primer_apellido'] . ' ' . $alumno['segundo_apellido']);
         
-        if (!empty($mResult['users'])) {
-            $muid = $mResult['users'][0]['id'];
+        if (!empty($foundMUser['id'])) {
+            $muid = (int)$foundMUser['id'];
         } else {
-            $pass = "T" . substr(md5(time()), 0, 8) . "!";
+            $pass = !empty($alumno['plat_clave']) ? $alumno['plat_clave'] : ("Edite" . (!empty($cleanDni) ? $cleanDni : substr(md5(time()), 0, 6)) . "!");
             $newUsers = $moodle->createUser(
-                strtolower(explode('@', $alumno['email'])[0]),
+                $username,
                 $pass,
                 $alumno['nombre'],
                 $alumno['primer_apellido'] . ' ' . $alumno['segundo_apellido'],
                 $alumno['email']
             );
-            $muid = $newUsers[0]['id'];
-            $was_created = true;
+            if (!empty($newUsers[0]['id'])) {
+                $muid = (int)$newUsers[0]['id'];
+                $was_created = true;
+            }
         }
         
         if ($muid && $alumno['moodle_user_id'] != $muid) {

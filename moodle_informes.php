@@ -403,8 +403,20 @@ if (!$grupo) {
                 <section class="list-section-premium">
                     <div class="section-header-premium">
                         <h2>Listado de Alumnos (Grupo <?= htmlspecialchars($grupo['numero_grupo']) ?>)</h2>
-                        <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); background: #f1f5f9; padding: 6px 14px; border-radius: 8px;">
-                            <?= count($alumnos) ?> alumnos
+                        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                            <a href="exportar_encuestas_xml.php?grupo_id=<?= $grupo['grupo_id'] ?>" 
+                               class="btn-action-premium pdf" 
+                               style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-color: #047857; padding: 8px 14px; font-size: 0.8rem; font-weight: 700; border-radius: 8px; text-decoration: none; color: white;" 
+                               title="Descargar XML Encuestas FUNDAE de este grupo">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right: 4px;">
+                                    <polyline points="16 18 22 12 16 6"></polyline>
+                                    <polyline points="8 6 2 12 8 18"></polyline>
+                                </svg>
+                                Exportar Encuestas XML FUNDAE
+                            </a>
+                            <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); background: #f1f5f9; padding: 6px 14px; border-radius: 8px;">
+                                <?= count($alumnos) ?> alumnos
+                            </div>
                         </div>
                     </div>
                     <div style="overflow-x: auto;">

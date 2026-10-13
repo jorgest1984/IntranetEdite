@@ -28,7 +28,7 @@ try {
     $comerciales = $stmtComerciales->fetchAll();
 
     // Obtener Tutores (Rol 'Formador' o 'Tutor')
-    $stmtTutores = $pdo->query("SELECT u.id, u.nombre, u.apellidos FROM usuarios u JOIN roles r ON u.rol_id = r.id WHERE (r.nombre LIKE '%Formador%' OR r.nombre LIKE '%Tutor%') AND u.activo = 1 ORDER BY u.nombre ASC");
+    $stmtTutores = $pdo->query("SELECT u.id, u.nombre, u.apellidos FROM usuarios u JOIN roles r ON u.rol_id = r.id WHERE (r.nombre LIKE '%Formador%' OR r.nombre LIKE '%Tutor%' OR r.nombre LIKE '%Docente%' OR u.rol_id = 3) AND u.activo = 1 ORDER BY u.nombre ASC");
     $tutores = $stmtTutores->fetchAll();
 
     // Obtener Centros (Tabla empresas)
@@ -473,15 +473,15 @@ $current_page = 'tutorias.php';
                 <a href="email_masivo.php" class="btn-action <?= ($current_page ?? '') == 'email_masivo.php' ? 'active-btn' : '' ?>">
                     <i class="fas fa-envelope"></i> E-mails masivos
                 </a>
-                <button type="button" class="btn-action">
-                    <i class="fas fa-play"></i> Inicio curso ()
-                </button>
-                <button type="button" class="btn-action">
-                    <i class="fas fa-adjust"></i> Mitad de curso ()
-                </button>
-                <button type="button" class="btn-action">
-                    <i class="fas fa-calendar-check"></i> 7 días fin ()
-                </button>
+                <a href="email_masivo.php?conectados=N&action_type=search" class="btn-action">
+                    <i class="fas fa-play"></i> Inicio curso (no conectados)
+                </a>
+                <a href="email_masivo.php?action_type=search" class="btn-action">
+                    <i class="fas fa-adjust"></i> Mitad de curso
+                </a>
+                <a href="email_masivo.php?action_type=search" class="btn-action">
+                    <i class="fas fa-calendar-check"></i> 7 días fin
+                </a>
                 <button type="button" class="btn-action">
                     <i class="fas fa-file-alt"></i> Documentación ()
                 </button>

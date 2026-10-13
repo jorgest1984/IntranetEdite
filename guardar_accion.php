@@ -3,6 +3,11 @@
 require_once 'includes/config.php';
 require_once 'includes/auth.php';
 
+if (!has_permission([ROLE_ADMIN, ROLE_TUTOR, ROLE_COORD, ROLE_PRACTICAS, ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL])) {
+    header("Location: home.php");
+    exit();
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Sanitización básica y recolección de datos
     // Sanitización básica y recolección de datos

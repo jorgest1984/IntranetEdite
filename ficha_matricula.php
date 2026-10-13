@@ -38,13 +38,31 @@ if (!$matricula) {
     die("Matrícula no encontrada.");
 }
 
+$isApto = false;
+if (!empty($matricula['diploma_tipo'])) {
+    if (strtolower($matricula['diploma_tipo']) === 'aprovechamiento') {
+        $isApto = true;
+    }
+} elseif (!empty($matricula['estado']) && (strpos(strtoupper($matricula['estado']), 'APTO') !== false || strpos(strtoupper($matricula['estado']), 'FINALIZADO') !== false || strpos(strtoupper($matricula['estado']), 'COMPLETADO') !== false) && strpos(strtoupper($matricula['estado']), 'NO APTO') === false) {
+    $isApto = true;
+} elseif (isset($matricula['moodle_final_grade']) && is_numeric($matricula['moodle_final_grade']) && (float)$matricula['moodle_final_grade'] >= 5) {
+    $isApto = true;
+} else {
+    $grades = [];
+    if (isset($matricula['moodle_e2_grade']) && is_numeric($matricula['moodle_e2_grade'])) $grades[] = (float)$matricula['moodle_e2_grade'];
+    if (isset($matricula['moodle_e3_grade']) && is_numeric($matricula['moodle_e3_grade'])) $grades[] = (float)$matricula['moodle_e3_grade'];
+    if (count($grades) > 0 && (array_sum($grades) / count($grades)) >= 5) {
+        $isApto = true;
+    }
+}
+
 $empresas = $pdo->query("SELECT id, nombre FROM empresas ORDER BY nombre ASC")->fetchAll(PDO::FETCH_ASSOC);
 $planes = $pdo->query("SELECT id, nombre FROM planes ORDER BY nombre ASC")->fetchAll(PDO::FETCH_ASSOC);
 $todos_cursos = $pdo->query("SELECT id, nombre_corto, nombre_largo FROM cursos ORDER BY nombre_corto ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 // Cargar Comerciales, Tutores y lista de Grupos
 $comerciales = $pdo->query("SELECT u.id, u.nombre, u.apellidos FROM usuarios u JOIN roles r ON u.rol_id = r.id WHERE r.nombre LIKE '%Comercial%' AND u.activo = 1 ORDER BY u.nombre ASC")->fetchAll(PDO::FETCH_ASSOC);
-$tutores = $pdo->query("SELECT u.id, u.nombre, u.apellidos FROM usuarios u JOIN roles r ON u.rol_id = r.id WHERE (r.nombre LIKE '%Formador%' OR r.nombre LIKE '%Tutor%') AND u.activo = 1 ORDER BY u.nombre ASC")->fetchAll(PDO::FETCH_ASSOC);
+$tutores = $pdo->query("SELECT u.id, u.nombre, u.apellidos FROM usuarios u JOIN roles r ON u.rol_id = r.id WHERE (r.nombre LIKE '%Formador%' OR r.nombre LIKE '%Tutor%' OR r.nombre LIKE '%Docente%' OR u.rol_id = 3) AND u.activo = 1 ORDER BY u.nombre ASC")->fetchAll(PDO::FETCH_ASSOC);
 $todos_grupos = $pdo->query("
     SELECT g.id, g.numero_grupo, c.nombre_corto as curso_codigo
     FROM grupos g
@@ -1680,13 +1698,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     </div>
                 </div>
 
-                <div style="background: #ffedd5; padding: 1.5rem; border-radius: 8px; border: 1px solid #fdba74; margin-bottom: 2rem;">
+                <div style="background: <?= $isApto ? '#eff6ff' : '#fff7ed' ?>; padding: 1.25rem 1.5rem; border-radius: 12px; border: 1px solid <?= $isApto ? '#bfdbfe' : '#fed7aa' ?>; margin-bottom: 2rem; box-shadow: 0 2px 5px rgba(0,0,0,0.03);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid <?= $isApto ? '#dbeafe' : '#ffedd5' ?>;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <strong style="font-size: 0.95rem; color: <?= $isApto ? '#1e40af' : '#9a3412' ?>;">
+                                <i class="fa-solid <?= $isApto ? 'fa-graduation-cap' : 'fa-certificate' ?>"></i> Documentación de Finalización:
+                            </strong>
+                            <?php if ($isApto): ?>
+                                <span style="background: #d1fae5; color: #065f46; font-size: 0.8rem; font-weight: 700; padding: 3px 10px; border-radius: 12px; border: 1px solid #34d399; display: inline-flex; align-items: center; gap: 5px;">
+                                    <i class="fa-solid fa-circle-check"></i> CURSO FINALIZADO APTO - Corresponde Diploma
+                                </span>
+                            <?php else: ?>
+                                <span style="background: #fee2e2; color: #991b1b; font-size: 0.8rem; font-weight: 700; padding: 3px 10px; border-radius: 12px; border: 1px solid #f87171; display: inline-flex; align-items: center; gap: 5px;">
+                                    <i class="fa-solid fa-triangle-exclamation"></i> CASO NEGATIVO / NO APTO - Corresponde Certificado
+                                </span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <!-- Botones de Envio y Descarga de Diploma y Certificado -->
+                    <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 1.25rem;">
+                        <!-- SECCIÓN DIPLOMA -->
+                        <div style="display: flex; gap: 6px; align-items: center; background: white; padding: 6px 12px; border-radius: 8px; border: 1px solid <?= $isApto ? '#93c5fd' : '#cbd5e1' ?>;">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: #1e293b; margin-right: 4px;">Diploma:</span>
+                            <button type="button" onclick="enviarDocumentoMatricula('diploma')" id="btn-env-diploma" class="btn-modern" style="background: #fbbf24; color: #78350f; font-weight: 700; border: 1px solid #f59e0b; padding: 0.4rem 0.9rem; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                                🎓 Enviar Diploma
+                            </button>
+                            <a href="pdf_diploma.php?alumno_id=<?= $matricula['alumno_id'] ?>&grupo_id=<?= $matricula['grupo_id'] ?>&accion_id=<?= $matricula['accion_id'] ?>&tipo=diploma" target="_blank" class="btn-modern" style="background: #2563eb; color: white; font-weight: 700; border: 1px solid #1d4ed8; padding: 0.4rem 0.9rem; font-size: 0.85rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                                ⬇️ Descargar Diploma
+                            </a>
+                        </div>
+
+                        <!-- SECCIÓN CERTIFICADO -->
+                        <div style="display: flex; gap: 6px; align-items: center; background: white; padding: 6px 12px; border-radius: 8px; border: 1px solid <?= !$isApto ? '#fca5a5' : '#cbd5e1' ?>;">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: #1e293b; margin-right: 4px;">Certificado:</span>
+                            <button type="button" onclick="enviarDocumentoMatricula('certificado')" id="btn-env-certificado" class="btn-modern" style="background: #10b981; color: white; font-weight: 700; border: 1px solid #059669; padding: 0.4rem 0.9rem; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                                📜 Enviar Certificado
+                            </button>
+                            <a href="pdf_diploma.php?alumno_id=<?= $matricula['alumno_id'] ?>&grupo_id=<?= $matricula['grupo_id'] ?>&accion_id=<?= $matricula['accion_id'] ?>&tipo=certificado" target="_blank" class="btn-modern" style="background: #0d9488; color: white; font-weight: 700; border: 1px solid #0f766e; padding: 0.4rem 0.9rem; font-size: 0.85rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                                ⬇️ Descargar Certificado
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Campos de Registro/Comunicación -->
                     <div class="grid-form" style="grid-template-columns: auto auto auto auto 1fr; align-items: center; margin-bottom: 0;">
-                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; color: #9a3412;">
-                            <input type="checkbox" name="diploma_entregado" value="1" <?= !empty($matricula['diploma_entregado']) ? 'checked' : '' ?> style="width: 16px; height: 16px;"> Diploma:
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; color: #1e293b;">
+                            <input type="checkbox" id="chk_diploma_entregado" name="diploma_entregado" value="1" <?= !empty($matricula['diploma_entregado']) ? 'checked' : '' ?> style="width: 16px; height: 16px;"> Entregado:
                         </label>
-                        <select name="diploma_tipo" class="form-control" style="width: auto;">
-                            <option value=""></option>
+                        <select id="sel_diploma_tipo" name="diploma_tipo" class="form-control" style="width: auto; font-size: 0.85rem;">
+                            <option value="">-- Tipo --</option>
                             <?php
                             $tipos = ["Aprovechamiento", "Asistencia"];
                             if (!empty($matricula['diploma_tipo']) && !in_array($matricula['diploma_tipo'], $tipos)) {
@@ -1697,22 +1758,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                 <option value="<?= htmlspecialchars($t) ?>" <?= ($matricula['diploma_tipo'] ?? '') == $t ? 'selected' : '' ?>><?= htmlspecialchars($t) ?></option>
                             <?php endforeach; ?>
                         </select>
-                        <button type="button" class="btn-modern" style="background: #fbbf24; color: #92400e; font-weight: 700; border: 1px solid #f59e0b; padding: 0.4rem 1rem;">
-                            🎓 Enviar Diploma
-                        </button>
-                        <a href="pdf_diploma.php?alumno_id=<?= $matricula['alumno_id'] ?>&grupo_id=<?= $matricula['grupo_id'] ?>&accion_id=<?= $matricula['accion_id'] ?>&tipo=diploma" target="_blank" class="btn-modern" style="background: #2563eb; color: white; font-weight: 700; border: 1px solid #1d4ed8; padding: 0.4rem 1rem; text-decoration: none; margin-left: 0.5rem;">
-                            ⬇️ Descargar Diploma
-                        </a>
                         
-                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; color: #431407; margin-left: 1rem;">
-                            <input type="checkbox" name="comunicado" value="1" <?= !empty($matricula['comunicado']) ? 'checked' : '' ?> style="width: 16px; height: 16px;"> Comunicado:
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; color: #1e293b; margin-left: 1rem;">
+                            <input type="checkbox" id="chk_comunicado" name="comunicado" value="1" <?= !empty($matricula['comunicado']) ? 'checked' : '' ?> style="width: 16px; height: 16px;"> Comunicado:
                         </label>
                         <div style="display: flex; align-items: center; gap: 8px;">
-                            <label style="font-weight: 600; color: #431407;">Fecha comunicación:</label>
-                            <input type="date" name="fecha_comunicacion" class="form-control" value="<?= htmlspecialchars($matricula['fecha_comunicacion'] ?? '') ?>" style="width: auto;">
+                            <label style="font-weight: 600; color: #1e293b; font-size: 0.85rem;">Fecha comunicación:</label>
+                            <input type="date" id="input_fecha_comunicacion" name="fecha_comunicacion" class="form-control" value="<?= htmlspecialchars($matricula['fecha_comunicacion'] ?? '') ?>" style="width: auto; font-size: 0.85rem;">
                         </div>
-                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; color: #431407; margin-left: 1rem;">
-                            <input type="checkbox" name="comunicado_ugt" value="1" <?= !empty($matricula['comunicado_ugt']) ? 'checked' : '' ?> style="width: 16px; height: 16px;"> Comunicado UGT:
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; color: #1e293b; margin-left: 1rem;">
+                            <input type="checkbox" id="chk_comunicado_ugt" name="comunicado_ugt" value="1" <?= !empty($matricula['comunicado_ugt']) ? 'checked' : '' ?> style="width: 16px; height: 16px;"> Comunicado UGT:
                         </label>
                     </div>
                 </div>
@@ -2309,6 +2364,65 @@ Equipo de Soporte de Formación</textarea>
             btn.disabled = false;
             btn.innerHTML = originalText;
             alert('Error de red al sincronizar con Moodle.');
+        });
+    };
+
+    // Enviar diploma o certificado manualmente por AJAX
+    window.enviarDocumentoMatricula = function(tipo) {
+        const isDiploma = (tipo === 'diploma');
+        const labelDoc = isDiploma ? 'Diploma de Aprovechamiento' : 'Certificado de Asistencia';
+        
+        if (!confirm(`¿Deseas enviar el ${labelDoc} al alumno por correo electrónico?`)) {
+            return;
+        }
+        
+        const btn = document.getElementById(isDiploma ? 'btn-env-diploma' : 'btn-env-certificado');
+        const originalText = btn ? btn.innerHTML : '';
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '⌛ Enviando...';
+        }
+        
+        const formData = new FormData();
+        formData.append('matricula_id', '<?= $id ?>');
+        formData.append('tipo', tipo);
+        
+        fetch('api_send_diplomas.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+            
+            if (data.success) {
+                alert('✅ ' + (data.message || `${labelDoc} enviado correctamente.`));
+                
+                // Actualizar checkboxes y campos en UI
+                const chkEntregado = document.getElementById('chk_diploma_entregado');
+                if (chkEntregado) chkEntregado.checked = true;
+                
+                const selTipo = document.getElementById('sel_diploma_tipo');
+                if (selTipo) selTipo.value = isDiploma ? 'Aprovechamiento' : 'Asistencia';
+                
+                const chkComunicado = document.getElementById('chk_comunicado');
+                if (chkComunicado) chkComunicado.checked = true;
+                
+                const inputFecha = document.getElementById('input_fecha_comunicacion');
+                if (inputFecha) inputFecha.value = new Date().toISOString().split('T')[0];
+            } else {
+                alert('❌ Error al enviar: ' + (data.error || 'Ocurrió un problema en el servidor.'));
+            }
+        })
+        .catch(err => {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+            alert('❌ Error de red al enviar el correo.');
         });
     };
 </script>

@@ -80,7 +80,7 @@ try {
         $fecha_fin = $grupo['fecha_fin'] ? date('Y-m-d', strtotime($grupo['fecha_fin'])) : null;
 
         // Obtener alumnos del grupo con todos sus campos de progreso
-        $stmtAl = $pdo->prepare("SELECT m.id as matricula_id, m.estado as matricula_estado, 
+        $stmtAl = $pdo->prepare("SELECT m.id as matricula_id, m.estado as matricula_estado, m.conectado, m.fecha_conectado,
                                         m.notificacion_25_enviada, m.baja_25_enviada, m.notificacion_50_enviada, m.notificacion_fin_enviada,
                                         m.moodle_first_access, m.moodle_last_access, m.moodle_connected_time,
                                         m.moodle_e1_completed, m.moodle_e2_completed, m.moodle_e3_completed,
@@ -160,6 +160,7 @@ try {
             }
 
             // Verificación exhaustiva de si el alumno ya ha accedido o realizado actividades
+            $is_conectado_flag = (!empty($alumno['conectado']) || !empty($alumno['fecha_conectado']));
             $first_access = $alumno['moodle_first_access'] ?? null;
             $last_access = $alumno['moodle_last_access'] ?? null;
             $conn_time = (int)($alumno['moodle_connected_time'] ?? 0);
@@ -175,7 +176,12 @@ try {
                 ($alumno['moodle_final_grade'] !== null && $alumno['moodle_final_grade'] !== '')
             );
 
-            $has_accessed = ($has_first_access || $has_last_access || $has_time || $has_evaluations || $has_grades);
+            $has_accessed = ($is_conectado_flag || $has_first_access || $has_last_access || $has_time || $has_evaluations || $has_grades);
+
+            if ($has_accessed && empty($alumno['conectado'])) {
+                $pdo->prepare("UPDATE matriculas SET conectado = 1, fecha_conectado = COALESCE(fecha_conectado, NOW()) WHERE id = ?")->execute([$alumno['matricula_id']]);
+                $alumno['conectado'] = 1;
+            }
 
             if (empty($email)) {
                 echo "   -> Alumno '{$nombre_completo}' no tiene email configurado. Omitiendo notificaciones.\n";

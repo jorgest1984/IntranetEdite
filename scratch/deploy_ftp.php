@@ -66,6 +66,14 @@ $files = [
     "scratch/fix_matriculas_estado_column.php",
     "pdf_hoja_bienvenida.php",
     "pdf_recibi_material.php",
+    "pdf_informe_seguimiento.php",
+    "pdf_informe_evaluaciones.php",
+    "informe_evaluaciones_grupo.php",
+    "api_moodle_pdf.php",
+    "api_send_diplomas.php",
+    "diplomas.php",
+    "relacion_alumnos.php",
+    "grupos.php",
     "img/bienvenida_bg_1.png",
     "img/bienvenida_bg_2.png",
     "img/bienvenida_bg_3.png",
@@ -86,7 +94,21 @@ $files = [
     "buscar_alumnos.php",
     "importar_alumnos.php",
     "comerciales_empresas.php",
-    "comerciales_trabajadores.php"
+    "comerciales_trabajadores.php",
+    "alter_db.php",
+    "scratch/fix_diploma_tipo_column.php",
+    "scratch/inspect_monica_adgd073po.php",
+    "scratch/test_sync_adgd073po.php",
+    "scratch/find_monica_moodle_user.php",
+    "scratch/fix_monica_and_sync.php",
+    "encuesta_fundae.php",
+    "exportar_encuestas_xml.php",
+    "scratch/inspect_whatsapp_surveys.php",
+    "scratch/find_whatsapp_grupo.php",
+    "scratch/inspect_moodle_course_50.php",
+    "scratch/debug_excel_course.php",
+    "scratch/fix_excel_course_id.php",
+    "scratch/debug_course_74.php"
 ];
 
 foreach ($files as $f) {

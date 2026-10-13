@@ -134,8 +134,15 @@ function send_smtp_email($to, $subject, $body, $from_name = 'Intranet Grupo EFP'
             $message .= $final_body . "\r\n\r\n";
             
             foreach ($attachments as $attachment) {
-                $filename = $attachment['name'];
-                $content = chunk_split(base64_encode($attachment['content']));
+                if (is_array($attachment) && isset($attachment['name'], $attachment['content'])) {
+                    $filename = $attachment['name'];
+                    $content = chunk_split(base64_encode($attachment['content']));
+                } elseif (is_string($attachment) && file_exists($attachment)) {
+                    $filename = basename($attachment);
+                    $content = chunk_split(base64_encode(file_get_contents($attachment)));
+                } else {
+                    continue;
+                }
                 $message .= "--" . $boundary . "\r\n";
                 $message .= "Content-Type: application/pdf; name=\"" . $filename . "\"\r\n";
                 $message .= "Content-Transfer-Encoding: base64\r\n";

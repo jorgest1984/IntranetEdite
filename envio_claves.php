@@ -16,7 +16,7 @@ $planes = $pdo->query("SELECT id, nombre FROM planes ORDER BY nombre ASC")->fetc
 $modalidades = ['Teleformación', 'Presencial', 'Mixta'];
 $estados = ['Activo', 'Admitido', 'Finalizado', 'Baja', 'Inscrito'];
 $comerciales = $pdo->query("SELECT u.id, CONCAT(u.nombre, ' ', u.apellidos) as nombre FROM usuarios u JOIN roles r ON u.rol_id = r.id WHERE r.nombre LIKE '%Comercial%' AND u.activo = 1 ORDER BY u.nombre ASC")->fetchAll(PDO::FETCH_ASSOC);
-$tutores = $pdo->query("SELECT u.id, CONCAT(u.nombre, ' ', u.apellidos) as nombre FROM usuarios u JOIN roles r ON u.rol_id = r.id WHERE (r.nombre LIKE '%Formador%' OR r.nombre LIKE '%Tutor%') AND u.activo = 1 ORDER BY u.nombre ASC")->fetchAll(PDO::FETCH_ASSOC);
+$tutores = $pdo->query("SELECT u.id, CONCAT(u.nombre, ' ', u.apellidos) as nombre FROM usuarios u JOIN roles r ON u.rol_id = r.id WHERE (r.nombre LIKE '%Formador%' OR r.nombre LIKE '%Tutor%' OR r.nombre LIKE '%Docente%' OR u.rol_id = 3) AND u.activo = 1 ORDER BY u.nombre ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 // Búsqueda en la base de datos real
 $alumnos_list = [];

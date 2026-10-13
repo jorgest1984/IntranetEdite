@@ -278,6 +278,90 @@ class MoodleAPI {
     }
     
     /**
+     * Buscar un usuario en Moodle de forma exhaustiva (email, username, DNI, o nombre completo)
+     */
+    public function findUserByAny($email = '', $username = '', $dni = '', $fullname = '') {
+        require_once __DIR__ . '/moodle_db.php';
+        $moodleDb = new MoodleDB();
+        if ($moodleDb->isConnected()) {
+            try {
+                $mpdo = $moodleDb->getPDO();
+                $prefix = $moodleDb->getTablePrefix();
+                
+                // 1. Buscar todos los candidatos en Moodle (priorizando aquellos con matrículas activas y accesos recientes)
+                $cleanDni = !empty($dni) ? strtolower(trim(str_replace([' ', '-', '.'], '', $dni))) : '';
+                $cleanUser = !empty($username) ? strtolower(trim($username)) : '';
+                $cleanEmail = !empty($email) ? strtolower(trim($email)) : '';
+                
+                $whereConds = [];
+                $whereParams = [];
+                
+                if (!empty($cleanEmail)) {
+                    $whereConds[] = "LOWER(u.email) = ?";
+                    $whereParams[] = $cleanEmail;
+                }
+                if (!empty($cleanUser)) {
+                    $whereConds[] = "LOWER(u.username) = ?";
+                    $whereParams[] = $cleanUser;
+                }
+                if (!empty($cleanDni)) {
+                    $whereConds[] = "LOWER(u.username) = ? OR LOWER(u.idnumber) = ?";
+                    $whereParams[] = $cleanDni;
+                    $whereParams[] = $cleanDni;
+                }
+
+                if (!empty($whereConds)) {
+                    $sqlWhere = implode(' OR ', $whereConds);
+                    $stmt = $mpdo->prepare("
+                        SELECT u.id, u.username, u.firstname, u.lastname, u.email, u.firstaccess, u.lastaccess,
+                               (SELECT COUNT(*) FROM {$prefix}user_enrolments ue WHERE ue.userid = u.id) as enrol_count
+                        FROM {$prefix}user u
+                        WHERE ($sqlWhere) AND u.deleted = 0
+                        ORDER BY enrol_count DESC, u.lastaccess DESC, u.id DESC
+                        LIMIT 1
+                    ");
+                    $stmt->execute($whereParams);
+                    if ($row = $stmt->fetch(PDO::FETCH_ASSOC)) return $row;
+                }
+
+                // 2. Buscar por Nombre + Apellidos
+                if (!empty($fullname)) {
+                    $parts = explode(' ', trim($fullname));
+                    if (count($parts) >= 2) {
+                        $fn = strtolower($parts[0]);
+                        $ln = strtolower(implode(' ', array_slice($parts, 1)));
+                        $stmt = $mpdo->prepare("
+                            SELECT u.id, u.username, u.firstname, u.lastname, u.email,
+                                   (SELECT COUNT(*) FROM {$prefix}user_enrolments ue WHERE ue.userid = u.id) as enrol_count
+                            FROM {$prefix}user u
+                            WHERE LOWER(u.firstname) LIKE ? AND LOWER(u.lastname) LIKE ? AND u.deleted = 0
+                            ORDER BY enrol_count DESC, u.lastaccess DESC, u.id DESC
+                            LIMIT 1
+                        ");
+                        $stmt->execute(["%$fn%", "%$ln%"]);
+                        if ($row = $stmt->fetch(PDO::FETCH_ASSOC)) return $row;
+                    }
+                }
+            } catch (Exception $e) {}
+        }
+        
+        // Fallback por Web Services API
+        if (!empty($email)) {
+            try {
+                $res = $this->getUsersByField('email', [$email]);
+                if (!empty($res['users'][0])) return $res['users'][0];
+            } catch (Exception $e) {}
+        }
+        if (!empty($username)) {
+            try {
+                $res = $this->getUsersByField('username', [$username]);
+                if (!empty($res['users'][0])) return $res['users'][0];
+            } catch (Exception $e) {}
+        }
+        return null;
+    }
+    
+    /**
      * Crear un usuario nuevo
      */
     public function createUser($username, $password, $firstname, $lastname, $email) {
@@ -613,6 +697,11 @@ class MoodleAPI {
             $password = 'InspectorSepe-2026*';
         }
 
+        $cId = $this->findCourseId($courseId);
+        if (!$cId && is_numeric($courseId)) {
+            $cId = (int)$courseId;
+        }
+
         $existingGestor = $this->getUsersByField('username', [$username]);
         $gestorUserId = null;
         if (!empty($existingGestor) && isset($existingGestor['users'][0])) {
@@ -632,9 +721,9 @@ class MoodleAPI {
             }
         }
 
-        if ($gestorUserId && $courseId) {
+        if ($gestorUserId && $cId) {
             // Matricular como Profesor sin permiso de edición (rol_id = 4)
-            $this->enrolUser($gestorUserId, (int)$courseId, 4);
+            $this->enrolUser($gestorUserId, (int)$cId, 4);
             if ($groupId) {
                 $this->addUserToGroup((int)$groupId, $gestorUserId);
             }
@@ -1070,28 +1159,24 @@ class MoodleAPI {
         $email = strtolower(trim($userData['email'] ?? ''));
         $username = strtolower(trim($userData['username'] ?? ''));
 
-        // 1. Buscar si ya existe por email o username
-        if (!empty($email)) {
-            $existingUsers = $this->getUsersByField('email', [$email]);
-            if (!empty($existingUsers) && isset($existingUsers['users'][0]['id'])) {
-                $moodleUserId = (int)$existingUsers['users'][0]['id'];
-            }
-        }
-        if (!$moodleUserId && !empty($username)) {
-            $existingByUsername = $this->getUsersByField('username', [$username]);
-            if (!empty($existingByUsername) && isset($existingByUsername['users'][0]['id'])) {
-                $moodleUserId = (int)$existingByUsername['users'][0]['id'];
-            }
+        // 1. Buscar si ya existe en Moodle de forma exhaustiva (email, username, DNI, nombre)
+        $fname = !empty($userData['firstname']) ? $userData['firstname'] : '';
+        $lname = !empty($userData['lastname']) ? $userData['lastname'] : '';
+        $dni = !empty($userData['dni']) ? $userData['dni'] : '';
+        $foundUser = $this->findUserByAny($email, $username, $dni, trim($fname . ' ' . $lname));
+
+        if (!empty($foundUser) && isset($foundUser['id'])) {
+            $moodleUserId = (int)$foundUser['id'];
         }
 
-        // 2. Si no existe, crearlo
+        // 2. Si no existe en Moodle, crearlo
         if (!$moodleUserId) {
             $pass = !empty($userData['password']) ? $userData['password'] : ('Edite' . preg_replace('/[^a-zA-Z0-9]/', '', $username) . '!');
-            $fname = !empty($userData['firstname']) ? $userData['firstname'] : 'Alumno';
-            $lname = !empty($userData['lastname']) ? $userData['lastname'] : 'Sin apellidos';
+            $uFname = !empty($fname) ? $fname : 'Alumno';
+            $uLname = !empty($lname) ? $lname : 'Sin apellidos';
             $uEmail = !empty($email) ? $email : ($username . '@aula.local');
 
-            $newUsers = $this->createUser($username, $pass, $fname, $lname, $uEmail);
+            $newUsers = $this->createUser($username, $pass, $uFname, $uLname, $uEmail);
             if (!empty($newUsers) && isset($newUsers[0]['id'])) {
                 $moodleUserId = (int)$newUsers[0]['id'];
             }

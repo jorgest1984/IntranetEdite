@@ -7,8 +7,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
-if (has_permission([ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL])) {
-    die("Acceso denegado. Los comerciales no pueden modificar grupos.");
+if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_TUTOR, ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL, ROLE_PRACTICAS, ROLE_ADMINISTRATIVO])) {
+    die("Acceso denegado. No tienes permisos para modificar grupos.");
 }
 
 $id = isset($_POST['id']) ? (int)$_POST['id'] : null;

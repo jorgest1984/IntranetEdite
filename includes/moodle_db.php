@@ -259,11 +259,22 @@ class MoodleDB {
                 $stmtMod->execute(array_merge($validUserIds, [$moodleCourseId]));
                 $moduleRows = $stmtMod->fetchAll();
 
-                // Analizar nombres de módulos para asociar M1, M2, M3
+                $userCompletedCounts = [];
+                $totalTrackedModules = 0;
+                $moduleIdsSeen = [];
+
+                // Analizar nombres de módulos para asociar M1, M2, M3 y calcular el % de avance
                 foreach ($moduleRows as $row) {
+                    $cmodId = (int)($row['coursemoduleid'] ?? 0);
+                    if ($cmodId > 0 && !isset($moduleIdsSeen[$cmodId])) {
+                        $moduleIdsSeen[$cmodId] = true;
+                        $totalTrackedModules++;
+                    }
+
                     $uid = (int)($row['userid'] ?? 0);
                     if (!$uid || !isset($stats[$uid])) continue;
 
+                    $secNum = (int)($row['section_number'] ?? 0);
                     $name = mb_strtolower($row['name'] ?? '', 'UTF-8');
                     $sectionName = mb_strtolower($row['section_name'] ?? '', 'UTF-8');
                     $combinedName = $name . ' ' . $sectionName;
@@ -279,17 +290,45 @@ class MoodleDB {
                     $completed = ((int)$row['completionstate'] > 0);
 
                     if ($completed) {
+                        $userCompletedCounts[$uid] = ($userCompletedCounts[$uid] ?? 0) + 1;
+
+                        // Buscar E1 (Evaluación inicial)
+                        if (strpos($cleanName, 'inicial') !== false || strpos($cleanName, 'ev0') !== false || strpos($cleanName, 'evaluacioninicial') !== false || strpos($cleanName, 'evaluacion1') !== false || strpos($cleanName, 'e1') !== false || strpos($cleanName, 'diagnost') !== false || strpos($cleanName, 'conocimiento') !== false || strpos($cleanName, 'previa') !== false || strpos($cleanName, 'previo') !== false || strpos($cleanName, 'nivel') !== false) {
+                            $stats[$uid]['e1_completed'] = 1;
+                        }
+                        // Buscar E2 (Evaluación intermedia)
+                        if (strpos($cleanName, 'intermedia') !== false || strpos($cleanName, 'ev1') !== false || strpos($cleanName, 'evaluacionintermedia') !== false || strpos($cleanName, 'evaluacion2') !== false || strpos($cleanName, 'e2') !== false || strpos($cleanName, 'parcial') !== false) {
+                            $stats[$uid]['e2_completed'] = 1;
+                        }
+                        // Buscar E3 (Evaluación final)
+                        if (strpos($cleanName, 'final') !== false || strpos($cleanName, 'ev2') !== false || strpos($cleanName, 'evaluacionfinal') !== false || strpos($cleanName, 'evaluacion3') !== false || strpos($cleanName, 'e3') !== false || strpos($cleanName, 'examen') !== false) {
+                            $stats[$uid]['e3_completed'] = 1;
+                        }
+
                         // Buscar M1, Módulo 1, Tema 1, Unidad 1, U1
-                        if (strpos($cleanName, 'unidad1') !== false || strpos($cleanName, 'modulo1') !== false || strpos($cleanName, 'tema1') !== false || strpos($cleanName, 'm1') !== false || strpos($cleanName, 'u1') !== false) {
+                        if (strpos($cleanName, 'unidad1') !== false || strpos($cleanName, 'modulo1') !== false || strpos($cleanName, 'tema1') !== false || strpos($cleanName, 'tema2') !== false || strpos($cleanName, 'm1') !== false || strpos($cleanName, 'u1') !== false || $secNum == 1 || $secNum == 2) {
                             $stats[$uid]['m1_completed'] = 1;
                         }
-                        // Buscar M2, Módulo 2, Tema 2, Unidad 2, U2, M12, M1Y2
-                        if (strpos($cleanName, 'unidad2') !== false || strpos($cleanName, 'modulo2') !== false || strpos($cleanName, 'tema2') !== false || strpos($cleanName, 'm2') !== false || strpos($cleanName, 'u2') !== false || strpos($cleanName, 'm12') !== false || strpos($cleanName, 'm1y2') !== false || strpos($cleanName, 'u12') !== false || strpos($cleanName, 'u1y2') !== false || strpos($cleanName, 'intermedia') !== false) {
+                        // Buscar M2, Módulo 2, Tema 2, Tema 3, Tema 4, Unidad 2, U2, M12, M1Y2
+                        if (strpos($cleanName, 'unidad2') !== false || strpos($cleanName, 'modulo2') !== false || strpos($cleanName, 'tema3') !== false || strpos($cleanName, 'tema4') !== false || strpos($cleanName, 'm2') !== false || strpos($cleanName, 'u2') !== false || strpos($cleanName, 'm12') !== false || strpos($cleanName, 'm1y2') !== false || strpos($cleanName, 'u12') !== false || strpos($cleanName, 'u1y2') !== false || strpos($cleanName, 'intermedia') !== false || ($secNum >= 3 && $secNum <= 5)) {
                             $stats[$uid]['m2_completed'] = 1;
+                            $stats[$uid]['m1_completed'] = 1;
                         }
-                        // Buscar M3, Módulo 3, Tema 3, Unidad 3, U3
-                        if (strpos($cleanName, 'unidad3') !== false || strpos($cleanName, 'modulo3') !== false || strpos($cleanName, 'tema3') !== false || strpos($cleanName, 'm3') !== false || strpos($cleanName, 'u3') !== false || strpos($cleanName, 'final') !== false) {
+                        // Buscar M3, Módulo 3, Tema 5, Tema 6, Tema 7, Tema 8, Unidad 3, U3
+                        if (strpos($cleanName, 'unidad3') !== false || strpos($cleanName, 'modulo3') !== false || strpos($cleanName, 'tema5') !== false || strpos($cleanName, 'tema6') !== false || strpos($cleanName, 'm3') !== false || strpos($cleanName, 'u3') !== false || strpos($cleanName, 'final') !== false || $secNum >= 6) {
                             $stats[$uid]['m3_completed'] = 1;
+                            $stats[$uid]['m2_completed'] = 1;
+                            $stats[$uid]['m1_completed'] = 1;
+                        }
+                    }
+                }
+
+                // Actualizar porcentaje de progresión real según actividades completadas de Moodle
+                if ($totalTrackedModules > 0) {
+                    foreach ($userCompletedCounts as $uid => $doneCount) {
+                        if (isset($stats[$uid])) {
+                            $actProgress = round(($doneCount / $totalTrackedModules) * 100);
+                            $stats[$uid]['progress'] = max($stats[$uid]['progress'], min(100, $actProgress));
                         }
                     }
                 }
@@ -446,6 +485,33 @@ class MoodleDB {
                     }
                 }
 
+                // 4.A2 Consulta de respaldo a intentos de cuestionarios en Moodle (mdl_quiz_attempts)
+                if (!empty($targetQuizIds)) {
+                    try {
+                        $sqlAttempts = "SELECT userid, quiz, sumgrades FROM {$prefix}quiz_attempts 
+                                        WHERE quiz IN ($quizPlaceholders) AND userid IN ($placeholders) 
+                                          AND state IN ('finished', 'submitted')";
+                        $stmtAtt = $this->mpdo->prepare($sqlAttempts);
+                        $stmtAtt->execute($gradesParams);
+                        while ($row = $stmtAtt->fetch()) {
+                            $uid = (int)$row['userid'];
+                            $quizId = (int)$row['quiz'];
+                            if (isset($stats[$uid]) && isset($quizReverseMap[$quizId])) {
+                                $key = $quizReverseMap[$quizId]['key'];
+                                $maxGrad = $quizReverseMap[$quizId]['max_grade'];
+                                $rawGrade = (float)($row['sumgrades'] ?? 0);
+                                $scaledGrade = ($maxGrad > 0) ? floor(($rawGrade / $maxGrad) * 10) : 10;
+                                $scaledGrade = min(10.0, max(0.0, $scaledGrade));
+
+                                $stats[$uid][$key . '_completed'] = 1;
+                                if ($stats[$uid][$key . '_grade'] === null) {
+                                    $stats[$uid][$key . '_grade'] = $scaledGrade;
+                                }
+                            }
+                        }
+                    } catch (Exception $exAtt) {}
+                }
+
                 // 4.B Consulta de respaldo directa al Libro de Calificaciones de Moodle (grade_grades & grade_items)
                 try {
                     $sqlGradebook = "SELECT gi.itemname, gi.itemtype, gi.itemmodule, gi.grademax, gg.userid, gg.finalgrade, gg.rawgrade 
@@ -466,7 +532,7 @@ class MoodleDB {
                             'á'=>'a', 'é'=>'e', 'í'=>'i', 'ó'=>'o', 'ú'=>'u', 'ü'=>'u', 'ñ'=>'n'
                         ]);
 
-                        if (strpos($normalized, 'e1') !== false || strpos($normalized, 'inicial') !== false) {
+                        if (strpos($normalized, 'e1') !== false || strpos($normalized, 'inicial') !== false || strpos($normalized, 'nivel') !== false || strpos($normalized, 'diagnost') !== false || strpos($normalized, 'previa') !== false || strpos($normalized, 'previo') !== false || strpos($normalized, 'conocimiento') !== false) {
                             if (empty($stats[$uid]['e1_completed'])) {
                                 $stats[$uid]['e1_completed'] = 1;
                                 $stats[$uid]['e1_grade'] = $scaled;
@@ -487,6 +553,17 @@ class MoodleDB {
 
                 // 5. Calcular Nota Media (solo E2 - Intermedia y E3 - Final; E1 no participa en la media salvo que sea la única evaluación del curso) y Aptitud
                 foreach ($stats as $uid => &$student) {
+                    // Si la evaluación fue completada pero no se guardó nota numérica, asignar 10 por defecto
+                    if (!empty($student['e1_completed']) && $student['e1_grade'] === null) {
+                        $student['e1_grade'] = 10;
+                    }
+                    if (!empty($student['e2_completed']) && $student['e2_grade'] === null) {
+                        $student['e2_grade'] = 10;
+                    }
+                    if (!empty($student['e3_completed']) && $student['e3_grade'] === null) {
+                        $student['e3_grade'] = 10;
+                    }
+
                     // Inferencia de módulos visualizados M1, M2, M3 a partir de cuestionarios realizados
                     if (!empty($student['e3_completed'])) {
                         $student['m1_completed'] = 1;

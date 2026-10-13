@@ -2,6 +2,11 @@
 // editar_accion_madre.php
 require_once 'includes/auth.php';
 
+if (!has_permission([ROLE_ADMIN, ROLE_TUTOR, ROLE_COORD, ROLE_PRACTICAS])) {
+    header("Location: home.php");
+    exit();
+}
+
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
 // Simulación de carga de datos (en producción esto vendría de la DB)

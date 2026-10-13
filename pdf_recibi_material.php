@@ -28,14 +28,18 @@ $query = "
     JOIN alumnos a ON m.alumno_id = a.id
     JOIN grupos g ON m.grupo_id = g.id
     JOIN acciones_formativas af ON g.accion_id = af.id
+    LEFT JOIN cursos c ON af.curso_id = c.id
     LEFT JOIN planes p ON af.plan_id = p.id
     LEFT JOIN convocatorias conv ON p.convocatoria_id = conv.id
-    WHERE g.accion_id = ? AND (m.estado IS NULL OR (m.estado != 'Baja' AND m.estado != 'Cancelada'))
+    WHERE (af.id = ? OR g.accion_id = ? OR g.id = ? OR af.id_plataforma = ? OR g.id_plataforma = ? OR c.moodle_id = ?) 
+      AND (m.estado IS NULL OR (m.estado != 'Baja' AND m.estado != 'Cancelada'))
 ";
-$params = [$accion_id];
+$params = [$accion_id, $accion_id, $accion_id, $accion_id, $accion_id, $accion_id];
 
 if ($alumno_id > 0) {
-    $query .= " AND a.id = ?";
+    $query .= " AND (a.id = ? OR a.moodle_user_id = ? OR m.id = ?)";
+    $params[] = $alumno_id;
+    $params[] = $alumno_id;
     $params[] = $alumno_id;
 }
 
@@ -50,29 +54,54 @@ try {
 }
 
 if (empty($alumnos) && $alumno_id > 0) {
-    // FALLBACK: Si no hay matrícula activa vinculada a un grupo específico de esta acción formativa,
-    // se obtiene la información de la acción formativa y del alumno directamente para generar el PDF.
+    // FALLBACK 1: Obtener por matrícula del alumno o por alumno directo
     $fallback_query = "
         SELECT 
             a.id, a.nombre, a.primer_apellido, a.segundo_apellido, a.dni,
             g.numero_grupo, g.fecha_inicio, g.fecha_fin,
             af.num_accion, af.modalidad, af.abreviatura as curso_codigo, af.titulo as curso_titulo,
             COALESCE(NULLIF(g.expediente, ''), conv.codigo_expediente) as codigo_expediente
-        FROM acciones_formativas af
-        LEFT JOIN grupos g ON g.accion_id = af.id
+        FROM matriculas m
+        JOIN alumnos a ON m.alumno_id = a.id
+        JOIN grupos g ON m.grupo_id = g.id
+        JOIN acciones_formativas af ON g.accion_id = af.id
         LEFT JOIN planes p ON af.plan_id = p.id
         LEFT JOIN convocatorias conv ON p.convocatoria_id = conv.id
-        CROSS JOIN alumnos a
-        WHERE af.id = ? AND a.id = ?
-        ORDER BY g.id ASC LIMIT 1
+        WHERE (a.id = ? OR a.moodle_user_id = ? OR m.id = ?)
+          AND (m.estado IS NULL OR (m.estado != 'Baja' AND m.estado != 'Cancelada'))
+        ORDER BY m.id DESC LIMIT 1
     ";
     try {
         $stmtFallback = $pdo->prepare($fallback_query);
-        $stmtFallback->execute([$accion_id, $alumno_id]);
+        $stmtFallback->execute([$alumno_id, $alumno_id, $alumno_id]);
         $alumnos = $stmtFallback->fetchAll(PDO::FETCH_ASSOC);
-    } catch (Exception $e) {
-        // Ignorar error del fallback y continuar validación
-    }
+    } catch (Exception $e) {}
+}
+
+if (empty($alumnos) && $accion_id > 0) {
+    // FALLBACK 2 GENERAL: Obtener todos los alumnos matriculados activos de la Acción Formativa / Curso
+    $fallback_af_query = "
+        SELECT 
+            a.id, a.nombre, a.primer_apellido, a.segundo_apellido, a.dni,
+            g.numero_grupo, g.fecha_inicio, g.fecha_fin,
+            af.num_accion, af.modalidad, af.abreviatura as curso_codigo, af.titulo as curso_titulo,
+            COALESCE(NULLIF(g.expediente, ''), conv.codigo_expediente) as codigo_expediente
+        FROM matriculas m
+        JOIN alumnos a ON m.alumno_id = a.id
+        JOIN grupos g ON m.grupo_id = g.id
+        JOIN acciones_formativas af ON g.accion_id = af.id
+        LEFT JOIN cursos c ON af.curso_id = c.id
+        LEFT JOIN planes p ON af.plan_id = p.id
+        LEFT JOIN convocatorias conv ON p.convocatoria_id = conv.id
+        WHERE (af.id = ? OR g.accion_id = ? OR g.id = ? OR af.id_plataforma = ? OR g.id_plataforma = ? OR c.moodle_id = ?)
+          AND (m.estado IS NULL OR (m.estado != 'Baja' AND m.estado != 'Cancelada'))
+        ORDER BY a.primer_apellido, a.segundo_apellido, a.nombre ASC
+    ";
+    try {
+        $stmtFallbackAf = $pdo->prepare($fallback_af_query);
+        $stmtFallbackAf->execute([$accion_id, $accion_id, $accion_id, $accion_id, $accion_id, $accion_id]);
+        $alumnos = $stmtFallbackAf->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {}
 }
 
 if (empty($alumnos)) {

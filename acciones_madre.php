@@ -3,7 +3,7 @@
 require_once 'includes/auth.php';
 
 // Solo administradores y tutores pueden gestionar contenidos (nivel madre)
-if (!has_permission([ROLE_ADMIN, ROLE_TUTOR])) {
+if (!has_permission([ROLE_ADMIN, ROLE_TUTOR, ROLE_COORD, ROLE_PRACTICAS])) {
     header("Location: home.php");
     exit();
 }

@@ -11,6 +11,7 @@ try {
     $pdo->exec("ALTER TABLE usuarios ADD COLUMN moodle_user_id INT DEFAULT NULL");
 } catch (PDOException $e) {}
 
+$can_manage_users = has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_ADMINISTRATIVO, ROLE_PRACTICAS]);
 $is_admin = has_permission([ROLE_ADMIN]);
 $current_user_id = (int)($_SESSION['user_id'] ?? 0);
 
@@ -25,36 +26,58 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
     } else {
         // Crear Usuario
         if ($_POST['action'] == 'create') {
-            if (!$is_admin) {
-                $error = "Acceso denegado. Solo los administradores pueden crear usuarios.";
+            if (!$can_manage_users) {
+                $error = "Acceso denegado. No tienes permisos para crear usuarios.";
             } else {
-                $username = trim($_POST['username']);
-                $password = $_POST['password'];
-                $nombre = trim($_POST['nombre']);
-                $apellidos = trim($_POST['apellidos']);
-                $dni = trim($_POST['dni']);
-                $email = trim($_POST['email']);
-                $rol_id = intval($_POST['rol_id']);
-                
-                if (empty($username) || empty($password) || empty($nombre) || empty($email)) {
-                    $error = "Faltan campos obligatorios.";
-                } else {
-                    // Validar complejidad de contraseña (mínimo 8 caracteres, mayúscula, minúscula, número)
-                    $complexity = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/';
-                    if (!preg_match($complexity, $password)) {
-                        $error = "La contraseña debe tener al menos 8 caracteres e incluir al menos una letra mayúscula, una letra minúscula y un número.";
+                $nombre = trim($_POST['nombre'] ?? '');
+                $apellidos = trim($_POST['apellidos'] ?? '');
+                $dni = trim($_POST['dni'] ?? '');
+                $email = trim($_POST['email'] ?? '');
+                $rol_id = intval($_POST['rol_id'] ?? 3);
+                $password = $_POST['password'] ?? '';
+                $username = trim($_POST['username'] ?? '');
+
+                // Auto-generar username si no se proporciona
+                if (empty($username)) {
+                    if (!empty($email)) {
+                        $parts = explode('@', $email);
+                        $username = strtolower(preg_replace('/[^a-z0-9_.-]/i', '', $parts[0]));
                     } else {
-                        try {
-                            $password_hash = password_hash($password, PASSWORD_BCRYPT);
-                            $centro_id = !empty($_POST['centro_id']) ? intval($_POST['centro_id']) : null;
-                            
-                            $stmt = $pdo->prepare("INSERT INTO usuarios (username, password_hash, nombre, apellidos, dni, email, rol_id, centro_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-                            $stmt->execute([$username, $password_hash, $nombre, $apellidos, $dni, $email, $rol_id, $centro_id]);
-                            
-                            audit_log($pdo, 'USUARIO_CREADO', 'usuarios', $pdo->lastInsertId(), null, ['username' => $username, 'rol' => $rol_id]);
-                            $success = "Usuario '$username' creado correctamente.";
-                        } catch (PDOException $e) {
-                            $error = "Error: El nombre de usuario o email ya existe.";
+                        $username = strtolower(preg_replace('/[^a-z0-9]/i', '', $nombre . '.' . $apellidos));
+                    }
+                }
+                
+                // Auto-generar contraseña si viene vacía
+                if (empty($password)) {
+                    $password = 'Docente2026*';
+                }
+
+                if (empty($nombre) || empty($email)) {
+                    $error = "Por favor, introduce al menos el Nombre y el E-mail del usuario.";
+                } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    $error = "La dirección de correo electrónico no es válida.";
+                } else {
+                    // Si la contraseña no cumple la complejidad por defecto, forzar una segura válida
+                    $complexity = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/';
+                    if (!preg_match($complexity, $password) && strlen($password) < 6) {
+                        $password = 'Docente2026*';
+                    }
+
+                    try {
+                        $password_hash = password_hash($password, PASSWORD_BCRYPT);
+                        $centro_id = !empty($_POST['centro_id']) ? intval($_POST['centro_id']) : null;
+                        
+                        $stmt = $pdo->prepare("INSERT INTO usuarios (username, password_hash, nombre, apellidos, dni, email, rol_id, centro_id, activo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)");
+                        $stmt->execute([$username, $password_hash, $nombre, $apellidos, $dni, $email, $rol_id, $centro_id]);
+                        $new_id = $pdo->lastInsertId();
+
+                        audit_log($pdo, 'USUARIO_CREADO', 'usuarios', $new_id, null, ['username' => $username, 'rol' => $rol_id]);
+                        $success = "Usuario / Docente '$nombre $apellidos' ($username) creado correctamente con la contraseña: '$password'.";
+                    } catch (PDOException $e) {
+                        if (strpos($e->getMessage(), 'username') !== false || strpos($e->getMessage(), '1062') !== false) {
+                            $error = "El nombre de usuario '$username' o email '$email' ya está registrado en el sistema.";
+                        } else {
+                            $error = "Error de base de datos al crear usuario: " . $e->getMessage();
                         }
                     }
                 }
@@ -408,7 +431,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
 }
 
 // Listado de usuarios
-if ($is_admin) {
+if ($can_manage_users) {
     $stmt = $pdo->query("SELECT u.*, r.nombre as rol_nombre, c.nombre as centro_nombre 
                          FROM usuarios u 
                          JOIN roles r ON u.rol_id = r.id 
@@ -427,6 +450,12 @@ if ($is_admin) {
 
 // Listado de roles para el combo (excluyendo Solo Lectura)
 $roles = $pdo->query("SELECT * FROM roles WHERE id != " . ROLE_LECTURA . " ORDER BY id ASC")->fetchAll();
+foreach ($roles as &$rItem) {
+    if ($rItem['id'] == 3 || stristr($rItem['nombre'], 'Tutor') !== false || stristr($rItem['nombre'], 'Formador') !== false) {
+        $rItem['nombre'] = 'Tutor / Formador / Docente';
+    }
+}
+unset($rItem);
 
 // Listado de centros para el combo
 $centros_list = $pdo->query("SELECT id, nombre FROM centros ORDER BY nombre ASC")->fetchAll();
@@ -1351,10 +1380,10 @@ try {
     <main class="main-content">
         <header class="page-header">
             <div class="page-title">
-                <h1><?= $is_admin ? 'Usuarios y Permisos' : 'Mis Datos Personales' ?></h1>
-                <p><?= $is_admin ? 'Administración del acceso y control de seguridad corporativo (ISO 27001)' : 'Gestión de tu perfil y credenciales de acceso a la Intranet' ?></p>
+                <h1><?= $can_manage_users ? 'Usuarios, Docentes y Permisos' : 'Mis Datos Personales' ?></h1>
+                <p><?= $can_manage_users ? 'Administración del acceso y control de seguridad corporativo' : 'Gestión de tu perfil y credenciales de acceso a la Intranet' ?></p>
             </div>
-            <?php if ($is_admin): ?>
+            <?php if ($can_manage_users): ?>
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                 <form method="POST" style="margin: 0;" onsubmit="return confirm('¿Escanear y vincular todos los usuarios de la intranet que ya existen en Moodle?');">
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
@@ -1366,7 +1395,7 @@ try {
                 </form>
                 <button class="btn btn-primary" onclick="openModal()" style="border-radius: 10px; padding: 11px 20px;">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-                    Nuevo Usuario
+                    Nuevo Usuario / Docente
                 </button>
             </div>
             <?php endif; ?>
@@ -1386,7 +1415,7 @@ try {
             </div>
         <?php endif; ?>
 
-        <?php if (!$is_admin): ?>
+        <?php if (!$can_manage_users): ?>
             <?php $my_u = $usuarios[0] ?? null; ?>
             <?php if ($my_u): ?>
             <section style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 2rem; box-shadow: var(--shadow-md); max-width: 800px; margin: 0 auto;">

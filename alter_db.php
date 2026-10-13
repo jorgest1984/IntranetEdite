@@ -20,7 +20,9 @@ try {
         'motivo_baja_sepe' => 'VARCHAR(100) NULL',
         'prefiere_fechas' => 'VARCHAR(255) NULL',
         'doc_checklist' => 'TEXT NULL',
-        'prioridad' => 'INT DEFAULT 0'
+        'prioridad' => 'INT DEFAULT 0',
+        'diploma_entregado' => 'TINYINT(1) DEFAULT 0',
+        'diploma_tipo' => 'VARCHAR(50) DEFAULT NULL'
     ];
 
     $stmt = $pdo->query("DESCRIBE matriculas");

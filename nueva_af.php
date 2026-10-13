@@ -3,6 +3,11 @@
 require_once 'includes/auth.php';
 require_once 'includes/config.php';
 
+if (!has_permission([ROLE_ADMIN, ROLE_TUTOR, ROLE_COORD, ROLE_PRACTICAS])) {
+    header("Location: home.php");
+    exit();
+}
+
 // Obtener planes, convocatorias y centros para los selectores
 $planes = $pdo->query("SELECT id, nombre, codigo FROM planes ORDER BY nombre ASC")->fetchAll();
 $centros = $pdo->query("SELECT id, nombre FROM centros ORDER BY id ASC")->fetchAll();

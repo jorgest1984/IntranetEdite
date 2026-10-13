@@ -137,20 +137,26 @@ $alumnos = $stmtAlumnos->fetchAll(PDO::FETCH_ASSOC);
                                 <?php endif; ?>
                             </td>
                             <td>
-                                <div style="display: flex; gap: 10px;">
+                                <div style="display: flex; gap: 8px; align-items: center;">
                                     <?php if ($apto): ?>
-                                        <a href="pdf_diploma.php?alumno_id=<?= $alumno['alumno_id'] ?>&grupo_id=<?= $grupo_id ?>&accion_id=<?= $accion_id ?>&tipo=diploma" target="_blank" class="btn-action btn-diploma">
-                                            <i class="fa-solid fa-award"></i> Diploma
+                                        <a href="pdf_diploma.php?alumno_id=<?= $alumno['alumno_id'] ?>&grupo_id=<?= $grupo_id ?>&accion_id=<?= $accion_id ?>&tipo=diploma" target="_blank" class="btn-action btn-diploma" title="Descargar Diploma de Aprovechamiento">
+                                            <i class="fa-solid fa-graduation-cap"></i> Diploma
                                         </a>
-                                        <a href="pdf_diploma.php?alumno_id=<?= $alumno['alumno_id'] ?>&grupo_id=<?= $grupo_id ?>&accion_id=<?= $accion_id ?>&tipo=certificado" target="_blank" class="btn-action btn-certificado">
+                                        <button onclick="enviarIndividual(<?= $alumno['alumno_id'] ?>, 'diploma')" class="btn-action" style="background: #f59e0b; color: white;" title="Enviar Diploma por email">
+                                            <i class="fa-solid fa-paper-plane"></i>
+                                        </button>
+                                        <a href="pdf_diploma.php?alumno_id=<?= $alumno['alumno_id'] ?>&grupo_id=<?= $grupo_id ?>&accion_id=<?= $accion_id ?>&tipo=certificado" target="_blank" class="btn-action btn-certificado" title="Descargar Certificado de Asistencia">
                                             <i class="fa-solid fa-file-signature"></i> Certificado
                                         </a>
                                     <?php else: ?>
-                                        <button class="btn-action btn-diploma" disabled title="Solo para alumnos APTOS">
-                                            <i class="fa-solid fa-award"></i> Diploma
+                                        <button class="btn-action btn-diploma" disabled title="Diploma requiere superación del curso (APTO)" style="opacity: 0.5; cursor: not-allowed;">
+                                            <i class="fa-solid fa-graduation-cap"></i> Diploma
                                         </button>
-                                        <button class="btn-action btn-certificado" disabled style="background: #cbd5e1; cursor: not-allowed; opacity: 0.7;" title="Solo para alumnos APTOS">
+                                        <a href="pdf_diploma.php?alumno_id=<?= $alumno['alumno_id'] ?>&grupo_id=<?= $grupo_id ?>&accion_id=<?= $accion_id ?>&tipo=certificado" target="_blank" class="btn-action btn-certificado" title="Descargar Certificado de Asistencia">
                                             <i class="fa-solid fa-file-signature"></i> Certificado
+                                        </a>
+                                        <button onclick="enviarIndividual(<?= $alumno['alumno_id'] ?>, 'certificado')" class="btn-action" style="background: #10b981; color: white;" title="Enviar Certificado por email">
+                                            <i class="fa-solid fa-paper-plane"></i>
                                         </button>
                                     <?php endif; ?>
                                 </div>
@@ -231,6 +237,39 @@ $alumnos = $stmtAlumnos->fetchAll(PDO::FETCH_ASSOC);
             } finally {
                 btnSendDiplomas.disabled = false;
                 btnSendCertificados.disabled = false;
+            }
+        }
+
+        async function enviarIndividual(alumnoId, tipo) {
+            const labelDoc = tipo === 'diploma' ? 'Diploma de Aprovechamiento' : 'Certificado de Asistencia';
+            if (!confirm(`¿Estás seguro de que deseas enviar el ${labelDoc} a este alumno por email?`)) return;
+
+            bulkStatus.style.color = '#0284c7';
+            bulkStatus.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando... Por favor, espera.';
+
+            try {
+                const response = await fetch('api_send_diplomas.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        grupo_id: grupoId,
+                        accion_id: accionId,
+                        tipo: tipo,
+                        alumnos: [alumnoId]
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    bulkStatus.style.color = '#059669';
+                    bulkStatus.innerHTML = `<i class="fa-solid fa-check"></i> ${data.message}`;
+                } else {
+                    bulkStatus.style.color = '#dc2626';
+                    bulkStatus.innerHTML = `<i class="fa-solid fa-xmark"></i> Error: ${data.message}`;
+                }
+            } catch (error) {
+                bulkStatus.style.color = '#dc2626';
+                bulkStatus.innerHTML = `<i class="fa-solid fa-xmark"></i> Error de conexión.`;
             }
         }
 

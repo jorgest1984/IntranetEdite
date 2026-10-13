@@ -2,6 +2,11 @@
 // nueva_accion_madre.php
 require_once 'includes/auth.php';
 
+if (!has_permission([ROLE_ADMIN, ROLE_TUTOR, ROLE_COORD, ROLE_PRACTICAS])) {
+    header("Location: home.php");
+    exit();
+}
+
 $sectores = [
     'Abogados', 'Acción e Intervención Social', 'Administracion y gestion', 'Agencias de Viaje',
     'Alimentación', 'Ambulancias', 'Arquitectura', 'Artes Gráficas', 'Asesorías',

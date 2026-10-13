@@ -29,15 +29,85 @@ if (!hash_equals($expected_token, $token)) {
     die("Acceso denegado. Token inválido o firma incorrecta.");
 }
 
-// Mapear moodle_user_id -> Intranet alumno_id
-$stmtUser = $pdo->prepare("SELECT id FROM alumnos WHERE moodle_user_id = ?");
-$stmtUser->execute([$moodle_user_id]);
-$alumno = $stmtUser->fetch();
+// Mapear moodle_user_id -> Intranet alumno_id de forma inteligente y resiliente
+$alumno = null;
+$is_direct_match = false;
+
+// 1. Buscar por moodle_user_id exacto en la tabla alumnos
+if ($moodle_user_id > 0) {
+    $stmtUser = $pdo->prepare("SELECT id, moodle_user_id FROM alumnos WHERE moodle_user_id = ?");
+    $stmtUser->execute([$moodle_user_id]);
+    $alumno = $stmtUser->fetch();
+    if ($alumno) $is_direct_match = true;
+}
+
+// 2. Buscar en las matrículas del curso de Moodle si coincide moodle_user_id o alumno_id
+if (!$alumno && $moodle_course_id > 0) {
+    $stmtUserMat = $pdo->prepare("
+        SELECT a.id, a.moodle_user_id
+        FROM matriculas m
+        JOIN alumnos a ON m.alumno_id = a.id
+        JOIN grupos g ON m.grupo_id = g.id
+        JOIN acciones_formativas af ON g.accion_id = af.id
+        WHERE (af.id_plataforma = ? OR g.id_plataforma = ? OR af.id = ? OR g.id = ?)
+          AND (a.moodle_user_id = ? OR a.id = ? OR m.id = ?)
+        LIMIT 1
+    ");
+    $stmtUserMat->execute([$moodle_course_id, $moodle_course_id, $moodle_course_id, $moodle_course_id, $moodle_user_id, $moodle_user_id, $moodle_user_id]);
+    $alumno = $stmtUserMat->fetch();
+    if ($alumno) $is_direct_match = true;
+}
+
+// 3. Buscar por id de la tabla alumnos
+if (!$alumno && $moodle_user_id > 0) {
+    $stmtUserDirect = $pdo->prepare("SELECT id, moodle_user_id FROM alumnos WHERE id = ?");
+    $stmtUserDirect->execute([$moodle_user_id]);
+    $alumno = $stmtUserDirect->fetch();
+    if ($alumno) $is_direct_match = true;
+}
+
+// 4. Buscar en cualquier matrícula donde coincida moodle_user_id, id o matricula id
+if (!$alumno && $moodle_user_id > 0) {
+    $stmtUserAny = $pdo->prepare("
+        SELECT a.id, a.moodle_user_id
+        FROM matriculas m
+        JOIN alumnos a ON m.alumno_id = a.id
+        WHERE a.moodle_user_id = ? OR a.id = ? OR m.id = ?
+        ORDER BY m.id DESC LIMIT 1
+    ");
+    $stmtUserAny->execute([$moodle_user_id, $moodle_user_id, $moodle_user_id]);
+    $alumno = $stmtUserAny->fetch();
+    if ($alumno) $is_direct_match = true;
+}
+
+// 5. Fallback por curso de Moodle / Acción Formativa: si moodle_user_id no corresponde a un alumno matriculado (ej: es un tutor o admin), tomar el primer alumno matriculado en esa acción formativa/curso
+if (!$alumno && $moodle_course_id > 0) {
+    $stmtUserCourse = $pdo->prepare("
+        SELECT a.id, a.moodle_user_id
+        FROM matriculas m
+        JOIN alumnos a ON m.alumno_id = a.id
+        JOIN grupos g ON m.grupo_id = g.id
+        JOIN acciones_formativas af ON g.accion_id = af.id
+        LEFT JOIN cursos c ON af.curso_id = c.id
+        WHERE (af.id_plataforma = ? OR g.id_plataforma = ? OR c.moodle_id = ? OR af.id = ? OR g.id = ?)
+          AND (m.estado IS NULL OR (m.estado != 'Baja' AND m.estado != 'Cancelada'))
+        ORDER BY m.id DESC LIMIT 1
+    ");
+    $stmtUserCourse->execute([$moodle_course_id, $moodle_course_id, $moodle_course_id, $moodle_course_id, $moodle_course_id]);
+    $alumno = $stmtUserCourse->fetch();
+}
 
 if (!$alumno) {
     die("Alumno no encontrado en la Intranet. Asegúrate de que el alumno está sincronizado.");
 }
 $alumno_id = (int)$alumno['id'];
+
+// Auto-corregir/Vincular moodle_user_id SOLO si fue un match directo del alumno
+if ($is_direct_match && $moodle_user_id > 0 && ($alumno['moodle_user_id'] != $moodle_user_id)) {
+    try {
+        $pdo->prepare("UPDATE alumnos SET moodle_user_id = ? WHERE id = ?")->execute([$moodle_user_id, $alumno_id]);
+    } catch (Throwable $e) {}
+}
 
 // Mapear Moodle Course -> Intranet Accion Formativa
 $accion = null;

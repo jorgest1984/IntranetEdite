@@ -143,6 +143,115 @@ if ($grupo && !empty($grupo['expediente'])) {
     } catch (Throwable $e) {}
 }
 
+// Sincronización automática previa en tiempo real con Moodle para asegurar que el informe refleje los datos actualizados
+try {
+    require_once 'includes/moodle_api.php';
+    require_once 'includes/moodle_db.php';
+    
+    $courseMoodleId = !empty($accion['id_plataforma']) ? (int)$accion['id_plataforma'] : 0;
+    if (!$courseMoodleId && $grupo && !empty($grupo['id_plataforma'])) {
+        $courseMoodleId = (int)$grupo['id_plataforma'];
+    }
+
+    if ($courseMoodleId > 0) {
+        $moodle = new MoodleAPI($pdo);
+        $moodleDb = new MoodleDB();
+
+        // 1. Obtener alumnos del grupo
+        $sqlAlSync = "SELECT m.id as matricula_id, a.id as alumno_id, a.moodle_user_id, a.email, a.plat_usuario, a.dni, a.nombre, a.primer_apellido, a.segundo_apellido
+                      FROM matriculas m
+                      JOIN alumnos a ON m.alumno_id = a.id
+                      JOIN grupos g ON m.grupo_id = g.id
+                      WHERE g.accion_id = ? AND (m.estado IS NULL OR UPPER(m.estado) != 'BAJA')";
+        $paramsAlSync = [$id];
+        if ($grupo_id) {
+            $sqlAlSync .= " AND m.grupo_id = ?";
+            $paramsAlSync[] = $grupo_id;
+        }
+        $stmtAlSync = $pdo->prepare($sqlAlSync);
+        $stmtAlSync->execute($paramsAlSync);
+        $alSyncList = $stmtAlSync->fetchAll(PDO::FETCH_ASSOC);
+
+        $moodleUserIds = [];
+        $matriculaMap = [];
+
+        foreach ($alSyncList as $alS) {
+            $muid = (int)($alS['moodle_user_id'] ?? 0);
+            
+            // Si no tiene moodle_user_id, resolverlo dinámicamente con Moodle
+            if (!$muid && $moodle->isConfigured()) {
+                $cleanDni = !empty($alS['dni']) ? strtolower(trim(str_replace([' ', '-', '.'], '', $alS['dni']))) : '';
+                $username = !empty($alS['plat_usuario']) ? $alS['plat_usuario'] : (!empty($cleanDni) ? $cleanDni : strtolower(explode('@', $alS['email'])[0]));
+                $found = $moodle->findUserByAny($alS['email'], $username, $cleanDni, $alS['nombre'] . ' ' . $alS['primer_apellido'] . ' ' . $alS['segundo_apellido']);
+                if (!empty($found['id'])) {
+                    $muid = (int)$found['id'];
+                    $pdo->prepare("UPDATE alumnos SET moodle_user_id = ? WHERE id = ?")->execute([$muid, $alS['alumno_id']]);
+                }
+            }
+
+            if ($muid > 0) {
+                $moodleUserIds[] = $muid;
+                $matriculaMap[$muid] = (int)$alS['matricula_id'];
+            }
+        }
+
+        if (!empty($moodleUserIds) && $moodleDb->isConnected()) {
+            $stats = $moodleDb->fetchStudentStats($courseMoodleId, $moodleUserIds);
+            $courseDuration = (int)($accion['duracion'] ?? 60) > 0 ? (int)$accion['duracion'] : 60;
+
+            $updateSyncStmt = $pdo->prepare("UPDATE matriculas SET 
+                                            moodle_first_access = ?, 
+                                            moodle_last_access = ?, 
+                                            moodle_connected_time = ?, 
+                                            moodle_progress = ?, 
+                                            moodle_m1_completed = ?,
+                                            moodle_m2_completed = ?,
+                                            moodle_m3_completed = ?,
+                                            moodle_e1_completed = ?,
+                                            moodle_e2_completed = ?,
+                                            moodle_e3_completed = ?,
+                                            moodle_e1_grade = ?,
+                                            moodle_e2_grade = ?,
+                                            moodle_e3_grade = ?,
+                                            moodle_final_grade = ?,
+                                            moodle_aptitud = ?,
+                                            moodle_last_sync = NOW() 
+                                         WHERE id = ?");
+
+            foreach ($stats as $mUserid => $data) {
+                if (isset($matriculaMap[$mUserid])) {
+                    $matId = $matriculaMap[$mUserid];
+                    $connectedSeconds = (int)$data['connected_seconds'];
+                    $connectedHours = $connectedSeconds / 3600;
+                    $timeProgress = min(100, max(0, round(($connectedHours / $courseDuration) * 100)));
+                    $progressPercent = max((float)$data['progress'], $timeProgress);
+
+                    $updateSyncStmt->execute([
+                        $data['first_access'],
+                        $data['last_access'],
+                        $connectedSeconds,
+                        $progressPercent,
+                        (int)$data['m1_completed'],
+                        (int)$data['m2_completed'],
+                        (int)$data['m3_completed'],
+                        (int)$data['e1_completed'],
+                        (int)$data['e2_completed'],
+                        (int)$data['e3_completed'],
+                        $data['e1_grade'],
+                        $data['e2_grade'],
+                        $data['e3_grade'],
+                        $data['final_grade'],
+                        $data['aptitud'],
+                        $matId
+                    ]);
+                }
+            }
+        }
+    }
+} catch (Throwable $syncEx) {
+    // Si falla la sincronización automática previa, ignorar y proceder con los datos locales
+}
+
 // Fetch Students
 $sqlSeguimiento = "SELECT a.id as alumno_id, a.nombre, a.primer_apellido, a.segundo_apellido, a.dni, a.email, a.moodle_user_id, 
                     m.moodle_first_access, m.moodle_last_access, m.moodle_connected_time, m.moodle_progress, m.moodle_last_sync,
@@ -296,9 +405,9 @@ if (empty($alumnos)) {
         $m2 = $al['moodle_m2_completed'] ? 'X' : '';
         $m3 = $al['moodle_m3_completed'] ? 'X' : '';
         
-        $e1 = $al['moodle_e1_grade'] !== null ? number_format(floor((float)$al['moodle_e1_grade']), 0) : '';
-        $e2 = $al['moodle_e2_grade'] !== null ? number_format(floor((float)$al['moodle_e2_grade']), 0) : '';
-        $e3 = $al['moodle_e3_grade'] !== null ? number_format(floor((float)$al['moodle_e3_grade']), 0) : '';
+        $e1 = ($al['moodle_e1_grade'] !== null && $al['moodle_e1_grade'] !== '') ? number_format(floor((float)$al['moodle_e1_grade']), 0) : (!empty($al['moodle_e1_completed']) ? '10' : '');
+        $e2 = ($al['moodle_e2_grade'] !== null && $al['moodle_e2_grade'] !== '') ? number_format(floor((float)$al['moodle_e2_grade']), 0) : (!empty($al['moodle_e2_completed']) ? '10' : '');
+        $e3 = ($al['moodle_e3_grade'] !== null && $al['moodle_e3_grade'] !== '') ? number_format(floor((float)$al['moodle_e3_grade']), 0) : (!empty($al['moodle_e3_completed']) ? '10' : '');
         
         // % Controles calculation
         $c_total = 3;

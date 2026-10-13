@@ -27,8 +27,17 @@ try {
     if (!in_array('diploma_entregado', $existing_cols)) {
         $pdo->exec("ALTER TABLE matriculas ADD COLUMN diploma_entregado TINYINT(1) DEFAULT 0");
     }
+    if (!in_array('diploma_tipo', $existing_cols)) {
+        $pdo->exec("ALTER TABLE matriculas ADD COLUMN diploma_tipo VARCHAR(50) DEFAULT NULL");
+    }
     if (!in_array('fecha_comunicacion', $existing_cols)) {
         $pdo->exec("ALTER TABLE matriculas ADD COLUMN fecha_comunicacion DATE DEFAULT NULL");
+    }
+    if (!in_array('envio_claves', $existing_cols)) {
+        $pdo->exec("ALTER TABLE matriculas ADD COLUMN envio_claves TINYINT(1) DEFAULT 0");
+    }
+    if (!in_array('fecha_claves', $existing_cols)) {
+        $pdo->exec("ALTER TABLE matriculas ADD COLUMN fecha_claves DATE DEFAULT NULL");
     }
 } catch (Exception $e) {
     // Silencioso
@@ -93,7 +102,7 @@ try {
 
     // Obtener alumnos matriculados
     $stmtAlumnos = $pdo->prepare("
-        SELECT m.id as matricula_id, m.estado as matricula_estado, m.fecha_matricula, m.facturables, m.certificables, m.diploma_entregado, m.fecha_comunicacion, m.envio_claves, m.fecha_claves,
+        SELECT m.id as matricula_id, m.estado as matricula_estado, m.fecha_matricula, m.facturables, m.certificables, m.diploma_entregado, m.diploma_tipo, m.fecha_comunicacion, m.envio_claves, m.fecha_claves,
                a.id as alumno_id, CONCAT(a.nombre, ' ', a.primer_apellido, ' ', COALESCE(a.segundo_apellido, '')) as alumno_nombre,
                a.dni, a.fecha_nacimiento, a.localidad, a.provincia,
                e.nombre as empresa_nombre, e.cif as empresa_cif
@@ -448,7 +457,7 @@ $current_page = 'grupos.php'; // Para marcar activo en la sidebar
                                         <?php endif; ?>
                                     </td>
                                     <td><?= htmlspecialchars($row['certificables'] ?? '—') ?></td>
-                                    <td><?= !empty($row['diploma_entregado']) ? 'SI' : 'NO' ?></td>
+                                    <td><?= !empty($row['diploma_entregado']) ? '<span class="badge-status badge-finalizado" style="font-size: 0.75rem;">SÍ ' . (!empty($row['diploma_tipo']) ? '(' . htmlspecialchars($row['diploma_tipo']) . ')' : '') . '</span>' : '<span class="badge-status badge-abandono" style="font-size: 0.75rem;">NO</span>' ?></td>
                                     <td><?= $row['fecha_comunicacion'] ? date('d/m/Y', strtotime($row['fecha_comunicacion'])) : '—' ?></td>
                                     <td style="text-align: center;">
                                         <input type="checkbox" name="facturable[<?= $row['matricula_id'] ?>]" value="1" <?= ($row['facturables'] ?? '') === 'SI' ? 'checked' : '' ?> style="width: 15px; height: 15px; cursor: pointer; vertical-align: middle;">
@@ -461,8 +470,17 @@ $current_page = 'grupos.php'; // Para marcar activo en la sidebar
                                             </button>
                                             <!-- Editar Matrícula -->
                                             <a href="ficha_matricula.php?id=<?= $row['matricula_id'] ?>" class="btn-action-relacion btn-edit" title="Editar Matrícula">
-                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                                            </a>
+                                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                             </a>
+                                             <!-- Diploma / Certificado PDF -->
+                                             <?php 
+                                                 $isNoAptoRel = (strpos(strtoupper($row['matricula_estado'] ?? ''), 'NO APTO') !== false || strpos(strtoupper($row['matricula_estado'] ?? ''), 'BAJA') !== false);
+                                                 $docTipoRel = $isNoAptoRel ? 'certificado' : 'diploma';
+                                                 $docTitleRel = $isNoAptoRel ? 'Descargar Certificado de Asistencia' : 'Descargar Diploma de Aprovechamiento';
+                                             ?>
+                                             <a href="pdf_diploma.php?alumno_id=<?= $row['alumno_id'] ?>&grupo_id=<?= $grupo_id ?>&accion_id=<?= $group['accion_id'] ?>&tipo=<?= $docTipoRel ?>" target="_blank" class="btn-action-relacion" style="background: <?= $isNoAptoRel ? '#ecfdf5' : '#eff6ff' ?>; color: <?= $isNoAptoRel ? '#059669' : '#2563eb' ?>; border: 1px solid <?= $isNoAptoRel ? '#6ee7b7' : '#93c5fd' ?>;" title="<?= $docTitleRel ?>">
+                                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15l-5-5h3V4h4v6h3l-5 5z"></path><path d="M2 20h20v2H2z"></path></svg>
+                                             </a>
                                             <!-- Ver Ficha Alumno -->
                                             <a href="ficha_alumno.php?id=<?= $row['alumno_id'] ?>" class="btn-action-relacion btn-user" title="Ficha del Alumno">
                                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>

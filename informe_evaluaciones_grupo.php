@@ -274,8 +274,8 @@ $current_page = 'grupos.php';
                                     
                                     <!-- Ev Inicial -->
                                     <td style="text-align: center;">
-                                        <?php if ($alumno['moodle_e1_grade'] !== null): ?>
-                                            <span class="grade-number"><?= number_format(floor((float)$alumno['moodle_e1_grade']), 0) ?></span>
+                                        <?php if ($alumno['moodle_e1_grade'] !== null || !empty($alumno['moodle_e1_completed'])): ?>
+                                            <span class="grade-number"><?= ($alumno['moodle_e1_grade'] !== null && $alumno['moodle_e1_grade'] !== '') ? number_format(floor((float)$alumno['moodle_e1_grade']), 0) : '10' ?></span>
                                             <br><small class="badge badge-success" style="font-size: 0.65rem; padding: 2px 6px;">Hecho</small>
                                         <?php else: ?>
                                             <span style="color: var(--text-muted);">—</span>
@@ -285,8 +285,8 @@ $current_page = 'grupos.php';
                                     
                                     <!-- Ev Intermedia -->
                                     <td style="text-align: center;">
-                                        <?php if ($alumno['moodle_e2_grade'] !== null): ?>
-                                            <span class="grade-number"><?= number_format(floor((float)$alumno['moodle_e2_grade']), 0) ?></span>
+                                        <?php if ($alumno['moodle_e2_grade'] !== null || !empty($alumno['moodle_e2_completed'])): ?>
+                                            <span class="grade-number"><?= ($alumno['moodle_e2_grade'] !== null && $alumno['moodle_e2_grade'] !== '') ? number_format(floor((float)$alumno['moodle_e2_grade']), 0) : '10' ?></span>
                                             <br><small class="badge badge-success" style="font-size: 0.65rem; padding: 2px 6px;">Hecho</small>
                                         <?php else: ?>
                                             <span style="color: var(--text-muted);">—</span>
@@ -296,8 +296,8 @@ $current_page = 'grupos.php';
                                     
                                     <!-- Ev Final -->
                                     <td style="text-align: center;">
-                                        <?php if ($alumno['moodle_e3_grade'] !== null): ?>
-                                            <span class="grade-number"><?= number_format(floor((float)$alumno['moodle_e3_grade']), 0) ?></span>
+                                        <?php if ($alumno['moodle_e3_grade'] !== null || !empty($alumno['moodle_e3_completed'])): ?>
+                                            <span class="grade-number"><?= ($alumno['moodle_e3_grade'] !== null && $alumno['moodle_e3_grade'] !== '') ? number_format(floor((float)$alumno['moodle_e3_grade']), 0) : '10' ?></span>
                                             <br><small class="badge badge-success" style="font-size: 0.65rem; padding: 2px 6px;">Hecho</small>
                                         <?php else: ?>
                                             <span style="color: var(--text-muted);">—</span>

@@ -81,11 +81,12 @@ try {
 
     // 4. Obtener los alumnos matriculados en la Acción Formativa (o grupo específico si se proporcionó grupo_id)
     // que posean un moodle_user_id válido.
-    $sqlAlumnos = "SELECT DISTINCT a.id as alumno_id, a.moodle_user_id, m.id as matricula_id 
+    // 4. Obtener todos los alumnos matriculados en la Acción Formativa (o grupo específico si se proporcionó grupo_id)
+    $sqlAlumnos = "SELECT DISTINCT a.id as alumno_id, a.moodle_user_id, a.email, a.plat_usuario, a.dni, a.nombre, a.primer_apellido, a.segundo_apellido, m.id as matricula_id 
                    FROM matriculas m 
                    JOIN alumnos a ON m.alumno_id = a.id 
                    JOIN grupos g ON m.grupo_id = g.id 
-                   WHERE g.accion_id = ? AND a.moodle_user_id IS NOT NULL AND a.moodle_user_id > 0";
+                   WHERE g.accion_id = ? AND (m.estado IS NULL OR UPPER(m.estado) != 'BAJA')";
     $paramsAl = [$af_id];
     if ($grupo_id > 0) {
         $sqlAlumnos .= " AND m.grupo_id = ?";
@@ -99,17 +100,44 @@ try {
         echo json_encode([
             'success' => true,
             'count' => 0,
-            'message' => 'No se encontraron alumnos con Moodle ID vinculados a esta acción formativa.'
+            'message' => 'No se encontraron alumnos matriculados en esta acción formativa.'
         ]);
         exit();
     }
+
+    require_once 'includes/moodle_api.php';
+    $moodleApi = new MoodleAPI($pdo);
 
     // Mapeo de moodle_user_id a la matricula_id local para poder guardar los datos
     $moodleUserIds = [];
     $matriculaMap = [];
     foreach ($alumnos as $al) {
-        $moodleUserIds[] = (int)$al['moodle_user_id'];
-        $matriculaMap[(int)$al['moodle_user_id']] = (int)$al['matricula_id'];
+        $muid = (int)($al['moodle_user_id'] ?? 0);
+        
+        // Auto-resolver moodle_user_id si falta en la Intranet
+        if (!$muid && $moodleApi->isConfigured()) {
+            $cleanDni = !empty($al['dni']) ? strtolower(trim(str_replace([' ', '-', '.'], '', $al['dni']))) : '';
+            $username = !empty($al['plat_usuario']) ? $al['plat_usuario'] : (!empty($cleanDni) ? $cleanDni : strtolower(explode('@', $al['email'])[0]));
+            $foundMUser = $moodleApi->findUserByAny($al['email'], $username, $cleanDni, $al['nombre'] . ' ' . $al['primer_apellido'] . ' ' . $al['segundo_apellido']);
+            if (!empty($foundMUser['id'])) {
+                $muid = (int)$foundMUser['id'];
+                $pdo->prepare("UPDATE alumnos SET moodle_user_id = ? WHERE id = ?")->execute([$muid, $al['alumno_id']]);
+            }
+        }
+
+        if ($muid > 0) {
+            $moodleUserIds[] = $muid;
+            $matriculaMap[$muid] = (int)$al['matricula_id'];
+        }
+    }
+
+    if (empty($moodleUserIds)) {
+        echo json_encode([
+            'success' => true,
+            'count' => 0,
+            'message' => 'No se encontraron alumnos con ID de Moodle vinculados a esta acción formativa.'
+        ]);
+        exit();
     }
 
     // 5. Instanciar el conector Moodle y descargar estadísticas
@@ -154,10 +182,11 @@ try {
                 $data['m2_completed'] = 1;
             }
 
-            // Calcular % curso basándose en la duración de la intranet
+            // Calcular % curso basándose en la mejor combinación entre tiempo y avance real de Moodle
             $connectedSeconds = (int)$data['connected_seconds'];
             $connectedHours = $connectedSeconds / 3600;
-            $progressPercent = min(100, max(0, round(($connectedHours / $courseDuration) * 100)));
+            $timeProgress = min(100, max(0, round(($connectedHours / $courseDuration) * 100)));
+            $progressPercent = max((float)$data['progress'], $timeProgress);
 
             $updateStmt->execute([
                 $data['first_access'],

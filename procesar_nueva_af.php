@@ -4,6 +4,11 @@ require_once 'includes/auth.php';
 require_once 'includes/config.php';
 require_once 'includes/moodle_api.php';
 
+if (!has_permission([ROLE_ADMIN, ROLE_TUTOR, ROLE_COORD, ROLE_PRACTICAS])) {
+    header("Location: home.php");
+    exit();
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') exit();
 
 $csrf_token = $_POST['csrf_token'] ?? '';
