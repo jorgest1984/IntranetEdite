@@ -248,6 +248,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ejecutar_importacion'
                     $email = $email ?: $alRow['email'];
                     $moodle_user_id = $alRow['moodle_user_id'];
                 }
+            if (!$alumno_id && !empty($email)) {
+                $stmtAlEmail = $pdo->prepare("SELECT id, dni, email, moodle_user_id FROM alumnos WHERE LOWER(TRIM(email)) = LOWER(?) LIMIT 1");
+                $stmtAlEmail->execute([$email]);
+                $alEmailRow = $stmtAlEmail->fetch(PDO::FETCH_ASSOC);
+                if ($alEmailRow) {
+                    $alumno_id = $alEmailRow['id'];
+                    $moodle_user_id = $alEmailRow['moodle_user_id'];
+                    // Si el DNI era provisional o nulo y ahora tenemos DNI, actualizarlo
+                    if (!empty($dni) && (empty($alEmailRow['dni']) || strpos($alEmailRow['dni'], 'M-') === 0)) {
+                        $pdo->prepare("UPDATE alumnos SET dni = ? WHERE id = ?")->execute([$dni, $alumno_id]);
+                    }
+                }
             }
 
             if (!$email) {

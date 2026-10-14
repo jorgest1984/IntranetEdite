@@ -173,18 +173,69 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action_quick_create_en
             throw new Exception("El nombre y el DNI son campos obligatorios.");
         }
 
-        // Comprobar si ya existe el alumno por DNI
-        $stmtCheck = $pdo->prepare("SELECT id FROM alumnos WHERE REPLACE(REPLACE(REPLACE(dni, ' ', ''), '-', ''), '.', '') = ? LIMIT 1");
+        // 1. Comprobar si ya existe el alumno por DNI
+        $stmtCheck = $pdo->prepare("SELECT * FROM alumnos WHERE REPLACE(REPLACE(REPLACE(dni, ' ', ''), '-', ''), '.', '') = ? LIMIT 1");
         $stmtCheck->execute([$dni]);
         $existing = $stmtCheck->fetch();
 
+        // 2. Si no se encontró por DNI y hay email, comprobar si ya existe por email
+        if (!$existing && !empty($email)) {
+            $stmtCheckEmail = $pdo->prepare("SELECT * FROM alumnos WHERE LOWER(TRIM(email)) = LOWER(?) LIMIT 1");
+            $stmtCheckEmail->execute([$email]);
+            $existing = $stmtCheckEmail->fetch();
+        }
+
         if ($existing) {
             $alumno_id = (int)$existing['id'];
+            // Actualizar campos que puedan estar incompletos o provisionales (ej: DNI tipo M-1056)
+            $updates = [];
+            $updateParams = [];
+            if (!empty($dni) && ($existing['dni'] !== $dni)) {
+                $updates[] = "dni = ?";
+                $updateParams[] = $dni;
+            }
+            if (!empty($nombre) && (empty($existing['nombre']) || $existing['nombre'] === 'Alumno')) {
+                $updates[] = "nombre = ?";
+                $updateParams[] = $nombre;
+            }
+            if (!empty($primer_apellido) && (empty($existing['primer_apellido']) || $existing['primer_apellido'] === 'Sin apellido')) {
+                $updates[] = "primer_apellido = ?";
+                $updateParams[] = $primer_apellido;
+            }
+            if (!empty($segundo_apellido) && empty($existing['segundo_apellido'])) {
+                $updates[] = "segundo_apellido = ?";
+                $updateParams[] = $segundo_apellido;
+            }
+            if (!empty($telefono) && empty($existing['telefono'])) {
+                $updates[] = "telefono = ?";
+                $updateParams[] = $telefono;
+            }
+            if (!empty($email) && empty($existing['email'])) {
+                $updates[] = "email = ?";
+                $updateParams[] = $email;
+            }
+            if (!empty($updates)) {
+                $updateParams[] = $alumno_id;
+                $pdo->prepare("UPDATE alumnos SET " . implode(", ", $updates) . " WHERE id = ?")->execute($updateParams);
+            }
         } else {
-            // Insertar nuevo alumno
-            $stmtIns = $pdo->prepare("INSERT INTO alumnos (nombre, primer_apellido, segundo_apellido, dni, email, telefono) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmtIns->execute([$nombre, $primer_apellido, $segundo_apellido, $dni, $email, $telefono]);
-            $alumno_id = (int)$pdo->lastInsertId();
+            // Insertar nuevo alumno con captura de duplicados por seguridad
+            try {
+                $stmtIns = $pdo->prepare("INSERT INTO alumnos (nombre, primer_apellido, segundo_apellido, dni, email, telefono) VALUES (?, ?, ?, ?, ?, ?)");
+                $stmtIns->execute([$nombre, $primer_apellido, $segundo_apellido, $dni, $email, $telefono]);
+                $alumno_id = (int)$pdo->lastInsertId();
+            } catch (PDOException $insEx) {
+                if ($insEx->getCode() == 23000 || strpos($insEx->getMessage(), '1062') !== false) {
+                    $stmtRecup = $pdo->prepare("SELECT id FROM alumnos WHERE LOWER(TRIM(email)) = LOWER(?) OR REPLACE(REPLACE(REPLACE(dni, ' ', ''), '-', ''), '.', '') = ? LIMIT 1");
+                    $stmtRecup->execute([$email, $dni]);
+                    $alumno_id = (int)$stmtRecup->fetchColumn();
+                    if (!$alumno_id) {
+                        throw $insEx;
+                    }
+                } else {
+                    throw $insEx;
+                }
+            }
         }
 
         if ($alumno_id > 0) {
