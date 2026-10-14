@@ -64,7 +64,7 @@ function get_user_centro_filter($column_name = 'grupos.centro_id') {
     return " 1=1 ";
 }
 
-// Temporary migration for Jefe Comercial
+// Automatic migration for Jefe Comercial role
 if (!isset($_SESSION['jefe_comercial_migrated_3']) && isset($pdo)) {
     try {
         $stmt = $pdo->query("SELECT COUNT(*) FROM roles WHERE id = 6");
@@ -73,7 +73,6 @@ if (!isset($_SESSION['jefe_comercial_migrated_3']) && isset($pdo)) {
         } else {
             $pdo->exec("UPDATE roles SET nombre = 'Jefe Comercial' WHERE id = 6");
         }
-        $pdo->exec("UPDATE usuarios SET rol_id = 6 WHERE nombre LIKE '%Eva%' AND apellidos LIKE '%lvarez%'");
         $_SESSION['jefe_comercial_migrated_3'] = true;
     } catch (Exception $e) {
         // Ignore silently
