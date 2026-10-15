@@ -11,6 +11,9 @@ if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_TUTOR])) {
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $moodle_id = isset($_GET['moodle_id']) ? (int)$_GET['moodle_id'] : 0;
 $grupo_id = isset($_GET['grupo_id']) ? (int)$_GET['grupo_id'] : 0;
+$curso_id = isset($_GET['curso_id']) ? (int)$_GET['curso_id'] : 0;
+$af_id = isset($_GET['af_id']) ? (int)$_GET['af_id'] : (isset($_GET['accion_id']) ? (int)$_GET['accion_id'] : 0);
+$matricula_id = isset($_GET['matricula_id']) ? (int)$_GET['matricula_id'] : (isset($_GET['mat_id']) ? (int)$_GET['mat_id'] : 0);
 $grupo_param = isset($_GET['grupo']) ? trim($_GET['grupo']) : (isset($_GET['g']) ? trim($_GET['g']) : (isset($_GET['numero_grupo']) ? trim($_GET['numero_grupo']) : ''));
 $source = isset($_GET['source']) ? $_GET['source'] : '';
 
@@ -22,14 +25,58 @@ if ($grupo_id) {
     $stmtG = $pdo->prepare("SELECT * FROM grupos WHERE id = ?");
     $stmtG->execute([$grupo_id]);
     $grupo = $stmtG->fetch(PDO::FETCH_ASSOC);
-    if ($grupo) {
+    if ($grupo && !empty($grupo['accion_id'])) {
         $stmtA = $pdo->prepare("SELECT * FROM acciones_formativas WHERE id = ?");
         $stmtA->execute([$grupo['accion_id']]);
         $accion = $stmtA->fetch(PDO::FETCH_ASSOC);
     }
 }
 
-// 2. Si se pasa moodle_id o source === 'moodle'
+// 2. Si se pasa af_id / accion_id explícito
+if (!$accion && $af_id) {
+    $stmtA = $pdo->prepare("SELECT * FROM acciones_formativas WHERE id = ?");
+    $stmtA->execute([$af_id]);
+    $accion = $stmtA->fetch(PDO::FETCH_ASSOC);
+}
+
+// 3. Si se pasa curso_id explícito
+if (!$accion && $curso_id) {
+    $stmtA = $pdo->prepare("SELECT * FROM acciones_formativas WHERE curso_id = ?");
+    $stmtA->execute([$curso_id]);
+    $accion = $stmtA->fetch(PDO::FETCH_ASSOC);
+    if (!$accion) {
+        $stmtCur = $pdo->prepare("SELECT id, moodle_id FROM cursos WHERE id = ?");
+        $stmtCur->execute([$curso_id]);
+        $cRow = $stmtCur->fetch(PDO::FETCH_ASSOC);
+        if ($cRow && !empty($cRow['moodle_id'])) {
+            $stmtA = $pdo->prepare("SELECT * FROM acciones_formativas WHERE id_plataforma = ?");
+            $stmtA->execute([$cRow['moodle_id']]);
+            $accion = $stmtA->fetch(PDO::FETCH_ASSOC);
+        }
+    }
+}
+
+// 4. Si se pasa matricula_id explícito
+if (!$accion && $matricula_id) {
+    $stmtMat = $pdo->prepare("SELECT m.*, g.accion_id FROM matriculas m LEFT JOIN grupos g ON m.grupo_id = g.id WHERE m.id = ?");
+    $stmtMat->execute([$matricula_id]);
+    $matRow = $stmtMat->fetch(PDO::FETCH_ASSOC);
+    if ($matRow) {
+        if (!empty($matRow['grupo_id']) && !$grupo) {
+            $grupo_id = (int)$matRow['grupo_id'];
+            $stmtG = $pdo->prepare("SELECT * FROM grupos WHERE id = ?");
+            $stmtG->execute([$grupo_id]);
+            $grupo = $stmtG->fetch(PDO::FETCH_ASSOC);
+        }
+        if (!empty($matRow['accion_id'])) {
+            $stmtA = $pdo->prepare("SELECT * FROM acciones_formativas WHERE id = ?");
+            $stmtA->execute([$matRow['accion_id']]);
+            $accion = $stmtA->fetch(PDO::FETCH_ASSOC);
+        }
+    }
+}
+
+// 5. Si se pasa moodle_id o source === 'moodle'
 if (!$accion && $moodle_id) {
     $stmtA = $pdo->prepare("SELECT * FROM acciones_formativas WHERE id_plataforma = ?");
     $stmtA->execute([$moodle_id]);
@@ -42,24 +89,68 @@ if (!$accion && $source === 'moodle' && $id) {
     $accion = $stmtA->fetch(PDO::FETCH_ASSOC);
 }
 
-// 3. Si se pasa $id
+// 6. Si se pasa $id (resolución inteligente multi-entidad)
 if (!$accion && $id) {
-    // A. Comprobar si $id es directamente un grupo_id de la tabla grupos
-    $stmtG = $pdo->prepare("SELECT * FROM grupos WHERE id = ?");
-    $stmtG->execute([$id]);
-    $possibleGrupo = $stmtG->fetch(PDO::FETCH_ASSOC);
-    if ($possibleGrupo) {
-        $stmtA = $pdo->prepare("SELECT * FROM acciones_formativas WHERE id = ?");
-        $stmtA->execute([$possibleGrupo['accion_id']]);
-        $possibleAccion = $stmtA->fetch(PDO::FETCH_ASSOC);
-        if ($possibleAccion) {
-            $accion = $possibleAccion;
-            $grupo = $possibleGrupo;
-            $grupo_id = $grupo['id'];
+    // A. Comprobar si $id es directamente el ID de acciones_formativas
+    $stmtA = $pdo->prepare("SELECT * FROM acciones_formativas WHERE id = ?");
+    $stmtA->execute([$id]);
+    $accion = $stmtA->fetch(PDO::FETCH_ASSOC);
+
+    // B. Comprobar si $id es el curso_id de acciones_formativas
+    if (!$accion) {
+        $stmtA = $pdo->prepare("SELECT * FROM acciones_formativas WHERE curso_id = ?");
+        $stmtA->execute([$id]);
+        $accion = $stmtA->fetch(PDO::FETCH_ASSOC);
+    }
+
+    // C. Comprobar si $id es el ID de un curso en la tabla cursos (y obtener su acción formativa asociada)
+    if (!$accion) {
+        $stmtCur = $pdo->prepare("SELECT id, moodle_id FROM cursos WHERE id = ? OR moodle_id = ?");
+        $stmtCur->execute([$id, $id]);
+        $curRow = $stmtCur->fetch(PDO::FETCH_ASSOC);
+        if ($curRow) {
+            $stmtA = $pdo->prepare("SELECT * FROM acciones_formativas WHERE curso_id = ? OR id_plataforma = ? OR id_plataforma = ? LIMIT 1");
+            $stmtA->execute([$curRow['id'], $curRow['moodle_id'], $curRow['id']]);
+            $accion = $stmtA->fetch(PDO::FETCH_ASSOC);
         }
     }
 
-    // B. Comprobar si $id es id_plataforma (Moodle course ID)
+    // D. Comprobar si $id es directamente un grupo_id de la tabla grupos
+    if (!$accion) {
+        $stmtG = $pdo->prepare("SELECT * FROM grupos WHERE id = ?");
+        $stmtG->execute([$id]);
+        $possibleGrupo = $stmtG->fetch(PDO::FETCH_ASSOC);
+        if ($possibleGrupo && !empty($possibleGrupo['accion_id'])) {
+            $stmtA = $pdo->prepare("SELECT * FROM acciones_formativas WHERE id = ?");
+            $stmtA->execute([$possibleGrupo['accion_id']]);
+            $possibleAccion = $stmtA->fetch(PDO::FETCH_ASSOC);
+            if ($possibleAccion) {
+                $accion = $possibleAccion;
+                $grupo = $possibleGrupo;
+                $grupo_id = $grupo['id'];
+            }
+        }
+    }
+
+    // E. Comprobar si $id es una matrícula de la tabla matriculas
+    if (!$accion) {
+        $stmtM = $pdo->prepare("SELECT m.*, g.accion_id FROM matriculas m LEFT JOIN grupos g ON m.grupo_id = g.id WHERE m.id = ?");
+        $stmtM->execute([$id]);
+        $matRow = $stmtM->fetch(PDO::FETCH_ASSOC);
+        if ($matRow && !empty($matRow['accion_id'])) {
+            $stmtA = $pdo->prepare("SELECT * FROM acciones_formativas WHERE id = ?");
+            $stmtA->execute([$matRow['accion_id']]);
+            $accion = $stmtA->fetch(PDO::FETCH_ASSOC);
+            if ($accion && !empty($matRow['grupo_id']) && !$grupo) {
+                $grupo_id = (int)$matRow['grupo_id'];
+                $stmtG = $pdo->prepare("SELECT * FROM grupos WHERE id = ?");
+                $stmtG->execute([$grupo_id]);
+                $grupo = $stmtG->fetch(PDO::FETCH_ASSOC);
+            }
+        }
+    }
+
+    // F. Comprobar si $id es id_plataforma (Moodle course ID)
     if (!$accion) {
         $stmtPlat = $pdo->prepare("SELECT * FROM acciones_formativas WHERE id_plataforma = ?");
         $stmtPlat->execute([$id]);
@@ -69,11 +160,11 @@ if (!$accion && $id) {
         }
     }
 
-    // C. Comprobar si $id es el id interno de acciones_formativas
+    // G. Comprobar si $id es el num_accion
     if (!$accion) {
-        $stmtA = $pdo->prepare("SELECT * FROM acciones_formativas WHERE id = ?");
-        $stmtA->execute([$id]);
-        $accion = $stmtA->fetch(PDO::FETCH_ASSOC);
+        $stmtNum = $pdo->prepare("SELECT * FROM acciones_formativas WHERE num_accion = ? ORDER BY id DESC LIMIT 1");
+        $stmtNum->execute([$id]);
+        $accion = $stmtNum->fetch(PDO::FETCH_ASSOC);
     }
 }
 
@@ -102,6 +193,14 @@ if (!$grupo_id) {
     if (!empty($grupos_accion)) {
         $grupo = $grupos_accion[0];
         $grupo_id = (int)$grupo['id'];
+    } elseif (!empty($accion['curso_id'])) {
+        $stmtGByCurso = $pdo->prepare("SELECT * FROM grupos WHERE curso_id = ? ORDER BY id DESC LIMIT 1");
+        $stmtGByCurso->execute([$accion['curso_id']]);
+        $gByCurso = $stmtGByCurso->fetch(PDO::FETCH_ASSOC);
+        if ($gByCurso) {
+            $grupo = $gByCurso;
+            $grupo_id = (int)$grupo['id'];
+        }
     }
 }
 
@@ -119,14 +218,16 @@ if (!empty($abrev) && (strpos($titulo, $abrev) === 0 || strcasecmp($abrev, subst
 $horas = !empty($accion['duracion']) ? $accion['duracion'] . ' h' : '---';
 $num_accion = !empty($accion['num_accion']) ? $accion['num_accion'] : '---';
 
-// Fetch Expediente (Priority: selected group's expediente, first group's expediente, Fallback: convocatoria)
+// Fetch Expediente (Priority: selected group's expediente, action's expediente, fallback: convocatoria)
 $expediente = '---';
 if ($grupo && !empty($grupo['expediente'])) {
     $expediente = $grupo['expediente'];
+} elseif (!empty($accion['expediente'])) {
+    $expediente = $accion['expediente'];
 } else {
     try {
         $stmtExp = $pdo->prepare("
-            SELECT COALESCE(NULLIF(g.expediente, ''), co.codigo_expediente) as codigo_expediente
+            SELECT COALESCE(NULLIF(g.expediente, ''), NULLIF(af.expediente, ''), co.codigo_expediente) as codigo_expediente
             FROM acciones_formativas af
             LEFT JOIN grupos g ON g.accion_id = af.id
             LEFT JOIN planes pl ON af.plan_id = pl.id
