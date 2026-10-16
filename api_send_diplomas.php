@@ -7,7 +7,7 @@ require_once 'includes/PdfGenerator.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
-if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_ADMINISTRATIVO, ROLE_TUTOR, ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL, ROLE_PRACTICAS])) {
+if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_ADMINISTRATIVO, ROLE_TUTOR, ROLE_FORMADOR, ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL, ROLE_PRACTICAS])) {
     echo json_encode(['success' => false, 'message' => 'Acceso denegado. Permisos insuficientes.']);
     exit;
 }

@@ -1,7 +1,7 @@
 <?php
 require_once 'includes/auth.php';
 
-if (!has_permission([ROLE_ADMIN, ROLE_TUTOR, ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL])) {
+if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_ADMINISTRATIVO, ROLE_TUTOR, ROLE_FORMADOR, ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL, ROLE_PRACTICAS])) {
     header("Location: index.php");
     exit();
 }
@@ -2414,7 +2414,7 @@ Equipo de Soporte de Formación</textarea>
                 const inputFecha = document.getElementById('input_fecha_comunicacion');
                 if (inputFecha) inputFecha.value = new Date().toISOString().split('T')[0];
             } else {
-                alert('❌ Error al enviar: ' + (data.error || 'Ocurrió un problema en el servidor.'));
+                alert('❌ Error al enviar: ' + (data.message || data.error || 'Ocurrió un problema en el servidor.'));
             }
         })
         .catch(err => {

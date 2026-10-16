@@ -1,7 +1,7 @@
 <?php
 // includes/PdfGenerator.php
-require_once 'includes/fpdf/fpdf.php';
-require_once 'includes/fpdf/fpdf_curve.php';
+require_once __DIR__ . '/fpdf/fpdf.php';
+require_once __DIR__ . '/fpdf/fpdf_curve.php';
 
 // Helpers FPDF
 if (!function_exists('pdf_utf8_to_iso')) {

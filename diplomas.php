@@ -3,6 +3,11 @@
 require_once 'includes/config.php';
 require_once 'includes/auth.php';
 
+if (!has_permission([ROLE_ADMIN, ROLE_COORD, ROLE_ADMINISTRATIVO, ROLE_TUTOR, ROLE_FORMADOR, ROLE_COMERCIAL, ROLE_JEFE_COMERCIAL, ROLE_PRACTICAS])) {
+    header("Location: dashboard.php");
+    exit();
+}
+
 $accion_id = intval($_GET['accion_id'] ?? 0);
 $grupo_id = intval($_GET['grupo_id'] ?? 0);
 
@@ -148,6 +153,9 @@ $alumnos = $stmtAlumnos->fetchAll(PDO::FETCH_ASSOC);
                                         <a href="pdf_diploma.php?alumno_id=<?= $alumno['alumno_id'] ?>&grupo_id=<?= $grupo_id ?>&accion_id=<?= $accion_id ?>&tipo=certificado" target="_blank" class="btn-action btn-certificado" title="Descargar Certificado de Asistencia">
                                             <i class="fa-solid fa-file-signature"></i> Certificado
                                         </a>
+                                        <button onclick="enviarIndividual(<?= $alumno['alumno_id'] ?>, 'certificado')" class="btn-action" style="background: #10b981; color: white;" title="Enviar Certificado por email">
+                                            <i class="fa-solid fa-paper-plane"></i>
+                                        </button>
                                     <?php else: ?>
                                         <button class="btn-action btn-diploma" disabled title="Diploma requiere superación del curso (APTO)" style="opacity: 0.5; cursor: not-allowed;">
                                             <i class="fa-solid fa-graduation-cap"></i> Diploma
